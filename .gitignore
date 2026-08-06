@@ -573,4 +573,7 @@ gradle-app.setting
 # Java heap dump
 *.hprof
 
+# Local Codex project instructions
+/AGENTS.md
+
 # End of https://www.toptal.com/developers/gitignore/api/intellij+all,java,python,venv,react,node,gradle,dotenv,linux,windows,pycharm+all
