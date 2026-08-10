@@ -5,6 +5,7 @@ import com.my.mindot_back.common.exception.InvalidRefreshTokenException;
 import com.my.mindot_back.common.exception.RefreshTokenReuseException;
 import com.my.mindot_back.redis.entity.RefreshToken;
 import com.my.mindot_back.redis.repository.RefreshTokenRepository;
+import com.my.mindot_back.redis.repository.RefreshTokenRotationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,7 @@ public class RefreshTokenService {
     private static final int SECRET_BYTE_LENGTH = 32;
 
     private final RefreshTokenRepository repository;
+    private final RefreshTokenRotationRepository rotationRepository;
     private final RefreshTokenProperties properties;
 
     private final SecureRandom secureRandom = new SecureRandom();
@@ -64,7 +66,8 @@ public class RefreshTokenService {
         return new IssuedRefreshToken(
                 userId,
                 rawToken,
-                now.plusSeconds(ttlSeconds)
+                now.plusSeconds(ttlSeconds),
+                ttlSeconds
         );
     }
 
@@ -78,44 +81,38 @@ public class RefreshTokenService {
         RefreshToken session = repository.findById(sessionId)
                 .orElseThrow(InvalidRefreshTokenException::new);
 
-        if (session.isAbsolutelyExpired(now)) {
-            repository.deleteById(sessionId);
-            throw new InvalidRefreshTokenException();
-        }
+        String newRawToken = createRawToken(sessionId);
 
-        String receivedHash = hash(oldRawToken);
+        RefreshTokenRotationRepository.RotationOutcome outcome =
+                rotationRepository.rotate(
+                        sessionId,
+                        hash(oldRawToken),
+                        hash(newRawToken),
+                        now,
+                        session.getAbsoluteExpiresAt(),
+                        properties.idleExpiration().toSeconds()
+                );
 
-        if (!constantTimeEquals(
-                receivedHash,
-                session.getTokenHash()
-        )) {
-            /*
-             * 이미 회전된 토큰이 다시 들어온 것으로 간주합니다.
-             * 탈취 가능성이 있으므로 해당 세션 전체를 폐기합니다.
-             */
-            repository.deleteById(sessionId);
+        if (outcome.result() ==
+                RefreshTokenRotationRepository.RotationResult.REUSED) {
             throw new RefreshTokenReuseException();
         }
 
-        String newRawToken = createRawToken(sessionId);
+        if (outcome.result() !=
+                RefreshTokenRotationRepository.RotationResult.ROTATED) {
+            throw new InvalidRefreshTokenException();
+        }
 
-        long ttlSeconds = calculateTtlSeconds(
-                now,
-                session.getAbsoluteExpiresAt()
-        );
-
-        session.rotate(
-                hash(newRawToken),
-                now,
-                ttlSeconds
-        );
-
-        repository.save(session);
+        Instant expiresAt = now.plusSeconds(outcome.expiresInSeconds());
+        if (expiresAt.isAfter(session.getAbsoluteExpiresAt())) {
+            expiresAt = session.getAbsoluteExpiresAt();
+        }
 
         return new IssuedRefreshToken(
                 session.getUserId(),
                 newRawToken,
-                now.plusSeconds(ttlSeconds)
+                expiresAt,
+                outcome.expiresInSeconds()
         );
     }
 
@@ -156,7 +153,15 @@ public class RefreshTokenService {
             throw new InvalidRefreshTokenException();
         }
 
-        return rawToken.substring(0, delimiterIndex);
+        String sessionId = rawToken.substring(0, delimiterIndex);
+
+        try {
+            UUID.fromString(sessionId);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidRefreshTokenException();
+        }
+
+        return sessionId;
     }
 
     private long calculateTtlSeconds(

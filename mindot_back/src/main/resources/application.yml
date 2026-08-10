@@ -45,3 +45,11 @@ auth:
   refresh-token:
     idle-expiration: 14d
     absolute-expiration: 30d
+
+  refresh-cookie:
+    name: mindot_refresh
+    path: /api/auth
+    secure: ${REFRESH_COOKIE_SECURE:false}
+
+  web:
+    allowed-origins: ${AUTH_ALLOWED_ORIGINS:http://localhost:3000}
