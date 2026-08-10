@@ -20,6 +20,17 @@ spring:
       embedding:
         model: text-embedding-3-small
 
+  data:
+    redis:
+      host: ${REDIS_ENDPOINT:localhost}
+
+      port: ${REDIS_PORT:6379}
+
+      password: ${REDIS_PW}
+
+      connect-timeout: 2s
+      timeout: 2s
+
   autoconfigure:
     exclude:
       # 스프링 시큐리티 기본 로그인 비활성화
