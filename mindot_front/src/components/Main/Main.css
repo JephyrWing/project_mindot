@@ -1,0 +1,40 @@
+/* 메인 콘텐츠를 화면 중앙에 배치하기 위한 전체 영역 설정. */
+.main-page {
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: #f4f6fa;
+}
+
+/* 메인 제목과 안내 문구를 담는 기본 카드 설정. */
+.main-card {
+  width: 100%;
+  max-width: 600px;
+  padding: 40px;
+  border: 1px solid #dddddd;
+  border-radius: 8px;
+  background: #ffffff;
+  text-align: center;
+}
+
+/* 메인 카드 상단의 서비스명 설정. */
+.main-brand {
+  margin: 0 0 12px;
+  color: #1c5ed0;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+/* 메인 페이지 제목의 기본 간격 설정. */
+.main-card h1 {
+  margin: 0;
+}
+
+/* 메인 제목 아래의 안내 문구 설정. */
+.main-description {
+  margin: 16px 0 0;
+  color: #666f85;
+}
