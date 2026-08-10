@@ -31,13 +31,9 @@ function Login({ onSignUp }) {
     }
   }
 
-  // 배경 장식과 브랜드 안내가 포함된 로그인 화면 반환.
+  // 회원가입과 동일한 배경 및 브랜드 안내가 포함된 로그인 화면 반환.
   return (
     <main className="login-page app-page">
-      {/* 로그인 카드 뒤쪽의 원형 배경 장식 배치. */}
-      <span className="login-decoration login-decoration--one" aria-hidden="true" />
-      <span className="login-decoration login-decoration--two" aria-hidden="true" />
-
       <section className="login-card" aria-labelledby="login-title">
         {/* 공통 컴포넌트를 사용한 Mindot 로고 배치. */}
         <BrandLogo className="login-logo" />

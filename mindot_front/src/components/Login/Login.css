@@ -1,41 +1,11 @@
-/* 로그인 카드와 배경 장식을 담는 전체 화면 영역 설정. */
+/* 회원가입 화면과 동일한 단색 로그인 배경 영역 설정. */
 .login-page {
-  position: relative;
   display: flex;
+  min-height: 100vh;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
   padding: 20px;
-  background:
-    linear-gradient(rgba(220, 227, 238, 0.45) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(220, 227, 238, 0.45) 1px, transparent 1px),
-    radial-gradient(circle at 20% 15%, rgba(60, 140, 255, 0.12), transparent 28%),
-    #f4f6fa;
-  background-size: 32px 32px, 32px 32px, auto, auto;
-}
-
-/* 카드 뒤쪽에 표시할 원형 배경 장식의 공통 형태 설정. */
-.login-decoration {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(60, 140, 255, 0.1);
-  pointer-events: none;
-}
-
-/* 화면 오른쪽 위에 표시할 첫 번째 원형 장식 배치. */
-.login-decoration--one {
-  top: -180px;
-  right: -110px;
-  width: 400px;
-  height: 400px;
-}
-
-/* 화면 왼쪽 아래에 표시할 두 번째 원형 장식 배치. */
-.login-decoration--two {
-  bottom: -220px;
-  left: -150px;
-  width: 450px;
-  height: 450px;
+  background: #f4f6fa;
 }
 
 /* 로그인 폼과 안내 문구를 담는 카드 설정. */
