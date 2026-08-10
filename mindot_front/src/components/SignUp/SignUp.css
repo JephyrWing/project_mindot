@@ -44,8 +44,58 @@
   padding: 0 12px;
 }
 
+/* 이메일 형식 오류가 발생한 입력창의 테두리 강조. */
+.signup-form input[aria-invalid='true'] {
+  border-color: #c83b4d;
+}
+
+/* 사용자가 지켜야 할 이메일 형식 안내 문구 설정. */
+.signup-form__hint {
+  margin: -6px 0 0;
+  color: #666f85;
+  font-size: 12px;
+}
+
+/* 이메일 형식 오류 안내 문구의 기본 모양 설정. */
+.signup-form__error {
+  margin: -6px 0 0;
+  color: #c83b4d;
+  font-size: 12px;
+}
+
+/* 비밀번호 확인 입력창과 일치 확인 버튼의 가로 정렬. */
+.signup-password-confirm-row {
+  display: flex;
+  gap: 8px;
+}
+
+/* 가로 영역 안에서 비밀번호 확인 입력창의 남은 너비 사용. */
+.signup-password-confirm-row input {
+  min-width: 0;
+  flex: 1;
+}
+
+/* 비밀번호 일치 확인 버튼의 보조 버튼 형태 설정. */
+.signup-password-check {
+  flex: 0 0 auto;
+  height: 44px;
+  border: 1px solid #1c5ed0;
+  border-radius: 4px;
+  padding: 0 12px;
+  color: #1c5ed0;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+/* 비밀번호 일치 확인 성공 문구의 기본 모양 설정. */
+.signup-form__success {
+  margin: -6px 0 0;
+  color: #178347;
+  font-size: 12px;
+}
+
 /* 회원가입 버튼의 기본 모양 설정. */
-.signup-form button {
+.signup-form > button {
   height: 44px;
   border: 0;
   border-radius: 4px;
