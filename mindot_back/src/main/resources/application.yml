@@ -9,7 +9,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
@@ -32,10 +32,10 @@ spring:
       timeout: 2s
 
 
-  autoconfigure:
-    exclude:
-      # 스프링 시큐리티 기본 로그인 비활성화
-      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+#  autoconfigure:
+#    exclude:
+#      # 스프링 시큐리티 기본 로그인 비활성화
+#      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
 
 
 auth:
