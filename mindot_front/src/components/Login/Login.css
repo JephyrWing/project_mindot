@@ -165,15 +165,60 @@
 }
 
 /* 이메일과 비밀번호 입력창의 기본 모양 설정. */
-.login-form input {
+.login-form input[type='email'],
+.login-form input[type='password'],
+.login-form input[type='text'] {
   height: 44px;
   border: 1px solid #cccccc;
   border-radius: 4px;
   padding: 0 12px;
 }
 
+/* 비밀번호 표시 버튼의 입력창 내부 배치를 위한 기준 영역 설정. */
+.login-password-field {
+  position: relative;
+}
+
+/* 비밀번호 입력창의 전체 너비와 버튼 공간 확보. */
+.login-password-field input {
+  width: 100%;
+  padding-right: 60px;
+}
+
+/* 비밀번호 표시 전환 버튼의 입력창 오른쪽 배치. */
+.login-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  border: 0;
+  padding: 4px;
+  color: #1c5ed0;
+  background: transparent;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+/* 이메일 기억하기 체크박스와 문구의 가로 정렬. */
+.login-remember {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+/* 이메일 기억하기 체크박스의 크기와 강조색 설정. */
+.login-remember input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #1c5ed0;
+}
+
 /* 로그인 버튼의 기본 모양 설정. */
-.login-form button {
+.login-form > button {
   height: 44px;
   border: 0;
   border-radius: 4px;
