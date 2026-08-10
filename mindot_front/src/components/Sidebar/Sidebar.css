@@ -73,8 +73,12 @@
   min-height: 48px;
   align-items: center;
   justify-content: space-between;
+}
+
+/* 사이드바 상단의 공통 Mindot 로고 설정. */
+.main-sidebar__brand {
   color: #0a1220;
-  letter-spacing: 0.1em;
+  font-size: 14px;
 }
 
 /* 모바일 터치 영역을 확보한 사이드바 닫기 버튼 설정. */
