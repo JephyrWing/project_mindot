@@ -4,6 +4,8 @@ package com.my.mindot_back.users.controller;
 
 import com.my.mindot_back.users.dto.UsersSignupRequestDto;
 import com.my.mindot_back.users.dto.UsersSignupResponseDto;
+import com.my.mindot_back.users.dto.UsersLoginRequestDto;
+import com.my.mindot_back.users.dto.UsersLoginResponseDto;
 import com.my.mindot_back.users.service.UsersService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +21,21 @@ import org.springframework.web.bind.annotation.*;
 public class UsersController {
     private final UsersService usersService;
 
+    // 회원가입
     @PostMapping("/signup")
     @ResponseStatus(HttpStatus.CREATED)
     public UsersSignupResponseDto signup(
             @Valid @RequestBody UsersSignupRequestDto dto
     ){
         return usersService.signup(dto);
+    }
+
+    // 로그인
+    @PostMapping("/login")
+    public UsersLoginResponseDto login(
+            @Valid @RequestBody UsersLoginRequestDto dto
+    ){
+        return usersService.login(dto);
     }
 }
 

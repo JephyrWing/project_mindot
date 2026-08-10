@@ -2,11 +2,15 @@ package com.my.mindot_back.users.service;
 
 import com.my.mindot_back.users.dto.UsersSignupRequestDto;
 import com.my.mindot_back.users.dto.UsersSignupResponseDto;
+import com.my.mindot_back.users.dto.UsersLoginRequestDto;
+import com.my.mindot_back.users.dto.UsersLoginResponseDto;
+import com.my.mindot_back.users.entity.AccountStatus;
 import com.my.mindot_back.users.entity.ConsentEvents;
 import com.my.mindot_back.users.entity.ConsentType;
 import com.my.mindot_back.users.entity.Users;
 import com.my.mindot_back.users.repository.ConsentEventsRepository;
 import com.my.mindot_back.users.repository.UsersRepository;
+import com.my.mindot_back.common.jwt.JwtTokenProvider;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -31,6 +35,9 @@ public class UsersService {
     private final ConsentEventsRepository consentEventsRepository;
 
     private final PasswordEncoder passwordEncoder;
+
+    // 로그인 성공한 사용자에게 Access Token을 발급하는 공통 JWT 클래스
+    private final JwtTokenProvider jwtTokenProvider;
 
     // 회원가입 처리 메서드
     /*
@@ -91,6 +98,49 @@ public class UsersService {
         // Response DTO 반환 (passwordHash 포함 X)
         return UsersSignupResponseDto.from(savedUser);
 
+    }
+
+    // 로그인 처리 메서드
+    /*
+    *1. 이메일로 사용자 조회
+    * 2. 암호화된 DB 저장 비밀번호와 원문 비밀번호 비교
+    * 3. 정상 사용자라면 정보를 Response DTO로 반환
+     */
+    public UsersLoginResponseDto login(UsersLoginRequestDto dto) {
+        String email = dto.email()
+                .trim()
+                .toLowerCase(Locale.ROOT);
+
+        Users user = usersRepository.findByEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED,
+                        "이메일 또는 비밀번호가 올바르지 않습니다."
+                ));
+
+        if (!passwordEncoder.matches(dto.password(), user.getPasswordHash())) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "이메일 또는 비밀번호가 올바르지 않습니다."
+            );
+        }
+
+        // ACTIVE가 아니면 로그인 불가
+        if (user.getStatus() != AccountStatus.ACTIVE) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "로그인할 수 없는 계정입니다."
+            );
+        }
+
+        // 비밀번호와 계정 상태 검증을 모두 통과한 사용자에게 15분짜리 Access Token 발급
+        String accessToken = jwtTokenProvider.createAccessToken(user.getId());
+
+        return new UsersLoginResponseDto(
+                user.getId(),
+                user.getEmail(),
+                user.getDisplayName(),
+                accessToken
+        );
     }
 
 }

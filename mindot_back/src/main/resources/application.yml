@@ -37,8 +37,11 @@ spring:
 #      # 스프링 시큐리티 기본 로그인 비활성화
 #      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
 
-
 auth:
+  jwt:
+    secret: ${JWT_SECRET}
+    access-token-expiration: 15m
+
   refresh-token:
     idle-expiration: 14d
     absolute-expiration: 30d
