@@ -1,4 +1,6 @@
 import { useState } from 'react'
+// 여러 화면에서 공통으로 사용하는 Mindot 로고 불러오기.
+import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import './Login.css'
 
 // 브라우저에 저장할 이메일 데이터의 식별 키 설정.
@@ -37,15 +39,8 @@ function Login({ onSignUp }) {
       <span className="login-decoration login-decoration--two" aria-hidden="true" />
 
       <section className="login-card" aria-labelledby="login-title">
-        {/* 점과 연결선으로 구성한 Mindot 로고 배치. */}
-        <div className="login-logo" aria-label="Mindot">
-          <span className="login-logo__mark" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </span>
-          <span>MINDOT</span>
-        </div>
+        {/* 공통 컴포넌트를 사용한 Mindot 로고 배치. */}
+        <BrandLogo className="login-logo" />
 
         {/* 로그인 제목과 서비스 안내 문구 배치. */}
         <header className="login-header">

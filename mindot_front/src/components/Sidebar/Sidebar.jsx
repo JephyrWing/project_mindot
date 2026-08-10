@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import './Sidebar.css'
+// 여러 화면에서 공통으로 사용하는 Mindot 로고 불러오기.
+import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 
 // 열림 상태와 회원 화면 이동을 담당하는 모바일 사이드바 컴포넌트 정의.
 function Sidebar({ onLogin, onSignUp }) {
@@ -64,7 +66,7 @@ function Sidebar({ onLogin, onSignUp }) {
         inert={!isOpen}
       >
         <div className="main-sidebar__header">
-          <strong>MINDOT</strong>
+          <BrandLogo className="main-sidebar__brand" />
           <button
             className="main-sidebar__close"
             type="button"

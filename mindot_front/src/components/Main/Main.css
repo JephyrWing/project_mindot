@@ -36,10 +36,9 @@
 }
 
 /* 상단 헤더의 서비스명 표시 설정. */
-.main-header strong {
+.main-header__brand {
   color: #0a1220;
   font-size: 14px;
-  letter-spacing: 0.12em;
 }
 
 /* 메인 제목과 안내 문구를 담는 기본 카드 설정. */
