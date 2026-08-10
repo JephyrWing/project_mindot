@@ -5,7 +5,7 @@ import './Login.css'
 const rememberedEmailKey = 'mindot.rememberedEmail'
 
 // 이메일과 비밀번호를 입력받는 기본 로그인 컴포넌트 정의.
-function Login() {
+function Login({ onSignUp }) {
   // 이메일 입력값 상태 관리.
   const [email, setEmail] = useState(() => localStorage.getItem(rememberedEmailKey) ?? '')
   // 비밀번호 입력값 상태 관리.
@@ -97,6 +97,12 @@ function Login() {
 
           <button type="submit">로그인</button>
         </form>
+
+        {/* 회원가입 화면으로 이동하기 위한 안내와 버튼 배치. */}
+        <p className="login-signup-guide">
+          아직 계정이 없으신가요?
+          <button type="button" onClick={onSignUp}>회원가입</button>
+        </p>
 
         {/* 서비스의 역할과 의료적 이용 범위를 알리는 안내 문구 배치. */}
         <p className="login-notice">
