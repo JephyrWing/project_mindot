@@ -1,16 +1,32 @@
 import { useState } from 'react'
 import './Login.css'
 
+// 브라우저에 저장할 이메일 데이터의 식별 키 설정.
+const rememberedEmailKey = 'mindot.rememberedEmail'
+
 // 이메일과 비밀번호를 입력받는 기본 로그인 컴포넌트 정의.
 function Login() {
   // 이메일 입력값 상태 관리.
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(() => localStorage.getItem(rememberedEmailKey) ?? '')
   // 비밀번호 입력값 상태 관리.
   const [password, setPassword] = useState('')
+  // 비밀번호 표시 여부 상태 관리.
+  const [showPassword, setShowPassword] = useState(false)
+  // 이메일 기억 여부 상태 관리.
+  const [rememberEmail, setRememberEmail] = useState(
+    () => localStorage.getItem(rememberedEmailKey) !== null,
+  )
 
   // 실제 로그인 API 연결 전 폼 새로고침 방지.
   const handleSubmit = (event) => {
     event.preventDefault()
+
+    // 선택 상태에 따른 이메일 저장 또는 기존 저장값 삭제.
+    if (rememberEmail) {
+      localStorage.setItem(rememberedEmailKey, email)
+    } else {
+      localStorage.removeItem(rememberedEmailKey)
+    }
   }
 
   // 배경 장식과 브랜드 안내가 포함된 로그인 화면 반환.
@@ -49,13 +65,35 @@ function Login() {
           />
 
           <label htmlFor="login-password">비밀번호</label>
-          <input
-            id="login-password"
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            required
-          />
+          {/* 비밀번호 입력창과 표시 전환 버튼 묶음 배치. */}
+          <div className="login-password-field">
+            <input
+              id="login-password"
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+            />
+            <button
+              className="login-password-toggle"
+              type="button"
+              onClick={() => setShowPassword((current) => !current)}
+              aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
+            >
+              {showPassword ? '숨기기' : '보기'}
+            </button>
+          </div>
+
+          {/* 이메일 저장 여부를 선택하는 체크박스 배치. */}
+          <label className="login-remember" htmlFor="remember-email">
+            <input
+              id="remember-email"
+              type="checkbox"
+              checked={rememberEmail}
+              onChange={(event) => setRememberEmail(event.target.checked)}
+            />
+            <span>이메일 기억하기</span>
+          </label>
 
           <button type="submit">로그인</button>
         </form>
