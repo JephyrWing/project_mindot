@@ -12,7 +12,12 @@ function App() {
 
   // 로그인 화면 선택 시 로그인 컴포넌트 렌더링.
   if (currentPage === 'login') {
-    return <Login onSignUp={() => setCurrentPage('signup')} />
+    return (
+      <Login
+        onLoginSuccess={() => setCurrentPage('main')}
+        onSignUp={() => setCurrentPage('signup')}
+      />
+    )
   }
 
   // 회원가입 화면 선택 시 회원가입 컴포넌트 렌더링.

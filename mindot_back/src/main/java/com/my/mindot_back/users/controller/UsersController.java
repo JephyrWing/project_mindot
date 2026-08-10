@@ -2,14 +2,26 @@
 // POST /api/auth/signup 요청을 받아 UsersService의 회원가입 기능 호출
 package com.my.mindot_back.users.controller;
 
+import com.my.mindot_back.common.auth.AuthOriginValidator;
+import com.my.mindot_back.common.auth.RefreshTokenCookieManager;
+import com.my.mindot_back.common.config.JwtProperties;
+import com.my.mindot_back.common.exception.InvalidRefreshTokenException;
+import com.my.mindot_back.common.jwt.JwtTokenProvider;
+import com.my.mindot_back.redis.service.IssuedRefreshToken;
+import com.my.mindot_back.redis.service.RefreshTokenService;
+import com.my.mindot_back.users.dto.TokenRefreshResponseDto;
 import com.my.mindot_back.users.dto.UsersSignupRequestDto;
 import com.my.mindot_back.users.dto.UsersSignupResponseDto;
 import com.my.mindot_back.users.dto.UsersLoginRequestDto;
 import com.my.mindot_back.users.dto.UsersLoginResponseDto;
 import com.my.mindot_back.users.service.UsersService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 // HTTP 요청을 받는 Controller, 메서드가 반환한 자바 객체를 JSON으로 바꿔서 프론트로 보냄
@@ -20,6 +32,11 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class UsersController {
     private final UsersService usersService;
+    private final RefreshTokenService refreshTokenService;
+    private final RefreshTokenCookieManager cookieManager;
+    private final AuthOriginValidator originValidator;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtProperties jwtProperties;
 
     // 회원가입
     @PostMapping("/signup")
@@ -32,10 +49,80 @@ public class UsersController {
 
     // 로그인
     @PostMapping("/login")
-    public UsersLoginResponseDto login(
-            @Valid @RequestBody UsersLoginRequestDto dto
+    public ResponseEntity<UsersLoginResponseDto> login(
+            @Valid @RequestBody UsersLoginRequestDto dto,
+            HttpServletRequest request
     ){
-        return usersService.login(dto);
+        UsersLoginResponseDto response = usersService.login(dto);
+
+        cookieManager.read(request).ifPresent(this::revokeBestEffort);
+        IssuedRefreshToken refreshToken =
+                refreshTokenService.issue(response.id());
+
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .header(
+                        HttpHeaders.SET_COOKIE,
+                        cookieManager.create(refreshToken).toString()
+                )
+                .body(response);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<TokenRefreshResponseDto> refresh(
+            HttpServletRequest request
+    ) {
+        originValidator.validate(request);
+
+        String oldRefreshToken = cookieManager.read(request)
+                .orElseThrow(InvalidRefreshTokenException::new);
+        IssuedRefreshToken refreshToken =
+                refreshTokenService.rotate(oldRefreshToken);
+        String accessToken =
+                jwtTokenProvider.createAccessToken(refreshToken.userId());
+
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .header(
+                        HttpHeaders.SET_COOKIE,
+                        cookieManager.create(refreshToken).toString()
+                )
+                .body(new TokenRefreshResponseDto(
+                        accessToken,
+                        "Bearer",
+                        jwtProperties.accessTokenExpiration().toSeconds()
+                ));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletRequest request) {
+        originValidator.validate(request);
+
+        cookieManager.read(request).ifPresent(this::revokeForLogout);
+
+        return ResponseEntity.noContent()
+                .cacheControl(CacheControl.noStore())
+                .header(
+                        HttpHeaders.SET_COOKIE,
+                        cookieManager.delete().toString()
+                )
+                .build();
+    }
+
+    private void revokeBestEffort(String refreshToken) {
+        try {
+            refreshTokenService.revoke(refreshToken);
+        } catch (RuntimeException ignored) {
+            // 기존 세션 폐기 실패가 새 로그인을 막지 않게 합니다.
+        }
+    }
+
+    private void revokeForLogout(String refreshToken) {
+        try {
+            refreshTokenService.revoke(refreshToken);
+        } catch (InvalidRefreshTokenException ignored) {
+            // malformed 또는 이미 무효한 쿠키도 로그아웃은 멱등적으로 처리합니다.
+        }
     }
 }
 

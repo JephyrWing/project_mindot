@@ -124,6 +124,17 @@
   cursor: pointer;
 }
 
+.login-form > button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.login-error {
+  margin: 0;
+  color: #c62828;
+  font-size: 13px;
+}
+
 /* 회원가입 이동 안내와 버튼의 중앙 정렬. */
 .login-signup-guide {
   display: flex;

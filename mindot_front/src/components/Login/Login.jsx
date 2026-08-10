@@ -1,13 +1,14 @@
 import { useState } from 'react'
 // 여러 화면에서 공통으로 사용하는 Mindot 로고 불러오기.
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
+import { login } from '../../utils/auth/authApi.js'
 import './Login.css'
 
 // 브라우저에 저장할 이메일 데이터의 식별 키 설정.
 const rememberedEmailKey = 'mindot.rememberedEmail'
 
 // 이메일과 비밀번호를 입력받는 기본 로그인 컴포넌트 정의.
-function Login({ onSignUp }) {
+function Login({ onLoginSuccess, onSignUp }) {
   // 이메일 입력값 상태 관리.
   const [email, setEmail] = useState(() => localStorage.getItem(rememberedEmailKey) ?? '')
   // 비밀번호 입력값 상태 관리.
@@ -18,16 +19,34 @@ function Login({ onSignUp }) {
   const [rememberEmail, setRememberEmail] = useState(
     () => localStorage.getItem(rememberedEmailKey) !== null,
   )
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [loginError, setLoginError] = useState('')
 
-  // 실제 로그인 API 연결 전 폼 새로고침 방지.
-  const handleSubmit = (event) => {
+  // 로그인 API 호출과 기존 이메일 기억하기 동작 처리.
+  const handleSubmit = async (event) => {
     event.preventDefault()
+
+    if (isSubmitting) {
+      return
+    }
 
     // 선택 상태에 따른 이메일 저장 또는 기존 저장값 삭제.
     if (rememberEmail) {
       localStorage.setItem(rememberedEmailKey, email)
     } else {
       localStorage.removeItem(rememberedEmailKey)
+    }
+
+    setIsSubmitting(true)
+    setLoginError('')
+
+    try {
+      await login({ email, password })
+      onLoginSuccess()
+    } catch {
+      setLoginError('로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -86,7 +105,13 @@ function Login({ onSignUp }) {
             <span>이메일 기억하기</span>
           </label>
 
-          <button type="submit">로그인</button>
+          {loginError && (
+            <p className="login-error" role="alert">{loginError}</p>
+          )}
+
+          <button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? '로그인 중...' : '로그인'}
+          </button>
         </form>
 
         {/* 회원가입 화면으로 이동하기 위한 안내와 버튼 배치. */}

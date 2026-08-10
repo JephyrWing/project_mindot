@@ -5,6 +5,7 @@ import java.time.Instant;
 public record IssuedRefreshToken (
         Long userId,
         String value,
-        Instant expiresAt
+        Instant expiresAt,
+        long expiresInSeconds
 ) {
 }
