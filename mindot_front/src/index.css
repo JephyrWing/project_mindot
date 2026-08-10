@@ -1,0 +1,27 @@
+/* 애플리케이션에서 사용할 기본 글꼴을 설정한다. */
+:root {
+  font-family: 'Noto Sans KR', Pretendard, Arial, sans-serif;
+}
+
+/* 모든 요소의 크기 계산에 안쪽 여백과 테두리를 포함한다. */
+* {
+  box-sizing: border-box;
+}
+
+/* 브라우저의 기본 바깥 여백을 제거한다. */
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+/* 입력창과 버튼이 기본 글꼴을 상속하도록 한다. */
+button,
+input {
+  font: inherit;
+}
+
+/* 리액트 루트 영역이 화면 전체 높이를 사용하도록 한다. */
+#root {
+  min-height: 100vh;
+}
