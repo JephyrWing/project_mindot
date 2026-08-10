@@ -228,6 +228,27 @@
   cursor: pointer;
 }
 
+/* 회원가입 이동 안내와 버튼의 중앙 정렬. */
+.login-signup-guide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 18px 0 0;
+  color: #666f85;
+  font-size: 13px;
+}
+
+/* 회원가입 화면 이동 버튼의 링크 형태 설정. */
+.login-signup-guide button {
+  border: 0;
+  padding: 0;
+  color: #1c5ed0;
+  font-weight: 700;
+  background: transparent;
+  cursor: pointer;
+}
+
 /* 카드 아래쪽의 서비스 이용 안내 문구 설정. */
 .login-notice {
   border-top: 1px solid #eeeeee;

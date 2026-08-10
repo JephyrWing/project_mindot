@@ -1,0 +1,56 @@
+/* 회원가입 카드를 화면 중앙에 배치하기 위한 전체 영역 설정. */
+.signup-page {
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: #f4f6fa;
+}
+
+/* 기본 회원가입 폼을 담는 카드 설정. */
+.signup-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 32px;
+  border: 1px solid #dddddd;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+/* 회원가입 제목의 기본 간격 설정. */
+.signup-card h1 {
+  margin: 0 0 24px;
+  text-align: center;
+}
+
+/* 회원가입 입력 항목의 세로 방향 배치. */
+.signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 회원가입 입력 항목의 이름 구분 표시. */
+.signup-form label {
+  font-weight: 600;
+}
+
+/* 이메일과 비밀번호 입력창의 기본 모양 설정. */
+.signup-form input {
+  height: 44px;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  padding: 0 12px;
+}
+
+/* 회원가입 버튼의 기본 모양 설정. */
+.signup-form button {
+  height: 44px;
+  border: 0;
+  border-radius: 4px;
+  margin-top: 8px;
+  color: #ffffff;
+  background: #1c5ed0;
+  cursor: pointer;
+}
