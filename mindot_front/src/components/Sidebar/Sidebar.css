@@ -1,0 +1,128 @@
+/* 모바일 터치 영역을 확보한 햄버거 버튼 설정. */
+.main-menu-button {
+  display: inline-flex;
+  width: 48px;
+  height: 48px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 0;
+  border-radius: 10px;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* SVG 없이 햄버거 모양을 구성하는 세 개의 선 설정. */
+.main-menu-button span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  border-radius: 2px;
+  background: #0a1220;
+}
+
+/* 열린 사이드바 뒤에 표시되는 어두운 배경 설정. */
+.main-sidebar-overlay {
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  visibility: hidden;
+  opacity: 0;
+  background: rgba(10, 18, 32, 0.42);
+  cursor: pointer;
+  transition: opacity 180ms ease, visibility 180ms ease;
+}
+
+/* 사이드바 열림 상태의 배경 표시. */
+.main-sidebar-overlay.is-open {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* 모바일 화면 왼쪽에 고정되는 사이드바 설정. */
+.main-sidebar {
+  position: fixed;
+  z-index: 40;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: min(82vw, 320px);
+  padding:
+    max(16px, env(safe-area-inset-top))
+    18px
+    max(20px, env(safe-area-inset-bottom));
+  background: #ffffff;
+  box-shadow: 12px 0 30px rgba(10, 18, 32, 0.14);
+  transform: translateX(-105%);
+  transition: transform 200ms ease;
+}
+
+/* 사이드바 열림 상태의 화면 안쪽 이동. */
+.main-sidebar.is-open {
+  transform: translateX(0);
+}
+
+/* 사이드바 서비스명과 닫기 버튼의 가로 정렬. */
+.main-sidebar__header {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  color: #0a1220;
+  letter-spacing: 0.1em;
+}
+
+/* 모바일 터치 영역을 확보한 사이드바 닫기 버튼 설정. */
+.main-sidebar__close {
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 10px;
+  padding: 0;
+  color: #0a1220;
+  font-size: 30px;
+  line-height: 1;
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 사이드바 이동 버튼의 세로 방향 배치. */
+.main-sidebar__navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+/* 로그인과 회원가입 이동 버튼의 모바일 크기 설정. */
+.main-sidebar__navigation button {
+  min-height: 50px;
+  border: 1px solid #dce3ee;
+  border-radius: 10px;
+  padding: 0 16px;
+  color: #0a1220;
+  font-weight: 700;
+  text-align: left;
+  background: #ffffff;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 사이드바 이동 버튼 선택 시 배경색 강조. */
+.main-sidebar__navigation button:active {
+  background: #edf4ff;
+}
+
+/* 움직임 감소 설정 사용자를 위한 전환 효과 제거. */
+@media (prefers-reduced-motion: reduce) {
+  .main-sidebar,
+  .main-sidebar-overlay {
+    transition: none;
+  }
+}

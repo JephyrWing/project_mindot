@@ -1,11 +1,45 @@
 /* 메인 콘텐츠를 화면 중앙에 배치하기 위한 전체 영역 설정. */
 .main-page {
+  position: relative;
   display: flex;
   min-height: 100vh;
+  min-height: 100dvh;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  overflow: hidden;
+  padding:
+    calc(84px + env(safe-area-inset-top))
+    max(20px, env(safe-area-inset-right))
+    max(20px, env(safe-area-inset-bottom))
+    max(20px, env(safe-area-inset-left));
   background: #f4f6fa;
+}
+
+/* 모바일 화면 상단에 고정되는 메뉴 헤더 설정. */
+.main-header {
+  position: fixed;
+  z-index: 20;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: flex;
+  min-height: calc(64px + env(safe-area-inset-top));
+  align-items: center;
+  gap: 12px;
+  padding:
+    env(safe-area-inset-top)
+    max(16px, env(safe-area-inset-right))
+    0
+    max(12px, env(safe-area-inset-left));
+  border-bottom: 1px solid #e5e9f0;
+  background: rgba(255, 255, 255, 0.94);
+}
+
+/* 상단 헤더의 서비스명 표시 설정. */
+.main-header strong {
+  color: #0a1220;
+  font-size: 14px;
+  letter-spacing: 0.12em;
 }
 
 /* 메인 제목과 안내 문구를 담는 기본 카드 설정. */
@@ -37,4 +71,17 @@
 .main-description {
   margin: 16px 0 0;
   color: #666f85;
+}
+
+/* 작은 모바일 화면에서 카드 장식을 줄이기 위한 설정. */
+@media (max-width: 480px) {
+  .main-card {
+    padding: 32px 20px;
+    border: 0;
+    background: transparent;
+  }
+
+  .main-card h1 {
+    font-size: 28px;
+  }
 }
