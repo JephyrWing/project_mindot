@@ -1,3 +1,9 @@
+/*
+ * Refresh Token은 쿠키로 자동 전송될 수 있으므로,
+ * refresh·logout 요청이 허용된 프론트엔드 Origin에서 왔는지 확인
+ *
+ * 허용 목록은 application.yml의 auth.web.allowed-origins에서 관리
+ */
 package com.my.mindot_back.common.auth;
 
 import com.my.mindot_back.common.config.AuthWebProperties;

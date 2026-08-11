@@ -87,6 +87,10 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /*
+     * 프론트엔드가 Authorization 헤더를 보내고,
+     * Refresh Token 쿠키를 포함한 요청을 보낼 수 있도록 CORS를 설정
+    */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

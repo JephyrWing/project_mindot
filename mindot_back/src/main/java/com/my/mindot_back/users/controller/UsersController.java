@@ -1,5 +1,4 @@
-// 프론트엔드의 HTTP 요청을 받는 Controller
-// POST /api/auth/signup 요청을 받아 UsersService의 회원가입 기능 호출
+// 회원가입·로그인·Access Token 재발급·로그아웃 인증 API를 처리하는 Controller
 package com.my.mindot_back.users.controller;
 
 import com.my.mindot_back.common.auth.AuthOriginValidator;
@@ -47,7 +46,15 @@ public class UsersController {
         return usersService.signup(dto);
     }
 
-    // 로그인
+    /*
+     * 로그인 흐름:
+     * 1. UsersService에서 이메일·비밀번호 검증 후 Access Token 발급
+     * 2. 기존 Refresh Token 쿠키가 있다면 Redis 세션 폐기 시도
+     * 3. 새 Refresh Token을 Redis에 저장하고 HttpOnly 쿠키로 전송
+     *
+     * JSON body에는 Access Token만 반환
+     * Refresh Token은 Set-Cookie 헤더로만 전송
+     */
     @PostMapping("/login")
     public ResponseEntity<UsersLoginResponseDto> login(
             @Valid @RequestBody UsersLoginRequestDto dto,
@@ -68,6 +75,13 @@ public class UsersController {
                 .body(response);
     }
 
+    /*
+     * Access Token 재발급 흐름:
+     * 1. Refresh Token 쿠키 요청의 Origin을 검증
+     * 2. 쿠키에서 기존 Refresh Token을 읽음
+     * 3. Redis에서 해시·만료·재사용 여부를 검증하며 Rotation 수행
+     * 4. 새 Access Token은 JSON으로, 새 Refresh Token은 쿠키로 반환
+     */
     @PostMapping("/refresh")
     public ResponseEntity<TokenRefreshResponseDto> refresh(
             HttpServletRequest request
@@ -94,6 +108,11 @@ public class UsersController {
                 ));
     }
 
+    /*
+     * 현재 기기 로그아웃:
+     * Redis의 Refresh Token 세션을 폐기,
+     * 브라우저의 Refresh Token 쿠키도 삭제
+     */
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request) {
         originValidator.validate(request);
@@ -125,11 +144,3 @@ public class UsersController {
         }
     }
 }
-
-/*
-프론트 JSON
-→ Controller가 DTO로 받음
-→ Controller가 DTO를 Service에 전달
-→ Service가 DB 저장 후 응답 DTO를 반환
-→ Controller가 그 응답 DTO를 프론트에 반환
- */
