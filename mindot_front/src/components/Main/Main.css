@@ -72,6 +72,20 @@
   color: #666f85;
 }
 
+/* 감정 기록 서비스 화면 이동 버튼 설정. */
+.main-emotion-button {
+  width: 100%;
+  max-width: 220px;
+  height: 46px;
+  border: 0;
+  border-radius: 6px;
+  margin-top: 24px;
+  color: #ffffff;
+  font-weight: 700;
+  background: #1c5ed0;
+  cursor: pointer;
+}
+
 /* 작은 모바일 화면에서 카드 장식을 줄이기 위한 설정. */
 @media (max-width: 480px) {
   .main-card {

@@ -1,0 +1,64 @@
+/* 감정 기록 카드를 화면 중앙에 배치하기 위한 전체 영역 설정. */
+.emotion-record-page {
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: #f4f6fa;
+}
+
+/* 감정 입력창을 담는 기본 카드 설정. */
+.emotion-record-card {
+  width: 100%;
+  max-width: 600px;
+  padding: 32px;
+  border: 1px solid #dddddd;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+/* 감정 기록 카드 상단의 공통 로고 설정. */
+.emotion-record-logo {
+  color: #0a1220;
+  font-size: 15px;
+}
+
+/* 감정 기록 제목의 기본 간격 설정. */
+.emotion-record-card h1 {
+  margin: 28px 0 24px;
+}
+
+/* 감정 입력 항목의 세로 방향 배치. */
+.emotion-record-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 감정 입력 항목의 이름 구분 표시. */
+.emotion-record-form label {
+  font-weight: 600;
+}
+
+/* 감정 원문 입력창의 기본 모양 설정. */
+.emotion-record-form textarea {
+  min-height: 220px;
+  resize: vertical;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  padding: 12px;
+  font: inherit;
+  line-height: 1.6;
+}
+
+/* 감정 기록 버튼의 기본 모양 설정. */
+.emotion-record-form button {
+  height: 44px;
+  border: 0;
+  border-radius: 4px;
+  margin-top: 8px;
+  color: #ffffff;
+  background: #1c5ed0;
+  cursor: pointer;
+}
