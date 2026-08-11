@@ -29,6 +29,25 @@ function Main({ onLogin, onSignUp, onEmotionRecord }) {
         <p className="main-today">오늘 · {today}</p>
         <h1 id="main-title">오늘의 마음은 어떤가요?</h1>
         <p className="main-description">짧은 문장으로 지금의 감정을 남겨 보세요.</p>
+
+        {/* 처음 기록하는 사용자가 흐름을 이해할 수 있는 두 단계 안내 배치. */}
+        <ol className="main-guide" aria-label="감정 기록 시작 방법">
+          <li>
+            <span aria-hidden="true">1</span>
+            <div>
+              <strong>감정 떠올리기</strong>
+              <p>지금 가장 크게 느껴지는 마음 확인</p>
+            </div>
+          </li>
+          <li>
+            <span aria-hidden="true">2</span>
+            <div>
+              <strong>짧게 기록하기</strong>
+              <p>떠오른 감정을 편안한 문장으로 작성</p>
+            </div>
+          </li>
+        </ol>
+
         {/* 감정 기록 서비스 화면으로 이동하는 버튼 배치. */}
         <button
           className="main-emotion-button"
