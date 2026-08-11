@@ -61,6 +61,17 @@
   letter-spacing: 0.12em;
 }
 
+/* 메인 카드에서 오늘 날짜를 부드럽게 구분하여 보여 주기 위한 설정. */
+.main-today {
+  width: fit-content;
+  margin: 20px auto 12px;
+  border-radius: 999px;
+  padding: 6px 12px;
+  color: #526079;
+  font-size: 13px;
+  background: #eef3fb;
+}
+
 /* 메인 페이지 제목의 기본 간격 설정. */
 .main-card h1 {
   margin: 0;
