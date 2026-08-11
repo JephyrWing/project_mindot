@@ -1,3 +1,10 @@
+/*
+ * Refresh Token 교체를 Redis Lua Script로 한 번에 처리
+ *
+ * 여러 refresh 요청이 동시에 들어와도
+ * “기존 토큰 검증 → 새 해시 저장 → TTL 갱신”이 분리되지 않으므로,
+ * 이전 Refresh Token의 재사용을 안전하게 감지 가능
+ */
 package com.my.mindot_back.redis.repository;
 
 import lombok.RequiredArgsConstructor;
