@@ -6,6 +6,13 @@ import './Main.css'
 
 // 서비스명과 안내 문구를 표시하는 기본 메인 컴포넌트 정의.
 function Main({ onLogin, onSignUp, onEmotionRecord }) {
+  // 사용자의 현재 날짜를 한국어 월·일·요일 형식으로 표시하기 위한 값 생성.
+  const today = new Intl.DateTimeFormat('ko-KR', {
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long',
+  }).format(new Date())
+
   // 햄버거 메뉴와 모바일 사이드바가 포함된 메인 화면 반환.
   return (
     <main className="main-page">
@@ -18,8 +25,10 @@ function Main({ onLogin, onSignUp, onEmotionRecord }) {
 
       <section className="main-card" aria-labelledby="main-title">
         <BrandLogo className="main-brand" />
-        <h1 id="main-title">메인 페이지</h1>
-        <p className="main-description">오늘의 마음을 기록해 보세요.</p>
+        {/* 메인 화면에 접속한 날짜를 바로 확인할 수 있는 오늘 날짜 표시. */}
+        <p className="main-today">오늘 · {today}</p>
+        <h1 id="main-title">오늘의 마음은 어떤가요?</h1>
+        <p className="main-description">짧은 문장으로 지금의 감정을 남겨 보세요.</p>
         {/* 감정 기록 서비스 화면으로 이동하는 버튼 배치. */}
         <button
           className="main-emotion-button"
