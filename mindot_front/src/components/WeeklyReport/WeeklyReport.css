@@ -1,0 +1,77 @@
+/* 주간 리포트 카드를 화면 중앙에 배치하고 모바일 안전 영역을 확보하기 위한 설정. */
+.weekly-report-page {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+  align-items: center;
+  justify-content: center;
+  padding:
+    calc(20px + env(safe-area-inset-top, 0px))
+    calc(20px + env(safe-area-inset-right, 0px))
+    calc(20px + env(safe-area-inset-bottom, 0px))
+    calc(20px + env(safe-area-inset-left, 0px));
+  background: #f4f6fa;
+}
+
+/* 주간 리포트의 제목과 빈 상태를 담는 기본 카드 설정. */
+.weekly-report-card {
+  width: 100%;
+  max-width: 560px;
+  padding: 32px;
+  border: 1px solid #dddddd;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+/* 주간 리포트 카드 상단의 공통 서비스 로고 설정. */
+.weekly-report-logo {
+  color: #0a1220;
+  font-size: 15px;
+}
+
+/* 주간 리포트 제목과 안내 문구 사이의 기본 간격 설정. */
+.weekly-report-card h1 {
+  margin: 28px 0 0;
+}
+
+.weekly-report-description {
+  margin: 12px 0 0;
+  color: #666f85;
+}
+
+/* 실제 리포트 데이터가 없을 때 표시하는 빈 상태 영역 설정. */
+.weekly-report-empty {
+  margin-top: 24px;
+  border-radius: 8px;
+  padding: 24px 20px;
+  background: #f6f8fc;
+  text-align: center;
+}
+
+.weekly-report-empty p {
+  margin: 8px 0 0;
+  color: #707a8e;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 메인페이지로 돌아가는 버튼의 기본 모양과 터치 영역 설정. */
+.weekly-report-card > button {
+  width: 100%;
+  min-height: 46px;
+  border: 0;
+  border-radius: 6px;
+  margin-top: 24px;
+  color: #ffffff;
+  font-weight: 700;
+  background: #1c5ed0;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 작은 모바일 화면에서 카드 내부 여백을 줄이기 위한 설정. */
+@media (max-width: 480px) {
+  .weekly-report-card {
+    padding: 28px 20px;
+  }
+}

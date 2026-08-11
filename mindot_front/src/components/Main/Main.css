@@ -131,18 +131,59 @@
   line-height: 1.5;
 }
 
-/* 감정 기록 서비스 화면 이동 버튼 설정. */
-.main-emotion-button {
-  width: 100%;
-  max-width: 220px;
-  height: 46px;
-  border: 0;
-  border-radius: 6px;
-  margin-top: 24px;
-  color: #ffffff;
+/* 사용자가 기록 주제를 떠올릴 수 있도록 돕는 오늘의 질문 영역 설정. */
+.main-question {
+  margin-top: 16px;
+  border-left: 3px solid #1c5ed0;
+  border-radius: 4px;
+  padding: 14px 16px;
+  background: #f8faff;
+  text-align: left;
+}
+
+/* 오늘의 질문 영역 이름을 본문과 구분하기 위한 설정. */
+.main-question span {
+  color: #1c5ed0;
+  font-size: 12px;
   font-weight: 700;
-  background: #1c5ed0;
+}
+
+/* 실제 기록 질문의 간격과 읽기 편한 글자 크기 설정. */
+.main-question p {
+  margin: 6px 0 0;
+  color: #30394b;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* 메인 화면의 주요 이동 버튼을 나란히 배치하기 위한 영역 설정. */
+.main-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+/* 감정 기록과 주간 리포트 이동 버튼의 공통 크기 설정. */
+.main-actions button {
+  width: 100%;
+  height: 46px;
+  border-radius: 6px;
+  font-weight: 700;
   cursor: pointer;
+}
+
+/* 감정 기록 서비스 화면 이동 버튼의 강조 색상 설정. */
+.main-emotion-button {
+  border: 1px solid #1c5ed0;
+  color: #ffffff;
+  background: #1c5ed0;
+}
+
+/* 주간 리포트 화면 이동 버튼의 보조 색상 설정. */
+.main-report-button {
+  border: 1px solid #1c5ed0;
+  color: #1c5ed0;
+  background: #ffffff;
 }
 
 /* 작은 모바일 화면에서 카드 장식을 줄이기 위한 설정. */
@@ -160,5 +201,10 @@
   /* 좁은 화면에서 안내 단계를 세로 방향으로 읽을 수 있도록 하는 배치 설정. */
   .main-guide {
     grid-template-columns: 1fr;
+  }
+
+  /* 작은 모바일 화면에서 주요 이동 버튼을 세로로 배치하기 위한 설정. */
+  .main-actions {
+    flex-direction: column;
   }
 }

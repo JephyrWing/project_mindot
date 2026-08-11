@@ -5,7 +5,7 @@ import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import './Main.css'
 
 // 서비스명과 안내 문구를 표시하는 기본 메인 컴포넌트 정의.
-function Main({ onLogin, onSignUp, onEmotionRecord }) {
+function Main({ onLogin, onSignUp, onEmotionRecord, onWeeklyReport }) {
   // 사용자의 현재 날짜를 한국어 월·일·요일 형식으로 표시하기 위한 값 생성.
   const today = new Intl.DateTimeFormat('ko-KR', {
     month: 'long',
@@ -48,14 +48,29 @@ function Main({ onLogin, onSignUp, onEmotionRecord }) {
           </li>
         </ol>
 
-        {/* 감정 기록 서비스 화면으로 이동하는 버튼 배치. */}
-        <button
-          className="main-emotion-button"
-          type="button"
-          onClick={onEmotionRecord}
-        >
-          감정 기록하기
-        </button>
+        {/* 감정 기록 전에 생각을 시작할 수 있도록 돕는 오늘의 질문 배치. */}
+        <aside className="main-question" aria-labelledby="main-question-title">
+          <span id="main-question-title">오늘의 기록 질문</span>
+          <p>오늘 가장 기억에 남는 순간은 무엇인가요?</p>
+        </aside>
+
+        {/* 감정 기록과 주간 리포트 화면으로 이동하는 기본 기능 버튼 배치. */}
+        <div className="main-actions">
+          <button
+            className="main-emotion-button"
+            type="button"
+            onClick={onEmotionRecord}
+          >
+            감정 기록하기
+          </button>
+          <button
+            className="main-report-button"
+            type="button"
+            onClick={onWeeklyReport}
+          >
+            주간 리포트 보기
+          </button>
+        </div>
       </section>
     </main>
   )
