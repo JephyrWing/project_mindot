@@ -1,0 +1,68 @@
+/* CBT 성찰 카드를 화면 중앙에 배치하고 모바일 안전 영역을 확보하기 위한 설정. */
+.cbt-page {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+  align-items: center;
+  justify-content: center;
+  padding:
+    calc(20px + env(safe-area-inset-top, 0px))
+    calc(20px + env(safe-area-inset-right, 0px))
+    calc(20px + env(safe-area-inset-bottom, 0px))
+    calc(20px + env(safe-area-inset-left, 0px));
+  background: #f4f6fa;
+}
+
+/* CBT 성찰 제목과 시작 안내를 담는 기본 카드 설정. */
+.cbt-card {
+  width: 100%;
+  max-width: 560px;
+  padding: 32px;
+  border: 1px solid #dddddd;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+/* CBT 성찰 카드 상단의 공통 서비스 로고 설정. */
+.cbt-logo {
+  color: #0a1220;
+  font-size: 15px;
+}
+
+/* CBT 성찰 제목과 설명 문구의 기본 간격 설정. */
+.cbt-card h1 {
+  margin: 28px 0 0;
+}
+
+.cbt-description {
+  margin: 12px 0 0;
+  color: #666f85;
+  line-height: 1.6;
+}
+
+/* CBT 성찰의 목적을 간단하게 보여 주는 시작 안내 영역 설정. */
+.cbt-guide {
+  margin-top: 24px;
+  border-radius: 8px;
+  padding: 20px;
+  background: #f6f8fc;
+}
+
+.cbt-guide h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.cbt-guide p {
+  margin: 10px 0 0;
+  color: #707a8e;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* 작은 모바일 화면에서 CBT 카드 내부 여백을 줄이기 위한 설정. */
+@media (max-width: 480px) {
+  .cbt-card {
+    padding: 28px 20px;
+  }
+}

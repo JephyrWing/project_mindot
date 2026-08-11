@@ -18,9 +18,15 @@
   background: #ffffff;
 }
 
+/* 회원가입 카드 상단의 Mindot 심볼과 프로젝트명 표시 설정. */
+.signup-logo {
+  color: #0a1220;
+  font-size: 15px;
+}
+
 /* 회원가입 제목의 기본 간격 설정. */
 .signup-card h1 {
-  margin: 0 0 24px;
+  margin: 32px 0 24px;
   text-align: center;
 }
 
