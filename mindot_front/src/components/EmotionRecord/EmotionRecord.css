@@ -2,9 +2,14 @@
 .emotion-record-page {
   display: flex;
   min-height: 100vh;
+  min-height: 100dvh;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding:
+    calc(20px + env(safe-area-inset-top, 0px))
+    calc(20px + env(safe-area-inset-right, 0px))
+    calc(20px + env(safe-area-inset-bottom, 0px))
+    calc(20px + env(safe-area-inset-left, 0px));
   background: #f4f6fa;
 }
 
@@ -50,6 +55,7 @@
   padding: 12px;
   font: inherit;
   line-height: 1.6;
+  touch-action: manipulation;
 }
 
 /* 빈 내용 검증 오류가 발생한 입력창 강조. */
@@ -113,17 +119,33 @@
 
 /* 감정 기록 버튼의 기본 모양 설정. */
 .emotion-record-form button {
-  height: 44px;
+  width: 100%;
+  min-height: 48px;
   border: 0;
   border-radius: 4px;
   margin-top: 8px;
   color: #ffffff;
   background: #1c5ed0;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* 저장 진행 중 기록 버튼 비활성화 설정. */
 .emotion-record-form button:disabled {
   background: #aeb8c8;
   cursor: wait;
+}
+
+/* 작은 모바일 화면에서 카드 내부 여백을 확보하고 입력 요소의 자동 확대를 방지하기 위한 설정. */
+@media (max-width: 480px) {
+  .emotion-record-card {
+    padding: 24px 20px;
+  }
+
+  /* 모바일 브라우저에서 입력 시 화면이 자동으로 확대되지 않도록 하는 글자 크기 설정. */
+  .emotion-record-form textarea,
+  .emotion-record-form button {
+    font-size: 16px;
+  }
 }
