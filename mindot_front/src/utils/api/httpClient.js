@@ -5,7 +5,8 @@ import {
   setAccessToken,
 } from '../auth/tokenStorage.js'
 
-const apiBaseUrl = import.meta.env?.VITE_API_BASE_URL ?? ''
+const apiBaseUrl =
+  import.meta.env?.VITE_API_BASE_URL ?? "http://localhost:8080";
 const authPaths = [
   '/api/auth/login',
   '/api/auth/refresh',
@@ -13,7 +14,7 @@ const authPaths = [
 ]
 
 const isAuthRequest = (url = '') => {
-  const pathname = new URL(url, 'http://localhost').pathname
+  const pathname = new URL(url, 'http://localhost:8080').pathname
   return authPaths.includes(pathname)
 }
 
