@@ -52,6 +52,65 @@
   line-height: 1.6;
 }
 
+/* 빈 내용 검증 오류가 발생한 입력창 강조. */
+.emotion-record-form textarea[aria-invalid='true'] {
+  border-color: #c83b4d;
+}
+
+/* 저장 진행 중 비활성화된 입력창 설정. */
+.emotion-record-form textarea:disabled {
+  background: #f1f3f6;
+}
+
+/* 현재 입력 글자 수와 최대 글자 수의 오른쪽 정렬. */
+.emotion-record-count {
+  margin-top: -6px;
+  color: #707a8e;
+  font-size: 12px;
+  text-align: right;
+}
+
+/* 빈 내용 저장 방지 오류 문구 설정. */
+.emotion-record-error {
+  margin: -6px 0 0;
+  color: #c83b4d;
+  font-size: 12px;
+}
+
+/* 작성 및 저장 상태 이름과 상태값의 가로 정렬. */
+.emotion-record-status {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 4px;
+  padding: 0 12px;
+  color: #606a7d;
+  font-size: 13px;
+  background: #f4f6fa;
+}
+
+/* 작성 전 상태값 설정. */
+.emotion-record-status strong {
+  color: #687184;
+}
+
+/* 작성 및 저장 진행 상태값 강조. */
+.emotion-record-status strong.is-editing,
+.emotion-record-status strong.is-saving {
+  color: #1c5ed0;
+}
+
+/* 저장 완료 상태값 강조. */
+.emotion-record-status strong.is-saved {
+  color: #178347;
+}
+
+/* 입력 확인 필요 상태값 강조. */
+.emotion-record-status strong.is-error {
+  color: #c83b4d;
+}
+
 /* 감정 기록 버튼의 기본 모양 설정. */
 .emotion-record-form button {
   height: 44px;
@@ -61,4 +120,10 @@
   color: #ffffff;
   background: #1c5ed0;
   cursor: pointer;
+}
+
+/* 저장 진행 중 기록 버튼 비활성화 설정. */
+.emotion-record-form button:disabled {
+  background: #aeb8c8;
+  cursor: wait;
 }
