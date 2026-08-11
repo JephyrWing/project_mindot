@@ -6,7 +6,7 @@ import './EmotionRecord.css'
 const maxContentLength = 1000
 
 // 감정 원문을 입력받는 기본 화면 컴포넌트 정의.
-function EmotionRecord() {
+function EmotionRecord({ onCBT, onWeeklyReport }) {
   // 감정 원문 입력값 상태 관리.
   const [content, setContent] = useState('')
   // 빈 내용 검증 오류 문구 상태 관리.
@@ -102,6 +102,28 @@ function EmotionRecord() {
           <button type="submit" disabled={saveStatus === 'saving'}>
             {saveStatus === 'saving' ? '저장 중…' : '기록하기'}
           </button>
+
+          {/* 감정 기록 저장 완료 후에만 CBT 성찰 화면 이동 버튼 표시. */}
+          {saveStatus === 'saved' && (
+            <button
+              className="emotion-record-cbt-button"
+              type="button"
+              onClick={onCBT}
+            >
+              CBT 검사 하기
+            </button>
+          )}
+
+          {/* 감정 기록 저장 완료 후에만 주간 리포트 화면 이동 버튼 표시. */}
+          {saveStatus === 'saved' && (
+            <button
+              className="emotion-record-report-button"
+              type="button"
+              onClick={onWeeklyReport}
+            >
+              주간 리포트로 이동하기
+            </button>
+          )}
         </form>
       </section>
     </main>

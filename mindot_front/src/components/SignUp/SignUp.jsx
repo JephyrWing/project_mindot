@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import './SignUp.css'
 
 // 이메일의 기본 사용자명과 도메인 형식 검사 패턴 설정.
@@ -130,6 +131,9 @@ function SignUp() {
   return (
     <main className="signup-page">
       <section className="signup-card" aria-labelledby="signup-title">
+        {/* 로그인 화면과 동일한 공통 로고와 MINDOT 프로젝트명 배치. */}
+        <BrandLogo className="signup-logo" />
+
         <h1 id="signup-title">회원가입</h1>
 
         {/* 이메일과 비밀번호를 입력받는 기본 회원가입 폼 배치. */}
@@ -142,8 +146,8 @@ function SignUp() {
             onChange={handleEmailChange}
             onBlur={validateEmail}
             pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
-            placeholder="name@example.com"
-            title="name@example.com 형식으로 입력해 주세요."
+            placeholder="id@example.com"
+            title="id@example.com 형식으로 입력해 주세요."
             aria-invalid={Boolean(emailError)}
             aria-describedby={
               emailError
@@ -154,7 +158,7 @@ function SignUp() {
           />
           {/* 사용자가 지켜야 할 이메일 형식을 보여 주는 안내 문구 표시. */}
           <p className="signup-form__hint" id="signup-email-hint">
-            이메일 형식: name@example.com
+            이메일 형식: id@example.com
           </p>
           {/* 이메일 입력 오류 발생 시 사용자 안내 문구 표시. */}
           {emailError && (
