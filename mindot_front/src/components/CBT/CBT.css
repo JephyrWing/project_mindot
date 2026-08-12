@@ -60,6 +60,25 @@
   line-height: 1.7;
 }
 
+/* CBT 검사 시작 버튼을 카드 전체 너비로 배치하기 위한 영역 설정. */
+.cbt-actions {
+  margin-top: 24px;
+}
+
+/* CBT 검사 기능을 시작할 기본 버튼의 모양과 터치 영역 설정. */
+.cbt-start-button {
+  width: 100%;
+  min-height: 48px;
+  border: 0;
+  border-radius: 6px;
+  color: #ffffff;
+  font-weight: 700;
+  background: #1c5ed0;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* 작은 모바일 화면에서 CBT 카드 내부 여백을 줄이기 위한 설정. */
 @media (max-width: 480px) {
   .cbt-card {

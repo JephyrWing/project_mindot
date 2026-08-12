@@ -22,6 +22,13 @@ function CBT() {
             차근차근 살펴볼 수 있습니다.
           </p>
         </div>
+
+        {/* CBT 검사 기능 연결을 위한 기본 시작 버튼 배치. */}
+        <div className="cbt-actions">
+          <button className="cbt-start-button" type="button">
+            CBT 검사 시작하기
+          </button>
+        </div>
       </section>
     </main>
   )
