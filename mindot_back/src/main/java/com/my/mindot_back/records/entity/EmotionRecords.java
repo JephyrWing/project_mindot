@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.hibernate.annotations.Check;
@@ -35,6 +36,16 @@ import java.util.Map;
                 @Index(
                         name = "idx_emotion_records_user_context_occurred_at",
                         columnList = "user_id, context_category, occurred_at DESC"
+                ),
+                // 사용자별 시간대별 감정 기록 통계 조회용
+                @Index(
+                        name = "idx_emotion_records_user_time_bucket_occurred_at",
+                        columnList = "user_id, time_bucket, occurred_at DESC"
+                ),
+                // 사용자별 평일·주말 감정 기록 통계 조회용
+                @Index(
+                        name = "idx_emotion_records_user_weekday_type_occurred_at",
+                        columnList = "user_id, weekday_type, occurred_at DESC"
                 )
         }
 )
@@ -61,6 +72,26 @@ public class EmotionRecords {
     // 감정이 발생한 시각
     @Column(name = "occurred_at", nullable = false)
     private Instant occurredAt;
+
+    // 기록 시각을 해석할 기준 시간대
+    @ColumnDefault("'Asia/Seoul'")
+    @Column(
+            name = "record_timezone",
+            nullable = false,
+            length = 50
+    )
+    private String recordTimezone = "Asia/Seoul";
+
+    // occurredAt과 recordTimezone을 기준으로 Spring이 계산한 시간대
+    // ex. MORNING
+    @Enumerated(EnumType.STRING)
+    @Column(name = "time_bucket", nullable = false, length = 20)
+    private TimeBucket timeBucket;
+
+    // occurredAt과 recordTimezone을 기준으로 Spring이 계산한 평일·주말 구분
+    @Enumerated(EnumType.STRING)
+    @Column(name = "weekday_type", nullable = false, length = 20)
+    private WeekdayType weekdayType;
 
     // 입력 방식 (text, voice STT)
     @Enumerated(EnumType.STRING)
@@ -111,21 +142,6 @@ public class EmotionRecords {
     @Column(name = "completion_status", nullable = false, length = 20)
     private CompletionStatus completionStatus = CompletionStatus.QUICK;
 
-    // 상황·맥락 의미가 비슷한 기록을 찾기 위한 1536차원 벡터
-    @JdbcTypeCode(SqlTypes.VECTOR)
-    @Column(name = "situation_embedding", columnDefinition = "vector(1536)")
-    private float[] situationEmbedding;
-
-    // 반복되는 자동적 사고·해석을 찾기 위한 1536차원 벡터
-    @JdbcTypeCode(SqlTypes.VECTOR)
-    @Column(name = "thought_embedding", columnDefinition = "vector(1536)")
-    private float[] thoughtEmbedding;
-
-    // 메타데이터: 임베딩 모델명, 버전, 생성 시각 등 임베딩 관련 정보
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "embedding_meta", nullable = false, columnDefinition = "jsonb")
-    private Map<String, Object> embeddingMeta = new HashMap<>();
-
     // AI 처리 관련 정보 : AI 모델명, 프롬프트 버전, 처리 결과 등
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "ai_meta", nullable = false, columnDefinition = "jsonb")
@@ -152,6 +168,4 @@ public class EmotionRecords {
     void preUpdate() {
         this.updatedAt = Instant.now();
     }
-
-
 }
