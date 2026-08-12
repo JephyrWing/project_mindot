@@ -69,6 +69,11 @@
   touch-action: manipulation;
 }
 
+/* 메인 이동 버튼 위에 커서를 올렸을 때 진한 파란색 강조. */
+.weekly-report-card > button:hover {
+  background: #164fb3;
+}
+
 /* 작은 모바일 화면에서 카드 내부 여백을 줄이기 위한 설정. */
 @media (max-width: 480px) {
   .weekly-report-card {

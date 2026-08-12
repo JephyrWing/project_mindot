@@ -1,0 +1,127 @@
+/* 앱 화면 위에 안내창을 고정하고 배경과 구분하기 위한 전체 영역 설정. */
+.app-intro-backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding:
+    calc(20px + env(safe-area-inset-top, 0px))
+    calc(20px + env(safe-area-inset-right, 0px))
+    calc(20px + env(safe-area-inset-bottom, 0px))
+    calc(20px + env(safe-area-inset-left, 0px));
+  background: rgba(10, 18, 32, 0.52);
+}
+
+/* 앱의 목적과 주요 기능을 담는 시작 안내 카드 설정. */
+.app-intro-modal {
+  width: 100%;
+  max-width: 440px;
+  max-height: 100%;
+  overflow-y: auto;
+  border-radius: 16px;
+  padding: 32px;
+  background: #ffffff;
+  box-shadow: 0 24px 70px rgba(10, 18, 32, 0.24);
+}
+
+/* 시작 안내 카드 상단의 공통 Mindot 로고 설정. */
+.app-intro-logo {
+  color: #0a1220;
+  font-size: 15px;
+}
+
+/* 시작 안내 제목과 본문 사이의 시각적 순서 설정. */
+.app-intro-modal h1 {
+  margin: 28px 0 0;
+  color: #0a1220;
+  font-size: 27px;
+  line-height: 1.35;
+  word-break: keep-all;
+}
+
+.app-intro-description {
+  margin: 14px 0 0;
+  color: #5f697d;
+  font-size: 14px;
+  line-height: 1.75;
+  word-break: keep-all;
+}
+
+/* 앱의 세 가지 주요 기능을 간단한 태그 형태로 보여 주기 위한 설정. */
+.app-intro-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.app-intro-features li {
+  border-radius: 999px;
+  padding: 7px 11px;
+  color: #24578f;
+  font-size: 12px;
+  font-weight: 700;
+  background: #eef5ff;
+}
+
+/* 의료적 이용 범위를 주요 설명과 구분하여 보여 주기 위한 안내 설정. */
+.app-intro-notice {
+  margin: 22px 0 0;
+  border-left: 3px solid #7ca9e8;
+  padding: 9px 12px;
+  color: #707a8e;
+  font-size: 12px;
+  line-height: 1.6;
+  background: #f7f9fc;
+}
+
+/* 사용자가 안내를 확인하고 앱을 시작하는 주요 버튼 설정. */
+.app-intro-modal > button {
+  appearance: none;
+  width: 100%;
+  min-height: 48px;
+  border: none;
+  border-radius: 8px;
+  margin-top: 24px;
+  outline: none;
+  color: #ffffff;
+  font-weight: 700;
+  background: #1c5ed0;
+  box-shadow: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 시작하기 버튼 위에 커서를 올렸을 때 더 선명한 파란색 강조. */
+.app-intro-modal > button:hover {
+  background: #164fb3;
+}
+
+/* 키보드 초점을 검정 테두리 대신 진한 파란색 배경으로 표시하기 위한 설정. */
+.app-intro-modal > button:focus,
+.app-intro-modal > button:focus-visible {
+  border: none;
+  outline: none;
+  background: #164fb3;
+  box-shadow: none;
+}
+
+/* 작은 모바일 화면에서 안내 카드의 내부 여백과 제목 크기를 조정하기 위한 설정. */
+@media (max-width: 480px) {
+  .app-intro-modal {
+    padding: 28px 22px;
+  }
+
+  .app-intro-modal h1 {
+    font-size: 24px;
+  }
+
+  .app-intro-modal > button {
+    font-size: 16px;
+  }
+}

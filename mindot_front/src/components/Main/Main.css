@@ -186,6 +186,19 @@
   background: #ffffff;
 }
 
+/* 감정 기록 버튼 위에 커서를 올렸을 때 주요 동작을 나타내는 진한 파란색 강조. */
+.main-emotion-button:hover {
+  border-color: #164fb3;
+  background: #164fb3;
+}
+
+/* 주간 리포트 버튼 위에 커서를 올렸을 때 보조 동작을 나타내는 옅은 파란색 강조. */
+.main-report-button:hover {
+  border-color: #164fb3;
+  color: #164fb3;
+  background: #edf4ff;
+}
+
 /* 작은 모바일 화면에서 카드 장식을 줄이기 위한 설정. */
 @media (max-width: 480px) {
   .main-card {

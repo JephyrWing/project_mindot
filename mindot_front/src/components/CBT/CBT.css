@@ -79,6 +79,11 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* CBT 검사 시작 버튼 위에 커서를 올렸을 때 진한 파란색 강조. */
+.cbt-start-button:hover {
+  background: #164fb3;
+}
+
 /* CBT AI 대화창과 카드 상단 로고 사이의 간격 설정. */
 .cbt-chat {
   margin-top: 28px;
@@ -183,6 +188,11 @@
 .cbt-chat-form button:disabled {
   background: #aeb8c8;
   cursor: not-allowed;
+}
+
+/* 활성화된 대화 전송 버튼 위에 커서를 올렸을 때 진한 파란색 강조. */
+.cbt-chat-form button:not(:disabled):hover {
+  background: #164fb3;
 }
 
 /* 작은 모바일 화면에서 CBT 카드 내부 여백을 줄이기 위한 설정. */
