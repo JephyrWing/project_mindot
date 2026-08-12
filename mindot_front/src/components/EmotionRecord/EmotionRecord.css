@@ -137,6 +137,11 @@
   cursor: wait;
 }
 
+/* 활성화된 감정 기록 제출 버튼 위에 커서를 올렸을 때 진한 파란색 강조. */
+.emotion-record-form button[type='submit']:not(:disabled):hover {
+  background: #164fb3;
+}
+
 /* 감정 기록 저장 완료 후 표시되는 후속 화면 이동 버튼 설정. */
 .emotion-record-form .emotion-record-cbt-button,
 .emotion-record-form .emotion-record-report-button {
@@ -144,6 +149,14 @@
   border: 1px solid #1c5ed0;
   color: #1c5ed0;
   background: #ffffff;
+}
+
+/* CBT와 주간 리포트 이동 버튼 위에 커서를 올렸을 때 옅은 파란색 강조. */
+.emotion-record-form button.emotion-record-cbt-button:hover,
+.emotion-record-form button.emotion-record-report-button:hover {
+  border-color: #164fb3;
+  color: #164fb3;
+  background: #edf4ff;
 }
 
 /* 작은 모바일 화면에서 카드 내부 여백을 확보하고 입력 요소의 자동 확대를 방지하기 위한 설정. */

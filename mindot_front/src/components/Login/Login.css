@@ -94,6 +94,13 @@
   transform: translateY(-50%);
 }
 
+/* 비밀번호 표시 버튼 위에 커서를 올렸을 때 입력창 안쪽의 옅은 배경 강조. */
+.login-password-toggle:hover {
+  border-radius: 4px;
+  color: #12479f;
+  background: #edf4ff;
+}
+
 /* 이메일 기억하기 체크박스와 문구의 가로 정렬. */
 .login-remember {
   display: inline-flex;
@@ -129,6 +136,11 @@
   opacity: 0.7;
 }
 
+/* 활성화된 로그인 버튼 위에 커서를 올렸을 때 진한 파란색 강조. */
+.login-form > button:not(:disabled):hover {
+  background: #164fb3;
+}
+
 .login-error {
   margin: 0;
   color: #c62828;
@@ -154,6 +166,12 @@
   font-weight: 700;
   background: transparent;
   cursor: pointer;
+}
+
+/* 회원가입 이동 문구 위에 커서를 올렸을 때 링크 색상 강조. */
+.login-signup-guide button:hover {
+  color: #12479f;
+  background: #edf4ff;
 }
 
 /* 카드 아래쪽의 서비스 이용 안내 문구 설정. */

@@ -24,6 +24,11 @@
   background: #0a1220;
 }
 
+/* 햄버거 버튼 위에 커서를 올렸을 때 메뉴 영역을 구분하는 배경색 강조. */
+.main-menu-button:hover {
+  background: #edf4ff;
+}
+
 /* 열린 사이드바 뒤에 표시되는 어두운 배경 설정. */
 .main-sidebar-overlay {
   position: fixed;
@@ -42,6 +47,11 @@
 .main-sidebar-overlay.is-open {
   visibility: visible;
   opacity: 1;
+}
+
+/* 열린 사이드바 바깥 영역 위에 커서를 올렸을 때 닫기 가능 영역 강조. */
+.main-sidebar-overlay.is-open:hover {
+  background: rgba(10, 18, 32, 0.52);
 }
 
 /* 모바일 화면 왼쪽에 고정되는 사이드바 설정. */
@@ -96,6 +106,12 @@
   touch-action: manipulation;
 }
 
+/* 사이드바 닫기 버튼 위에 커서를 올렸을 때 옅은 파란색 배경 강조. */
+.main-sidebar__close:hover {
+  color: #164fb3;
+  background: #edf4ff;
+}
+
 /* 사이드바 이동 버튼의 세로 방향 배치. */
 .main-sidebar__navigation {
   display: flex;
@@ -120,6 +136,13 @@
 
 /* 사이드바 이동 버튼 선택 시 배경색 강조. */
 .main-sidebar__navigation button:active {
+  background: #edf4ff;
+}
+
+/* 로그인과 회원가입 이동 버튼 위에 커서를 올렸을 때 선택 가능 상태 강조. */
+.main-sidebar__navigation button:hover {
+  border-color: #a9c4eb;
+  color: #164a96;
   background: #edf4ff;
 }
 

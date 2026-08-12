@@ -21,6 +21,21 @@ input {
   font: inherit;
 }
 
+/* 모든 버튼의 색상 변화를 부드럽게 보여 주기 위한 공통 전환 설정. */
+button {
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+/* 움직임 감소 설정 사용자의 버튼 전환 효과 제거. */
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+  }
+}
+
 /* 리액트 루트 영역의 화면 전체 높이 확보. */
 #root {
   min-height: 100vh;

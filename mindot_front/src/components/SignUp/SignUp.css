@@ -108,6 +108,13 @@
   cursor: not-allowed;
 }
 
+/* 활성화된 비밀번호 일치 확인 버튼 위에 커서를 올렸을 때 보조 색상 강조. */
+.signup-password-check:not(:disabled):hover {
+  border-color: #164fb3;
+  color: #164fb3;
+  background: #edf4ff;
+}
+
 /* 비밀번호 일치 확인 성공 문구의 기본 모양 설정. */
 .signup-form__success {
   margin: -6px 0 0;
@@ -130,4 +137,9 @@
 .signup-form > button:disabled {
   background: #aeb8c8;
   cursor: not-allowed;
+}
+
+/* 활성화된 회원가입 버튼 위에 커서를 올렸을 때 진한 파란색 강조. */
+.signup-form > button:not(:disabled):hover {
+  background: #164fb3;
 }
