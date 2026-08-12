@@ -79,9 +79,121 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* CBT AI 대화창과 카드 상단 로고 사이의 간격 설정. */
+.cbt-chat {
+  margin-top: 28px;
+}
+
+/* CBT AI 대화창 제목과 안내 문구의 기본 간격 설정. */
+.cbt-chat-header h1 {
+  margin: 0;
+}
+
+.cbt-chat-header p {
+  margin: 10px 0 0;
+  color: #666f85;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* AI와 사용자의 대화 말풍선을 세로로 배치하는 목록 설정. */
+.cbt-chat-messages {
+  display: flex;
+  min-height: 220px;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+  border-radius: 8px;
+  padding: 16px;
+  background: #f6f8fc;
+}
+
+/* AI와 사용자 말풍선에 공통으로 적용할 크기와 문장 설정. */
+.cbt-message {
+  width: fit-content;
+  max-width: 85%;
+  margin: 0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+/* AI 안내 메시지를 화면 왼쪽에 표시하기 위한 설정. */
+.cbt-message--ai {
+  align-self: flex-start;
+  color: #30394b;
+  background: #ffffff;
+}
+
+.cbt-message--ai strong {
+  color: #1c5ed0;
+  font-size: 12px;
+}
+
+.cbt-message--ai p {
+  margin: 5px 0 0;
+}
+
+/* 사용자가 입력한 답변을 화면 오른쪽에 표시하기 위한 설정. */
+.cbt-message--user {
+  align-self: flex-end;
+  color: #ffffff;
+  background: #1c5ed0;
+}
+
+/* 사용자 답변 입력창과 보내기 버튼의 세로 배치 설정. */
+.cbt-chat-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.cbt-chat-form label {
+  font-weight: 600;
+}
+
+/* 사용자 답변 입력창의 기본 크기와 모양 설정. */
+.cbt-chat-form textarea {
+  width: 100%;
+  min-height: 84px;
+  resize: vertical;
+  border: 1px solid #cccccc;
+  border-radius: 6px;
+  padding: 12px;
+  font: inherit;
+  line-height: 1.6;
+}
+
+/* 사용자 답변을 대화 목록에 추가하는 보내기 버튼 설정. */
+.cbt-chat-form button {
+  min-height: 48px;
+  border: 0;
+  border-radius: 6px;
+  color: #ffffff;
+  font-weight: 700;
+  background: #1c5ed0;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 빈 답변 입력 시 보내기 버튼의 비활성화 상태 설정. */
+.cbt-chat-form button:disabled {
+  background: #aeb8c8;
+  cursor: not-allowed;
+}
+
 /* 작은 모바일 화면에서 CBT 카드 내부 여백을 줄이기 위한 설정. */
 @media (max-width: 480px) {
   .cbt-card {
     padding: 28px 20px;
+  }
+
+  /* 모바일 브라우저의 입력 시 자동 확대를 방지하기 위한 글자 크기 설정. */
+  .cbt-chat-form textarea,
+  .cbt-chat-form button {
+    font-size: 16px;
   }
 }
