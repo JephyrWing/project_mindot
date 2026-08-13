@@ -80,7 +80,7 @@
 }
 
 /* 사용자가 안내를 확인하고 앱을 시작하는 주요 버튼 설정. */
-.app-intro-modal > button {
+.app-intro-start-button {
   appearance: none;
   width: 100%;
   min-height: 48px;
@@ -98,13 +98,13 @@
 }
 
 /* 시작하기 버튼 위에 커서를 올렸을 때 더 선명한 파란색 강조. */
-.app-intro-modal > button:hover {
+.app-intro-start-button:hover {
   background: #164fb3;
 }
 
 /* 키보드 초점을 검정 테두리 대신 진한 파란색 배경으로 표시하기 위한 설정. */
-.app-intro-modal > button:focus,
-.app-intro-modal > button:focus-visible {
+.app-intro-start-button:focus,
+.app-intro-start-button:focus-visible {
   border: none;
   outline: none;
   background: #164fb3;
@@ -121,7 +121,7 @@
     font-size: 24px;
   }
 
-  .app-intro-modal > button {
+  .app-intro-start-button {
     font-size: 16px;
   }
 }
