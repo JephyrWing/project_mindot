@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Check;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
@@ -54,14 +56,18 @@ public class ReflectionSessions {
 
     // 세션 소유 사용자
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    // 사용자가 완전히 삭제되면 해당 사용자의 성찰 세션도 함께 삭제
+    @OnDelete(action = OnDeleteAction.CASCADE)
     // users.id 참조
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
     // 이 세션의 질문 전 원본 감정 기록
     @OneToOne(fetch = FetchType.LAZY, optional = false)
+    // 원본 감정 기록이 삭제되면 해당 기록의 성찰 세션도 함께 삭제
+    @OnDelete(action = OnDeleteAction.CASCADE)
     // emotion_records.id 참조
-    // 감정 기록 1개로 성찰 세션 최대 1개만 만들 수
+    // 감정 기록 1개로 성찰 세션 최대 1개만 만들 수 있음
     @JoinColumn(
             name = "emotion_record_id",
             nullable = false,

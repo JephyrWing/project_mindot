@@ -8,6 +8,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Check;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -50,6 +52,8 @@ public class SessionDistortions {
 
     // 이 인지왜곡 라벨이 붙은 CBT 성찰 세션
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    // 성찰 세션이 삭제되면 해당 세션의 인지왜곡 라벨도 함께 삭제
+    @OnDelete(action = OnDeleteAction.CASCADE)
     // reflection_sessions.id 참조
     @JoinColumn(name = "session_id", nullable = false)
     private ReflectionSessions session;
