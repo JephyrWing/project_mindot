@@ -1,4 +1,4 @@
-// 메인, 로그인, 회원가입, 감정 기록, CBT, 주간 리포트 화면 전환을 위한 리액트 상태 기능 불러오기.
+// 메인, 로그인, 회원가입, 감정 기록, CBT, 주간 리포트, 관련 기관 화면 전환을 위한 리액트 상태 기능 불러오기.
 import { useState } from 'react'
 import './App.css'
 import Main from './components/Main/Main.jsx'
@@ -8,6 +8,7 @@ import EmotionRecord from './components/EmotionRecord/EmotionRecord.jsx'
 import CBT from './components/CBT/CBT.jsx'
 import WeeklyReport from './components/WeeklyReport/WeeklyReport.jsx'
 import AppIntroModal from './components/AppIntroModal/AppIntroModal.jsx'
+import Center from './components/Center/Center.jsx'
 
 // 애플리케이션의 최상위 화면을 구성하는 루트 컴포넌트 정의.
 function App() {
@@ -43,6 +44,15 @@ function App() {
   } else if (currentPage === 'weekly-report') {
     // 주간 리포트 화면 선택 시 간단한 리포트 초안 컴포넌트 렌더링.
     currentPageContent = <WeeklyReport onBack={() => setCurrentPage('main')} />
+  } else if (currentPage === 'center') {
+    // 사이드바에서 관련 기관 찾기 선택 시 상담기관 검색 화면 렌더링.
+    currentPageContent = (
+      <Center
+        onLogin={() => setCurrentPage('login')}
+        onSignUp={() => setCurrentPage('signup')}
+        onCenter={() => setCurrentPage('center')}
+      />
+    )
   } else {
     // 기본 메인 화면과 사이드바 이동 기능 렌더링.
     currentPageContent = (
@@ -51,6 +61,7 @@ function App() {
         onSignUp={() => setCurrentPage('signup')}
         onEmotionRecord={() => setCurrentPage('emotion-record')}
         onWeeklyReport={() => setCurrentPage('weekly-report')}
+        onCenter={() => setCurrentPage('center')}
       />
     )
   }

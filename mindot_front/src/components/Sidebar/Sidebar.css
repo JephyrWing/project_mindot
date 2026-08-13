@@ -120,7 +120,7 @@
   margin-top: 28px;
 }
 
-/* 로그인과 회원가입 이동 버튼의 모바일 크기 설정. */
+/* 사이드바의 각 화면 이동 버튼에 적용할 모바일 크기 설정. */
 .main-sidebar__navigation button {
   min-height: 50px;
   border: 1px solid #dce3ee;
@@ -132,6 +132,7 @@
   background: #ffffff;
   cursor: pointer;
   touch-action: manipulation;
+  transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
 }
 
 /* 사이드바 이동 버튼 선택 시 배경색 강조. */
@@ -139,7 +140,7 @@
   background: #edf4ff;
 }
 
-/* 로그인과 회원가입 이동 버튼 위에 커서를 올렸을 때 선택 가능 상태 강조. */
+/* 모든 사이드바 이동 버튼 위에 커서를 올렸을 때 동일한 선택 가능 상태 강조. */
 .main-sidebar__navigation button:hover {
   border-color: #a9c4eb;
   color: #164a96;

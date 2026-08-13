@@ -3,8 +3,8 @@ import './Sidebar.css'
 // 여러 화면에서 공통으로 사용하는 Mindot 로고 불러오기.
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 
-// 열림 상태와 회원 화면 이동을 담당하는 모바일 사이드바 컴포넌트 정의.
-function Sidebar({ onLogin, onSignUp }) {
+// 열림 상태와 주요 화면 이동을 담당하는 모바일 사이드바 컴포넌트 정의.
+function Sidebar({ onLogin, onSignUp, onCenter }) {
   // 사이드바 열림 여부 상태 관리.
   const [isOpen, setIsOpen] = useState(false)
 
@@ -77,13 +77,16 @@ function Sidebar({ onLogin, onSignUp }) {
           </button>
         </div>
 
-        {/* 로그인과 회원가입 화면 이동 버튼 배치. */}
-        <nav className="main-sidebar__navigation" aria-label="회원 메뉴">
+        {/* 로그인, 회원가입, 관련 기관 찾기 화면 이동 버튼 배치. */}
+        <nav className="main-sidebar__navigation" aria-label="주요 메뉴">
           <button type="button" onClick={() => moveToPage(onLogin)}>
             로그인
           </button>
           <button type="button" onClick={() => moveToPage(onSignUp)}>
             회원가입
+          </button>
+          <button type="button" onClick={() => moveToPage(onCenter)}>
+            관련 기관 찾기
           </button>
         </nav>
       </aside>
