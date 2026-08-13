@@ -7,6 +7,30 @@
   letter-spacing: 0.1em;
 }
 
+/* 메인페이지 이동 기능이 있는 로고의 기본 버튼 모양 초기화. */
+.brand-logo--button {
+  border: 0;
+  border-radius: 8px;
+  padding: 4px;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* 클릭 가능한 로고 위에 커서를 올렸을 때 옅은 파란색 배경 강조. */
+.brand-logo--button:hover {
+  color: #164a96;
+  background: #edf4ff;
+}
+
+/* 키보드로 로고를 선택했을 때 현재 위치를 구분하는 포커스 표시 설정. */
+.brand-logo--button:focus-visible {
+  outline: 2px solid #6b9ee8;
+  outline-offset: 2px;
+}
+
 /* 세 개의 점과 연결선을 배치할 공통 로고 심볼 영역 설정. */
 .brand-logo__mark {
   position: relative;

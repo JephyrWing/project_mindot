@@ -6,7 +6,7 @@ import './EmotionRecord.css'
 const maxContentLength = 1000
 
 // 감정 원문을 입력받는 기본 화면 컴포넌트 정의.
-function EmotionRecord({ onCBT, onWeeklyReport }) {
+function EmotionRecord({ onCBT, onWeeklyReport, onHome }) {
   // 감정 원문 입력값 상태 관리.
   const [content, setContent] = useState('')
   // 빈 내용 검증 오류 문구 상태 관리.
@@ -62,7 +62,7 @@ function EmotionRecord({ onCBT, onWeeklyReport }) {
   return (
     <main className="emotion-record-page">
       <section className="emotion-record-card" aria-labelledby="emotion-record-title">
-        <BrandLogo className="emotion-record-logo" />
+        <BrandLogo className="emotion-record-logo" onClick={onHome} />
 
         <h1 id="emotion-record-title">어떤 감정이 들었나요?</h1>
 

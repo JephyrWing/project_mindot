@@ -4,7 +4,7 @@ import './Sidebar.css'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 
 // 열림 상태와 주요 화면 이동을 담당하는 모바일 사이드바 컴포넌트 정의.
-function Sidebar({ onLogin, onSignUp, onCenter }) {
+function Sidebar({ onLogin, onSignUp, onCenter, onHome }) {
   // 사이드바 열림 여부 상태 관리.
   const [isOpen, setIsOpen] = useState(false)
 
@@ -66,7 +66,7 @@ function Sidebar({ onLogin, onSignUp, onCenter }) {
         inert={!isOpen}
       >
         <div className="main-sidebar__header">
-          <BrandLogo className="main-sidebar__brand" />
+          <BrandLogo className="main-sidebar__brand" onClick={onHome} />
           <button
             className="main-sidebar__close"
             type="button"

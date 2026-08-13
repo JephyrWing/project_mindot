@@ -8,7 +8,7 @@ import './Login.css'
 const rememberedEmailKey = 'mindot.rememberedEmail'
 
 // 이메일과 비밀번호를 입력받는 기본 로그인 컴포넌트 정의.
-function Login({ onLoginSuccess, onSignUp }) {
+function Login({ onLoginSuccess, onSignUp, onHome }) {
   // 이메일 입력값 상태 관리.
   const [email, setEmail] = useState(() => localStorage.getItem(rememberedEmailKey) ?? '')
   // 비밀번호 입력값 상태 관리.
@@ -55,7 +55,7 @@ function Login({ onLoginSuccess, onSignUp }) {
     <main className="login-page app-page">
       <section className="login-card" aria-labelledby="login-title">
         {/* 공통 컴포넌트를 사용한 Mindot 로고 배치. */}
-        <BrandLogo className="login-logo" />
+        <BrandLogo className="login-logo" onClick={onHome} />
 
         {/* 로그인 제목과 서비스 안내 문구 배치. */}
         <header className="login-header">

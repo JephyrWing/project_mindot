@@ -3,7 +3,7 @@ import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import './CBT.css'
 
 // 감정 기록을 바탕으로 생각을 돌아보는 기본 CBT 성찰 화면 컴포넌트 정의.
-function CBT() {
+function CBT({ onHome }) {
   // CBT AI 대화창 시작 여부 상태 관리.
   const [isChatStarted, setIsChatStarted] = useState(false)
   // 사용자가 작성 중인 답변 내용 상태 관리.
@@ -29,7 +29,7 @@ function CBT() {
         className="cbt-card"
         aria-labelledby={isChatStarted ? 'cbt-chat-title' : 'cbt-title'}
       >
-        <BrandLogo className="cbt-logo" />
+        <BrandLogo className="cbt-logo" onClick={onHome} />
 
         {!isChatStarted ? (
           <>

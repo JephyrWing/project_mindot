@@ -11,6 +11,7 @@ function Main({
   onEmotionRecord,
   onWeeklyReport,
   onCenter,
+  onHome,
 }) {
   // 사용자의 현재 날짜를 한국어 월·일·요일 형식으로 표시하기 위한 값 생성.
   const today = new Intl.DateTimeFormat('ko-KR', {
@@ -29,12 +30,13 @@ function Main({
           onLogin={onLogin}
           onSignUp={onSignUp}
           onCenter={onCenter}
+          onHome={onHome}
         />
-        <BrandLogo className="main-header__brand" />
+        <BrandLogo className="main-header__brand" onClick={onHome} />
       </header>
 
       <section className="main-card" aria-labelledby="main-title">
-        <BrandLogo className="main-brand" />
+        <BrandLogo className="main-brand" onClick={onHome} />
         {/* 메인 화면에 접속한 날짜를 바로 확인할 수 있는 오늘 날짜 표시. */}
         <p className="main-today">오늘 · {today}</p>
         <h1 id="main-title">오늘의 마음은 어떤가요?</h1>

@@ -30,7 +30,7 @@ const getPasswordError = (value) => {
 }
 
 // 이메일과 비밀번호를 입력받는 기본 회원가입 컴포넌트 정의.
-function SignUp() {
+function SignUp({ onHome }) {
   // 이메일 입력값 상태 관리.
   const [email, setEmail] = useState('')
   // 이메일 형식 오류 문구 상태 관리.
@@ -132,7 +132,7 @@ function SignUp() {
     <main className="signup-page">
       <section className="signup-card" aria-labelledby="signup-title">
         {/* 로그인 화면과 동일한 공통 로고와 MINDOT 프로젝트명 배치. */}
-        <BrandLogo className="signup-logo" />
+        <BrandLogo className="signup-logo" onClick={onHome} />
 
         <h1 id="signup-title">회원가입</h1>
 
