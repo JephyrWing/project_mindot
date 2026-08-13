@@ -6,11 +6,15 @@ import './EmotionRecord.css'
 const maxContentLength = 1000
 // 현재 감정과 가장 가까운 항목을 선택하기 위한 기본 감정 목록 설정.
 const emotionOptions = ['기쁨', '평온', '슬픔', '불안', '화남']
+// 선택한 감정의 강도를 다섯 단계로 구분하기 위한 목록 설정.
+const emotionIntensityOptions = ['매우 약함', '약함', '보통', '강함', '매우 강함']
 
 // 감정 원문을 입력받는 기본 화면 컴포넌트 정의.
 function EmotionRecord({ onCBT, onWeeklyReport, onHome }) {
   // 사용자가 선택한 대표 감정 상태 관리.
   const [selectedEmotion, setSelectedEmotion] = useState('')
+  // 사용자가 선택한 감정 강도 단계 상태 관리.
+  const [selectedIntensity, setSelectedIntensity] = useState(0)
   // 감정 원문 입력값 상태 관리.
   const [content, setContent] = useState('')
   // 빈 내용 검증 오류 문구 상태 관리.
@@ -34,9 +38,14 @@ function EmotionRecord({ onCBT, onWeeklyReport, onHome }) {
 
   // 감정 항목 선택과 같은 항목 재선택 시 해제 및 작성 상태 반영 처리.
   const handleEmotionSelect = (emotion) => {
-    setSelectedEmotion((currentEmotion) => (
-      currentEmotion === emotion ? '' : emotion
-    ))
+    setSelectedEmotion(selectedEmotion === emotion ? '' : emotion)
+    setSelectedIntensity(0)
+    setSaveStatus('editing')
+  }
+
+  // 선택한 감정 강도 단계 반영과 작성 상태 변경 처리.
+  const handleIntensitySelect = (intensity) => {
+    setSelectedIntensity(intensity)
     setSaveStatus('editing')
   }
 
@@ -97,6 +106,39 @@ function EmotionRecord({ onCBT, onWeeklyReport, onHome }) {
                 </button>
               ))}
             </div>
+          </fieldset>
+
+          {/* 대표 감정을 선택한 뒤 현재 감정의 강도를 고르는 단계 영역 배치. */}
+          <fieldset
+            className="emotion-record-intensity"
+            disabled={!selectedEmotion || saveStatus === 'saving'}
+          >
+            <legend>감정 강도</legend>
+            <div className="emotion-record-intensity-options">
+              {emotionIntensityOptions.map((intensityLabel, index) => {
+                const intensity = index + 1
+
+                return (
+                  <button
+                    className="emotion-record-intensity-button"
+                    type="button"
+                    key={intensityLabel}
+                    onClick={() => handleIntensitySelect(intensity)}
+                    aria-label={`${intensity}단계 ${intensityLabel}`}
+                    aria-pressed={selectedIntensity === intensity}
+                  >
+                    {intensity}
+                  </button>
+                )
+              })}
+            </div>
+            <p className="emotion-record-intensity-guide" aria-live="polite">
+              {selectedEmotion
+                ? selectedIntensity
+                  ? `${selectedEmotion} · ${emotionIntensityOptions[selectedIntensity - 1]}`
+                  : '감정의 강도를 선택해 주세요.'
+                : '대표 감정을 먼저 선택해 주세요.'}
+            </p>
           </fieldset>
 
           <label htmlFor="emotion-content">지금의 감정</label>
