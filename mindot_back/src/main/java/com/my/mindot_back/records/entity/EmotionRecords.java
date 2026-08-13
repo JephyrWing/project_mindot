@@ -111,7 +111,7 @@ public class EmotionRecords {
     private String automaticThought;
 
     // 주 감정 코드
-    @Column(name = "primary_emotion_code", length = 50)
+    @Column(name = "primary_emotion_code", length = 50, nullable = false)
     private String primaryEmotionCode;
 
     // 질문 전 주 감정 강도 (0~10)
