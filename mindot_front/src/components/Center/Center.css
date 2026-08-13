@@ -1,0 +1,44 @@
+/* 관련 기관 찾기 화면의 전체 높이와 기본 배경색 설정. */
+.center-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  color: #0a1220;
+  background: #f4f7fc;
+}
+
+/* 공통 메뉴와 로고를 포함한 상단 헤더 배치. */
+.center-header {
+  display: flex;
+  min-height: 66px;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid #e1e7f0;
+  padding: 0 18px;
+  background: #ffffff;
+}
+
+/* 상단 공통 Mindot 로고 크기 설정. */
+.center-brand {
+  color: #0a1220;
+  font-size: 15px;
+}
+
+/* 첫 번째 개발 단계에 필요한 제목과 안내 문구 영역 설정. */
+.center-content {
+  width: min(100%, 720px);
+  margin: 0 auto;
+  padding: 48px 24px;
+}
+
+/* 관련 기관 찾기 화면의 기본 제목 설정. */
+.center-content h1 {
+  margin: 0;
+  font-size: 30px;
+}
+
+/* 화면 목적을 전달하는 기본 안내 문구 설정. */
+.center-content p {
+  margin: 14px 0 0;
+  color: #657189;
+  line-height: 1.7;
+}
