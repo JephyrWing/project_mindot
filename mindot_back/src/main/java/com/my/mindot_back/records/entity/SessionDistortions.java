@@ -2,6 +2,7 @@
 package com.my.mindot_back.records.entity;
 
 import com.my.mindot_back.distortions.entity.DistortionTypes;
+import org.hibernate.annotations.ColumnDefault;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -66,11 +67,13 @@ public class SessionDistortions {
 
     // 최초 라벨 제안 주체 (AI or USER)
     @Enumerated(EnumType.STRING)
+    @ColumnDefault("'AI'")
     @Column(nullable = false, length = 20)
     private DistortionSource source = DistortionSource.AI;
 
     // 사용자가 라벨을 검토한 상태
     @Enumerated(EnumType.STRING)
+    @ColumnDefault("'PROPOSED'")
     @Column(name = "review_status", nullable = false, length = 20)
     private DistortionReviewStatus reviewStatus =
             DistortionReviewStatus.PROPOSED;

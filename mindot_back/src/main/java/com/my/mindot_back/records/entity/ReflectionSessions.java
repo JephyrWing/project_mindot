@@ -79,7 +79,7 @@ public class ReflectionSessions {
     @Column(name = "current_step", length = 50)
     private String currentStep;
 
-    // CBT 질문과 사용자 답변을 순서대로 저장
+    // FastAPI가 생성한 CBT 질문과 React가 전달한 사용자 답변을 순서대로 저장
     // 순서 배열: questionCode/question/answer/askedAt/answeredAt
     @JdbcTypeCode(SqlTypes.JSON)
     // postgreSQL의 jsonb 타입과 연결
@@ -119,17 +119,19 @@ public class ReflectionSessions {
     @Column(name = "user_confirmed", nullable = false)
     private Boolean userConfirmed = false;
 
-    // 사용자가 확인 완료한 CBT 사례를 검색용으로 정리한 텍스트
-    @Column(name = "retrieval_text", columnDefinition = "TEXT")
-    private String retrievalText;
-
-    // retrievalText를 임베딩한 1536차원 벡터
-    // 비슷한 사용자 확인 완료 CBT 사례를 찾는 데 사용
+    // 최초 생각이 없는 현재 기록에서 유사한 CBT 사례를 찾는 1536차원 검색 벡터
+    // 시간맥락, 상황 범주, 상황, 감정을 조합해 AI가 생성
     @JdbcTypeCode(SqlTypes.VECTOR)
-    @Column(name = "cbt_case_embedding", columnDefinition = "vector(1536)")
-    private float[] cbtCaseEmbedding;
+    @Column(name = "context_embedding", columnDefinition = "vector(1536)")
+    private float[] contextEmbedding;
 
-    // CBT 사례 임베딩의 모델명, 템플릿 버전, 생성 시각 정보
+    // 최초 생각까지 있는 기록에서 더 구체적인 유사 CBT 사례를 찾는 1536차원 검색 벡터
+    // contextEmbedding에 사용한 정보와 automaticThought를 조합해 AI가 생성
+    @JdbcTypeCode(SqlTypes.VECTOR)
+    @Column(name = "thought_aware_embedding", columnDefinition = "vector(1536)")
+    private float[] thoughtAwareEmbedding;
+
+    // 두 검색 벡터의 모델명, 차원, 템플릿 버전, 생성 시각 등의 메타데이터
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "embedding_meta", nullable = false, columnDefinition = "jsonb")
     private Map<String, Object> embeddingMeta = new HashMap<>();
