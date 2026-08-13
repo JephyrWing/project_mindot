@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.Instant;
 
@@ -19,6 +21,8 @@ public class ConsentEvents {
 
     // 사용자 한명은 여러 동의 이벤트 가질 수 있음
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    // 사용자가 완전히 삭제되면 해당 사용자의 동의 이력도 함께 삭제
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 

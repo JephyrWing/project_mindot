@@ -6,10 +6,8 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.*;
 import org.hibernate.type.SqlTypes;
-import org.hibernate.annotations.Check;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -66,6 +64,8 @@ public class EmotionRecords {
     // 기록 작성한 사용자
     // 사용자 1명은 감정 기록 여러개 작성 가능
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    // 사용자가 완전히 삭제되면 해당 사용자의 감정 기록도 함께 삭제
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
