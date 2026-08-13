@@ -43,7 +43,7 @@
   line-height: 1.7;
 }
 
-/* 지역과 기관 유형 선택창을 나란히 배치하는 기본 검색 조건 영역 설정. */
+/* 단계별 지역과 기관 유형 선택창을 두 칸씩 배치하는 기본 검색 조건 영역 설정. */
 .center-filter {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -83,10 +83,17 @@
   cursor: pointer;
 }
 
-/* 검색 조건 선택창 위에 커서를 올렸을 때 옅은 파란색 강조. */
-.center-filter select:hover {
+/* 활성화된 검색 조건 선택창 위에 커서를 올렸을 때 옅은 파란색 강조. */
+.center-filter select:not(:disabled):hover {
   border-color: #a9c4eb;
   background: #edf4ff;
+}
+
+/* 앞 단계 지역을 선택하기 전 비활성화된 선택창 상태 설정. */
+.center-filter select:disabled {
+  color: #8b95a8;
+  background: #f2f4f8;
+  cursor: not-allowed;
 }
 
 /* 검색 조건 선택 중 현재 위치를 구분하는 포커스 표시 설정. */

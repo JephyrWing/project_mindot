@@ -19,12 +19,6 @@
   cursor: pointer;
 }
 
-/* 클릭 가능한 로고 위에 커서를 올렸을 때 옅은 파란색 배경 강조. */
-.brand-logo--button:hover {
-  color: #164a96;
-  background: #edf4ff;
-}
-
 /* 키보드로 로고를 선택했을 때 현재 위치를 구분하는 포커스 표시 설정. */
 .brand-logo--button:focus-visible {
   outline: 2px solid #6b9ee8;

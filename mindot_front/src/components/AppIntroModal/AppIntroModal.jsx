@@ -65,7 +65,12 @@ function AppIntroModal({ onClose, onHome }) {
           Mindot은 의료적 진단이나 치료를 대신하지 않습니다.
         </p>
 
-        <button ref={startButtonRef} type="button" onClick={onClose}>
+        <button
+          className="app-intro-start-button"
+          ref={startButtonRef}
+          type="button"
+          onClick={onClose}
+        >
           MINDOT 시작하기
         </button>
       </section>
