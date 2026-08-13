@@ -19,6 +19,7 @@ spring:
       api-key: ${OPENAI_API_KEY}
       embedding:
         model: text-embedding-3-small
+        dimensions: 1536
 
   data:
     redis:
