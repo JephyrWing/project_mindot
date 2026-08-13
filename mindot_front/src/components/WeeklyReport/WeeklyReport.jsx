@@ -2,12 +2,12 @@ import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import './WeeklyReport.css'
 
 // 주간 감정 기록 요약을 표시할 간단한 리포트 화면 컴포넌트 정의.
-function WeeklyReport({ onBack }) {
+function WeeklyReport({ onBack, onHome }) {
   // 실제 리포트 데이터 연결 전 제목과 빈 상태만 포함한 기본 화면 반환.
   return (
     <main className="weekly-report-page">
       <section className="weekly-report-card" aria-labelledby="weekly-report-title">
-        <BrandLogo className="weekly-report-logo" />
+        <BrandLogo className="weekly-report-logo" onClick={onHome} />
 
         <h1 id="weekly-report-title">주간 리포트</h1>
         <p className="weekly-report-description">

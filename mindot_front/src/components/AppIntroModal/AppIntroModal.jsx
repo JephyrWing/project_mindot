@@ -3,7 +3,7 @@ import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import './AppIntroModal.css'
 
 // 앱 시작 시 Mindot의 목적과 주요 기능을 안내하는 모달 컴포넌트 정의.
-function AppIntroModal({ onClose }) {
+function AppIntroModal({ onClose, onHome }) {
   // 모달 표시 직후 시작 버튼으로 초점을 이동하기 위한 참조 관리.
   const startButtonRef = useRef(null)
 
@@ -29,6 +29,12 @@ function AppIntroModal({ onClose }) {
     if (event.target === event.currentTarget) onClose()
   }
 
+  // 로고 선택 시 안내창을 닫고 메인페이지로 이동하는 처리.
+  const handleHomeClick = () => {
+    onHome()
+    onClose()
+  }
+
   // 서비스 소개와 주요 기능 및 이용 범위를 포함한 안내창 반환.
   return (
     <div className="app-intro-backdrop" onMouseDown={handleBackdropClick}>
@@ -39,7 +45,7 @@ function AppIntroModal({ onClose }) {
         aria-labelledby="app-intro-title"
         aria-describedby="app-intro-description app-intro-notice"
       >
-        <BrandLogo className="app-intro-logo" />
+        <BrandLogo className="app-intro-logo" onClick={handleHomeClick} />
 
         <h1 id="app-intro-title">마음을 이해하는 작은 시작</h1>
         <p className="app-intro-description" id="app-intro-description">

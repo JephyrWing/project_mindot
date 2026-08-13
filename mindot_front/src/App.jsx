@@ -16,6 +16,8 @@ function App() {
   const [currentPage, setCurrentPage] = useState('main')
   // 앱을 처음 열었을 때 서비스 안내창을 표시하기 위한 상태 관리.
   const [isIntroOpen, setIsIntroOpen] = useState(true)
+  // 각 화면의 로고 선택 시 새로고침 없이 메인페이지로 이동하는 처리.
+  const moveToMain = () => setCurrentPage('main')
   // 현재 화면 상태에 따라 렌더링할 페이지 컴포넌트 보관.
   let currentPageContent
 
@@ -23,27 +25,31 @@ function App() {
   if (currentPage === 'login') {
     currentPageContent = (
       <Login
-        onLoginSuccess={() => setCurrentPage('main')}
+        onLoginSuccess={moveToMain}
         onSignUp={() => setCurrentPage('signup')}
+        onHome={moveToMain}
       />
     )
   } else if (currentPage === 'signup') {
     // 회원가입 화면 선택 시 회원가입 컴포넌트 렌더링.
-    currentPageContent = <SignUp />
+    currentPageContent = <SignUp onHome={moveToMain} />
   } else if (currentPage === 'emotion-record') {
     // 감정 기록 화면 선택 시 감정 기록 컴포넌트 렌더링.
     currentPageContent = (
       <EmotionRecord
         onCBT={() => setCurrentPage('cbt')}
         onWeeklyReport={() => setCurrentPage('weekly-report')}
+        onHome={moveToMain}
       />
     )
   } else if (currentPage === 'cbt') {
     // 감정 기록 저장 완료 후 선택한 CBT 성찰 화면 렌더링.
-    currentPageContent = <CBT />
+    currentPageContent = <CBT onHome={moveToMain} />
   } else if (currentPage === 'weekly-report') {
     // 주간 리포트 화면 선택 시 간단한 리포트 초안 컴포넌트 렌더링.
-    currentPageContent = <WeeklyReport onBack={() => setCurrentPage('main')} />
+    currentPageContent = (
+      <WeeklyReport onBack={moveToMain} onHome={moveToMain} />
+    )
   } else if (currentPage === 'center') {
     // 사이드바에서 관련 기관 찾기 선택 시 상담기관 검색 화면 렌더링.
     currentPageContent = (
@@ -51,6 +57,7 @@ function App() {
         onLogin={() => setCurrentPage('login')}
         onSignUp={() => setCurrentPage('signup')}
         onCenter={() => setCurrentPage('center')}
+        onHome={moveToMain}
       />
     )
   } else {
@@ -62,6 +69,7 @@ function App() {
         onEmotionRecord={() => setCurrentPage('emotion-record')}
         onWeeklyReport={() => setCurrentPage('weekly-report')}
         onCenter={() => setCurrentPage('center')}
+        onHome={moveToMain}
       />
     )
   }
@@ -70,7 +78,10 @@ function App() {
   return (
     <>
       {isIntroOpen && (
-        <AppIntroModal onClose={() => setIsIntroOpen(false)} />
+        <AppIntroModal
+          onClose={() => setIsIntroOpen(false)}
+          onHome={moveToMain}
+        />
       )}
       {currentPageContent}
     </>
