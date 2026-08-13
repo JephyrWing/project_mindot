@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
+import { signup } from '../../utils/auth/authApi.js'
 import './SignUp.css'
 
 // 이메일의 기본 사용자명과 도메인 형식 검사 패턴 설정.
@@ -29,8 +30,28 @@ const getPasswordError = (value) => {
   return ''
 }
 
+// 닉네임 입력값에 따른 오류 문구 반환.
+const getDisplayNameError = (value) => {
+  const normalizedValue = value.trim()
+
+  if (!normalizedValue) return '닉네임을 입력해 주세요.'
+  if (normalizedValue.length > 80) return '닉네임은 80자 이하로 입력해 주세요.'
+  return ''
+}
+
+// 회원가입 API 응답 상태에 따른 사용자 안내 문구 반환.
+const getSignUpError = (error) => {
+  if (!error.response) {
+    return '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
+  }
+  if (error.response.status === 409) {
+    return '이미 사용 중인 이메일입니다.'
+  }
+  return '회원가입에 실패했습니다. 입력 내용을 다시 확인해 주세요.'
+}
+
 // 이메일과 비밀번호를 입력받는 기본 회원가입 컴포넌트 정의.
-function SignUp({ onHome }) {
+function SignUp({ onSignUpSuccess, onHome }) {
   // 이메일 입력값 상태 관리.
   const [email, setEmail] = useState('')
   // 이메일 형식 오류 문구 상태 관리.
@@ -45,17 +66,38 @@ function SignUp({ onHome }) {
   const [passwordConfirmError, setPasswordConfirmError] = useState('')
   // 비밀번호 일치 확인 성공 문구 상태 관리.
   const [passwordConfirmSuccess, setPasswordConfirmSuccess] = useState('')
+  // 닉네임 입력값 상태 관리.
+  const [displayName, setDisplayName] = useState('')
+  // 닉네임 입력 오류 문구 상태 관리.
+  const [displayNameError, setDisplayNameError] = useState('')
+  // 이용약관 동의 여부 상태 관리.
+  const [termsAgreed, setTermsAgreed] = useState(false)
+  // 개인정보 처리 동의 여부 상태 관리.
+  const [privacyAgreed, setPrivacyAgreed] = useState(false)
+  // AI 분석 동의 여부 상태 관리.
+  const [aiAnalysisAgreed, setAiAnalysisAgreed] = useState(false)
+  // 회원가입 API 요청 진행 여부 상태 관리.
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  // 회원가입 API 요청 실패 문구 상태 관리.
+  const [signUpError, setSignUpError] = useState('')
 
   // 이메일 형식 충족 여부 계산.
   const isEmailReady = getEmailError(email) === ''
   // 비밀번호 생성 규칙 충족 여부 계산.
   const isPasswordReady = getPasswordError(password) === ''
+  // 닉네임 형식 충족 여부 계산.
+  const isDisplayNameReady = getDisplayNameError(displayName) === ''
+  // 세 가지 필수 동의 항목 선택 완료 여부 계산.
+  const areAgreementsReady = termsAgreed && privacyAgreed && aiAnalysisAgreed
   // 비밀번호 일치 확인까지 완료된 최종 가입 가능 여부 계산.
   const isSignUpReady = (
     isEmailReady
     && isPasswordReady
     && passwordConfirm === password
     && Boolean(passwordConfirmSuccess)
+    && isDisplayNameReady
+    && areAgreementsReady
+    && !isSubmitting
   )
 
   // 이메일 재입력에 따른 값 반영과 이전 오류 초기화.
@@ -114,17 +156,65 @@ function SignUp({ onHome }) {
     setPasswordConfirmSuccess('')
   }
 
-  // 실제 회원가입 API 연결 전 폼 새로고침 방지.
-  const handleSubmit = (event) => {
+  // 닉네임 재입력에 따른 값 반영과 이전 오류 초기화.
+  const handleDisplayNameChange = (event) => {
+    setDisplayName(event.target.value)
+    setDisplayNameError('')
+    setSignUpError('')
+  }
+
+  // 빈 닉네임과 최대 길이 검사.
+  const validateDisplayName = () => {
+    const errorMessage = getDisplayNameError(displayName)
+
+    setDisplayNameError(errorMessage)
+    return errorMessage === ''
+  }
+
+  // 회원가입 API 호출과 성공 후 로그인 화면 이동 처리.
+  const handleSubmit = async (event) => {
     event.preventDefault()
 
-    // 이메일과 비밀번호 형식 및 비밀번호 일치 여부 최종 검사.
+    if (isSubmitting) return
+
+    // 이메일과 비밀번호, 닉네임 및 비밀번호 일치 여부 최종 검사.
     const isEmailValid = validateEmail()
     const isPasswordValid = validatePassword()
     const isPasswordConfirmValid = validatePasswordConfirm()
+    const isDisplayNameValid = validateDisplayName()
 
     // 하나 이상의 가입 조건 위반 시 회원가입 처리 중단.
-    if (!isEmailValid || !isPasswordValid || !isPasswordConfirmValid) return
+    if (
+      !isEmailValid
+      || !isPasswordValid
+      || !isPasswordConfirmValid
+      || !isDisplayNameValid
+      || !areAgreementsReady
+    ) {
+      setSignUpError(
+        areAgreementsReady ? '' : '필수 동의 항목을 모두 선택해 주세요.',
+      )
+      return
+    }
+
+    setIsSubmitting(true)
+    setSignUpError('')
+
+    try {
+      await signup({
+        email: email.trim(),
+        password,
+        displayName: displayName.trim(),
+        termsAgreed,
+        privacyAgreed,
+        aiAnalysisAgreed,
+      })
+      onSignUpSuccess()
+    } catch (error) {
+      setSignUpError(getSignUpError(error))
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   // 기본 회원가입 화면 반환.
@@ -145,6 +235,7 @@ function SignUp({ onHome }) {
             value={email}
             onChange={handleEmailChange}
             onBlur={validateEmail}
+            autoComplete="email"
             pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
             placeholder="id@example.com"
             title="id@example.com 형식으로 입력해 주세요."
@@ -174,6 +265,7 @@ function SignUp({ onHome }) {
             value={password}
             onChange={handlePasswordChange}
             onBlur={validatePassword}
+            autoComplete="new-password"
             maxLength={20}
             placeholder={isEmailReady ? undefined : '이메일 입력 후 입력 가능'}
             disabled={!isEmailReady}
@@ -204,6 +296,7 @@ function SignUp({ onHome }) {
               type="password"
               value={passwordConfirm}
               onChange={handlePasswordConfirmChange}
+              autoComplete="new-password"
               placeholder={isPasswordReady ? undefined : '비밀번호 입력 후 입력 가능'}
               disabled={!isPasswordReady}
               aria-invalid={Boolean(passwordConfirmError)}
@@ -242,7 +335,74 @@ function SignUp({ onHome }) {
             </p>
           )}
 
-          <button type="submit" disabled={!isSignUpReady}>가입하기</button>
+          <label htmlFor="signup-display-name">닉네임</label>
+          <input
+            id="signup-display-name"
+            type="text"
+            value={displayName}
+            onChange={handleDisplayNameChange}
+            onBlur={validateDisplayName}
+            autoComplete="nickname"
+            maxLength={80}
+            placeholder={
+              passwordConfirmSuccess ? '사용할 닉네임 입력' : '비밀번호 확인 후 입력 가능'
+            }
+            disabled={!passwordConfirmSuccess}
+            aria-invalid={Boolean(displayNameError)}
+            aria-describedby={
+              displayNameError ? 'signup-display-name-error' : undefined
+            }
+            required
+          />
+          {/* 닉네임 입력 오류 발생 시 사용자 안내 문구 표시. */}
+          {displayNameError && (
+            <p className="signup-form__error" id="signup-display-name-error">
+              {displayNameError}
+            </p>
+          )}
+
+          {/* 백엔드 회원가입에 필요한 필수 동의 항목 묶음 배치. */}
+          <fieldset
+            className="signup-consent-group"
+            disabled={!isDisplayNameReady}
+          >
+            <legend>필수 동의</legend>
+            <label>
+              <input
+                type="checkbox"
+                checked={termsAgreed}
+                onChange={(event) => setTermsAgreed(event.target.checked)}
+              />
+              <span>이용약관 동의</span>
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={privacyAgreed}
+                onChange={(event) => setPrivacyAgreed(event.target.checked)}
+              />
+              <span>개인정보 처리 동의</span>
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={aiAnalysisAgreed}
+                onChange={(event) => setAiAnalysisAgreed(event.target.checked)}
+              />
+              <span>AI 분석 동의</span>
+            </label>
+          </fieldset>
+
+          {/* 회원가입 요청 실패 시 사용자 안내 문구 표시. */}
+          {signUpError && (
+            <p className="signup-form__submit-error" role="alert">
+              {signUpError}
+            </p>
+          )}
+
+          <button type="submit" disabled={!isSignUpReady}>
+            {isSubmitting ? '가입 중...' : '가입하기'}
+          </button>
         </form>
       </section>
     </main>
