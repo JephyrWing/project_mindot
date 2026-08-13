@@ -66,6 +66,34 @@ test('successful login stores the returned access token', async () => {
   assert.equal(localStorage.getItem('mindot.accessToken'), null)
 })
 
+test('signup sends the backend account contract without storing a token', async () => {
+  let request
+  const authApi = createAuthApi({
+    post: async (...args) => {
+      request = args
+      return { data: { id: 1, email: 'user@example.com' } }
+    },
+  })
+  const account = {
+    email: 'user@example.com',
+    password: 'Password1!',
+    displayName: '마인닷 사용자',
+    termsAgreed: true,
+    privacyAgreed: true,
+    aiAnalysisAgreed: true,
+  }
+
+  const response = await authApi.signup(account)
+
+  assert.deepEqual(request, [
+    '/api/auth/signup',
+    account,
+    { skipAuth: true },
+  ])
+  assert.equal(response.id, 1)
+  assert.equal(getAccessToken(), null)
+})
+
 test('protected requests receive Bearer token but auth requests do not', async () => {
   setAccessToken('access-token')
   const seenHeaders = []

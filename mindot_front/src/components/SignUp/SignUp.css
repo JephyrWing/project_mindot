@@ -122,6 +122,54 @@
   font-size: 12px;
 }
 
+/* 필수 동의 항목을 하나의 영역으로 구분하는 묶음 설정. */
+.signup-consent-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 0;
+  margin: 2px 0 0;
+  padding: 0;
+}
+
+/* 필수 동의 영역 제목의 기본 모양 설정. */
+.signup-consent-group legend {
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+/* 필수 동의 체크박스와 안내 문구의 가로 정렬. */
+.signup-consent-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+/* 필수 동의 체크박스의 크기와 강조색 설정. */
+.signup-consent-group input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  accent-color: #1c5ed0;
+}
+
+/* 앞 단계 미완료로 비활성화된 필수 동의 영역 설정. */
+.signup-consent-group:disabled label {
+  color: #929bad;
+  cursor: not-allowed;
+}
+
+/* 회원가입 API 요청 실패 문구의 기본 모양 설정. */
+.signup-form__submit-error {
+  margin: 0;
+  color: #c83b4d;
+  font-size: 12px;
+}
+
 /* 회원가입 버튼의 기본 모양 설정. */
 .signup-form > button {
   height: 44px;

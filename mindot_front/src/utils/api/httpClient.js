@@ -8,6 +8,7 @@ import {
 const apiBaseUrl =
   import.meta.env?.VITE_API_BASE_URL ?? "http://localhost:8080";
 const authPaths = [
+  '/api/auth/signup',
   '/api/auth/login',
   '/api/auth/refresh',
   '/api/auth/logout',

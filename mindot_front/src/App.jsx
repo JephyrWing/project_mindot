@@ -32,7 +32,12 @@ function App() {
     )
   } else if (currentPage === 'signup') {
     // 회원가입 화면 선택 시 회원가입 컴포넌트 렌더링.
-    currentPageContent = <SignUp onHome={moveToMain} />
+    currentPageContent = (
+      <SignUp
+        onSignUpSuccess={() => setCurrentPage('login')}
+        onHome={moveToMain}
+      />
+    )
   } else if (currentPage === 'emotion-record') {
     // 감정 기록 화면 선택 시 감정 기록 컴포넌트 렌더링.
     currentPageContent = (
