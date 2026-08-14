@@ -16,6 +16,8 @@ services:
       - .env.local
     environment:
       REDIS_PW: ${REDIS_PW}
+    ports:
+      - "6379:6379"
     command:
       - sh
       - -c
