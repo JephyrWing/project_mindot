@@ -9,7 +9,10 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.*;
 import org.hibernate.type.SqlTypes;
 
+import java.time.DayOfWeek;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -111,7 +114,7 @@ public class EmotionRecords {
     private String automaticThought;
 
     // 주 감정 코드
-    @Column(name = "primary_emotion_code", length = 50, nullable = false)
+    @Column(name = "primary_emotion_code", length = 50)
     private String primaryEmotionCode;
 
     // 질문 전 주 감정 강도 (0~10)
@@ -154,6 +157,59 @@ public class EmotionRecords {
     // 마지막 수정 시각
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+
+    // AI 구조화 전, 사용자가 보낸 간편 감정기록 원문 생성
+    // AI 분석값X -> completionStatus는 기본값 QUICK 유지
+    public static EmotionRecords createQuick(
+            Users user,
+            String rawText,
+            InputType inputType,
+            Instant occurredAt
+    ) {
+        EmotionRecords emotionRecord = new EmotionRecords();
+
+        // 로그인한 기록 작성자
+        emotionRecord.user = user;
+
+        // DTO로 받은 원문, 입력 방식, 감정 발생 시각
+        emotionRecord.rawText = rawText;
+        emotionRecord.inputType = inputType;
+        emotionRecord.occurredAt = occurredAt;
+
+        // Instant는 UTC 기준 -> 변환 후 평일, 주말 계산
+        ZonedDateTime occurredAtInSeoul = occurredAt.atZone(
+                ZoneId.of(emotionRecord.recordTimezone)
+        );
+
+        // 변환된 한국 시간에서 '시'만 가져옴
+        int hour = occurredAtInSeoul.getHour();
+
+        // 발생 시각의 ‘시’를 기준으로 시간대 구분
+        if (hour < 6) {
+            emotionRecord.timeBucket = TimeBucket.DAWN;
+        } else if (hour < 12) {
+            emotionRecord.timeBucket = TimeBucket.MORNING;
+        } else if (hour < 18) {
+            emotionRecord.timeBucket = TimeBucket.AFTERNOON;
+        } else if (hour < 21) {
+            emotionRecord.timeBucket = TimeBucket.EVENING;
+        } else {
+            emotionRecord.timeBucket = TimeBucket.NIGHT;
+        }
+
+        DayOfWeek dayOfWeek = occurredAtInSeoul.getDayOfWeek();
+
+        // 토요일·일요일이면 WEEKEND, 나머지는 WEEKDAY
+        if (dayOfWeek == DayOfWeek.SATURDAY
+                || dayOfWeek == DayOfWeek.SUNDAY) {
+            emotionRecord.weekdayType = WeekdayType.WEEKEND;
+        } else {
+            emotionRecord.weekdayType = WeekdayType.WEEKDAY;
+        }
+
+        // service로 return
+        return emotionRecord;
+    }
 
     // DB insert 전 JPA가 자동 호출하는 메서드
     @PrePersist
