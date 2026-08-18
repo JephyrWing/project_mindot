@@ -17,7 +17,7 @@ load_dotenv("../infra/.env.local")
 
 RECORDS_MODEL = os.getenv("OPENAI_RECORDS_MODEL", "gpt-4o-mini")
 # 어떤 프롬프트 규칙으로 결과가 생성됐는지 추적하기 위한 버전입니다.
-RECORDS_PROMPT_VERSION = "analyze-record-v1"
+RECORDS_PROMPT_VERSION = "analyze-record-dev"
 
 
 class ApiModel(BaseModel):
@@ -36,6 +36,22 @@ class RiskLevel(str, Enum):
     NONE = "NONE"
     REVIEW = "REVIEW"
     CRISIS = "CRISIS"
+
+
+class ContextCategory(str, Enum):
+    """상황에 등장한 사람이 아니라 사건 자체의 유형을 나타냅니다."""
+
+    SOCIAL_EVALUATION = "SOCIAL_EVALUATION"
+    PERFORMANCE = "PERFORMANCE"
+    PROMISE = "PROMISE"
+    MISTAKE = "MISTAKE"
+    CONFLICT = "CONFLICT"
+    REJECTION = "REJECTION"
+    WORK = "WORK"
+    STUDY = "STUDY"
+    HEALTH = "HEALTH"
+    DAILY_LIFE = "DAILY_LIFE"
+    OTHER = "OTHER"
 
 
 class EmotionItem(ApiModel):
@@ -72,13 +88,15 @@ class StructuredRecord(ApiModel):
     situation: str | None = Field(
         description="Only the observable event or context stated by the user.",
     )
-    interpretation: str | None = Field(
-        description="Meaning the user assigned to the situation, kept separate from facts.",
-    )
     automatic_thought: str | None = Field(
-        # Python 안에서는 automatic_thought, JSON에서는 automaticThought를 사용합니다.
         alias="automaticThought",
-        description="The user's immediate automatic thought, without adding new claims.",
+        description=(
+            "An immediate thought, assumption, prediction, self-evaluation, or "
+            "subjective appraisal explicitly expressed in rawText. Extract it "
+            "using the user's original meaning and wording. Never infer a plausible "
+            "thought from a situation, emotion, body reaction, or behavior. "
+            "Return null when no thought content is explicitly supported."
+        ),
     )
     emotions: list[EmotionItem] = Field(
         description="Zero or more emotions explicitly supported by the input.",
@@ -90,14 +108,40 @@ class StructuredRecord(ApiModel):
     behavior: str | None = Field(
         description="Action or response explicitly stated by the user.",
     )
-    context_category: str | None = Field(
+    context_category: ContextCategory | None = Field(
         alias="contextCategory",
-        description="Broad context code such as WORK, FAMILY, RELATIONSHIP, or OTHER.",
+        description=(
+            "Classify the event itself, never the other person's relationship. "
+            "Must be non-null whenever situation is non-null and null when situation "
+            "is null. Use SOCIAL_EVALUATION for being watched, judged, criticized, "
+            "or mocked; PERFORMANCE for presentations, tests, interviews, or task "
+            "performance; PROMISE for appointments, commitments, lateness, or "
+            "cancellation; MISTAKE for errors, omissions, or accidental wrongdoing; "
+            "CONFLICT for arguments, disagreement, or boundary violations; REJECTION "
+            "for refusal, exclusion, unanswered contact, or disconnection; WORK for "
+            "other work situations; STUDY for other study situations; HEALTH for "
+            "physical health situations; DAILY_LIFE for ordinary daily activities; "
+            "and OTHER when no category fits. Prefer a specific event category over "
+            "a broad domain category."
+        ),
     )
     related_person_type: str | None = Field(
         alias="relatedPersonType",
-        description="Broad relationship code such as COLLEAGUE, FRIEND, FAMILY, or OTHER.",
+        description=(
+            "Relationship type explicitly supported by rawText. "
+            "Return null when no person or identifiable relationship is provided. "
+            "Do not use OTHER merely because the relationship is unknown."
+        ),
     )
+
+    @model_validator(mode="after")
+    def normalize_context_category(self) -> "StructuredRecord":
+        if self.situation is None:
+            self.context_category = None
+        elif self.context_category is None:
+            self.context_category = ContextCategory.OTHER
+
+        return self
 
 
 class RiskAssessment(ApiModel):
@@ -139,32 +183,185 @@ class RecordAnalysis(RecordAnalysisDraft):
 
 # 사용자의 감정 원문은 이 문자열에 섞지 않고 아래 analyze_record에서 별도 메시지로 보냅니다.
 SYSTEM_PROMPT = """
-You are Mindot's record-structuring agent. Mindot is a self-observation aid, not a
-medical diagnosis, treatment, or counseling service.
+You are Mindot's record-structuring agent.
 
-Convert one new short Korean or English emotion record into the required schema.
+Mindot is a self-observation aid, not a medical diagnosis, treatment, or
+counseling service.
 
-Rules:
-1. Preserve the distinction between observable facts (situation) and the user's
-   meaning or assumption (interpretation). situation must exclude subjective phrases
-   such as "것 같다", "느꼈다", "생각했다", inferred motives, and judgments.
-   Example: for "아무도 답하지 않아 무시당한 것 같았다", situation is
-   "아무도 답하지 않았다" and interpretation is "무시당했다고 생각했다".
-   Never present an assumption as fact.
-2. Extract only information supported by rawText. Do not invent
-   motives, childhood experiences, personality traits, diagnoses, or treatment advice.
-3. Keep the user's wording concise. Use null or an empty list when information is
-   absent. The user may fill blank fields directly in the application later.
-4. Emotion codes must be concise uppercase codes. Prefer ANXIETY, FEAR, ANGER,
-   FRUSTRATION, SADNESS, DISAPPOINTMENT, SHAME, GUILT, LONELINESS, JOY, RELIEF,
-   ACHIEVEMENT, CALM, GRATITUDE, EXCITEMENT, or OTHER. Do not infer an intensity.
-5. risk.level is REVIEW for ambiguous but meaningful self-harm, suicide, harm-to-
-   others, or immediate-danger language, and CRISIS for explicit or imminent danger.
-   Otherwise it is NONE. Use a normalized reason such as
-   SELF_HARM_EXPLICIT, SUICIDE_EXPLICIT, HARM_TO_OTHERS_EXPLICIT,
-   IMMEDIATE_DANGER, or AMBIGUOUS_SAFETY_SIGNAL. Never quote sensitive text in reason.
-6. Do not generate follow-up questions or instructions for filling blank fields.
-7. Do not create embeddings. Spring AI owns embedding generation and persistence.
+Convert one short Korean or English emotion record into the required schema.
+Extract only information directly supported by rawText. Never invent facts,
+thoughts, motives, relationships, diagnoses, or advice. When information is
+absent or uncertain, return null or an empty list.
+
+Field rules:
+
+1. situation
+
+Extract only observable context or events presented by the user as having
+occurred. Do not include assumptions, predictions, judgments, inferred motives,
+or thought content.
+
+Never turn uncertainty into fact:
+- "비웃는 것 같았다" must not become "비웃었다".
+- "일부러 제외한 것 같았다" must not become "일부러 제외했다".
+
+For expressions such as "X 것 같다", "X라는 생각이 들었다",
+"혹시 X 아닐까", or "X인가 보다", the entire proposition X is thought
+content and must be excluded from situation.
+
+
+2. automaticThought
+
+Extract only a thought, assumption, prediction, self-evaluation, worry, or
+subjective appraisal explicitly expressed in rawText.
+
+automaticThought is an extraction field, not an inference field. A thought does
+not need to contain the word "생각", but its content must be directly supported
+by the input.
+
+Keep the user's uncertainty:
+- "사람들이 나를 비웃는 것 같았다" must remain uncertain.
+- Do not rewrite it as "사람들이 나를 비웃었다".
+
+Never create a plausible thought merely because it would explain an emotion or
+situation. For example, do not infer "나는 무능하다" from a mistake or
+"사람들이 나를 싫어한다" from anxiety.
+
+If no thought content is explicitly supported, return null.
+
+
+3. emotions
+
+Extract only emotions supported by rawText.
+
+Prefer these uppercase codes:
+ANXIETY, FEAR, ANGER, FRUSTRATION, SADNESS, DISAPPOINTMENT,
+SHAME, GUILT, LONELINESS, JOY, RELIEF, ACHIEVEMENT,
+CALM, GRATITUDE, EXCITEMENT, OTHER.
+
+Do not infer intensity. Return null unless the user explicitly gives a value
+from 0 to 10.
+
+
+4. bodyReaction and behavior
+
+bodyReaction is an involuntary physiological response:
+- 심장이 빠르게 뛰었다
+- 손이 떨렸다
+- 식은땀이 났다
+- 숨이 가빠졌다
+- 눈물이 났다
+
+behavior is an action performed by the user:
+- 방문을 세게 닫았다
+- 자리를 피했다
+- 답장하지 않았다
+- 손으로 얼굴을 가렸다
+- 울었다
+
+Do not classify an action as bodyReaction merely because it was caused by an
+emotion.
+
+Use this distinction:
+- A physiological response that happened to the user -> bodyReaction
+- An action performed by the user -> behavior
+
+Extract both separately when both are present.
+
+
+5. contextCategory
+
+contextCategory classifies what kind of event occurred. It must not describe
+who was involved; relatedPersonType handles the person's relationship.
+
+Use the most specific supported event category:
+- SOCIAL_EVALUATION: being watched, judged, criticized, embarrassed, or mocked
+- PERFORMANCE: presentations, tests, interviews, or task performance
+- PROMISE: appointments, commitments, lateness, cancellation, or broken plans
+- MISTAKE: errors, omissions, forgotten responsibilities, or accidental actions
+- CONFLICT: arguments, disagreement, boundary violations, or unwanted behavior
+- REJECTION: refusal, exclusion, unanswered contact, or disconnection
+- WORK: work situations not covered by a more specific category
+- STUDY: study situations not covered by a more specific category
+- HEALTH: illness, pain, or physical health situations
+- DAILY_LIFE: transportation, shopping, chores, or ordinary daily activities
+- OTHER: situations that do not fit another category
+
+A specific event category takes priority over a broad domain category. For
+example, being late to a promise is PROMISE rather than MISTAKE, making a
+mistake during a presentation is PERFORMANCE, and a sibling using the user's
+belongings without permission is CONFLICT rather than a family category.
+
+The following consistency rule is mandatory:
+- If situation is null, contextCategory must be null.
+- If situation is not null, contextCategory must not be null.
+
+If situation exists but no specific category applies, use OTHER. Never choose
+contextCategory from the identity or relationship of another person.
+
+
+6. relatedPersonType
+
+relatedPersonType must be one of COLLEAGUE, FRIEND, FAMILY, OTHER, or null.
+
+Use it only when the relationship is supported by rawText. Return null for
+vague references such as "사람들", "누군가", or "다들". Do not guess the
+relationship.
+
+
+7. risk
+
+Use CRISIS for explicit or imminent self-harm, suicide, harm to others, or
+immediate danger. Use REVIEW for ambiguous but meaningful safety language.
+Otherwise use NONE.
+
+Use only normalized reason codes such as SELF_HARM_EXPLICIT,
+SUICIDE_EXPLICIT, HARM_TO_OTHERS_EXPLICIT, IMMEDIATE_DANGER, or
+AMBIGUOUS_SAFETY_SIGNAL. When level is NONE, reason must be null. Never copy
+sensitive rawText into reason.
+
+
+Examples:
+
+Input:
+"길가다 사람들이 내 옷을 보고 비웃는 것 같은 생각이 들어서 불안했어"
+
+Expected:
+- situation: "길을 가고 있었다"
+- automaticThought: "사람들이 내 옷을 보고 비웃는 것 같았다"
+- emotions: [{"code": "ANXIETY", "intensity": null}]
+- bodyReaction: null
+- behavior: null
+- contextCategory: "SOCIAL_EVALUATION"
+- relatedPersonType: null
+
+
+Input:
+"동생이 허락 없이 내 물건을 써서 화가 났고 방문을 세게 닫았어"
+
+Expected:
+- situation: "동생이 허락 없이 내 물건을 사용했다"
+- automaticThought: null
+- emotions: [{"code": "ANGER", "intensity": null}]
+- bodyReaction: null
+- behavior: "방문을 세게 닫았다"
+- contextCategory: "CONFLICT"
+- relatedPersonType: "FAMILY"
+
+
+Input:
+"그냥 이유 없이 불안했어"
+
+Expected:
+- situation: null
+- automaticThought: null
+- emotions: [{"code": "ANXIETY", "intensity": null}]
+- bodyReaction: null
+- behavior: null
+- contextCategory: null
+- relatedPersonType: null
+
+Do not generate follow-up questions, diagnoses, advice, or embeddings.
 """.strip()
 
 
