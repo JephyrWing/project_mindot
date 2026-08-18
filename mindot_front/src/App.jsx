@@ -1,4 +1,3 @@
-// 메인, 로그인, 회원가입, 감정 기록, CBT, 주간 리포트, 관련 기관 화면 전환을 위한 리액트 상태 기능 불러오기.
 import { useState } from 'react'
 import './App.css'
 import Main from './components/Main/Main.jsx'
@@ -9,6 +8,8 @@ import CBT from './components/CBT/CBT.jsx'
 import WeeklyReport from './components/WeeklyReport/WeeklyReport.jsx'
 import AppIntroModal from './components/AppIntroModal/AppIntroModal.jsx'
 import Center from './components/Center/Center.jsx'
+import { logout } from './utils/auth/authApi.js'
+import { getAccessToken } from './utils/auth/tokenStorage.js'
 
 // 애플리케이션의 최상위 화면을 구성하는 루트 컴포넌트 정의.
 function App() {
@@ -16,8 +17,35 @@ function App() {
   const [currentPage, setCurrentPage] = useState('main')
   // 앱을 처음 열었을 때 서비스 안내창을 표시하기 위한 상태 관리.
   const [isIntroOpen, setIsIntroOpen] = useState(true)
+  // 브라우저에 저장된 Access Token을 기준으로 로그인 여부 상태 관리.
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    () => Boolean(getAccessToken()),
+  )
+  // 중복 로그아웃 요청을 방지하기 위한 진행 상태 관리.
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
   // 각 화면의 로고 선택 시 새로고침 없이 메인페이지로 이동하는 처리.
   const moveToMain = () => setCurrentPage('main')
+  // 로그인 성공 후 인증 상태 반영과 메인페이지 이동 처리.
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true)
+    moveToMain()
+  }
+  // 로그아웃 API 호출 후 로컬 인증 상태 해제와 메인페이지 이동 처리.
+  const handleLogout = async () => {
+    if (isLoggingOut) return
+
+    setIsLoggingOut(true)
+
+    try {
+      await logout()
+    } catch {
+      // 서버 요청 실패 시에도 authApi에서 삭제한 로컬 토큰 상태 유지.
+    } finally {
+      setIsAuthenticated(false)
+      setIsLoggingOut(false)
+      moveToMain()
+    }
+  }
   // 현재 화면 상태에 따라 렌더링할 페이지 컴포넌트 보관.
   let currentPageContent
 
@@ -25,7 +53,7 @@ function App() {
   if (currentPage === 'login') {
     currentPageContent = (
       <Login
-        onLoginSuccess={moveToMain}
+        onLoginSuccess={handleLoginSuccess}
         onSignUp={() => setCurrentPage('signup')}
         onHome={moveToMain}
       />
@@ -59,7 +87,10 @@ function App() {
     // 사이드바에서 관련 기관 찾기 선택 시 상담기관 검색 화면 렌더링.
     currentPageContent = (
       <Center
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
         onLogin={() => setCurrentPage('login')}
+        onLogout={handleLogout}
         onSignUp={() => setCurrentPage('signup')}
         onCenter={() => setCurrentPage('center')}
         onHome={moveToMain}
@@ -69,7 +100,10 @@ function App() {
     // 기본 메인 화면과 사이드바 이동 기능 렌더링.
     currentPageContent = (
       <Main
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
         onLogin={() => setCurrentPage('login')}
+        onLogout={handleLogout}
         onSignUp={() => setCurrentPage('signup')}
         onEmotionRecord={() => setCurrentPage('emotion-record')}
         onWeeklyReport={() => setCurrentPage('weekly-report')}

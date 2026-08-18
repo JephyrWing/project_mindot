@@ -13,7 +13,10 @@ const emptyNavigation = () => {}
 
 // 관련 기관 찾기 기능의 두 번째 개발 단계를 표시하는 기본 화면 컴포넌트 정의.
 function Center({
+  isAuthenticated = false,
+  isLoggingOut = false,
   onLogin = emptyNavigation,
+  onLogout = emptyNavigation,
   onSignUp = emptyNavigation,
   onCenter = emptyNavigation,
   onHome = emptyNavigation,
@@ -46,14 +49,17 @@ function Center({
   return (
     <main className="center-page">
       {/* 기존 공통 사이드바와 Mindot 로고를 사용하는 상단 헤더 배치. */}
-      <header className="center-header">
+      <header className="app-navigation-header center-header">
         <Sidebar
+          isAuthenticated={isAuthenticated}
+          isLoggingOut={isLoggingOut}
           onLogin={onLogin}
+          onLogout={onLogout}
           onSignUp={onSignUp}
           onCenter={onCenter}
           onHome={onHome}
         />
-        <BrandLogo className="center-brand" onClick={onHome} />
+        <BrandLogo className="app-navigation-brand" onClick={onHome} />
       </header>
 
       {/* 관련 기관 찾기 화면의 제목과 기본 목적 안내 배치. */}

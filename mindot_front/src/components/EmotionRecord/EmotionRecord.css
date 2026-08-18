@@ -296,6 +296,66 @@
   color: #c83b4d;
 }
 
+/* 저장 완료된 감정과 상황 정보를 한눈에 보여 주는 요약 영역 설정. */
+.emotion-record-summary {
+  border: 1px solid #d8e4f5;
+  border-radius: 8px;
+  padding: 18px;
+  background: #f7faff;
+}
+
+/* 저장 완료 제목과 평일 및 주말 정보를 나란히 배치하는 설정. */
+.emotion-record-summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* 저장 완료 요약 제목의 기본 모양 설정. */
+.emotion-record-summary h2 {
+  margin: 0;
+  color: #17345f;
+  font-size: 17px;
+}
+
+/* 저장된 기록의 평일 및 주말 구분 표시 설정. */
+.emotion-record-summary-header span {
+  border-radius: 999px;
+  padding: 4px 9px;
+  color: #1c5ed0;
+  font-size: 12px;
+  background: #e8f1ff;
+}
+
+/* 저장 완료 상세 항목의 세로 배치와 기본 여백 설정. */
+.emotion-record-summary dl {
+  display: grid;
+  gap: 10px;
+  margin: 16px 0 0;
+}
+
+/* 저장 완료 상세 항목의 이름과 값을 나란히 배치하는 설정. */
+.emotion-record-summary dl div {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 10px;
+}
+
+/* 저장 완료 상세 항목 이름의 보조 색상 설정. */
+.emotion-record-summary dt {
+  color: #707a8e;
+  font-size: 13px;
+}
+
+/* 저장 완료 상세 항목 값의 기본 모양 설정. */
+.emotion-record-summary dd {
+  margin: 0;
+  color: #27344b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 /* 감정 기록 버튼의 기본 모양 설정. */
 .emotion-record-form button {
   width: 100%;
@@ -323,7 +383,8 @@
 
 /* 감정 기록 저장 완료 후 표시되는 후속 화면 이동 버튼 설정. */
 .emotion-record-form .emotion-record-cbt-button,
-.emotion-record-form .emotion-record-report-button {
+.emotion-record-form .emotion-record-report-button,
+.emotion-record-form .emotion-record-reset-button {
   margin-top: 0;
   border: 1px solid #1c5ed0;
   color: #1c5ed0;
@@ -332,7 +393,8 @@
 
 /* CBT와 주간 리포트 이동 버튼 위에 커서를 올렸을 때 옅은 파란색 강조. */
 .emotion-record-form button.emotion-record-cbt-button:hover,
-.emotion-record-form button.emotion-record-report-button:hover {
+.emotion-record-form button.emotion-record-report-button:hover,
+.emotion-record-form button.emotion-record-reset-button:hover {
   border-color: #164fb3;
   color: #164fb3;
   background: #edf4ff;
