@@ -21,7 +21,13 @@ function WeeklyReport({ onBack, onHome }) {
         </div>
 
         {/* 이전 메인페이지로 돌아가기 위한 기본 이동 버튼 배치. */}
-        <button type="button" onClick={onBack}>메인으로 돌아가기</button>
+        <button
+          className="weekly-report-back-button"
+          type="button"
+          onClick={onBack}
+        >
+          메인으로 돌아가기
+        </button>
       </section>
     </main>
   )

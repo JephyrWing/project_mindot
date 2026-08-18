@@ -56,7 +56,7 @@
 }
 
 /* 메인페이지로 돌아가는 버튼의 기본 모양과 터치 영역 설정. */
-.weekly-report-card > button {
+.weekly-report-back-button {
   width: 100%;
   min-height: 46px;
   border: 0;
@@ -70,7 +70,7 @@
 }
 
 /* 메인 이동 버튼 위에 커서를 올렸을 때 진한 파란색 강조. */
-.weekly-report-card > button:hover {
+.weekly-report-back-button:hover {
   background: #164fb3;
 }
 
