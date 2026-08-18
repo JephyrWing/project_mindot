@@ -8,6 +8,14 @@ const maxContentLength = 1000
 const emotionOptions = ['기쁨', '평온', '슬픔', '불안', '화남']
 // 선택한 감정의 강도를 다섯 단계로 구분하기 위한 목록 설정.
 const emotionIntensityOptions = ['매우 약함', '약함', '보통', '강함', '매우 강함']
+// 감정이 생긴 배경을 간단히 분류하기 위한 상황 목록 설정.
+const contextOptions = [
+  '일·학업',
+  '가족',
+  '대인관계',
+  '건강',
+  '일상·기타',
+]
 
 // 감정 원문을 입력받는 기본 화면 컴포넌트 정의.
 function EmotionRecord({ onCBT, onWeeklyReport, onHome }) {
@@ -15,8 +23,12 @@ function EmotionRecord({ onCBT, onWeeklyReport, onHome }) {
   const [selectedEmotion, setSelectedEmotion] = useState('')
   // 사용자가 선택한 감정 강도 단계 상태 관리.
   const [selectedIntensity, setSelectedIntensity] = useState(0)
+  // 사용자가 선택한 감정 발생 상황 상태 관리.
+  const [selectedContext, setSelectedContext] = useState('')
   // 감정 원문 입력값 상태 관리.
   const [content, setContent] = useState('')
+  // 감정과 강도 및 상황 선택 오류 문구 상태 관리.
+  const [selectionError, setSelectionError] = useState('')
   // 빈 내용 검증 오류 문구 상태 관리.
   const [inputError, setInputError] = useState('')
   // 작성 및 저장 진행 상태 관리.
@@ -33,6 +45,7 @@ function EmotionRecord({ onCBT, onWeeklyReport, onHome }) {
   const handleContentChange = (event) => {
     setContent(event.target.value)
     setInputError('')
+    setSelectionError('')
     setSaveStatus('editing')
   }
 
@@ -40,28 +53,62 @@ function EmotionRecord({ onCBT, onWeeklyReport, onHome }) {
   const handleEmotionSelect = (emotion) => {
     setSelectedEmotion(selectedEmotion === emotion ? '' : emotion)
     setSelectedIntensity(0)
+    setSelectedContext('')
+    setSelectionError('')
     setSaveStatus('editing')
   }
 
   // 선택한 감정 강도 단계 반영과 작성 상태 변경 처리.
   const handleIntensitySelect = (intensity) => {
     setSelectedIntensity(intensity)
+    setSelectionError('')
     setSaveStatus('editing')
+  }
+
+  // 감정이 발생한 상황 선택과 같은 항목 재선택 시 해제 처리.
+  const handleContextSelect = (context) => {
+    setSelectedContext(selectedContext === context ? '' : context)
+    setSelectionError('')
+    setSaveStatus('editing')
+  }
+
+  // 감정과 강도 및 상황의 순차 선택 여부 검사.
+  const validateSelections = () => {
+    let errorMessage = ''
+
+    if (!selectedEmotion) {
+      errorMessage = '가장 가까운 감정을 선택해 주세요.'
+    } else if (!selectedIntensity) {
+      errorMessage = '감정의 강도를 선택해 주세요.'
+    } else if (!selectedContext) {
+      errorMessage = '감정이 생긴 상황을 선택해 주세요.'
+    }
+
+    setSelectionError(errorMessage)
+    return errorMessage === ''
   }
 
   // 빈 감정 원문 입력 여부 검사.
   const validateContent = () => {
-    const errorMessage = content.trim() ? '' : '내용을 입력해 주세요.'
+    const errorMessage = content.trim() ? '' : '지금의 감정을 입력해 주세요.'
 
     setInputError(errorMessage)
-    if (errorMessage) setSaveStatus('error')
     return errorMessage === ''
   }
 
   // 실제 저장 기능 연결 전 저장 상태 전환 처리.
   const handleSubmit = (event) => {
     event.preventDefault()
-    if (!validateContent()) return
+    const areSelectionsValid = validateSelections()
+    // 앞 단계 선택 완료 후에만 사용자가 입력할 수 있는 감정 원문 검사.
+    const isContentValid = areSelectionsValid ? validateContent() : true
+
+    if (!areSelectionsValid) setInputError('')
+
+    if (!areSelectionsValid || !isContentValid) {
+      setSaveStatus('error')
+      return
+    }
 
     setSaveStatus('saving')
     saveTimerRef.current = window.setTimeout(() => {
@@ -141,14 +188,51 @@ function EmotionRecord({ onCBT, onWeeklyReport, onHome }) {
             </p>
           </fieldset>
 
+          {/* 감정 강도 선택 후 감정이 생긴 상황을 고르는 단계 영역 배치. */}
+          <fieldset
+            className="emotion-record-context"
+            disabled={!selectedIntensity || saveStatus === 'saving'}
+          >
+            <legend>어떤 상황이었나요?</legend>
+            <div className="emotion-record-context-options">
+              {contextOptions.map((context) => (
+                <button
+                  className="emotion-record-context-button"
+                  type="button"
+                  key={context}
+                  onClick={() => handleContextSelect(context)}
+                  aria-pressed={selectedContext === context}
+                >
+                  {context}
+                </button>
+              ))}
+            </div>
+            <p className="emotion-record-context-guide" aria-live="polite">
+              {selectedIntensity
+                ? selectedContext || '가장 가까운 상황을 선택해 주세요.'
+                : '감정 강도를 먼저 선택해 주세요.'}
+            </p>
+          </fieldset>
+
+          {/* 감정 기록의 앞 단계 선택 누락 시 사용자 안내 문구 표시. */}
+          {selectionError && (
+            <p className="emotion-record-error" role="alert">
+              {selectionError}
+            </p>
+          )}
+
           <label htmlFor="emotion-content">지금의 감정</label>
           <textarea
             id="emotion-content"
             value={content}
             onChange={handleContentChange}
             maxLength={maxContentLength}
-            placeholder="지금 느끼는 감정을 작성해 주세요."
-            disabled={saveStatus === 'saving'}
+            placeholder={
+              selectedContext
+                ? '지금 느끼는 감정을 작성해 주세요.'
+                : '상황 선택 후 입력 가능'
+            }
+            disabled={!selectedContext || saveStatus === 'saving'}
             aria-invalid={Boolean(inputError)}
             aria-describedby={inputError ? 'emotion-content-error' : undefined}
             required
