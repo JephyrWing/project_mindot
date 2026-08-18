@@ -6,23 +6,6 @@
   background: #f4f7fc;
 }
 
-/* 공통 메뉴와 로고를 포함한 상단 헤더 배치. */
-.center-header {
-  display: flex;
-  min-height: 66px;
-  align-items: center;
-  gap: 10px;
-  border-bottom: 1px solid #e1e7f0;
-  padding: 0 18px;
-  background: #ffffff;
-}
-
-/* 상단 공통 Mindot 로고 크기 설정. */
-.center-brand {
-  color: #0a1220;
-  font-size: 15px;
-}
-
 /* 두 번째 개발 단계의 제목과 검색 조건을 담는 콘텐츠 영역 설정. */
 .center-content {
   width: min(100%, 720px);
