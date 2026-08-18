@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
+import { createQuickRecord } from '../../utils/records/recordsApi.js'
 import './EmotionRecord.css'
 
 // 감정 기록의 최대 입력 글자 수 설정.
@@ -16,6 +17,36 @@ const contextOptions = [
   '건강',
   '일상·기타',
 ]
+// 백엔드 시간대 코드를 사용자 안내 문구로 바꾸기 위한 목록 설정.
+const timeBucketLabels = {
+  DAWN: '새벽',
+  MORNING: '아침',
+  AFTERNOON: '오후',
+  EVENING: '저녁',
+  NIGHT: '밤',
+}
+// 백엔드 평일 및 주말 코드를 사용자 안내 문구로 바꾸기 위한 목록 설정.
+const weekdayTypeLabels = {
+  WEEKDAY: '평일',
+  WEEKEND: '주말',
+}
+
+// 감정 기록 API 오류 상태에 따른 사용자 안내 문구 반환.
+const getSaveErrorMessage = (error) => {
+  if (!error.response) {
+    return '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
+  }
+  if (error.response.status === 401) {
+    return '로그인 정보가 만료되었습니다. 다시 로그인해 주세요.'
+  }
+  return '감정 기록을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.'
+}
+
+// 저장 시각을 한국어 날짜와 시간 형식으로 변환.
+const formatOccurredAt = (occurredAt) => new Intl.DateTimeFormat('ko-KR', {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+}).format(new Date(occurredAt))
 
 // 감정 원문을 입력받는 기본 화면 컴포넌트 정의.
 function EmotionRecord({ onCBT, onWeeklyReport, onHome }) {
@@ -33,19 +64,18 @@ function EmotionRecord({ onCBT, onWeeklyReport, onHome }) {
   const [inputError, setInputError] = useState('')
   // 작성 및 저장 진행 상태 관리.
   const [saveStatus, setSaveStatus] = useState('idle')
-  // 저장 상태 전환 타이머 참조 관리.
-  const saveTimerRef = useRef(null)
-
-  // 화면 종료 시 실행 중인 저장 상태 전환 타이머 정리.
-  useEffect(() => () => {
-    if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current)
-  }, [])
+  // 백엔드에서 반환한 저장 완료 기록 상태 관리.
+  const [savedRecord, setSavedRecord] = useState(null)
+  // 감정 기록 API 요청 실패 문구 상태 관리.
+  const [saveError, setSaveError] = useState('')
 
   // 감정 원문 변경에 따른 작성 상태 반영.
   const handleContentChange = (event) => {
     setContent(event.target.value)
     setInputError('')
     setSelectionError('')
+    setSaveError('')
+    setSavedRecord(null)
     setSaveStatus('editing')
   }
 
@@ -55,6 +85,8 @@ function EmotionRecord({ onCBT, onWeeklyReport, onHome }) {
     setSelectedIntensity(0)
     setSelectedContext('')
     setSelectionError('')
+    setSaveError('')
+    setSavedRecord(null)
     setSaveStatus('editing')
   }
 
@@ -62,6 +94,8 @@ function EmotionRecord({ onCBT, onWeeklyReport, onHome }) {
   const handleIntensitySelect = (intensity) => {
     setSelectedIntensity(intensity)
     setSelectionError('')
+    setSaveError('')
+    setSavedRecord(null)
     setSaveStatus('editing')
   }
 
@@ -69,6 +103,8 @@ function EmotionRecord({ onCBT, onWeeklyReport, onHome }) {
   const handleContextSelect = (context) => {
     setSelectedContext(selectedContext === context ? '' : context)
     setSelectionError('')
+    setSaveError('')
+    setSavedRecord(null)
     setSaveStatus('editing')
   }
 
@@ -96,8 +132,8 @@ function EmotionRecord({ onCBT, onWeeklyReport, onHome }) {
     return errorMessage === ''
   }
 
-  // 실제 저장 기능 연결 전 저장 상태 전환 처리.
-  const handleSubmit = (event) => {
+  // 입력한 감정 원문을 백엔드 간편 저장 API로 전달하는 처리.
+  const handleSubmit = async (event) => {
     event.preventDefault()
     const areSelectionsValid = validateSelections()
     // 앞 단계 선택 완료 후에만 사용자가 입력할 수 있는 감정 원문 검사.
@@ -111,10 +147,35 @@ function EmotionRecord({ onCBT, onWeeklyReport, onHome }) {
     }
 
     setSaveStatus('saving')
-    saveTimerRef.current = window.setTimeout(() => {
+    setSaveError('')
+
+    try {
+      const record = await createQuickRecord({
+        rawText: content.trim(),
+        inputType: 'TEXT',
+        occurredAt: new Date().toISOString(),
+      })
+
+      setSavedRecord(record)
       setSaveStatus('saved')
-      saveTimerRef.current = null
-    }, 500)
+    } catch (error) {
+      setSavedRecord(null)
+      setSaveError(getSaveErrorMessage(error))
+      setSaveStatus('error')
+    }
+  }
+
+  // 저장 완료 후 새로운 감정 기록을 작성하기 위한 전체 입력값 초기화.
+  const handleReset = () => {
+    setSelectedEmotion('')
+    setSelectedIntensity(0)
+    setSelectedContext('')
+    setContent('')
+    setSelectionError('')
+    setInputError('')
+    setSaveError('')
+    setSavedRecord(null)
+    setSaveStatus('idle')
   }
 
   // 현재 작성 및 저장 상태에 따른 사용자 표시 문구 설정.
@@ -250,6 +311,13 @@ function EmotionRecord({ onCBT, onWeeklyReport, onHome }) {
             </p>
           )}
 
+          {/* 감정 기록 API 요청 실패 시 사용자 안내 문구 표시. */}
+          {saveError && (
+            <p className="emotion-record-error" role="alert">
+              {saveError}
+            </p>
+          )}
+
           {/* 작성 및 저장 진행 상태 표시. */}
           <div className="emotion-record-status" role="status" aria-live="polite">
             <span>기록 상태</span>
@@ -259,6 +327,40 @@ function EmotionRecord({ onCBT, onWeeklyReport, onHome }) {
           <button type="submit" disabled={saveStatus === 'saving'}>
             {saveStatus === 'saving' ? '저장 중…' : '기록하기'}
           </button>
+
+          {/* 백엔드 저장 완료 결과와 사용자가 선택한 내용을 요약하여 표시. */}
+          {saveStatus === 'saved' && savedRecord && (
+            <section
+              className="emotion-record-summary"
+              aria-labelledby="emotion-record-summary-title"
+            >
+              <div className="emotion-record-summary-header">
+                <h2 id="emotion-record-summary-title">기록 완료</h2>
+                <span>
+                  {weekdayTypeLabels[savedRecord.weekdayType]
+                    || savedRecord.weekdayType}
+                </span>
+              </div>
+              <dl>
+                <div>
+                  <dt>감정</dt>
+                  <dd>{selectedEmotion} · {selectedIntensity}단계</dd>
+                </div>
+                <div>
+                  <dt>상황</dt>
+                  <dd>{selectedContext}</dd>
+                </div>
+                <div>
+                  <dt>기록 시각</dt>
+                  <dd>
+                    {formatOccurredAt(savedRecord.occurredAt)} ·{' '}
+                    {timeBucketLabels[savedRecord.timeBucket]
+                      || savedRecord.timeBucket}
+                  </dd>
+                </div>
+              </dl>
+            </section>
+          )}
 
           {/* 감정 기록 저장 완료 후에만 CBT 성찰 화면 이동 버튼 표시. */}
           {saveStatus === 'saved' && (
@@ -279,6 +381,17 @@ function EmotionRecord({ onCBT, onWeeklyReport, onHome }) {
               onClick={onWeeklyReport}
             >
               주간 리포트로 이동하기
+            </button>
+          )}
+
+          {/* 저장 완료 후 현재 입력값을 비우고 새 기록을 시작하는 버튼 표시. */}
+          {saveStatus === 'saved' && (
+            <button
+              className="emotion-record-reset-button"
+              type="button"
+              onClick={handleReset}
+            >
+              새 기록 작성하기
             </button>
           )}
         </form>
