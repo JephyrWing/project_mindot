@@ -147,6 +147,27 @@
   background: #edf4ff;
 }
 
+/* 로그인 상태에서 표시되는 로그아웃 버튼의 경고 색상 구분 설정. */
+.main-sidebar__navigation .main-sidebar__logout {
+  border-color: #f0c9cd;
+  color: #a52b38;
+  background: #fff7f8;
+}
+
+/* 로그아웃 버튼 위에 커서를 올렸을 때 옅은 붉은색 배경 강조. */
+.main-sidebar__navigation .main-sidebar__logout:not(:disabled):hover {
+  border-color: #df9ca4;
+  color: #84212c;
+  background: #fdebed;
+}
+
+/* 로그아웃 API 요청 진행 중 버튼의 비활성화 상태 설정. */
+.main-sidebar__navigation .main-sidebar__logout:disabled {
+  color: #9a7b7f;
+  background: #f5eeee;
+  cursor: wait;
+}
+
 /* 움직임 감소 설정 사용자를 위한 전환 효과 제거. */
 @media (prefers-reduced-motion: reduce) {
   .main-sidebar,

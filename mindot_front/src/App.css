@@ -2,3 +2,26 @@
 .app-page {
   min-height: 100vh;
 }
+
+/* 모든 화면의 상단 네비게이션 높이와 내부 요소 배치를 동일하게 유지하는 설정. */
+.app-navigation-header {
+  display: flex;
+  width: 100%;
+  height: calc(66px + env(safe-area-inset-top, 0px));
+  box-sizing: border-box;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #e1e7f0;
+  padding:
+    env(safe-area-inset-top, 0px)
+    max(18px, env(safe-area-inset-right, 0px))
+    0
+    max(12px, env(safe-area-inset-left, 0px));
+  background: #ffffff;
+}
+
+/* 모든 상단 네비게이션에 표시되는 Mindot 로고 크기 통일. */
+.app-navigation-brand {
+  color: #0a1220;
+  font-size: 14px;
+}
