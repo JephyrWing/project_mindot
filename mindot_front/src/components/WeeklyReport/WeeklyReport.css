@@ -39,6 +39,33 @@
   color: #666f85;
 }
 
+/* 현재 확인 중인 주간 리포트 기간을 구분하여 보여 주는 영역 설정. */
+.weekly-report-period {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 24px;
+  border-left: 3px solid #1c5ed0;
+  border-radius: 4px;
+  padding: 14px 16px;
+  background: #f8faff;
+}
+
+/* 리포트 기간 이름을 날짜와 구분하기 위한 문구 설정. */
+.weekly-report-period span {
+  color: #1c5ed0;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* 이번 주 시작일과 종료일을 쉽게 확인할 수 있는 날짜 문구 설정. */
+.weekly-report-period strong {
+  color: #30394b;
+  font-size: 14px;
+  text-align: right;
+}
+
 /* 실제 리포트 데이터가 없을 때 표시하는 빈 상태 영역 설정. */
 .weekly-report-empty {
   margin-top: 24px;
@@ -78,5 +105,17 @@
 @media (max-width: 480px) {
   .weekly-report-card {
     padding: 28px 20px;
+  }
+
+  /* 좁은 화면에서 기간 이름과 날짜를 세로로 읽을 수 있도록 하는 배치 설정. */
+  .weekly-report-period {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  /* 모바일 화면에서 기간 날짜를 왼쪽 기준으로 정렬하는 설정. */
+  .weekly-report-period strong {
+    text-align: left;
   }
 }
