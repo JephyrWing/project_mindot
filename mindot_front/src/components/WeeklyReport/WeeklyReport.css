@@ -66,6 +66,41 @@
   text-align: right;
 }
 
+/* 이전 주와 다음 주 리포트로 이동하는 버튼의 가로 방향 배치. */
+.weekly-report-navigation {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+/* 주간 이동 버튼의 동일한 크기와 모바일 터치 영역 설정. */
+.weekly-report-navigation button {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #cbd9ec;
+  border-radius: 6px;
+  color: #1c5ed0;
+  font-weight: 700;
+  background: #ffffff;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 사용할 수 있는 주간 이동 버튼 위에 커서를 올렸을 때 옅은 파란색 강조. */
+.weekly-report-navigation button:not(:disabled):hover {
+  border-color: #a9c4eb;
+  color: #164fb3;
+  background: #edf4ff;
+}
+
+/* 미래 주간으로 이동할 수 없는 다음 주 버튼의 비활성 상태 설정. */
+.weekly-report-navigation button:disabled {
+  border-color: #e0e4eb;
+  color: #9aa4b5;
+  background: #f2f4f8;
+  cursor: not-allowed;
+}
+
 /* 실제 리포트 데이터가 없을 때 표시하는 빈 상태 영역 설정. */
 .weekly-report-empty {
   margin-top: 24px;

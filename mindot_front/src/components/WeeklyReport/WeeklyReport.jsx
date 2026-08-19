@@ -1,18 +1,23 @@
+import { useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import './WeeklyReport.css'
 
-// 사용자의 현재 날짜를 기준으로 월요일부터 일요일까지의 주간 범위 계산.
-const getCurrentWeekPeriod = () => {
-  // 현재 날짜와 요일을 기준으로 이번 주 월요일까지의 이동 일수 계산.
+// 사용자가 선택한 주를 기준으로 월요일부터 일요일까지의 주간 범위 계산.
+const getWeekPeriod = (weekOffset) => {
+  // 현재 날짜에서 사용자가 선택한 주만큼 이동한 기준 날짜 생성.
   const today = new Date()
-  const dayOfWeek = today.getDay()
+  const selectedDate = new Date(today)
+  selectedDate.setDate(today.getDate() + weekOffset * 7)
+
+  // 선택한 기준 날짜의 요일을 사용한 해당 주 월요일까지의 이동 일수 계산.
+  const dayOfWeek = selectedDate.getDay()
   const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
 
-  // 계산한 이동 일수를 반영한 이번 주 월요일 날짜 생성.
-  const weekStart = new Date(today)
-  weekStart.setDate(today.getDate() + mondayOffset)
+  // 계산한 이동 일수를 반영한 선택 주의 월요일 날짜 생성.
+  const weekStart = new Date(selectedDate)
+  weekStart.setDate(selectedDate.getDate() + mondayOffset)
 
-  // 이번 주 월요일에서 6일 뒤인 일요일 날짜 생성.
+  // 선택 주의 월요일에서 6일 뒤인 일요일 날짜 생성.
   const weekEnd = new Date(weekStart)
   weekEnd.setDate(weekStart.getDate() + 6)
 
@@ -29,8 +34,10 @@ const getCurrentWeekPeriod = () => {
 
 // 주간 감정 기록 요약을 표시할 간단한 리포트 화면 컴포넌트 정의.
 function WeeklyReport({ onBack, onHome }) {
-  // 화면을 표시하는 시점의 이번 주 리포트 기간 생성.
-  const currentWeekPeriod = getCurrentWeekPeriod()
+  // 현재 주를 기준으로 사용자가 이동한 주간 위치 상태 관리.
+  const [weekOffset, setWeekOffset] = useState(0)
+  // 선택한 주간 위치를 반영한 리포트 기간 생성.
+  const selectedWeekPeriod = getWeekPeriod(weekOffset)
 
   // 실제 리포트 데이터 연결 전 제목과 빈 상태만 포함한 기본 화면 반환.
   return (
@@ -46,7 +53,24 @@ function WeeklyReport({ onBack, onHome }) {
         {/* 사용자가 확인 중인 주간 리포트의 시작일과 종료일 표시. */}
         <div className="weekly-report-period">
           <span>리포트 기간</span>
-          <strong>{currentWeekPeriod}</strong>
+          <strong>{selectedWeekPeriod}</strong>
+        </div>
+
+        {/* 과거 주간 리포트를 단계적으로 탐색할 수 있는 기간 이동 버튼 배치. */}
+        <div className="weekly-report-navigation" aria-label="주간 리포트 기간 선택">
+          <button
+            type="button"
+            onClick={() => setWeekOffset((currentOffset) => currentOffset - 1)}
+          >
+            ← 이전 주
+          </button>
+          <button
+            type="button"
+            onClick={() => setWeekOffset((currentOffset) => currentOffset + 1)}
+            disabled={weekOffset === 0}
+          >
+            다음 주 →
+          </button>
         </div>
 
         {/* 실제 주간 리포트 API 연결 전 사용자에게 보여 주는 빈 상태 안내. */}
