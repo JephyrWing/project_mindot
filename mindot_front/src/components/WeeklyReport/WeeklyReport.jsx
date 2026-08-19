@@ -32,6 +32,13 @@ const getWeekPeriod = (weekOffset) => {
   return `${dateFormatter.format(weekStart)} ~ ${dateFormatter.format(weekEnd)}`
 }
 
+// 실제 리포트 API 연결 전 화면 구조에 표시할 빈 주간 요약 항목 정의.
+const emptyWeeklySummary = [
+  { label: '기록 횟수', value: '0회' },
+  { label: '주요 감정', value: '기록 없음' },
+  { label: '평균 강도', value: '-' },
+]
+
 // 주간 감정 기록 요약을 표시할 간단한 리포트 화면 컴포넌트 정의.
 function WeeklyReport({ onBack, onHome }) {
   // 현재 주를 기준으로 사용자가 이동한 주간 위치 상태 관리.
@@ -47,7 +54,7 @@ function WeeklyReport({ onBack, onHome }) {
 
         <h1 id="weekly-report-title">주간 리포트</h1>
         <p className="weekly-report-description">
-          이번 주 감정 기록을 한눈에 확인하는 공간입니다.
+          선택한 주의 감정 기록을 한눈에 확인하는 공간입니다.
         </p>
 
         {/* 사용자가 확인 중인 주간 리포트의 시작일과 종료일 표시. */}
@@ -72,6 +79,22 @@ function WeeklyReport({ onBack, onHome }) {
             다음 주 →
           </button>
         </div>
+
+        {/* 추후 주간 리포트 API 결과를 표시할 기본 요약 카드 구조 배치. */}
+        <section
+          className="weekly-report-summary"
+          aria-labelledby="weekly-report-summary-title"
+        >
+          <h2 id="weekly-report-summary-title">선택한 주 요약</h2>
+          <div className="weekly-report-summary-grid">
+            {emptyWeeklySummary.map((summaryItem) => (
+              <article key={summaryItem.label}>
+                <span>{summaryItem.label}</span>
+                <strong>{summaryItem.value}</strong>
+              </article>
+            ))}
+          </div>
+        </section>
 
         {/* 실제 주간 리포트 API 연결 전 사용자에게 보여 주는 빈 상태 안내. */}
         <div className="weekly-report-empty">
