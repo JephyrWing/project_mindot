@@ -146,7 +146,7 @@
   margin-top: 24px;
 }
 
-/* 감정 기록과 주간 리포트 이동 버튼의 공통 크기 설정. */
+/* 감정 기록과 기록 목록 및 주간 리포트 이동 버튼의 공통 크기 설정. */
 .main-actions button {
   width: 100%;
   height: 46px;
@@ -162,7 +162,8 @@
   background: #1c5ed0;
 }
 
-/* 주간 리포트 화면 이동 버튼의 보조 색상 설정. */
+/* 감정 기록 목록과 주간 리포트 화면 이동 버튼의 보조 색상 설정. */
+.main-history-button,
 .main-report-button {
   border: 1px solid #1c5ed0;
   color: #1c5ed0;
@@ -175,7 +176,8 @@
   background: #164fb3;
 }
 
-/* 주간 리포트 버튼 위에 커서를 올렸을 때 보조 동작을 나타내는 옅은 파란색 강조. */
+/* 기록 목록과 주간 리포트 버튼 위에 커서를 올렸을 때 보조 동작을 나타내는 옅은 파란색 강조. */
+.main-history-button:hover,
 .main-report-button:hover {
   border-color: #164fb3;
   color: #164fb3;
