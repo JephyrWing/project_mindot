@@ -1,7 +1,6 @@
-// 별도 폴더로 분리한 사이드바 컴포넌트 불러오기.
-import Sidebar from '../Sidebar/Sidebar.jsx'
-// 여러 화면에서 공통으로 사용하는 Mindot 로고 불러오기.
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
+// 사이드바와 상단 로고를 함께 관리하는 공통 네비게이션 불러오기.
+import Navbar from '../Navbar/Navbar.jsx'
 import './Main.css'
 
 // 서비스명과 안내 문구를 표시하는 기본 메인 컴포넌트 정의.
@@ -26,20 +25,17 @@ function Main({
   // 햄버거 메뉴와 모바일 사이드바가 포함된 메인 화면 반환.
   return (
     <main className="main-page">
-      {/* 모바일 안전 영역을 반영한 상단 헤더 배치. */}
-      <header className="app-navigation-header main-header">
-        {/* 햄버거 버튼과 사이드바 동작을 포함한 독립 컴포넌트 연결. */}
-        <Sidebar
-          isAuthenticated={isAuthenticated}
-          isLoggingOut={isLoggingOut}
-          onLogin={onLogin}
-          onLogout={onLogout}
-          onSignUp={onSignUp}
-          onCenter={onCenter}
-          onHome={onHome}
-        />
-        <BrandLogo className="app-navigation-brand" onClick={onHome} />
-      </header>
+      {/* 모바일 안전 영역과 사이드바 동작을 포함한 공통 상단 네비게이션 배치. */}
+      <Navbar
+        className="main-header"
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={onLogin}
+        onLogout={onLogout}
+        onSignUp={onSignUp}
+        onCenter={onCenter}
+        onHome={onHome}
+      />
 
       <section className="main-card" aria-labelledby="main-title">
         <BrandLogo className="main-brand" onClick={onHome} />
