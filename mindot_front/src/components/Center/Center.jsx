@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import BrandLogo from '../BrandLogo/BrandLogo.jsx'
-import Sidebar from '../Sidebar/Sidebar.jsx'
+import Navbar from '../Navbar/Navbar.jsx'
 import {
   getDistrictNames,
   getTownNames,
@@ -48,19 +47,16 @@ function Center({
   // 공통 헤더와 간단한 검색 조건을 포함한 두 번째 단계 구조 반환.
   return (
     <main className="center-page">
-      {/* 기존 공통 사이드바와 Mindot 로고를 사용하는 상단 헤더 배치. */}
-      <header className="app-navigation-header center-header">
-        <Sidebar
-          isAuthenticated={isAuthenticated}
-          isLoggingOut={isLoggingOut}
-          onLogin={onLogin}
-          onLogout={onLogout}
-          onSignUp={onSignUp}
-          onCenter={onCenter}
-          onHome={onHome}
-        />
-        <BrandLogo className="app-navigation-brand" onClick={onHome} />
-      </header>
+      {/* 공통 사이드바와 메인 이동 로고를 포함한 상단 네비게이션 배치. */}
+      <Navbar
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={onLogin}
+        onLogout={onLogout}
+        onSignUp={onSignUp}
+        onCenter={onCenter}
+        onHome={onHome}
+      />
 
       {/* 관련 기관 찾기 화면의 제목과 기본 목적 안내 배치. */}
       <section className="center-content" aria-labelledby="center-title">
