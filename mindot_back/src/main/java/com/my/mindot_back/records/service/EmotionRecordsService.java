@@ -1,8 +1,10 @@
-// 간편 감정 기록의 저장을 담당하는 service
+// 간편 감정 기록의 저장과 FastAPI AI 구조화 연동을 담당하는 service
 package com.my.mindot_back.records.service;
 
+import com.my.mindot_back.records.client.FastApiRecordAnalysisClient;
 import com.my.mindot_back.records.dto.EmotionRecordsQuickCreateRequestDto;
 import com.my.mindot_back.records.dto.EmotionRecordsQuickCreateResponseDto;
+import com.my.mindot_back.records.dto.ai.FastApiRecordAnalysisResponseDto;
 import com.my.mindot_back.records.entity.EmotionRecords;
 import com.my.mindot_back.records.repository.EmotionRecordsRepository;
 import com.my.mindot_back.users.entity.Users;
@@ -23,9 +25,16 @@ public class EmotionRecordsService {
     // JWT에서 꺼낸 사용자 ID로 작성자를 조회하는 Repository
     private final UsersRepository usersRepository;
 
-    // 간편 감정 기록 원문 저장
-    // userId는 Controller 가 JWT 인증 정보를 통해 전달
-    // dto: 프론트 요청, rawText, inputType, occurredAt
+    // Spring > FastAPI 감정 원문 구조화 API 호출
+    private final FastApiRecordAnalysisClient  fastApiRecordAnalysisClient;
+
+    /*
+     * 1. 로그인 사용자 확인
+     * 2. 원문 감정 기록 생성
+     * 3. FastAPI에 원문 전달
+     * 4. FastAPI 분석 결과를 Entity에 반영
+     * 5. 트랜잭션 성공 시 PostgreSQL에 반영 후 React에 응답
+     */
     @Transactional
     public EmotionRecordsQuickCreateResponseDto createQuickRecord(
             Long userId,
@@ -38,8 +47,8 @@ public class EmotionRecordsService {
                         "사용자를 찾을 수 없습니다."
                 ));
 
-        // Entity의 정적 생성 매서드
-        // AI 구조화 전 원문 기록 생성
+        // Entity의 정적 생성 메서드로, 아직 DB에 저장되지 않은 JPA 비관리 상태
+        // React 요청값으로 AI 분석 전 감정 기록 Entity 생성
         // () : dto가 record이기 때문
         EmotionRecords emotionRecord = EmotionRecords.createQuick(
                 user,
@@ -48,9 +57,30 @@ public class EmotionRecordsService {
                 dto.occurredAt()
         );
 
-        // DB에 저장한 entity를 프론트 응답 dto로 변환해 반환
+        // repo의 save 호출하면 jpa가 객체 관리
+        // 원문 감정 기록을 JPA 관리 상태로 저장
         EmotionRecords savedEmotionRecord =
                 emotionRecordsRepository.save(emotionRecord);
-        return EmotionRecordsQuickCreateResponseDto.from(savedEmotionRecord);
+
+        // Spring > FastAPI: 원문을 보내고 AI 구조화 결과 수신
+        // analysis: java record 객체 (record, risk, meta 들어있음)
+        FastApiRecordAnalysisResponseDto analysis =
+                fastApiRecordAnalysisClient.analyze(
+                        savedEmotionRecord.getRawText()
+                );
+
+        /*
+         * FastAPI > Spring 결과를 Entity에 반영
+         * @Transactional의 JPA dirty checking(jpa가 값 바뀐거 감지)
+         * 메서드 종료 시 JPA가 변경된 필드를 UPDATE SQL 실행
+         */
+        // db에 직접 저장 X, entity 값만 바꿈
+        savedEmotionRecord.applyAiAnalysis(analysis);
+
+        // 원문 저장 결과와 AI 분석 결과를 React 응답 DTO로 변환
+        return EmotionRecordsQuickCreateResponseDto.from(
+                savedEmotionRecord,
+                analysis
+        );
     }
 }

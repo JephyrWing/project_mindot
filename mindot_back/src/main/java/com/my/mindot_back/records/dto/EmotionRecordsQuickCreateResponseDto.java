@@ -1,12 +1,13 @@
 // 간편 감정 기록 저장 성공 후 react에 보내는 응답 dto
 package com.my.mindot_back.records.dto;
 
+import com.my.mindot_back.records.dto.ai.FastApiRecordAnalysisResponseDto;
 import com.my.mindot_back.records.entity.EmotionRecords;
 
 import java.time.Instant;
 
-// AI 구조화 전 간편 기록의 저장 결과 전달
-// entity 전체 X, 필요한 값만 반환
+// 원문 저장 결과와 FastAPI 구조화 결과를 함께 전달
+// Entity 전체를 노출하지 않고 프론트에 필요한 값만 반환
 public record EmotionRecordsQuickCreateResponseDto(
 
     Long recordId,
@@ -23,12 +24,22 @@ public record EmotionRecordsQuickCreateResponseDto(
     // 평일, 주말 구분
     String weekdayType,
 
-    // 구조화전 -> QUICK
-    String completionStatus
+    // AI 구조화 후 PARTIAL
+    String completionStatus,
+
+    // FastAPI가 반환한 상황·감정·자동적 사고 구조화 결과
+    FastApiRecordAnalysisResponseDto.StructuredRecord structuredRecord,
+
+    // FastAPI가 반환한 안전 신호 판단 결과
+    FastApiRecordAnalysisResponseDto.RiskAssessment risk,
+
+    // AI 모델명과 프롬프트 버전
+    FastApiRecordAnalysisResponseDto.AnalysisMeta meta
 ){
     // DB에 저장된 EmotionRecords Entity를 프론트 응답용 DTO로 변환
     public static EmotionRecordsQuickCreateResponseDto from(
-            EmotionRecords emotionRecords
+            EmotionRecords emotionRecords,
+            FastApiRecordAnalysisResponseDto analysis
     ){
         return new EmotionRecordsQuickCreateResponseDto(
                 emotionRecords.getId(),
@@ -37,7 +48,10 @@ public record EmotionRecordsQuickCreateResponseDto(
                 // enum을 문자열로 바꿈
                 emotionRecords.getTimeBucket().name(),
                 emotionRecords.getWeekdayType().name(),
-                emotionRecords.getCompletionStatus().name()
+                emotionRecords.getCompletionStatus().name(),
+                analysis.record(),
+                analysis.risk(),
+                analysis.meta()
         );
     }
 }
