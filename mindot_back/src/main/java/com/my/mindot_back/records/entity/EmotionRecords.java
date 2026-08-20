@@ -1,6 +1,7 @@
 // 사용자의 감정 원문과 AI 구조화 결과를 저장하는 Entity
 package com.my.mindot_back.records.entity;
 
+import com.my.mindot_back.records.dto.ai.FastApiRecordAnalysisResponseDto;
 import com.my.mindot_back.users.entity.Users;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -209,6 +210,112 @@ public class EmotionRecords {
 
         // service로 return
         return emotionRecord;
+    }
+
+    // FastAPI가 반환한 구조화 결과를 현재 감정 기록에 반영
+
+    // AI 분석 후 사용자 추가 확인 필요 > PARTIAL 상태로 변경
+    public void applyAiAnalysis(
+            FastApiRecordAnalysisResponseDto analysis
+    ) {
+        FastApiRecordAnalysisResponseDto.StructuredRecord record =
+                analysis.record();
+
+        if (record == null) {
+            throw new IllegalArgumentException("AI 구조화 결과가 없습니다.");
+        }
+
+        // Entity의 일반 컬럼에 저장할 구조화 값
+        this.situationText = record.situation();
+        this.automaticThought = record.automaticThought();
+        this.contextCategory = record.contextCategory();
+        this.relatedPersonType = record.relatedPersonType();
+
+        // FastAPI emotions 배열의 첫번째 감정은 주 감정,
+        // 두번째부터는 보조감정, JSON 배열로 저장
+
+        // 초기화
+        this.primaryEmotionCode = null;
+        this.primaryIntensity = null;
+        this.secondaryEmotions = new ArrayList<>();
+
+        List<FastApiRecordAnalysisResponseDto.EmotionItem> emotions =
+                record.emotions();
+
+        // 배열의 첫번째 감정 가져옴 > 주감정
+        if(emotions != null && !emotions.isEmpty()) {
+            FastApiRecordAnalysisResponseDto.EmotionItem primaryEmotion =
+                    emotions.get(0);  // List는 0번부터 시작
+
+            // 첫번째 감정 코드를 primary_emotion_code 컬럼에 저장할 값으로 넣음
+            // 예시: "ANXIETY"
+            this.primaryEmotionCode = primaryEmotion.code();
+
+            if(primaryEmotion.intensity() != null) {
+                this.primaryIntensity =
+                        primaryEmotion.intensity().shortValue();
+            }
+
+            // 보조감정: 두번재 감정부터 끝까지 반복
+            for (int index = 1; index < emotions.size(); index++) {
+                FastApiRecordAnalysisResponseDto.EmotionItem emotion =
+                        emotions.get(index);
+
+                // 보조 감정 하나를 JSON 객체 모양으로 만들 빈 Map, 키 : 값
+                Map<String, Object> secondaryEmotion = new HashMap<>();
+                secondaryEmotion.put("code", emotion.code()); // 키
+                secondaryEmotion.put("intensity", emotion.intensity()); // 값
+
+                // 보조 감정 JSON 객체를 보조 감정 목록에 추가
+                this.secondaryEmotions.add(secondaryEmotion);
+            }
+        }
+
+        // 일반 컬럼이 없는 추가 구조화 값은 details JSONB에 저장
+        this.details = new HashMap<>();
+        putIfNotNull(this.details, "interpretation", record.interpretation());
+        putIfNotNull(this.details, "bodyReaction", record.bodyReaction());
+        putIfNotNull(this.details, "behavior", record.behavior());
+
+        // AI 모델, 프롬프트 버전, 위험 판단은 ai_meta JSONB에 저장
+        this.aiMeta = new HashMap<>();
+
+        if (analysis.meta() != null) {
+            putIfNotNull(this.aiMeta, "model", analysis.meta().model());
+            putIfNotNull(
+                    this.aiMeta,
+                    "promptVersion",
+                    analysis.meta().promptVersion()
+            );
+        }
+
+        if (analysis.risk() != null) {
+            putIfNotNull(
+                    this.aiMeta,
+                    "riskLevel",
+                    analysis.risk().level()
+            );
+            putIfNotNull(
+                    this.aiMeta,
+                    "riskReason",
+                    analysis.risk().reason()
+            );
+        }
+
+        // AI 구조화 끝 but 사용자 확인 전 -> PARTIAL
+        this.completionStatus = CompletionStatus.PARTIAL;
+    }
+
+    // null 값은 JSONB Map에 넣지 않음 (공통 메서드)
+    // AI가 분석해 반환한 정보만 저장
+    private static void putIfNotNull(
+            Map<String, Object> target,
+            String key,
+            String value
+    ) {
+        if (value != null) {
+            target.put(key, value);
+        }
     }
 
     // DB insert 전 JPA가 자동 호출하는 메서드
