@@ -15,6 +15,72 @@ const historySortOptions = [
   { value: 'oldest', label: '오래된순' },
 ]
 
+// 오늘을 기준으로 목록 화면 확인용 기록 날짜를 생성하는 함수 정의.
+const createPreviewDate = (daysAgo, hour) => {
+  const previewDate = new Date()
+
+  previewDate.setDate(previewDate.getDate() - daysAgo)
+  previewDate.setHours(hour, 0, 0, 0)
+  return previewDate.toISOString()
+}
+
+// 기록 목록 카드와 필터 동작을 확인하기 위한 임시 감정 기록 설정.
+const previewEmotionRecords = [
+  {
+    id: 'preview-1',
+    emotion: '기쁨',
+    intensity: 4,
+    context: '일상·기타',
+    content: '오랜만에 여유로운 시간을 보내서 마음이 한결 가벼워졌다.',
+    occurredAt: createPreviewDate(0, 19),
+  },
+  {
+    id: 'preview-2',
+    emotion: '불안',
+    intensity: 3,
+    context: '일·학업',
+    content: '해야 할 일이 많아 걱정됐지만 하나씩 정리해 보기로 했다.',
+    occurredAt: createPreviewDate(8, 14),
+  },
+  {
+    id: 'preview-3',
+    emotion: '평온',
+    intensity: 2,
+    context: '가족',
+    content: '가족과 천천히 이야기를 나누며 편안한 시간을 보냈다.',
+    occurredAt: createPreviewDate(40, 20),
+  },
+]
+
+// 감정 기록 시각을 사용자가 읽기 쉬운 한국어 형식으로 변환하는 함수 정의.
+const formatHistoryDate = (occurredAt) => new Intl.DateTimeFormat('ko-KR', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+  weekday: 'short',
+  hour: '2-digit',
+  minute: '2-digit',
+}).format(new Date(occurredAt))
+
+// 현재 날짜를 기준으로 선택한 기간의 시작 시각을 계산하는 함수 정의.
+const getPeriodStartDate = (period) => {
+  const startDate = new Date()
+
+  startDate.setHours(0, 0, 0, 0)
+
+  if (period === 'week') {
+    const daysFromMonday = (startDate.getDay() + 6) % 7
+
+    startDate.setDate(startDate.getDate() - daysFromMonday)
+  }
+
+  if (period === 'month') {
+    startDate.setDate(1)
+  }
+
+  return startDate
+}
+
 // 감정 기록 목록 API 연결 전 기본 빈 상태를 보여 주는 목록 화면 컴포넌트 정의.
 function EmotionHistory({
   isAuthenticated,
@@ -37,6 +103,21 @@ function EmotionHistory({
   const selectedPeriodLabel = historyPeriodFilters.find(
     (filter) => filter.value === selectedPeriod,
   ).label
+
+  // 선택한 기간에 해당하는 임시 기록만 남기는 필터 처리.
+  const filteredRecords = selectedPeriod === 'all'
+    ? previewEmotionRecords
+    : previewEmotionRecords.filter(
+      (record) => new Date(record.occurredAt) >= getPeriodStartDate(selectedPeriod),
+    )
+
+  // 선택한 정렬 기준에 따라 원본 배열을 변경하지 않고 기록 순서 정렬.
+  const displayedRecords = [...filteredRecords].sort((firstRecord, secondRecord) => {
+    const firstTime = new Date(firstRecord.occurredAt).getTime()
+    const secondTime = new Date(secondRecord.occurredAt).getTime()
+
+    return sortOrder === 'latest' ? secondTime - firstTime : firstTime - secondTime
+  })
 
   // 선택한 기간에 따라 빈 목록의 현재 상태를 설명하는 제목 설정.
   const emptyTitle = selectedPeriod === 'all'
@@ -70,7 +151,7 @@ function EmotionHistory({
           </div>
           {/* 선택한 기간의 조회 결과 개수를 표시할 기본 개수 문구 배치. */}
           <span className="emotion-history-count">
-            {selectedPeriodLabel} 0개
+            {selectedPeriodLabel} {displayedRecords.length}개
           </span>
         </div>
 
@@ -109,18 +190,56 @@ function EmotionHistory({
           </label>
         </div>
 
-        {/* 실제 기록 조회 API 연결 전 사용자에게 보여 주는 빈 목록 안내. */}
-        <section
-          className="emotion-history-empty"
-          aria-labelledby="emotion-history-empty-title"
-        >
-          <span className="emotion-history-empty-mark" aria-hidden="true">+</span>
-          <h2 id="emotion-history-empty-title">{emptyTitle}</h2>
-          <p>오늘의 마음을 기록하면 이곳에서 다시 확인할 수 있습니다.</p>
-          <button type="button" onClick={onEmotionRecord}>
-            첫 감정 기록하기
-          </button>
-        </section>
+        {/* 백엔드 목록 조회 연결 전 카드 구성을 확인하는 예시 기록 안내 배치. */}
+        <p className="emotion-history-preview-notice">
+          현재 목록 화면 확인을 위한 예시 기록입니다.
+        </p>
+
+        {/* 선택한 기간과 정렬 순서에 맞는 감정 기록 카드 목록 배치. */}
+        {displayedRecords.length > 0 ? (
+          <section
+            className="emotion-history-list"
+            aria-label={`${selectedPeriodLabel} 감정 기록`}
+          >
+            {displayedRecords.map((record) => (
+              <article className="emotion-history-item" key={record.id}>
+                <div className="emotion-history-item-header">
+                  <div className="emotion-history-item-tags">
+                    <strong>{record.emotion}</strong>
+                    <span>강도 {record.intensity}/5</span>
+                    <span>{record.context}</span>
+                  </div>
+                  <time dateTime={record.occurredAt}>
+                    {formatHistoryDate(record.occurredAt)}
+                  </time>
+                </div>
+                <p>{record.content}</p>
+              </article>
+            ))}
+
+            {/* 목록 확인 후 새로운 감정 기록 화면으로 이동하는 버튼 배치. */}
+            <button
+              className="emotion-history-add-button"
+              type="button"
+              onClick={onEmotionRecord}
+            >
+              새 감정 기록하기
+            </button>
+          </section>
+        ) : (
+          /* 선택한 기간에 기록이 없을 때 사용자에게 보여 주는 빈 목록 안내. */
+          <section
+            className="emotion-history-empty"
+            aria-labelledby="emotion-history-empty-title"
+          >
+            <span className="emotion-history-empty-mark" aria-hidden="true">+</span>
+            <h2 id="emotion-history-empty-title">{emptyTitle}</h2>
+            <p>오늘의 마음을 기록하면 이곳에서 다시 확인할 수 있습니다.</p>
+            <button type="button" onClick={onEmotionRecord}>
+              감정 기록하기
+            </button>
+          </section>
+        )}
       </section>
     </main>
   )
