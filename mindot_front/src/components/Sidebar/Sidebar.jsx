@@ -9,6 +9,7 @@ function Sidebar({
   onLogin,
   onLogout,
   onSignUp,
+  onEmotionHistory,
   onCenter,
   onHome,
 }) {
@@ -105,6 +106,9 @@ function Sidebar({
               </button>
             </>
           )}
+          <button type="button" onClick={() => moveToPage(onEmotionHistory)}>
+            감정 기록 목록
+          </button>
           <button type="button" onClick={() => moveToPage(onCenter)}>
             관련 기관 찾기
           </button>

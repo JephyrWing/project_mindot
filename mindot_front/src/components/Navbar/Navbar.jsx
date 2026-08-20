@@ -10,6 +10,7 @@ function Navbar({
   onLogin,
   onLogout,
   onSignUp,
+  onEmotionHistory,
   onCenter,
   onHome,
 }) {
@@ -26,6 +27,7 @@ function Navbar({
         onLogin={onLogin}
         onLogout={onLogout}
         onSignUp={onSignUp}
+        onEmotionHistory={onEmotionHistory}
         onCenter={onCenter}
         onHome={onHome}
       />

@@ -11,6 +11,7 @@ function Main({
   onLogout,
   onSignUp,
   onEmotionRecord,
+  onEmotionHistory,
   onWeeklyReport,
   onCenter,
   onHome,
@@ -33,6 +34,7 @@ function Main({
         onLogin={onLogin}
         onLogout={onLogout}
         onSignUp={onSignUp}
+        onEmotionHistory={onEmotionHistory}
         onCenter={onCenter}
         onHome={onHome}
       />
@@ -68,7 +70,7 @@ function Main({
           <p>오늘 가장 기억에 남는 순간은 무엇인가요?</p>
         </aside>
 
-        {/* 감정 기록과 주간 리포트 화면으로 이동하는 기본 기능 버튼 배치. */}
+        {/* 감정 기록과 기록 목록 및 주간 리포트 화면으로 이동하는 기본 기능 버튼 배치. */}
         <div className="main-actions">
           <button
             className="main-emotion-button"
@@ -76,6 +78,13 @@ function Main({
             onClick={onEmotionRecord}
           >
             감정 기록하기
+          </button>
+          <button
+            className="main-history-button"
+            type="button"
+            onClick={onEmotionHistory}
+          >
+            감정 기록 목록
           </button>
           <button
             className="main-report-button"

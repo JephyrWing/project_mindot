@@ -4,6 +4,7 @@ import Main from './components/Main/Main.jsx'
 import Login from './components/Login/Login.jsx'
 import SignUp from './components/SignUp/SignUp.jsx'
 import EmotionRecord from './components/EmotionRecord/EmotionRecord.jsx'
+import EmotionHistory from './components/EmotionHistory/EmotionHistory.jsx'
 import CBT from './components/CBT/CBT.jsx'
 import WeeklyReport from './components/WeeklyReport/WeeklyReport.jsx'
 import AppIntroModal from './components/AppIntroModal/AppIntroModal.jsx'
@@ -75,6 +76,21 @@ function App() {
         onHome={moveToMain}
       />
     )
+  } else if (currentPage === 'emotion-history') {
+    // 감정 기록 목록 화면 선택 시 빈 목록 초안과 이동 기능 렌더링.
+    currentPageContent = (
+      <EmotionHistory
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={() => setCurrentPage('login')}
+        onLogout={handleLogout}
+        onSignUp={() => setCurrentPage('signup')}
+        onEmotionHistory={() => setCurrentPage('emotion-history')}
+        onEmotionRecord={() => setCurrentPage('emotion-record')}
+        onCenter={() => setCurrentPage('center')}
+        onHome={moveToMain}
+      />
+    )
   } else if (currentPage === 'cbt') {
     // 감정 기록 저장 완료 후 선택한 CBT 성찰 화면 렌더링.
     currentPageContent = <CBT onHome={moveToMain} />
@@ -92,6 +108,7 @@ function App() {
         onLogin={() => setCurrentPage('login')}
         onLogout={handleLogout}
         onSignUp={() => setCurrentPage('signup')}
+        onEmotionHistory={() => setCurrentPage('emotion-history')}
         onCenter={() => setCurrentPage('center')}
         onHome={moveToMain}
       />
@@ -106,6 +123,7 @@ function App() {
         onLogout={handleLogout}
         onSignUp={() => setCurrentPage('signup')}
         onEmotionRecord={() => setCurrentPage('emotion-record')}
+        onEmotionHistory={() => setCurrentPage('emotion-history')}
         onWeeklyReport={() => setCurrentPage('weekly-report')}
         onCenter={() => setCurrentPage('center')}
         onHome={moveToMain}

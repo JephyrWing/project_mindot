@@ -1,0 +1,133 @@
+/* 감정 기록 목록 화면의 전체 높이와 기본 배경색 설정. */
+.emotion-history-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  color: #0a1220;
+  background: #f4f7fc;
+}
+
+/* 목록 제목과 빈 상태를 화면 중앙 너비에 맞추는 콘텐츠 영역 설정. */
+.emotion-history-content {
+  width: min(100%, 720px);
+  margin: 0 auto;
+  padding:
+    48px
+    max(24px, env(safe-area-inset-right, 0px))
+    max(32px, env(safe-area-inset-bottom, 0px))
+    max(24px, env(safe-area-inset-left, 0px));
+}
+
+/* 목록 제목과 전체 기록 수를 양쪽으로 구분하는 상단 영역 배치. */
+.emotion-history-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+/* 감정 기록 목록의 기본 제목 크기 설정. */
+.emotion-history-heading h1 {
+  margin: 0;
+  font-size: 30px;
+}
+
+/* 목록 화면의 목적을 알려 주는 안내 문구 설정. */
+.emotion-history-heading p {
+  margin: 12px 0 0;
+  color: #657189;
+  line-height: 1.7;
+}
+
+/* 추후 실제 기록 개수를 표시할 둥근 개수 문구 설정. */
+.emotion-history-count {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 7px 12px;
+  color: #1c5ed0;
+  font-size: 13px;
+  font-weight: 700;
+  background: #eaf2ff;
+}
+
+/* 감정 기록이 없을 때 안내와 시작 버튼을 보여 주는 빈 상태 카드 설정. */
+.emotion-history-empty {
+  margin-top: 28px;
+  border: 1px solid #d9e3f2;
+  border-radius: 12px;
+  padding: 48px 24px;
+  background: #ffffff;
+  text-align: center;
+}
+
+/* 새로운 감정 기록 작성을 의미하는 원형 더하기 표시 설정. */
+.emotion-history-empty-mark {
+  display: inline-flex;
+  width: 48px;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #1c5ed0;
+  font-size: 28px;
+  background: #eaf2ff;
+}
+
+/* 빈 목록의 현재 상태를 전달하는 제목 문구 설정. */
+.emotion-history-empty h2 {
+  margin: 20px 0 0;
+  font-size: 19px;
+}
+
+/* 첫 기록 작성을 안내하는 보조 문구 설정. */
+.emotion-history-empty p {
+  margin: 10px 0 0;
+  color: #707a8e;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 첫 감정 기록 화면으로 이동하는 주요 버튼과 터치 영역 설정. */
+.emotion-history-empty button {
+  min-width: 180px;
+  min-height: 46px;
+  border: 1px solid #1c5ed0;
+  border-radius: 6px;
+  margin-top: 24px;
+  padding: 0 20px;
+  color: #ffffff;
+  font-weight: 700;
+  background: #1c5ed0;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 첫 감정 기록 버튼 위에 커서를 올렸을 때 진한 파란색 강조. */
+.emotion-history-empty button:hover {
+  border-color: #164fb3;
+  background: #164fb3;
+}
+
+/* 작은 모바일 화면에서 제목과 전체 기록 수를 세로로 배치하기 위한 설정. */
+@media (max-width: 480px) {
+  .emotion-history-content {
+    padding-top: 36px;
+  }
+
+  .emotion-history-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .emotion-history-heading h1 {
+    font-size: 27px;
+  }
+
+  .emotion-history-empty {
+    padding: 40px 20px;
+  }
+
+  .emotion-history-empty button {
+    width: 100%;
+  }
+}

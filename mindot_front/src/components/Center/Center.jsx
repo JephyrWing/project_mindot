@@ -17,6 +17,7 @@ function Center({
   onLogin = emptyNavigation,
   onLogout = emptyNavigation,
   onSignUp = emptyNavigation,
+  onEmotionHistory = emptyNavigation,
   onCenter = emptyNavigation,
   onHome = emptyNavigation,
 }) {
@@ -54,6 +55,7 @@ function Center({
         onLogin={onLogin}
         onLogout={onLogout}
         onSignUp={onSignUp}
+        onEmotionHistory={onEmotionHistory}
         onCenter={onCenter}
         onHome={onHome}
       />
