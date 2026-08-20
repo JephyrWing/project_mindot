@@ -1,16 +1,18 @@
-/* 로고 심볼과 MINDOT 문구의 공통 가로 정렬. */
+/* 로고 심볼과 MINDOT 프로젝트명의 공통 가로 정렬. */
 .brand-logo {
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  font-weight: 800;
+  color: var(--mindot-text);
+  font-family: var(--mindot-body-font);
+  font-weight: 700;
   letter-spacing: 0.1em;
 }
 
 /* 메인페이지 이동 기능이 있는 로고의 기본 버튼 모양 초기화. */
 .brand-logo--button {
   border: 0;
-  border-radius: 8px;
+  border-radius: 6px;
   padding: 4px;
   color: inherit;
   font-family: inherit;
@@ -19,9 +21,9 @@
   cursor: pointer;
 }
 
-/* 키보드로 로고를 선택했을 때 현재 위치를 구분하는 포커스 표시 설정. */
+/* 키보드로 로고를 선택했을 때 현재 위치를 구분하는 초점선 설정. */
 .brand-logo--button:focus-visible {
-  outline: 2px solid #6b9ee8;
+  outline: 3px solid var(--mindot-primary-line);
   outline-offset: 2px;
 }
 

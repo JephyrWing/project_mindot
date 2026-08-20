@@ -1,41 +1,42 @@
-/* 관련 기관 찾기 화면의 전체 높이와 기본 배경색 설정. */
+/* 관련 기관 찾기 화면의 전체 높이와 단색 배경 설정. */
 .center-page {
   min-height: 100vh;
   min-height: 100dvh;
-  color: #0a1220;
-  background: #f4f7fc;
+  color: var(--mindot-text);
+  background: var(--mindot-page);
 }
 
-/* 두 번째 개발 단계의 제목과 검색 조건을 담는 콘텐츠 영역 설정. */
+/* 기관 검색 제목과 조건을 감싸는 흰색 테두리 콘텐츠 영역 설정. */
 .center-content {
-  width: min(100%, 720px);
-  margin: 0 auto;
-  padding: 48px 24px;
+  width: min(calc(100% - 48px), 780px);
+  margin: 56px auto 32px;
+  border: 1px solid var(--mindot-border);
+  border-radius: 14px;
+  padding: 36px;
+  background: var(--mindot-surface);
 }
 
-/* 관련 기관 찾기 화면의 기본 제목 설정. */
+/* 관련 기관 찾기 제목의 Noto Sans KR 크기 설정. */
 .center-content h1 {
   margin: 0;
-  font-size: 30px;
+  font-size: 2rem;
 }
 
-/* 화면 목적을 전달하는 기본 안내 문구 설정. */
+/* 화면 목적을 전달하는 안내 문구의 본문 대비 설정. */
 .center-content p {
   margin: 14px 0 0;
-  color: #657189;
+  color: var(--mindot-text-secondary);
   line-height: 1.7;
 }
 
-/* 단계별 지역과 기관 유형 선택창을 두 칸씩 배치하는 기본 검색 조건 영역 설정. */
+/* 지역과 기관 유형 선택창을 바깥 카드 안에 배치하는 검색 영역 설정. */
 .center-filter {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
   margin-top: 28px;
-  border: 1px solid #d9e3f2;
-  border-radius: 12px;
-  padding: 20px;
-  background: #ffffff;
+  padding: 0;
+  background: transparent;
 }
 
 /* 검색 조건 이름과 선택창의 세로 방향 배치. */
@@ -46,48 +47,48 @@
   gap: 8px;
 }
 
-/* 각 검색 조건을 구분하는 이름 문구 설정. */
+/* 각 검색 조건 이름의 본문 강조. */
 .center-filter label > span {
-  color: #526079;
-  font-size: 13px;
-  font-weight: 700;
+  color: var(--mindot-text);
+  font-size: 15px;
+  font-weight: 600;
 }
 
 /* 모바일에서도 선택하기 쉬운 검색 조건 선택창 설정. */
 .center-filter select {
   width: 100%;
   min-height: 48px;
-  border: 1px solid #cbd9ec;
+  border: 1px solid var(--mindot-border-strong);
   border-radius: 8px;
   padding: 0 12px;
-  color: #334057;
-  font: inherit;
-  background: #ffffff;
+  color: var(--mindot-text-secondary);
+  background: var(--mindot-surface);
   cursor: pointer;
 }
 
-/* 활성화된 검색 조건 선택창 위에 커서를 올렸을 때 옅은 파란색 강조. */
+/* 활성화된 검색 조건 선택창 위의 옅은 파란색 강조. */
 .center-filter select:not(:disabled):hover {
-  border-color: #a9c4eb;
-  background: #edf4ff;
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
 }
 
-/* 앞 단계 지역을 선택하기 전 비활성화된 선택창 상태 설정. */
+/* 앞 단계 지역 선택 전 비활성화된 선택창 상태 설정. */
 .center-filter select:disabled {
-  color: #8b95a8;
-  background: #f2f4f8;
+  color: var(--mindot-disabled);
+  border-color: var(--mindot-border);
+  background: var(--mindot-surface-muted);
   cursor: not-allowed;
 }
 
-/* 검색 조건 선택 중 현재 위치를 구분하는 포커스 표시 설정. */
-.center-filter select:focus {
-  border-color: #2b70d8;
-  outline: 2px solid rgba(43, 112, 216, 0.14);
-  outline-offset: 1px;
-}
-
-/* 작은 모바일 화면에서 검색 조건을 한 줄씩 배치하기 위한 설정. */
+/* 작은 화면에서 검색 조건을 한 열로 배치. */
 @media (max-width: 560px) {
+  .center-content {
+    width: calc(100% - 28px);
+    margin: 28px auto 20px;
+    border-radius: 12px;
+    padding: 28px 18px;
+  }
+
   .center-filter {
     grid-template-columns: 1fr;
   }

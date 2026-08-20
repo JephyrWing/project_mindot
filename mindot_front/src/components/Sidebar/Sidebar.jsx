@@ -43,7 +43,7 @@ function Sidebar({
   // 햄버거 버튼과 슬라이드 메뉴로 구성한 사이드바 반환.
   return (
     <>
-      {/* SVG 없이 세 개의 선으로 구성한 햄버거 버튼 배치. */}
+      {/* Google Material Symbols 무료 아이콘과 메뉴 열기 기능 연결. */}
       <button
         className="main-menu-button"
         type="button"
@@ -52,9 +52,12 @@ function Sidebar({
         aria-controls="main-sidebar"
         aria-expanded={isOpen}
       >
-        <span />
-        <span />
-        <span />
+        <span
+          className="material-symbols-outlined main-menu-icon"
+          aria-hidden="true"
+        >
+          menu
+        </span>
       </button>
 
       {/* 사이드바 바깥 영역 선택 시 메뉴 닫기 처리. */}

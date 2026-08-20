@@ -232,7 +232,6 @@ function EmotionHistory({
             className="emotion-history-empty"
             aria-labelledby="emotion-history-empty-title"
           >
-            <span className="emotion-history-empty-mark" aria-hidden="true">+</span>
             <h2 id="emotion-history-empty-title">{emptyTitle}</h2>
             <p>오늘의 마음을 기록하면 이곳에서 다시 확인할 수 있습니다.</p>
             <button type="button" onClick={onEmotionRecord}>

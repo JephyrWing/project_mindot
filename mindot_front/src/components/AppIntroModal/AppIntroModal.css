@@ -1,4 +1,4 @@
-/* 앱 화면 위에 안내창을 고정하고 배경과 구분하기 위한 전체 영역 설정. */
+/* 앱 화면 위에 안내창을 고정하고 배경과 구분하는 전체 영역 설정. */
 .app-intro-backdrop {
   position: fixed;
   z-index: 1000;
@@ -11,72 +11,77 @@
     calc(20px + env(safe-area-inset-right, 0px))
     calc(20px + env(safe-area-inset-bottom, 0px))
     calc(20px + env(safe-area-inset-left, 0px));
-  background: rgba(10, 18, 32, 0.52);
+  background: rgba(20, 32, 51, 0.52);
 }
 
-/* 앱의 목적과 주요 기능을 담는 시작 안내 카드 설정. */
+/* 앱 목적과 주요 기능을 담는 테두리 없는 안내 모달 설정. */
 .app-intro-modal {
   width: 100%;
-  max-width: 440px;
+  max-width: 480px;
   max-height: 100%;
   overflow-y: auto;
+  border: 0;
   border-radius: 16px;
-  padding: 32px;
-  background: #ffffff;
-  box-shadow: 0 24px 70px rgba(10, 18, 32, 0.24);
+  padding: 40px;
+  background: var(--mindot-surface);
+  box-shadow: 0 12px 32px rgba(20, 32, 51, 0.22);
 }
 
-/* 시작 안내 카드 상단의 공통 Mindot 로고 설정. */
+/* 시작 안내 카드 상단의 MINDOT 로고 설정. */
 .app-intro-logo {
-  color: #0a1220;
+  color: var(--mindot-text);
   font-size: 15px;
 }
 
-/* 시작 안내 제목과 본문 사이의 시각적 순서 설정. */
+/* 시작 안내 제목의 Noto Sans KR 크기와 간격 설정. */
 .app-intro-modal h1 {
-  margin: 28px 0 0;
-  color: #0a1220;
-  font-size: 27px;
-  line-height: 1.35;
+  margin: 32px 0 0;
+  font-size: 2rem;
   word-break: keep-all;
 }
 
+/* 안내 모달 본문의 명도 대비와 줄 간격 설정. */
 .app-intro-description {
   margin: 14px 0 0;
-  color: #5f697d;
-  font-size: 14px;
+  color: var(--mindot-text-secondary);
   line-height: 1.75;
   word-break: keep-all;
 }
 
-/* 앱의 세 가지 주요 기능을 간단한 태그 형태로 보여 주기 위한 설정. */
+/* 주요 기능을 둥근 칩 대신 구분선 목록으로 배치. */
 .app-intro-features {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 22px 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 28px 0 0;
   padding: 0;
   list-style: none;
 }
 
+/* 기능 항목에 배경과 라운드 없이 상단 구분선만 적용. */
 .app-intro-features li {
-  border-radius: 999px;
-  padding: 7px 11px;
-  color: #24578f;
-  font-size: 12px;
-  font-weight: 700;
-  background: #eef5ff;
+  display: flex;
+  min-height: 64px;
+  align-items: center;
+  justify-content: center;
+  border-top: 2px solid var(--mindot-primary-line);
+  padding: 0;
+  color: var(--mindot-primary-strong);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  background: transparent;
 }
 
-/* 의료적 이용 범위를 주요 설명과 구분하여 보여 주기 위한 안내 설정. */
+/* 의료적 이용 범위를 가로 구분선으로 분리하는 안내 설정. */
 .app-intro-notice {
-  margin: 22px 0 0;
-  border-left: 3px solid #7ca9e8;
-  padding: 9px 12px;
-  color: #707a8e;
-  font-size: 12px;
-  line-height: 1.6;
-  background: #f7f9fc;
+  margin: 0;
+  border-top: 1px solid var(--mindot-border);
+  padding: 16px 0 0;
+  color: var(--mindot-text-muted);
+  font-size: 13px;
+  line-height: 1.7;
+  background: transparent;
 }
 
 /* 사용자가 안내를 확인하고 앱을 시작하는 주요 버튼 설정. */
@@ -84,41 +89,34 @@
   appearance: none;
   width: 100%;
   min-height: 48px;
-  border: none;
+  border: 1px solid var(--mindot-primary);
   border-radius: 8px;
-  margin-top: 24px;
-  outline: none;
+  margin-top: 28px;
   color: #ffffff;
   font-weight: 700;
-  background: #1c5ed0;
-  box-shadow: none;
+  background: var(--mindot-primary);
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* 시작하기 버튼 위에 커서를 올렸을 때 더 선명한 파란색 강조. */
-.app-intro-start-button:hover {
-  background: #164fb3;
-}
-
-/* 키보드 초점을 검정 테두리 대신 진한 파란색 배경으로 표시하기 위한 설정. */
-.app-intro-start-button:focus,
+/* 시작하기 버튼 위의 진한 파란색 강조. */
+.app-intro-start-button:hover,
 .app-intro-start-button:focus-visible {
-  border: none;
+  border-color: var(--mindot-primary-strong);
   outline: none;
-  background: #164fb3;
-  box-shadow: none;
+  background: var(--mindot-primary-strong);
 }
 
-/* 작은 모바일 화면에서 안내 카드의 내부 여백과 제목 크기를 조정하기 위한 설정. */
+/* 작은 화면에서 모달 여백과 기능 목록을 한 열로 조정. */
 @media (max-width: 480px) {
   .app-intro-modal {
-    padding: 28px 22px;
+    border-radius: 12px;
+    padding: 28px 20px;
   }
 
-  .app-intro-modal h1 {
-    font-size: 24px;
+  .app-intro-features {
+    grid-template-columns: 1fr;
   }
 
   .app-intro-start-button {
