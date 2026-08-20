@@ -41,10 +41,12 @@ function Main({
 
       <section className="main-card" aria-labelledby="main-title">
         <BrandLogo className="main-brand" onClick={onHome} />
-        {/* 메인 화면에 접속한 날짜를 바로 확인할 수 있는 오늘 날짜 표시. */}
-        <p className="main-today">오늘 · {today}</p>
         <h1 id="main-title">오늘의 마음은 어떤가요?</h1>
-        <p className="main-description">짧은 문장으로 지금의 감정을 남겨 보세요.</p>
+        {/* 서비스 안내와 오늘 날짜를 하나의 보조 정보 행으로 묶어 배치. */}
+        <div className="main-meta">
+          <p className="main-description">짧은 문장으로 지금의 감정을 남겨 보세요.</p>
+          <p className="main-today">오늘 · {today}</p>
+        </div>
 
         {/* 처음 기록하는 사용자가 흐름을 이해할 수 있는 두 단계 안내 배치. */}
         <ol className="main-guide" aria-label="감정 기록 시작 방법">

@@ -2,21 +2,21 @@
 .app-navigation-header {
   display: flex;
   width: 100%;
-  height: calc(66px + env(safe-area-inset-top, 0px));
+  height: calc(72px + env(safe-area-inset-top, 0px));
   box-sizing: border-box;
   align-items: center;
-  gap: 12px;
-  border-bottom: 1px solid #e1e7f0;
+  gap: 14px;
+  border-bottom: 1px solid var(--mindot-border);
   padding:
     env(safe-area-inset-top, 0px)
     max(18px, env(safe-area-inset-right, 0px))
     0
     max(12px, env(safe-area-inset-left, 0px));
-  background: #ffffff;
+  background: var(--mindot-surface);
 }
 
-/* 모든 상단 네비게이션에 표시되는 Mindot 로고 크기 통일. */
+/* 모든 상단 네비게이션에 표시되는 MINDOT 로고 크기 통일. */
 .app-navigation-brand {
-  color: #0a1220;
-  font-size: 14px;
+  color: var(--mindot-text);
+  font-size: 15px;
 }
