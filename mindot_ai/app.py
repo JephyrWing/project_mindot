@@ -2,10 +2,16 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException, Path as ApiPath, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import Field, field_validator
+
+# 실행 디렉터리와 무관하게 import 전에 OpenAI 설정을 준비합니다. 키 값은
+# 애플리케이션 로그나 응답에 노출하지 않습니다.
+load_dotenv(Path(__file__).resolve().parent.parent / "infra" / ".env.local")
 
 # records_agent에서 정의한 스키마와 실제 분석 함수를 가져옵니다.
 # 현재 import는 `mindot_ai` 디렉터리에서 `uvicorn app:app`을 실행하는 구성을 기준으로 합니다.
@@ -14,6 +20,19 @@ from records_agent import (
     ApiModel,
     RecordAnalysis,
     analyze_record
+)
+from cbt_agent import (
+    CBT_DEBUG_LOG_ANALYSIS,
+    CbtStartRequest,
+    CbtTurnRequest,
+    CbtTurnResponse,
+    generate_cbt_start,
+    generate_cbt_turn,
+)
+from cbt_session_agent import (
+    close_agent_cbt_session,
+    generate_agent_cbt_start,
+    generate_agent_cbt_turn,
 )
 
 
@@ -93,6 +112,89 @@ async def _run_analysis(
         ) from exc
 
 
+async def _run_cbt_start(request: CbtStartRequest) -> CbtTurnResponse:
+    """CBT 시작 호출의 민감정보 비노출 오류 처리를 담당합니다."""
+
+    try:
+        return await generate_cbt_start(request)
+    except Exception as exc:
+        # 검증 예외에는 모델 출력이 포함될 수 있으므로 traceback도 남기지 않습니다.
+        logger.error(
+            "CBT start generation failed: requestId=%s error=%s",
+            request.request_id,
+            type(exc).__name__,
+        )
+        raise HTTPException(
+            status_code=502,
+            detail="The AI CBT start request failed.",
+        ) from exc
+
+
+async def _run_cbt_turn(request: CbtTurnRequest) -> CbtTurnResponse:
+    """CBT 다음 턴 호출의 민감정보 비노출 오류 처리를 담당합니다."""
+
+    try:
+        return await generate_cbt_turn(request)
+    except Exception as exc:
+        logger.error(
+            "CBT turn generation failed: requestId=%s error=%s",
+            request.request_id,
+            type(exc).__name__,
+        )
+        raise HTTPException(
+            status_code=502,
+            detail="The AI CBT turn request failed.",
+        ) from exc
+
+
+async def _run_agent_cbt_start(request: CbtStartRequest) -> CbtTurnResponse:
+    """비교 실험용 세션 Agent의 시작 오류를 공통 HTTP 오류로 변환합니다."""
+
+    try:
+        return await generate_agent_cbt_start(request)
+    except Exception as exc:
+        if CBT_DEBUG_LOG_ANALYSIS:
+            logger.exception(
+                "CBT Agent start failed: requestId=%s error=%s",
+                request.request_id,
+                type(exc).__name__,
+            )
+        else:
+            logger.error(
+                "CBT Agent start failed: requestId=%s error=%s",
+                request.request_id,
+                type(exc).__name__,
+            )
+        raise HTTPException(
+            status_code=502,
+            detail="The AI CBT Agent start request failed.",
+        ) from exc
+
+
+async def _run_agent_cbt_turn(request: CbtTurnRequest) -> CbtTurnResponse:
+    """비교 실험용 세션 Agent의 다음 턴 오류를 변환합니다."""
+
+    try:
+        return await generate_agent_cbt_turn(request)
+    except Exception as exc:
+        if CBT_DEBUG_LOG_ANALYSIS:
+            logger.exception(
+                "CBT Agent turn failed: requestId=%s error=%s",
+                request.request_id,
+                type(exc).__name__,
+            )
+        else:
+            logger.error(
+                "CBT Agent turn failed: requestId=%s error=%s",
+                request.request_id,
+                type(exc).__name__,
+            )
+        raise HTTPException(
+            status_code=502,
+            detail="The AI CBT Agent turn request failed.",
+        ) from exc
+
+
 @app.post(
     "/internal/ai/records",
     # 반환 객체도 RecordAnalysis 스키마로 검증하고 OpenAPI 문서에 반영합니다.
@@ -107,6 +209,63 @@ async def run_records_agent(request: AnalyzeRecordRequest) -> RecordAnalysis:
     return await _run_analysis(
         raw_text=request.raw_text,
     )
+
+
+@app.post(
+    "/internal/ai/reflections/start",
+    response_model=CbtTurnResponse,
+    response_model_by_alias=True,
+)
+async def run_cbt_start(request: CbtStartRequest) -> CbtTurnResponse:
+    """Spring이 생성한 reflection_sessions의 첫 CBT 질문을 만듭니다."""
+
+    return await _run_cbt_start(request)
+
+
+@app.post(
+    "/internal/ai/reflections/turn",
+    response_model=CbtTurnResponse,
+    response_model_by_alias=True,
+)
+async def run_cbt_turn(request: CbtTurnRequest) -> CbtTurnResponse:
+    """누적 답변으로 다음 질문 또는 사용자 확인용 유형 제안을 만듭니다."""
+
+    return await _run_cbt_turn(request)
+
+
+@app.post(
+    "/internal/ai/reflections/agent/start",
+    response_model=CbtTurnResponse,
+    response_model_by_alias=True,
+)
+async def run_agent_cbt_start(request: CbtStartRequest) -> CbtTurnResponse:
+    """비교 실험용 인메모리 CBT Agent를 시작합니다."""
+
+    return await _run_agent_cbt_start(request)
+
+
+@app.post(
+    "/internal/ai/reflections/agent/turn",
+    response_model=CbtTurnResponse,
+    response_model_by_alias=True,
+)
+async def run_agent_cbt_turn(request: CbtTurnRequest) -> CbtTurnResponse:
+    """살아 있는 Agent를 진행하거나 전체 이력으로 다시 수화합니다."""
+
+    return await _run_agent_cbt_turn(request)
+
+
+@app.delete(
+    "/internal/ai/reflections/agent/{session_id}",
+    status_code=204,
+)
+async def stop_agent_cbt_session(
+    session_id: int = ApiPath(gt=0),
+) -> Response:
+    """사용자가 CBT를 중단했을 때 인메모리 Agent만 종료합니다."""
+
+    await close_agent_cbt_session(session_id)
+    return Response(status_code=204)
 
 
 if __name__ == "__main__":
