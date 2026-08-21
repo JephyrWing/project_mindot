@@ -278,6 +278,51 @@
   overflow-wrap: anywhere;
 }
 
+/* 감정 기록 목록의 이전 및 다음 페이지 이동 영역 설정. */
+.emotion-history-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 6px 0;
+}
+
+/* 페이지 이동 버튼의 흰색 배경과 터치 영역 설정. */
+.emotion-history-pagination button {
+  min-width: 88px;
+  min-height: 44px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  color: var(--mindot-primary-strong);
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 사용 가능한 페이지 이동 버튼 위의 옅은 파란색 강조. */
+.emotion-history-pagination button:not(:disabled):hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+/* 이동할 페이지가 없을 때 페이지 버튼의 비활성 상태 설정. */
+.emotion-history-pagination button:disabled {
+  border-color: var(--mindot-border);
+  color: var(--mindot-disabled);
+  background: var(--mindot-surface-muted);
+  cursor: not-allowed;
+}
+
+/* 현재 페이지와 마지막 페이지 번호를 보여 주는 문구 설정. */
+.emotion-history-pagination span {
+  min-width: 64px;
+  color: var(--mindot-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
 /* 목록 아래 새로운 감정 기록 화면 이동 버튼 설정. */
 .emotion-history-add-button {
   min-height: 48px;
@@ -389,6 +434,11 @@
 
   .emotion-history-item-header {
     gap: 12px;
+  }
+
+  .emotion-history-pagination button {
+    min-width: 0;
+    flex: 1;
   }
 
   .emotion-history-empty {
