@@ -15,6 +15,9 @@ const historySortOptions = [
   { value: 'oldest', label: '오래된순' },
 ]
 
+// 한 페이지에 표시할 감정 기록 개수 설정.
+const recordsPerPage = 2
+
 // 오늘을 기준으로 목록 화면 확인용 기록 날짜를 생성하는 함수 정의.
 const createPreviewDate = (daysAgo, hour) => {
   const previewDate = new Date()
@@ -102,6 +105,9 @@ function EmotionHistory({
   // 사용자가 입력한 감정 기록 검색어를 보관하는 상태 설정.
   const [searchKeyword, setSearchKeyword] = useState('')
 
+  // 사용자가 현재 확인 중인 감정 기록 페이지 번호 상태 설정.
+  const [currentPage, setCurrentPage] = useState(1)
+
   // 선택한 기간에 해당하는 사용자 표시용 한글 문구 탐색.
   const selectedPeriodLabel = historyPeriodFilters.find(
     (filter) => filter.value === selectedPeriod,
@@ -132,12 +138,49 @@ function EmotionHistory({
     return sortOrder === 'latest' ? secondTime - firstTime : firstTime - secondTime
   })
 
+  // 필터링된 전체 기록을 기준으로 필요한 마지막 페이지 번호 계산.
+  const totalPages = Math.max(
+    1,
+    Math.ceil(displayedRecords.length / recordsPerPage),
+  )
+
+  // 현재 페이지에서 화면에 표시할 감정 기록 범위 계산.
+  const pageStartIndex = (currentPage - 1) * recordsPerPage
+  const paginatedRecords = displayedRecords.slice(
+    pageStartIndex,
+    pageStartIndex + recordsPerPage,
+  )
+
   // 선택한 기간에 따라 빈 목록의 현재 상태를 설명하는 제목 설정.
   const emptyTitle = normalizedSearchKeyword
     ? `'${searchKeyword.trim()}' 검색 결과가 없습니다.`
     : selectedPeriod === 'all'
       ? '아직 작성한 감정 기록이 없습니다.'
       : `${selectedPeriodLabel}에 작성한 감정 기록이 없습니다.`
+
+  // 기간 필터 변경 후 목록 첫 페이지로 이동하는 처리.
+  const handlePeriodChange = (period) => {
+    setSelectedPeriod(period)
+    setCurrentPage(1)
+  }
+
+  // 정렬 기준 변경 후 목록 첫 페이지로 이동하는 처리.
+  const handleSortChange = (event) => {
+    setSortOrder(event.target.value)
+    setCurrentPage(1)
+  }
+
+  // 기록 검색어 변경 후 목록 첫 페이지로 이동하는 처리.
+  const handleSearchKeywordChange = (event) => {
+    setSearchKeyword(event.target.value)
+    setCurrentPage(1)
+  }
+
+  // 입력한 기록 검색어를 비우고 목록 첫 페이지로 이동하는 처리.
+  const handleSearchKeywordClear = () => {
+    setSearchKeyword('')
+    setCurrentPage(1)
+  }
 
   // 공통 네비게이션과 감정 기록 목록의 두 번째 단계 탐색 화면 반환.
   return (
@@ -181,7 +224,7 @@ function EmotionHistory({
                   type="button"
                   key={filter.value}
                   aria-pressed={selectedPeriod === filter.value}
-                  onClick={() => setSelectedPeriod(filter.value)}
+                  onClick={() => handlePeriodChange(filter.value)}
                 >
                   {filter.label}
                 </button>
@@ -194,7 +237,7 @@ function EmotionHistory({
             <select
               id="emotion-history-sort"
               value={sortOrder}
-              onChange={(event) => setSortOrder(event.target.value)}
+              onChange={handleSortChange}
             >
               {historySortOptions.map((option) => (
                 <option value={option.value} key={option.value}>
@@ -212,13 +255,13 @@ function EmotionHistory({
                 id="emotion-history-keyword"
                 type="search"
                 value={searchKeyword}
-                onChange={(event) => setSearchKeyword(event.target.value)}
+                onChange={handleSearchKeywordChange}
                 placeholder="기록 내용에서 검색"
               />
             </label>
             <button
               type="button"
-              onClick={() => setSearchKeyword('')}
+              onClick={handleSearchKeywordClear}
               disabled={!searchKeyword}
             >
               검색어 지우기
@@ -237,7 +280,7 @@ function EmotionHistory({
             className="emotion-history-list"
             aria-label={`${selectedPeriodLabel} 감정 기록`}
           >
-            {displayedRecords.map((record) => (
+            {paginatedRecords.map((record) => (
               <article className="emotion-history-item" key={record.id}>
                 <div className="emotion-history-item-header">
                   <div className="emotion-history-item-tags">
@@ -252,6 +295,29 @@ function EmotionHistory({
                 <p>{record.content}</p>
               </article>
             ))}
+
+            {/* 감정 기록이 한 페이지를 넘을 때 이전 및 다음 페이지 이동 기능 표시. */}
+            {totalPages > 1 && (
+              <nav className="emotion-history-pagination" aria-label="감정 기록 페이지">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((page) => page - 1)}
+                  disabled={currentPage === 1}
+                >
+                  이전
+                </button>
+                <span aria-current="page">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((page) => page + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  다음
+                </button>
+              </nav>
+            )}
 
             {/* 목록 확인 후 새로운 감정 기록 화면으로 이동하는 버튼 배치. */}
             <button
