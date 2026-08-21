@@ -16,6 +16,12 @@ const centerTypes = [
   { value: 'counseling', label: '심리상담센터' },
 ]
 
+// 실제 기관 API 연결 전 목록 화면 구성을 확인하기 위한 예시 기관 설정.
+const previewCenters = [
+  { id: 'preview-center-1', name: '기관명 예시 1' },
+  { id: 'preview-center-2', name: '기관명 예시 2' },
+]
+
 // 지역과 기관 유형을 선택해 검색 조건을 확인하는 화면 컴포넌트 정의.
 function Center({
   isAuthenticated = false,
@@ -79,7 +85,7 @@ function Center({
     setHasSearched(true)
   }
 
-  // 공통 헤더와 간단한 검색 조건을 포함한 두 번째 단계 구조 반환.
+  // 공통 헤더와 검색 조건 및 예시 결과 목록을 포함한 단계 구조 반환.
   return (
     <main className="center-page">
       {/* 공통 사이드바와 메인 이동 로고를 포함한 상단 네비게이션 배치. */}
@@ -198,14 +204,42 @@ function Center({
           </div>
         </form>
 
-        {/* 검색 버튼 선택 후 현재 조건을 확인하는 기본 결과 안내 배치. */}
+        {/* 검색 버튼 선택 후 기관 목록의 기본 구조를 확인하는 예시 결과 배치. */}
         {hasSearched && (
           <section className="center-search-result" aria-live="polite">
-            <h2>검색 조건을 확인했습니다.</h2>
-            <p>
-              {selectedRegion} {selectedDistrict} {selectedTown} · {selectedTypeLabel}
+            <div className="center-result-heading">
+              <div>
+                <h2>기관 검색 결과</h2>
+                <p>
+                  {selectedRegion} {selectedDistrict} {selectedTown} · {selectedTypeLabel}
+                </p>
+              </div>
+              <strong>예시 {previewCenters.length}곳</strong>
+            </div>
+
+            <p className="center-result-notice">
+              실제 기관 데이터 연결 전 목록 구성을 확인하기 위한 예시입니다.
             </p>
-            <span>기관 목록은 다음 개발 단계에서 연결할 예정입니다.</span>
+
+            {/* 선택 지역에 표시될 기관명과 상세 정보 위치를 확인하는 목록 배치. */}
+            <div className="center-result-list">
+              {previewCenters.map((previewCenter) => (
+                <article key={previewCenter.id}>
+                  <div>
+                    <strong>{previewCenter.name}</strong>
+                    <span>{selectedTypeLabel}</span>
+                  </div>
+                  <address>
+                    {selectedRegion} {selectedDistrict} {selectedTown}
+                    <br />
+                    상세 주소·전화번호·운영 시간 연결 예정
+                  </address>
+                  <button type="button" disabled>
+                    기관 정보 준비 중
+                  </button>
+                </article>
+              ))}
+            </div>
           </section>
         )}
       </section>
