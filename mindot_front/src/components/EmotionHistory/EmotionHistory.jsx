@@ -99,17 +99,30 @@ function EmotionHistory({
   // 사용자가 선택한 감정 기록 정렬 순서를 보관하는 상태 설정.
   const [sortOrder, setSortOrder] = useState('latest')
 
+  // 사용자가 입력한 감정 기록 검색어를 보관하는 상태 설정.
+  const [searchKeyword, setSearchKeyword] = useState('')
+
   // 선택한 기간에 해당하는 사용자 표시용 한글 문구 탐색.
   const selectedPeriodLabel = historyPeriodFilters.find(
     (filter) => filter.value === selectedPeriod,
   ).label
 
+  // 앞뒤 공백과 대소문자 차이를 제거한 기록 검색어 생성.
+  const normalizedSearchKeyword = searchKeyword.trim().toLocaleLowerCase('ko-KR')
+
   // 선택한 기간에 해당하는 임시 기록만 남기는 필터 처리.
-  const filteredRecords = selectedPeriod === 'all'
+  const periodFilteredRecords = selectedPeriod === 'all'
     ? previewEmotionRecords
     : previewEmotionRecords.filter(
       (record) => new Date(record.occurredAt) >= getPeriodStartDate(selectedPeriod),
     )
+
+  // 입력한 검색어가 포함된 감정 기록만 남기는 검색 처리.
+  const filteredRecords = normalizedSearchKeyword
+    ? periodFilteredRecords.filter((record) => (
+      record.content.toLocaleLowerCase('ko-KR').includes(normalizedSearchKeyword)
+    ))
+    : periodFilteredRecords
 
   // 선택한 정렬 기준에 따라 원본 배열을 변경하지 않고 기록 순서 정렬.
   const displayedRecords = [...filteredRecords].sort((firstRecord, secondRecord) => {
@@ -120,9 +133,11 @@ function EmotionHistory({
   })
 
   // 선택한 기간에 따라 빈 목록의 현재 상태를 설명하는 제목 설정.
-  const emptyTitle = selectedPeriod === 'all'
-    ? '아직 작성한 감정 기록이 없습니다.'
-    : `${selectedPeriodLabel}에 작성한 감정 기록이 없습니다.`
+  const emptyTitle = normalizedSearchKeyword
+    ? `'${searchKeyword.trim()}' 검색 결과가 없습니다.`
+    : selectedPeriod === 'all'
+      ? '아직 작성한 감정 기록이 없습니다.'
+      : `${selectedPeriodLabel}에 작성한 감정 기록이 없습니다.`
 
   // 공통 네비게이션과 감정 기록 목록의 두 번째 단계 탐색 화면 반환.
   return (
@@ -188,6 +203,27 @@ function EmotionHistory({
               ))}
             </select>
           </label>
+
+          {/* 감정 기록 원문에 포함된 단어를 검색하는 입력 영역 배치. */}
+          <div className="emotion-history-search">
+            <label htmlFor="emotion-history-keyword">
+              <span>기록 검색</span>
+              <input
+                id="emotion-history-keyword"
+                type="search"
+                value={searchKeyword}
+                onChange={(event) => setSearchKeyword(event.target.value)}
+                placeholder="기록 내용에서 검색"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => setSearchKeyword('')}
+              disabled={!searchKeyword}
+            >
+              검색어 지우기
+            </button>
+          </div>
         </div>
 
         {/* 백엔드 목록 조회 연결 전 카드 구성을 확인하는 예시 기록 안내 배치. */}
