@@ -80,6 +80,81 @@
   cursor: not-allowed;
 }
 
+/* 검색 가능 여부 안내와 검색 버튼을 필터 아래에 배치하는 영역 설정. */
+.center-search-action {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 4px;
+  border-top: 1px solid var(--mindot-border);
+  padding-top: 20px;
+}
+
+/* 검색 조건 선택 상태를 설명하는 보조 문구 설정. */
+.center-search-action p {
+  margin: 0;
+  color: var(--mindot-text-muted);
+  font-size: 13px;
+}
+
+/* 선택한 기관 검색 조건을 확정하는 주요 버튼 설정. */
+.center-search-action button {
+  min-width: 180px;
+  min-height: 48px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  padding: 0 20px;
+  color: #ffffff;
+  font-weight: 700;
+  background: var(--mindot-primary);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 검색 버튼 위에 커서를 올렸을 때 진한 파란색 강조. */
+.center-search-action button:not(:disabled):hover {
+  border-color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-strong);
+}
+
+/* 검색 조건이 완성되지 않았을 때 버튼의 비활성 상태 설정. */
+.center-search-action button:disabled {
+  border-color: var(--mindot-border);
+  color: var(--mindot-disabled);
+  background: var(--mindot-surface-muted);
+  cursor: not-allowed;
+}
+
+/* 검색 확정 후 선택 조건을 중첩 카드 없이 보여 주는 결과 안내 설정. */
+.center-search-result {
+  margin-top: 28px;
+  border-top: 1px solid var(--mindot-border);
+  padding-top: 24px;
+}
+
+/* 검색 조건 확인 결과 제목 설정. */
+.center-search-result h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+/* 확정된 지역과 기관 유형을 보여 주는 문구 설정. */
+.center-search-result p {
+  margin: 8px 0 0;
+  color: var(--mindot-text-secondary);
+  font-weight: 600;
+}
+
+/* 다음 개발 단계를 안내하는 보조 문구 설정. */
+.center-search-result span {
+  display: block;
+  margin-top: 6px;
+  color: var(--mindot-text-muted);
+  font-size: 13px;
+}
+
 /* 작은 화면에서 검색 조건을 한 열로 배치. */
 @media (max-width: 560px) {
   .center-content {
@@ -91,5 +166,15 @@
 
   .center-filter {
     grid-template-columns: 1fr;
+  }
+
+  .center-search-action {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .center-search-action button {
+    width: 100%;
   }
 }

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
+import Navbar from '../Navbar/Navbar.jsx'
 import { createQuickRecord } from '../../utils/records/recordsApi.js'
 import './EmotionRecord.css'
 
@@ -36,8 +37,19 @@ const formatOccurredAt = (occurredAt) => new Intl.DateTimeFormat('ko-KR', {
   timeStyle: 'short',
 }).format(new Date(occurredAt))
 
-// 감정 원문을 입력받는 기본 화면 컴포넌트 정의.
-function EmotionRecord({ onCBT, onWeeklyReport, onHome }) {
+// 공통 네비게이션과 감정 원문 입력 영역을 제공하는 화면 컴포넌트 정의.
+function EmotionRecord({
+  isAuthenticated,
+  isLoggingOut,
+  onLogin,
+  onLogout,
+  onSignUp,
+  onEmotionHistory,
+  onCenter,
+  onCBT,
+  onWeeklyReport,
+  onHome,
+}) {
   // 감정 원문 입력값 상태 관리.
   const [content, setContent] = useState('')
   // 빈 내용 검증 오류 문구 상태 관리.
@@ -116,13 +128,27 @@ function EmotionRecord({ onCBT, onWeeklyReport, onHome }) {
   // 간단한 감정 기록 입력 화면 반환.
   return (
     <main className="emotion-record-page">
-      <section className="emotion-record-card" aria-labelledby="emotion-record-title">
-        <BrandLogo className="emotion-record-logo" onClick={onHome} />
+      {/* 주요 화면 이동과 인증 메뉴를 제공하는 공통 상단 네비게이션 배치. */}
+      <Navbar
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={onLogin}
+        onLogout={onLogout}
+        onSignUp={onSignUp}
+        onEmotionHistory={onEmotionHistory}
+        onCenter={onCenter}
+        onHome={onHome}
+      />
 
-        <h1 id="emotion-record-title">어떤 감정이 들었나요?</h1>
+      {/* 네비게이션 아래 감정 기록 카드를 중앙에 배치하는 콘텐츠 영역 설정. */}
+      <div className="emotion-record-content">
+        <section className="emotion-record-card" aria-labelledby="emotion-record-title">
+          <BrandLogo className="emotion-record-logo" onClick={onHome} />
 
-        {/* 감정 원문 입력창과 기본 버튼 배치. */}
-        <form className="emotion-record-form" onSubmit={handleSubmit} noValidate>
+          <h1 id="emotion-record-title">어떤 감정이 들었나요?</h1>
+
+          {/* 감정 원문 입력창과 기본 버튼 배치. */}
+          <form className="emotion-record-form" onSubmit={handleSubmit} noValidate>
           <label htmlFor="emotion-content">지금의 감정</label>
           <textarea
             id="emotion-content"
@@ -223,8 +249,9 @@ function EmotionRecord({ onCBT, onWeeklyReport, onHome }) {
               새 기록 작성하기
             </button>
           )}
-        </form>
-      </section>
+          </form>
+        </section>
+      </div>
     </main>
   )
 }
