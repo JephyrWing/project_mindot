@@ -71,6 +71,13 @@ function App() {
     // 감정 기록 화면 선택 시 감정 기록 컴포넌트 렌더링.
     currentPageContent = (
       <EmotionRecord
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={() => setCurrentPage('login')}
+        onLogout={handleLogout}
+        onSignUp={() => setCurrentPage('signup')}
+        onEmotionHistory={() => setCurrentPage('emotion-history')}
+        onCenter={() => setCurrentPage('center')}
         onCBT={() => setCurrentPage('cbt')}
         onWeeklyReport={() => setCurrentPage('weekly-report')}
         onHome={moveToMain}
@@ -97,7 +104,17 @@ function App() {
   } else if (currentPage === 'weekly-report') {
     // 주간 리포트 화면 선택 시 간단한 리포트 초안 컴포넌트 렌더링.
     currentPageContent = (
-      <WeeklyReport onBack={moveToMain} onHome={moveToMain} />
+      <WeeklyReport
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={() => setCurrentPage('login')}
+        onLogout={handleLogout}
+        onSignUp={() => setCurrentPage('signup')}
+        onEmotionHistory={() => setCurrentPage('emotion-history')}
+        onCenter={() => setCurrentPage('center')}
+        onBack={moveToMain}
+        onHome={moveToMain}
+      />
     )
   } else if (currentPage === 'center') {
     // 사이드바에서 관련 기관 찾기 선택 시 상담기관 검색 화면 렌더링.

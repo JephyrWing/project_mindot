@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
+import Navbar from '../Navbar/Navbar.jsx'
 import './WeeklyReport.css'
 
 // 사용자가 선택한 주를 기준으로 월요일부터 일요일까지의 주간 범위 계산.
@@ -39,8 +40,18 @@ const emptyWeeklySummary = [
   { label: '평균 강도', value: '-' },
 ]
 
-// 주간 감정 기록 요약을 표시할 간단한 리포트 화면 컴포넌트 정의.
-function WeeklyReport({ onBack, onHome }) {
+// 공통 네비게이션과 주간 감정 기록 요약을 제공하는 화면 컴포넌트 정의.
+function WeeklyReport({
+  isAuthenticated,
+  isLoggingOut,
+  onLogin,
+  onLogout,
+  onSignUp,
+  onEmotionHistory,
+  onCenter,
+  onBack,
+  onHome,
+}) {
   // 현재 주를 기준으로 사용자가 이동한 주간 위치 상태 관리.
   const [weekOffset, setWeekOffset] = useState(0)
   // 선택한 주간 위치를 반영한 리포트 기간 생성.
@@ -49,8 +60,22 @@ function WeeklyReport({ onBack, onHome }) {
   // 실제 리포트 데이터 연결 전 제목과 빈 상태만 포함한 기본 화면 반환.
   return (
     <main className="weekly-report-page">
-      <section className="weekly-report-card" aria-labelledby="weekly-report-title">
-        <BrandLogo className="weekly-report-logo" onClick={onHome} />
+      {/* 주요 화면 이동과 인증 메뉴를 제공하는 공통 상단 네비게이션 배치. */}
+      <Navbar
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={onLogin}
+        onLogout={onLogout}
+        onSignUp={onSignUp}
+        onEmotionHistory={onEmotionHistory}
+        onCenter={onCenter}
+        onHome={onHome}
+      />
+
+      {/* 네비게이션 아래 주간 리포트 카드를 중앙에 배치하는 콘텐츠 영역 설정. */}
+      <div className="weekly-report-content">
+        <section className="weekly-report-card" aria-labelledby="weekly-report-title">
+          <BrandLogo className="weekly-report-logo" onClick={onHome} />
 
         <h1 id="weekly-report-title">주간 리포트</h1>
         <p className="weekly-report-description">
@@ -110,7 +135,8 @@ function WeeklyReport({ onBack, onHome }) {
         >
           메인으로 돌아가기
         </button>
-      </section>
+        </section>
+      </div>
     </main>
   )
 }

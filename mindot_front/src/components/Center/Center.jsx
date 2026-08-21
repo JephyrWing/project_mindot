@@ -10,7 +10,13 @@ import './Center.css'
 // 화면 연결 전 사이드바 버튼 선택 시 오류를 방지하기 위한 기본 이동 처리.
 const emptyNavigation = () => {}
 
-// 관련 기관 찾기 기능의 두 번째 개발 단계를 표시하는 기본 화면 컴포넌트 정의.
+// 기관 유형 선택창에 표시할 기본 항목 목록 설정.
+const centerTypes = [
+  { value: 'mental-health', label: '정신건강복지센터' },
+  { value: 'counseling', label: '심리상담센터' },
+]
+
+// 지역과 기관 유형을 선택해 검색 조건을 확인하는 화면 컴포넌트 정의.
 function Center({
   isAuthenticated = false,
   isLoggingOut = false,
@@ -27,22 +33,50 @@ function Center({
   const [selectedDistrict, setSelectedDistrict] = useState('')
   // 사용자가 선택한 읍·면·동 이름 상태 관리.
   const [selectedTown, setSelectedTown] = useState('')
+  // 사용자가 선택한 기관 유형 상태 관리.
+  const [selectedType, setSelectedType] = useState('')
+  // 사용자가 검색 조건을 확정했는지 여부 상태 관리.
+  const [hasSearched, setHasSearched] = useState(false)
   // 선택한 시·도에 포함된 시·군·구 목록 계산.
   const districtNames = getDistrictNames(selectedRegion)
   // 선택한 시·군·구에 포함된 읍·면·동 목록 계산.
   const townNames = getTownNames(selectedRegion, selectedDistrict)
+  // 모든 검색 조건이 선택되었는지 확인하는 상태 계산.
+  const isSearchReady = Boolean(
+    selectedRegion
+    && selectedDistrict
+    && selectedTown
+    && selectedType,
+  )
+  // 선택된 기관 유형의 사용자 표시용 이름 탐색.
+  const selectedTypeLabel = centerTypes.find(
+    (centerType) => centerType.value === selectedType,
+  )?.label
 
   // 시·도 변경 시 하위 지역 선택값을 초기화하는 처리.
   const handleRegionChange = (event) => {
     setSelectedRegion(event.target.value)
     setSelectedDistrict('')
     setSelectedTown('')
+    setHasSearched(false)
   }
 
   // 시·군·구 변경 시 읍·면·동 선택값을 초기화하는 처리.
   const handleDistrictChange = (event) => {
     setSelectedDistrict(event.target.value)
     setSelectedTown('')
+    setHasSearched(false)
+  }
+
+  // 선택한 검색 조건을 확정하고 결과 안내를 표시하는 처리.
+  const handleSearch = (event) => {
+    event.preventDefault()
+
+    if (!isSearchReady) {
+      return
+    }
+
+    setHasSearched(true)
   }
 
   // 공통 헤더와 간단한 검색 조건을 포함한 두 번째 단계 구조 반환.
@@ -66,7 +100,11 @@ function Center({
         <p>가까운 마음건강 관련 기관을 확인하는 화면입니다.</p>
 
         {/* 실제 검색 기능 연결 전 지역 단계와 기관 유형을 고르는 기본 조건 영역 배치. */}
-        <div className="center-filter" aria-label="기관 검색 조건">
+        <form
+          className="center-filter"
+          aria-label="기관 검색 조건"
+          onSubmit={handleSearch}
+        >
           <label htmlFor="center-region">
             <span>시·도</span>
             <select
@@ -109,7 +147,10 @@ function Center({
             <select
               id="center-town"
               value={selectedTown}
-              onChange={(event) => setSelectedTown(event.target.value)}
+              onChange={(event) => {
+                setSelectedTown(event.target.value)
+                setHasSearched(false)
+              }}
               disabled={!selectedDistrict}
             >
               <option value="" disabled>
@@ -125,15 +166,48 @@ function Center({
 
           <label htmlFor="center-type">
             <span>기관 유형</span>
-            <select id="center-type" defaultValue="">
+            <select
+              id="center-type"
+              value={selectedType}
+              onChange={(event) => {
+                setSelectedType(event.target.value)
+                setHasSearched(false)
+              }}
+            >
               <option value="" disabled>
                 유형 선택
               </option>
-              <option value="mental-health">정신건강복지센터</option>
-              <option value="counseling">심리상담센터</option>
+              {centerTypes.map((centerType) => (
+                <option key={centerType.value} value={centerType.value}>
+                  {centerType.label}
+                </option>
+              ))}
             </select>
           </label>
-        </div>
+
+          {/* 모든 조건을 선택한 뒤 검색을 확정하는 버튼 배치. */}
+          <div className="center-search-action">
+            <p>
+              {isSearchReady
+                ? '선택한 조건으로 기관을 검색할 수 있습니다.'
+                : '지역과 기관 유형을 모두 선택해 주세요.'}
+            </p>
+            <button type="submit" disabled={!isSearchReady}>
+              기관 검색하기
+            </button>
+          </div>
+        </form>
+
+        {/* 검색 버튼 선택 후 현재 조건을 확인하는 기본 결과 안내 배치. */}
+        {hasSearched && (
+          <section className="center-search-result" aria-live="polite">
+            <h2>검색 조건을 확인했습니다.</h2>
+            <p>
+              {selectedRegion} {selectedDistrict} {selectedTown} · {selectedTypeLabel}
+            </p>
+            <span>기관 목록은 다음 개발 단계에서 연결할 예정입니다.</span>
+          </section>
+        )}
       </section>
     </main>
   )
