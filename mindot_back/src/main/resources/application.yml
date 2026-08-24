@@ -3,7 +3,7 @@ spring:
     name: mindot_back
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/mindot_db
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/mindot_db}
     username: ${DB_USER:postgres}
     password: ${DB_PW:postgres}
 
