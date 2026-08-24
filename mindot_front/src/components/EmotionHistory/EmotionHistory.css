@@ -1,0 +1,451 @@
+/* 감정 기록 목록 화면의 전체 높이와 단색 배경 설정. */
+.emotion-history-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  color: var(--mindot-text);
+  background: var(--mindot-page);
+}
+
+/* 목록 제목과 기록 카드를 감싸는 흰색 테두리 콘텐츠 영역 설정. */
+.emotion-history-content {
+  width: min(calc(100% - 48px), 780px);
+  margin: 56px auto 32px;
+  border: 1px solid var(--mindot-border);
+  border-radius: 14px;
+  padding: 36px;
+  background: var(--mindot-surface);
+}
+
+/* 목록 제목과 현재 기록 수를 양쪽으로 구분하는 상단 영역 배치. */
+.emotion-history-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+/* 감정 기록 목록 제목의 Noto Sans KR 크기 설정. */
+.emotion-history-heading h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+/* 목록 화면의 목적을 알려 주는 안내 문구 설정. */
+.emotion-history-heading p {
+  margin: 12px 0 0;
+  color: var(--mindot-text-secondary);
+  line-height: 1.7;
+}
+
+/* 기록 개수를 작은 직사각형 정보 요소로 표시. */
+.emotion-history-count {
+  flex: 0 0 auto;
+  border-radius: 6px;
+  padding: 7px 12px;
+  color: var(--mindot-primary-strong);
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--mindot-primary-soft);
+}
+
+/* 기간 필터와 정렬 및 기록 검색을 담는 단일 테두리 영역 설정. */
+.emotion-history-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 140px;
+  align-items: flex-end;
+  gap: 20px;
+  margin-top: 28px;
+  border: 1px solid var(--mindot-border);
+  border-radius: 14px;
+  padding: 18px;
+  background: var(--mindot-surface);
+}
+
+/* 기간 선택 버튼 묶음의 브라우저 기본 테두리 제거. */
+.emotion-history-controls fieldset {
+  min-width: 0;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* 기간과 정렬 선택 항목 이름의 본문 강조. */
+.emotion-history-controls legend,
+.emotion-history-controls label > span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--mindot-text);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* 세 개의 기간 선택 버튼을 가로로 나열하는 영역 배치. */
+.emotion-history-filter-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+/* 기간 선택 버튼의 직사각형 모양과 터치 영역 설정. */
+.emotion-history-filter-buttons button {
+  min-height: 44px;
+  border: 1px solid var(--mindot-border);
+  border-radius: 8px;
+  padding: 0 16px;
+  color: var(--mindot-text-secondary);
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 기간 선택 버튼 위의 옅은 파란색 강조. */
+.emotion-history-filter-buttons button:hover {
+  border-color: var(--mindot-primary-line);
+  color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-soft);
+}
+
+/* 현재 선택된 기간의 핵심 파란색 강조. */
+.emotion-history-filter-buttons button.is-selected {
+  border-color: var(--mindot-primary);
+  color: #ffffff;
+  background: var(--mindot-primary);
+}
+
+/* 선택된 기간 버튼 위의 진한 파란색 강조. */
+.emotion-history-filter-buttons button.is-selected:hover {
+  border-color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-strong);
+}
+
+/* 최신순과 오래된순 정렬 선택 상자 설정. */
+.emotion-history-controls select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--mindot-border-strong);
+  border-radius: 8px;
+  padding: 0 12px;
+  color: var(--mindot-text-secondary);
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+/* 정렬 선택 상자 위의 옅은 파란색 강조. */
+.emotion-history-controls select:hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+/* 기록 검색 입력창과 초기화 버튼을 필터 아래 한 행에 배치하는 설정. */
+.emotion-history-search {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: flex-end;
+  gap: 10px;
+  border-top: 1px solid var(--mindot-border);
+  padding-top: 16px;
+}
+
+/* 기록 검색 입력 영역의 남은 가로 공간 사용 설정. */
+.emotion-history-search label {
+  min-width: 0;
+  flex: 1;
+}
+
+/* 기록 원문 검색 입력창의 크기와 테두리 설정. */
+.emotion-history-search input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--mindot-border-strong);
+  border-radius: 8px;
+  padding: 0 12px;
+  color: var(--mindot-text);
+  font: inherit;
+  background: var(--mindot-surface);
+}
+
+/* 기록 검색 입력창 위의 옅은 파란색 강조. */
+.emotion-history-search input:hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+/* 키보드로 기록 검색 입력창을 선택했을 때 초점 표시 설정. */
+.emotion-history-search input:focus-visible {
+  border-color: var(--mindot-primary);
+  outline: 2px solid var(--mindot-primary-line);
+  outline-offset: 2px;
+}
+
+/* 입력한 기록 검색어를 비우는 보조 버튼 설정. */
+.emotion-history-search button {
+  flex: 0 0 auto;
+  min-height: 44px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  padding: 0 16px;
+  color: var(--mindot-primary-strong);
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+/* 검색어 초기화 버튼 위의 옅은 파란색 강조. */
+.emotion-history-search button:not(:disabled):hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+/* 검색어가 없을 때 초기화 버튼의 비활성 상태 설정. */
+.emotion-history-search button:disabled {
+  border-color: var(--mindot-border);
+  color: var(--mindot-disabled);
+  background: var(--mindot-surface-muted);
+  cursor: not-allowed;
+}
+
+/* 임시 기록임을 알려 주는 안내 문구 설정. */
+.emotion-history-preview-notice {
+  margin: 14px 2px 0;
+  color: var(--mindot-text-muted);
+  font-size: 12px;
+  text-align: right;
+}
+
+/* 선택 조건에 맞는 감정 기록 카드의 세로 목록 배치. */
+.emotion-history-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+/* 감정과 시각 및 기록 내용을 보여 주는 단일 테두리 카드 설정. */
+.emotion-history-item {
+  border: 1px solid var(--mindot-border);
+  border-radius: 12px;
+  padding: 20px;
+  background: var(--mindot-surface);
+}
+
+/* 감정 분류 정보와 작성 시각의 양쪽 배치. */
+.emotion-history-item-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* 대표 감정과 강도 및 상황 문구의 가로 배치. */
+.emotion-history-item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+
+/* 대표 감정을 작은 사각형 정보로 강조. */
+.emotion-history-item-tags strong {
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: #ffffff;
+  font-size: 13px;
+  background: var(--mindot-primary);
+}
+
+/* 감정 강도와 상황에 옅은 파란색 단색 적용. */
+.emotion-history-item-tags span {
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--mindot-primary-strong);
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--mindot-primary-soft);
+}
+
+/* 감정 기록 작성 날짜와 시간의 보조 글자색 설정. */
+.emotion-history-item time {
+  flex: 0 0 auto;
+  color: var(--mindot-text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* 기록 원문의 충분한 대비와 줄 간격 설정. */
+.emotion-history-item > p {
+  margin: 16px 0 0;
+  color: var(--mindot-text-secondary);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+/* 감정 기록 목록의 이전 및 다음 페이지 이동 영역 설정. */
+.emotion-history-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 6px 0;
+}
+
+/* 페이지 이동 버튼의 흰색 배경과 터치 영역 설정. */
+.emotion-history-pagination button {
+  min-width: 88px;
+  min-height: 44px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  color: var(--mindot-primary-strong);
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 사용 가능한 페이지 이동 버튼 위의 옅은 파란색 강조. */
+.emotion-history-pagination button:not(:disabled):hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+/* 이동할 페이지가 없을 때 페이지 버튼의 비활성 상태 설정. */
+.emotion-history-pagination button:disabled {
+  border-color: var(--mindot-border);
+  color: var(--mindot-disabled);
+  background: var(--mindot-surface-muted);
+  cursor: not-allowed;
+}
+
+/* 현재 페이지와 마지막 페이지 번호를 보여 주는 문구 설정. */
+.emotion-history-pagination span {
+  min-width: 64px;
+  color: var(--mindot-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* 목록 아래 새로운 감정 기록 화면 이동 버튼 설정. */
+.emotion-history-add-button {
+  min-height: 48px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  color: #ffffff;
+  font-weight: 700;
+  background: var(--mindot-primary);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 새 감정 기록 버튼 위의 조금 짙은 파란색 강조. */
+.emotion-history-add-button:hover {
+  border-color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-strong);
+}
+
+/* 감정 기록이 없을 때 안내하는 단일 테두리 카드 설정. */
+.emotion-history-empty {
+  margin-top: 16px;
+  border: 1px solid var(--mindot-border);
+  border-radius: 12px;
+  padding: 48px 24px;
+  background: var(--mindot-surface);
+  text-align: center;
+}
+
+/* 빈 목록의 현재 상태를 전달하는 제목 문구 설정. */
+.emotion-history-empty h2 {
+  margin: 0;
+  font-size: 1.5625rem;
+}
+
+/* 첫 기록 작성을 안내하는 보조 문구 설정. */
+.emotion-history-empty p {
+  margin: 10px 0 0;
+  color: var(--mindot-text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 첫 감정 기록 화면으로 이동하는 주요 버튼 설정. */
+.emotion-history-empty button {
+  min-width: 180px;
+  min-height: 48px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  margin-top: 24px;
+  padding: 0 20px;
+  color: #ffffff;
+  font-weight: 700;
+  background: var(--mindot-primary);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 첫 감정 기록 버튼 위의 진한 파란색 강조. */
+.emotion-history-empty button:hover {
+  border-color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-strong);
+}
+
+/* 작은 화면에서 제목과 필터 및 카드 정보를 세로로 배치. */
+@media (max-width: 480px) {
+  .emotion-history-content {
+    width: calc(100% - 28px);
+    margin: 28px auto 20px;
+    border-radius: 12px;
+    padding: 28px 18px;
+  }
+
+  .emotion-history-heading,
+  .emotion-history-item-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .emotion-history-heading {
+    gap: 14px;
+  }
+
+  .emotion-history-controls {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 16px;
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .emotion-history-filter-buttons button {
+    flex: 1;
+    padding: 0 10px;
+  }
+
+  .emotion-history-search {
+    grid-column: 1;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .emotion-history-search button {
+    width: 100%;
+  }
+
+  .emotion-history-preview-notice {
+    text-align: left;
+  }
+
+  .emotion-history-item-header {
+    gap: 12px;
+  }
+
+  .emotion-history-pagination button {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .emotion-history-empty {
+    padding: 40px 20px;
+  }
+
+  .emotion-history-empty button {
+    width: 100%;
+  }
+}

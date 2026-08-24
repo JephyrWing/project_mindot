@@ -1,0 +1,239 @@
+/* CBT 성찰 카드를 화면 중앙에 배치하는 단색 배경 영역 설정. */
+.cbt-page {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+  align-items: center;
+  justify-content: center;
+  padding:
+    calc(20px + env(safe-area-inset-top, 0px))
+    calc(20px + env(safe-area-inset-right, 0px))
+    calc(20px + env(safe-area-inset-bottom, 0px))
+    calc(20px + env(safe-area-inset-left, 0px));
+  color: var(--mindot-text);
+  background: var(--mindot-page);
+}
+
+/* CBT 제목과 대화 영역을 담는 단일 테두리 카드 설정. */
+.cbt-card {
+  width: 100%;
+  max-width: 620px;
+  border: 1px solid var(--mindot-border);
+  border-radius: 14px;
+  padding: 40px;
+  background: var(--mindot-surface);
+}
+
+/* CBT 카드 상단의 공통 로고 설정. */
+.cbt-logo {
+  color: var(--mindot-text);
+  font-size: 15px;
+}
+
+/* CBT 제목의 Noto Sans KR 크기와 간격 설정. */
+.cbt-card h1 {
+  margin: 36px 0 0;
+  font-size: 2rem;
+}
+
+/* CBT 설명 문구의 본문 대비와 줄 간격 설정. */
+.cbt-description {
+  margin: 12px 0 0;
+  color: var(--mindot-text-secondary);
+  line-height: 1.7;
+}
+
+/* CBT 시작 안내를 중첩 카드 대신 가로 구분선 영역으로 표시. */
+.cbt-guide {
+  margin-top: 28px;
+  border-top: 1px solid var(--mindot-border);
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 20px 0;
+  background: transparent;
+}
+
+/* CBT 안내 제목의 Noto Sans KR 크기 설정. */
+.cbt-guide h2 {
+  margin: 0;
+  font-size: 1.5625rem;
+}
+
+/* CBT 안내 본문의 충분한 대비 설정. */
+.cbt-guide p {
+  margin: 10px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* CBT 검사 시작 버튼 영역의 간격 설정. */
+.cbt-actions {
+  margin-top: 28px;
+}
+
+/* CBT 검사 시작 주요 버튼의 크기와 색상 설정. */
+.cbt-start-button {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  color: #ffffff;
+  font-weight: 700;
+  background: var(--mindot-primary);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* CBT 검사 시작 버튼 위의 진한 파란색 강조. */
+.cbt-start-button:hover {
+  border-color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-strong);
+}
+
+/* CBT AI 대화창과 카드 상단 로고 사이의 간격 설정. */
+.cbt-chat {
+  margin-top: 32px;
+}
+
+/* CBT AI 대화창 제목의 상단 여백 제거. */
+.cbt-chat-header h1 {
+  margin: 0;
+}
+
+/* CBT 대화창 안내 문구의 본문 대비 설정. */
+.cbt-chat-header p {
+  margin: 10px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* AI와 사용자 대화를 장식 배경 없이 세로로 배치. */
+.cbt-chat-messages {
+  display: flex;
+  min-height: 220px;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+  border-top: 1px solid var(--mindot-border);
+  padding: 20px 0;
+  background: transparent;
+}
+
+/* 대화 말풍선에 기능상 필요한 최소 라운드와 문장 설정. */
+.cbt-message {
+  width: fit-content;
+  max-width: 85%;
+  margin: 0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
+  line-height: 1.7;
+  word-break: keep-all;
+}
+
+/* AI 안내 메시지에 단일 테두리 적용. */
+.cbt-message--ai {
+  align-self: flex-start;
+  border: 1px solid var(--mindot-border);
+  color: var(--mindot-text-secondary);
+  background: var(--mindot-surface);
+}
+
+/* AI 이름의 브랜드 색상 설정. */
+.cbt-message--ai strong {
+  color: var(--mindot-primary-strong);
+  font-size: 12px;
+}
+
+/* AI 메시지 본문의 기본 간격 설정. */
+.cbt-message--ai p {
+  margin: 5px 0 0;
+}
+
+/* 사용자 답변에 핵심 파란색 단색 배경 적용. */
+.cbt-message--user {
+  align-self: flex-end;
+  color: #ffffff;
+  background: var(--mindot-primary);
+}
+
+/* 사용자 답변 입력창과 보내기 버튼의 세로 배치. */
+.cbt-chat-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* 사용자 답변 입력 항목 이름의 본문 강조. */
+.cbt-chat-form label {
+  color: var(--mindot-text);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* 사용자 답변 입력창의 크기와 단일 테두리 설정. */
+.cbt-chat-form textarea {
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+  border: 1px solid var(--mindot-border-strong);
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--mindot-text);
+  line-height: 1.7;
+  background: var(--mindot-surface);
+}
+
+/* 사용자 답변 입력창 위의 옅은 파란색 강조. */
+.cbt-chat-form textarea:hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+/* 사용자 답변 전송 버튼의 크기와 색상 설정. */
+.cbt-chat-form button {
+  min-height: 48px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  color: #ffffff;
+  font-weight: 700;
+  background: var(--mindot-primary);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 빈 답변 입력 시 전송 버튼의 비활성화 상태 설정. */
+.cbt-chat-form button:disabled {
+  color: var(--mindot-disabled);
+  border-color: var(--mindot-border);
+  background: var(--mindot-surface-muted);
+  cursor: not-allowed;
+}
+
+/* 활성화된 전송 버튼 위의 진한 파란색 강조. */
+.cbt-chat-form button:not(:disabled):hover {
+  border-color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-strong);
+}
+
+/* 작은 화면에서 CBT 카드 여백과 입력 요소 크기를 조정. */
+@media (max-width: 480px) {
+  .cbt-page {
+    align-items: flex-start;
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .cbt-card {
+    border-radius: 12px;
+    padding: 28px 20px;
+  }
+
+  .cbt-chat-form textarea,
+  .cbt-chat-form button {
+    font-size: 16px;
+  }
+}

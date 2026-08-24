@@ -1,0 +1,217 @@
+/* 공통 네비게이션과 주간 리포트 카드를 담는 단색 배경 영역 설정. */
+.weekly-report-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  color: var(--mindot-text);
+  background: var(--mindot-page);
+}
+
+/* 공통 네비게이션 아래 주간 리포트 카드를 화면 중앙에 배치하는 영역 설정. */
+.weekly-report-content {
+  display: flex;
+  min-height: calc(100vh - 72px);
+  min-height: calc(100dvh - 72px - env(safe-area-inset-top, 0px));
+  align-items: center;
+  justify-content: center;
+  padding:
+    20px
+    calc(20px + env(safe-area-inset-right, 0px))
+    calc(20px + env(safe-area-inset-bottom, 0px))
+    calc(20px + env(safe-area-inset-left, 0px));
+}
+
+/* 주간 리포트 정보를 담는 단일 테두리 카드 설정. */
+.weekly-report-card {
+  width: 100%;
+  max-width: 620px;
+  margin: auto 0;
+  border: 1px solid var(--mindot-border);
+  border-radius: 14px;
+  padding: 40px;
+  background: var(--mindot-surface);
+}
+
+/* 주간 리포트 카드 상단의 공통 로고 설정. */
+.weekly-report-logo {
+  color: var(--mindot-text);
+  font-size: 15px;
+}
+
+/* 주간 리포트 제목의 Noto Sans KR 크기와 간격 설정. */
+.weekly-report-card h1 {
+  margin: 36px 0 0;
+  font-size: 2rem;
+}
+
+/* 주간 리포트 안내 문구의 명도 대비 설정. */
+.weekly-report-description {
+  margin: 12px 0 0;
+  color: var(--mindot-text-muted);
+  line-height: 1.7;
+}
+
+/* 현재 리포트 기간을 한쪽 강조선 없이 가로 구분선으로 표시. */
+.weekly-report-period {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 28px;
+  border-top: 1px solid var(--mindot-border);
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 16px 0;
+  background: transparent;
+}
+
+/* 리포트 기간 이름의 브랜드 색상 설정. */
+.weekly-report-period span {
+  color: var(--mindot-primary-strong);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* 주간 시작일과 종료일의 본문 강조. */
+.weekly-report-period strong {
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  text-align: right;
+}
+
+/* 이전 주와 다음 주 이동 버튼의 가로 배치. */
+.weekly-report-navigation {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+/* 주간 이동 버튼의 크기와 옅은 파란색 배경 설정. */
+.weekly-report-navigation button {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  color: var(--mindot-primary-strong);
+  font-weight: 600;
+  background: var(--mindot-primary-soft);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 사용 가능한 주간 이동 버튼 위의 조금 짙은 파란색 강조. */
+.weekly-report-navigation button:not(:disabled):hover {
+  border-color: var(--mindot-primary);
+  background: #d9e7f8;
+}
+
+/* 미래 주간으로 이동할 수 없는 버튼의 비활성화 상태 설정. */
+.weekly-report-navigation button:disabled {
+  color: var(--mindot-disabled);
+  border-color: var(--mindot-border);
+  background: var(--mindot-surface-muted);
+  cursor: not-allowed;
+}
+
+/* 기록 횟수와 주요 감정 및 평균 강도를 묶는 요약 영역 설정. */
+.weekly-report-summary {
+  margin-top: 28px;
+}
+
+/* 주간 요약 제목의 Noto Sans KR 크기 설정. */
+.weekly-report-summary h2 {
+  margin: 0;
+  font-size: 1.5625rem;
+}
+
+/* 세 가지 주간 요약 정보를 동일한 너비로 배치하는 격자 설정. */
+.weekly-report-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+/* 각 주간 요약 항목을 중첩 카드 없이 상단 구분선으로 표시. */
+.weekly-report-summary-grid article {
+  min-width: 0;
+  border-top: 2px solid var(--mindot-primary-line);
+  padding: 16px 0 0;
+  background: transparent;
+  text-align: center;
+}
+
+/* 요약 항목 이름의 보조 글자색 설정. */
+.weekly-report-summary-grid span {
+  display: block;
+  color: var(--mindot-text-muted);
+  font-size: 12px;
+}
+
+/* 각 요약의 핵심 값에 브랜드 색상 적용. */
+.weekly-report-summary-grid strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--mindot-primary-strong);
+  font-size: 16px;
+}
+
+/* 실제 리포트 데이터가 없을 때 가로 구분선 영역 설정. */
+.weekly-report-empty {
+  margin-top: 28px;
+  border-top: 1px solid var(--mindot-border);
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 24px 0;
+  background: transparent;
+  text-align: center;
+}
+
+/* 빈 리포트의 안내 문구 설정. */
+.weekly-report-empty p {
+  margin: 8px 0 0;
+  color: var(--mindot-text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 메인페이지로 돌아가는 주요 버튼 설정. */
+.weekly-report-back-button {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  margin-top: 28px;
+  color: #ffffff;
+  font-weight: 700;
+  background: var(--mindot-primary);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 메인 이동 버튼 위의 진한 파란색 강조. */
+.weekly-report-back-button:hover {
+  border-color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-strong);
+}
+
+/* 작은 화면에서 카드 여백과 기간 정보를 세로로 조정. */
+@media (max-width: 480px) {
+  .weekly-report-content {
+    align-items: flex-start;
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .weekly-report-card {
+    border-radius: 12px;
+    padding: 28px 20px;
+  }
+
+  .weekly-report-period {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .weekly-report-period strong {
+    text-align: left;
+  }
+}

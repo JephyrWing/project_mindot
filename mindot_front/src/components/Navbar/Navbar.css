@@ -1,0 +1,22 @@
+/* 모든 화면의 상단 네비게이션 높이와 내부 요소 배치를 동일하게 유지하는 설정. */
+.app-navigation-header {
+  display: flex;
+  width: 100%;
+  height: calc(72px + env(safe-area-inset-top, 0px));
+  box-sizing: border-box;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid var(--mindot-border);
+  padding:
+    env(safe-area-inset-top, 0px)
+    max(18px, env(safe-area-inset-right, 0px))
+    0
+    max(12px, env(safe-area-inset-left, 0px));
+  background: var(--mindot-surface);
+}
+
+/* 모든 상단 네비게이션에 표시되는 MINDOT 로고 크기 통일. */
+.app-navigation-brand {
+  color: var(--mindot-text);
+  font-size: 15px;
+}

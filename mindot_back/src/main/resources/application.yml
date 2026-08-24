@@ -1,0 +1,61 @@
+spring:
+  application:
+    name: mindot_back
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/mindot_db}
+    username: ${DB_USER:postgres}
+    password: ${DB_PW:postgres}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      embedding:
+        model: text-embedding-3-small
+        dimensions: 1536
+
+
+  data:
+    redis:
+      host: ${REDIS_ENDPOINT:localhost}
+
+      port: ${REDIS_PORT:6379}
+
+      password: ${REDIS_PW}
+
+      connect-timeout: 2s
+      timeout: 2s
+
+
+#  autoconfigure:
+#    exclude:
+#      # 스프링 시큐리티 기본 로그인 비활성화
+#      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+
+ai:
+  fast-api:
+    base-url: ${FAST_API_BASE_URL:http://localhost:8000}
+
+auth:
+  jwt:
+    secret: ${JWT_SECRET}
+    access-token-expiration: 15m
+
+  refresh-token:
+    idle-expiration: 14d
+    absolute-expiration: 30d
+
+  refresh-cookie:
+    name: mindot_refresh
+    path: /api/auth
+    secure: ${REFRESH_COOKIE_SECURE:false}
+
+  web:
+    allowed-origins: ${AUTH_ALLOWED_ORIGINS:http://localhost:3000}

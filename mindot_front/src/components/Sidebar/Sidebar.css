@@ -1,0 +1,179 @@
+/* 모바일 터치 영역을 확보한 햄버거 버튼 설정. */
+.main-menu-button {
+  display: inline-flex;
+  width: 48px;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* Google Material Symbols에서 불러온 메뉴 아이콘의 표시 크기와 색상 설정. */
+.main-menu-icon {
+  display: block;
+  color: var(--mindot-text);
+  font-family: 'Material Symbols Outlined';
+  font-size: 28px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 햄버거 버튼 위에 커서를 올렸을 때 옅은 파란색 강조. */
+.main-menu-button:hover {
+  background: var(--mindot-primary-soft);
+}
+
+/* 열린 사이드바 뒤에 표시되는 단색 반투명 배경 설정. */
+.main-sidebar-overlay {
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  visibility: hidden;
+  opacity: 0;
+  background: rgba(20, 32, 51, 0.48);
+  cursor: pointer;
+  transition: opacity 180ms ease, visibility 180ms ease;
+}
+
+/* 사이드바 열림 상태의 배경 표시. */
+.main-sidebar-overlay.is-open {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* 열린 사이드바 바깥 영역의 닫기 가능 상태 강조. */
+.main-sidebar-overlay.is-open:hover {
+  background: rgba(20, 32, 51, 0.58);
+}
+
+/* 화면 왼쪽에 고정되는 사이드바와 단일 구분선 설정. */
+.main-sidebar {
+  position: fixed;
+  z-index: 40;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: min(82vw, 320px);
+  border-right: 1px solid var(--mindot-border);
+  padding:
+    max(16px, env(safe-area-inset-top))
+    18px
+    max(20px, env(safe-area-inset-bottom));
+  background: var(--mindot-surface);
+  transform: translateX(-105%);
+  transition: transform 200ms ease;
+}
+
+/* 사이드바 열림 상태의 화면 안쪽 이동. */
+.main-sidebar.is-open {
+  transform: translateX(0);
+}
+
+/* 사이드바 서비스명과 닫기 버튼의 가로 정렬. */
+.main-sidebar__header {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* 사이드바 상단의 공통 MINDOT 로고 설정. */
+.main-sidebar__brand {
+  color: var(--mindot-text);
+  font-size: 15px;
+}
+
+/* 모바일 터치 영역을 확보한 사이드바 닫기 버튼 설정. */
+.main-sidebar__close {
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0;
+  color: var(--mindot-text);
+  font-size: 30px;
+  line-height: 1;
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 사이드바 닫기 버튼 위에 커서를 올렸을 때 옅은 파란색 강조. */
+.main-sidebar__close:hover {
+  color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-soft);
+}
+
+/* 사이드바 이동 버튼의 세로 방향 배치. */
+.main-sidebar__navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+/* 사이드바 이동 버튼의 동일한 크기와 단일 테두리 설정. */
+.main-sidebar__navigation button {
+  min-height: 52px;
+  border: 1px solid var(--mindot-border);
+  border-radius: 8px;
+  padding: 0 16px;
+  color: var(--mindot-text);
+  font-weight: 600;
+  text-align: left;
+  background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 사이드바 이동 버튼의 선택 가능 상태 강조. */
+.main-sidebar__navigation button:hover,
+.main-sidebar__navigation button:active {
+  border-color: var(--mindot-primary-line);
+  color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-soft);
+}
+
+/* 로그인 상태에서 표시되는 로그아웃 버튼의 경고 색상 구분. */
+.main-sidebar__navigation .main-sidebar__logout {
+  border-color: #d8aeb4;
+  color: var(--mindot-danger);
+  background: var(--mindot-surface);
+}
+
+/* 로그아웃 버튼 위에 커서를 올렸을 때 옅은 붉은색 강조. */
+.main-sidebar__navigation .main-sidebar__logout:not(:disabled):hover {
+  border-color: #c8868f;
+  color: #861d2a;
+  background: #fcecee;
+}
+
+/* 로그아웃 요청 진행 중 버튼의 비활성화 상태 설정. */
+.main-sidebar__navigation .main-sidebar__logout:disabled {
+  color: var(--mindot-disabled);
+  background: var(--mindot-surface-muted);
+  cursor: wait;
+}
+
+/* 움직임 감소 설정 사용자를 위한 전환 효과 제거. */
+@media (prefers-reduced-motion: reduce) {
+  .main-sidebar,
+  .main-sidebar-overlay {
+    transition: none;
+  }
+}

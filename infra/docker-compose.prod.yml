@@ -1,0 +1,101 @@
+services:
+  backend:
+    image: ${BACKEND_IMAGE}
+    env_file:
+      - .env.prod
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_RECORDS_MODEL: ${OPENAI_RECORDS_MODEL}
+      FAST_API_BASE_URL: http://fastapi:8000
+      DB_URL: ${DB_URL}
+      DB_USER: ${DB_USER}
+      DB_PW: ${DB_PW}
+      REDIS_ENDPOINT: redis
+      REDIS_PORT: "6379"
+      REDIS_PW: ${REDIS_PW}
+      AUTH_ALLOWED_ORIGINS: ${AUTH_ALLOWED_ORIGINS}
+      REFRESH_COOKIE_SECURE: ${REFRESH_COOKIE_SECURE}
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      redis:
+        condition: service_healthy
+      mindot-db:
+        condition: service_healthy
+    expose:
+      - "8080"
+    restart: unless-stopped
+    networks:
+      - app
+      - data
+
+  frontend:
+    image: ${FRONTEND_IMAGE}
+    depends_on:
+      - backend
+    ports:
+      - "127.0.0.1:3000:80"
+    restart: unless-stopped
+    networks:
+      - app
+
+  fastapi:
+    image: ${FASTAPI_IMAGE}
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_RECORDS_MODEL: ${OPENAI_RECORDS_MODEL:-gpt-4o-mini}
+      OPENAI_CBT_MODEL: ${OPENAI_CBT_MODEL:-gpt-4o-mini}
+    expose:
+      - "8000"
+    networks:
+      - app
+    restart: unless-stopped
+    
+  mindot-db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PW}
+      POSTGRES_DB: mindot_db
+    expose:
+      - "5432"
+    volumes: 
+      - mindot_pgdata:/var/lib/postgresql/data
+    networks:
+      - data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"${DB_USER}\" -d \"mindot_db\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  redis:
+    image: redis:7.4-alpine
+    environment:
+      REDIS_PW: ${REDIS_PW}
+    expose:
+      - "6379"
+    command:
+      - sh
+      - -c
+      - exec redis-server --appendonly yes --requirepass "$$REDIS_PW" --maxmemory 256mb --maxmemory-policy noeviction
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PW\" ping | grep PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - data
+
+networks:
+  app:
+  data:
+
+volumes:
+  mindot_pgdata:
+  redis_data:

@@ -1,0 +1,5 @@
+먼저 docker desktop 실행
+현재 폴더에서 shift+우클릭 눌러 powershell 실행
+아래 코드 입력
+
+docker-compose -f .\docker-compose.local.yml up -d
