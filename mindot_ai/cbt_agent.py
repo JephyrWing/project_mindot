@@ -211,10 +211,6 @@ class LatestUserIntent(str, Enum):
     UNCLEAR = "UNCLEAR"
 
 
-ALTERNATIVE_PURPOSES = {
-    QuestionPurpose.ALTERNATIVE_VIEW,
-    QuestionPurpose.BALANCED_THOUGHT,
-}
 CONFIRMATION_REQUIRED_FIELDS = (
     "evidenceForText",
     "evidenceAgainstText",
@@ -853,20 +849,22 @@ def _get_analysis_model(confirmation_allowed: bool) -> Any:
 
 
 def _confirmation_candidate_available(request: CbtRequest) -> bool:
-    """완료 출력 스키마를 노출할지 정하는 거친 선행 조건입니다.
+    """실질 답변 수로 완료 출력 스키마 노출만 결정합니다.
 
-    실제 완료 가능 여부는 ``semanticProgress``의 저장 답변 의미를 별도로
-    검증합니다. 질문 목적을 완료 근거로 사용하지 않습니다.
+    질문 목적은 사용하지 않습니다. 실제 완료 가능 여부는
+    ``semanticProgress``의 저장 답변 의미를 별도로 검증합니다.
     """
 
     if not isinstance(request, CbtTurnRequest):
         return False
-    purposes = {item.question_purpose for item in request.question_answers}
-    return (
-        QuestionPurpose.EVIDENCE_FOR in purposes
-        and QuestionPurpose.EVIDENCE_AGAINST in purposes
-        and bool(ALTERNATIVE_PURPOSES & purposes)
-    )
+    candidate_dispositions = {
+        AnswerDisposition.SUBSTANTIVE,
+        AnswerDisposition.NO_DIRECT_EVIDENCE,
+    }
+    return sum(
+        _classify_answer_disposition(item) in candidate_dispositions
+        for item in request.question_answers
+    ) >= 2
 
 
 def _get_writer_model() -> Any:
@@ -1066,7 +1064,11 @@ def _classify_answer_disposition(
     item = value if isinstance(value, QuestionAnswer) else None
     answer = item.answer if item is not None else value
     normalized = " ".join((answer or "").lower().split()).strip()
-    compact = re.sub(r"[\s.!?~…ㅠㅜㅋㅎ]+", "", normalized)
+    unclear_text = re.sub(
+        r"[\s,.!?~…ㅠㅜㅋㅎ]+",
+        " ",
+        normalized,
+    ).strip()
 
     skip_markers = (
         "넘어갈래",
@@ -1094,19 +1096,16 @@ def _classify_answer_disposition(
     ):
         return AnswerDisposition.NO_DIRECT_EVIDENCE
 
-    unclear_forms = {
-        "모르겠어",
-        "모르겠어요",
-        "잘모르겠어",
-        "잘모르겠어요",
-        "글쎄",
-        "글쎄요",
-        "생각이안나",
-        "생각이안나요",
-        "잘생각이안나",
-        "잘생각이안나요",
-    }
-    if compact in unclear_forms:
+    hesitation = r"(?:(?:음+|어+|아+)\s+)*"
+    modifier = r"(?:(?:아직(?:은)?|지금은|솔직히)\s+)*"
+    uncertainty = (
+        r"(?:"
+        r"(?:잘\s+)?모르겠(?:어|어요|네요|는데요|는데|다|습니다)?"
+        r"|글쎄(?:요)?"
+        r"|(?:생각이\s+)?(?:잘\s+)?안\s+나(?:요|네요|는데요|는데)?"
+        r")"
+    )
+    if re.fullmatch(hesitation + modifier + uncertainty, unclear_text):
         return AnswerDisposition.UNCLEAR
 
     return AnswerDisposition.SUBSTANTIVE

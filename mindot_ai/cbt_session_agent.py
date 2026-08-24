@@ -12,6 +12,7 @@ import hashlib
 import json
 import logging
 import os
+from collections import OrderedDict
 from dataclasses import dataclass, field
 from time import monotonic
 from typing import Any
@@ -22,7 +23,6 @@ from langchain_core.tools import StructuredTool
 from pydantic import Field, ValidationError, model_validator
 
 from cbt_agent import (
-    ALTERNATIVE_PURPOSES,
     CBT_MODEL,
     CBT_DEBUG_LOG_ANALYSIS,
     DISTORTION_DEFINITIONS,
@@ -58,6 +58,7 @@ from cbt_agent import (
     _apply_feedback_constraints,
     _blocked_routes_from_history,
     _classify_answer_disposition,
+    _confirmation_candidate_available,
     _classify_explicit_user_intent,
     _explicit_feedback_intent,
     _contextual_safety_hint,
@@ -80,6 +81,7 @@ CBT_AGENT_MODEL_OUTPUT_ATTEMPTS = int(
     os.getenv("CBT_AGENT_MODEL_OUTPUT_ATTEMPTS", "2")
 )
 RECENT_QUESTION_WINDOW = 3
+AGENT_IDEMPOTENCY_CACHE_MAX_ENTRIES = 32
 
 
 logger = logging.getLogger("uvicorn.error")
@@ -331,7 +333,9 @@ not safety signals by themselves.
 <context>
 On START, begin from empty state. On CONTINUE, preserve valid currentState and
 process latestInteraction. On REHYDRATE, rebuild state from every fullHistory item
-before planning. Do not discard valid prior evidence or blocked routes.
+before planning. For a legacy rejected question with semanticRouteType=null, infer
+the most specific existing SemanticRouteType and preserve it in blockedRoutes. Do
+not discard valid prior evidence or blocked routes.
 
 latestUserIntentHint is authoritative for explicit dialogue intent. blockedRoutes
 are hard exclusions. latestAnswerMeaningHint and turnFlags are conservative facts;
@@ -458,16 +462,24 @@ confirmed=false, risk NONE, and evidence=null. Never infer from tone or invent t
 
 
 @dataclass
+class AgentIdempotencyEntry:
+    fingerprint: str
+    response: CbtTurnResponse
+
+
+@dataclass
 class AgentSessionRuntime:
     session_id: int
     state: CbtSessionState
     history: list[QuestionAnswer] = field(default_factory=list)
     pending_question: GeneratedQuestion | None = None
     expires_at: float = 0.0
-    last_request_id: UUID | None = None
-    last_request_fingerprint: str | None = None
-    last_current_step: str | None = None
-    last_response: CbtTurnResponse | None = None
+    request_cache: OrderedDict[UUID, AgentIdempotencyEntry] = field(
+        default_factory=OrderedDict
+    )
+    fingerprint_cache: OrderedDict[str, AgentIdempotencyEntry] = field(
+        default_factory=OrderedDict
+    )
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
     expiry_task: asyncio.Task[None] | None = None
 
@@ -591,23 +603,26 @@ def _cached_agent_response(
 ) -> CbtTurnResponse | None:
     """session lock 안에서만 호출하는 동일 프로세스 멱등성 검사입니다."""
 
-    current_step = (
-        request.current_step if isinstance(request, CbtTurnRequest) else None
-    )
-    if (
-        runtime.last_request_id == request.request_id
-        and runtime.last_request_fingerprint is not None
-        and runtime.last_request_fingerprint != fingerprint
-    ):
-        raise CbtAgentIdempotencyError(
-            "The same requestId cannot be reused with a different CBT payload"
+    request_entry = runtime.request_cache.get(request.request_id)
+    if request_entry is not None:
+        if request_entry.fingerprint != fingerprint:
+            raise CbtAgentIdempotencyError(
+                "The same requestId cannot be reused with a different CBT payload"
+            )
+        runtime.request_cache.move_to_end(request.request_id)
+        runtime.fingerprint_cache.move_to_end(fingerprint)
+        return request_entry.response.model_copy(
+            update={"request_id": request.request_id}
         )
-    if (
-        runtime.last_response is not None
-        and runtime.last_request_fingerprint == fingerprint
-        and runtime.last_current_step == current_step
-    ):
-        return runtime.last_response
+
+    fingerprint_entry = runtime.fingerprint_cache.get(fingerprint)
+    if fingerprint_entry is not None:
+        runtime.fingerprint_cache.move_to_end(fingerprint)
+        runtime.request_cache[request.request_id] = fingerprint_entry
+        _trim_idempotency_cache(runtime)
+        return fingerprint_entry.response.model_copy(
+            update={"request_id": request.request_id}
+        )
     return None
 
 
@@ -617,14 +632,29 @@ def _remember_agent_response(
     fingerprint: str,
     response: CbtTurnResponse,
 ) -> None:
-    # 세션별 마지막 응답 하나만 보관합니다. 재시작·멀티프로세스 멱등성은
-    # Spring 또는 외부 저장소가 담당해야 합니다.
-    runtime.last_request_id = request.request_id
-    runtime.last_request_fingerprint = fingerprint
-    runtime.last_current_step = (
-        request.current_step if isinstance(request, CbtTurnRequest) else None
+    # 세션별 bounded 캐시입니다. 재시작·멀티프로세스 멱등성은 Spring 또는
+    # 외부 저장소가 담당해야 합니다.
+    entry = AgentIdempotencyEntry(
+        fingerprint=fingerprint,
+        response=response,
     )
-    runtime.last_response = response
+    runtime.request_cache[request.request_id] = entry
+    runtime.fingerprint_cache[fingerprint] = entry
+    _trim_idempotency_cache(runtime)
+
+
+def _trim_idempotency_cache(runtime: AgentSessionRuntime) -> None:
+    while len(runtime.request_cache) > AGENT_IDEMPOTENCY_CACHE_MAX_ENTRIES:
+        runtime.request_cache.popitem(last=False)
+    while len(runtime.fingerprint_cache) > AGENT_IDEMPOTENCY_CACHE_MAX_ENTRIES:
+        _, expired_entry = runtime.fingerprint_cache.popitem(last=False)
+        expired_request_ids = [
+            request_id
+            for request_id, entry in runtime.request_cache.items()
+            if entry is expired_entry
+        ]
+        for request_id in expired_request_ids:
+            runtime.request_cache.pop(request_id, None)
 
 
 def _empty_session_state() -> CbtSessionState:
@@ -674,19 +704,6 @@ def _get_safety_verifier_model() -> Any:
             strict=True,
         )
     return _safety_verifier_model
-
-
-def _confirmation_candidate_available(request: CbtRequest) -> bool:
-    """request_confirmation tool 노출만 제한하는 거친 목적 기반 조건입니다."""
-
-    if not isinstance(request, CbtTurnRequest):
-        return False
-    purposes = {item.question_purpose for item in request.question_answers}
-    return (
-        QuestionPurpose.EVIDENCE_FOR in purposes
-        and QuestionPurpose.EVIDENCE_AGAINST in purposes
-        and bool(ALTERNATIVE_PURPOSES & purposes)
-    )
 
 
 def _question_dump(item: QuestionAnswer) -> dict[str, Any]:
@@ -797,6 +814,7 @@ def _normalize_agent_state(
     state: CbtSessionState,
     request: CbtRequest,
     runtime: AgentSessionRuntime,
+    mode: str,
 ) -> CbtSessionState:
     """서버가 확정할 수 있는 상태를 이력 기준으로 병합·정규화합니다."""
 
@@ -866,10 +884,37 @@ def _normalize_agent_state(
         if _classify_explicit_user_intent(item.answer)
         in CONVERSATION_FEEDBACK_INTENTS
     ]
+    legacy_feedback_count = sum(
+        item.semantic_route_type is None
+        and _classify_explicit_user_intent(item.answer)
+        in CONVERSATION_FEEDBACK_INTENTS
+        for item in history
+    )
+    restored_legacy_routes = (
+        [
+            route
+            for route in state.blocked_routes
+            if route not in previous.blocked_routes
+            and route not in feedback_routes
+            and route != SemanticRouteType.OTHER_SPECIFIC
+        ][:legacy_feedback_count]
+        if mode == "REHYDRATE"
+        else []
+    )
+    if (
+        mode == "REHYDRATE"
+        and legacy_feedback_count > 0
+        and not restored_legacy_routes
+    ):
+        raise CbtDraftValidationError(
+            "REHYDRATE must restore a specific semanticRouteType for legacy "
+            "rejected questions; OTHER_SPECIFIC is not sufficient"
+        )
     blocked_routes = list(
         dict.fromkeys(
             [
                 *previous.blocked_routes,
+                *restored_legacy_routes,
                 *feedback_routes,
             ]
         )
@@ -1126,6 +1171,7 @@ async def _select_agent_action(
                 action.state,
                 request,
                 runtime,
+                mode,
             )
             history = _history_for(request)
             if (
