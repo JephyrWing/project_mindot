@@ -12,7 +12,6 @@ import hashlib
 import json
 import logging
 import os
-from collections import OrderedDict
 from dataclasses import dataclass, field
 from time import monotonic
 from typing import Any
@@ -44,7 +43,6 @@ from cbt_agent import (
     GeneratedQuestion,
     LatestUserIntent,
     QuestionAnswer,
-    QuestionPurpose,
     QuestionWordingDraft,
     RiskAssessment,
     RiskLevel,
@@ -53,7 +51,6 @@ from cbt_agent import (
     SemanticRouteType,
     CONVERSATION_FEEDBACK_INTENTS,
     DIALOGUE_CONTROL_INTENTS,
-    WRITER_PREVIOUS_QUESTION_LIMIT,
     _analysis_turn_flags,
     _apply_feedback_constraints,
     _blocked_routes_from_history,
@@ -63,13 +60,10 @@ from cbt_agent import (
     _explicit_feedback_intent,
     _contextual_safety_hint,
     _get_llm,
-    _get_writer_model,
-    _invoke_structured,
     _is_explicit_dialogue_refusal,
     _to_response,
     _validate_analysis_draft,
-    _validate_wording_draft,
-    WRITER_PROMPT,
+    _write_question,
 )
 
 
@@ -81,7 +75,6 @@ CBT_AGENT_MODEL_OUTPUT_ATTEMPTS = int(
     os.getenv("CBT_AGENT_MODEL_OUTPUT_ATTEMPTS", "2")
 )
 RECENT_QUESTION_WINDOW = 3
-AGENT_IDEMPOTENCY_CACHE_MAX_ENTRIES = 32
 
 
 logger = logging.getLogger("uvicorn.error")
@@ -122,10 +115,6 @@ class CbtSessionState(ApiModel):
         max_length=12,
         description="Exact saved-answer excerpts with an alternative or balanced view.",
     )
-    covered_purposes: list[QuestionPurpose] = Field(
-        alias="coveredPurposes",
-        description="Purposes present in the saved question history.",
-    )
     asked_routes: list[SemanticRouteType] = Field(
         alias="askedRoutes",
         max_length=24,
@@ -139,19 +128,9 @@ class CbtSessionState(ApiModel):
     acknowledgement: SavedAnswerEvidence | None = Field(
         description="Exact saved excerpt showing fact/inference or certainty reassessment."
     )
-    last_user_intent: LatestUserIntent = Field(
-        alias="lastUserIntent",
-        description="Intent of the latest saved answer.",
-    )
-    turn_count: int = Field(
-        alias="turnCount",
-        ge=0,
-        description="Number of saved question-answer pairs.",
-    )
 
     @model_validator(mode="after")
     def validate_unique_state_items(self) -> "CbtSessionState":
-        self.covered_purposes = list(dict.fromkeys(self.covered_purposes))
         self.asked_routes = list(dict.fromkeys(self.asked_routes))
         self.blocked_routes = list(dict.fromkeys(self.blocked_routes))
         self.evidence_for = _unique_evidence(self.evidence_for)
@@ -160,73 +139,11 @@ class CbtSessionState(ApiModel):
         return self
 
 
-class AgentQuestionPlan(ApiModel):
-    """Agent tool 경계에서 복구 가능한 형식 잡음을 정규화하는 질문 계획입니다."""
-
-    question_purpose: QuestionPurpose = Field(
-        alias="questionPurpose",
-        description="Semantic purpose of the next question direction.",
-    )
-    semantic_route_type: SemanticRouteType = Field(
-        alias="semanticRouteType",
-        description="Structured information route for the next question.",
-    )
-    latest_user_intent: LatestUserIntent = Field(
-        alias="latestUserIntent",
-        description="Intent of the latest saved answer.",
-    )
-    question_goal: str = Field(
-        alias="questionGoal",
-        min_length=1,
-        max_length=300,
-        description="Short Korean semantic plan for one next question direction.",
-    )
-    preface_goal: str | None = Field(
-        alias="prefaceGoal",
-        max_length=300,
-        description="Optional goal for a necessary preface or transition.",
-    )
-    grounding_question_codes: list[str] = Field(
-        alias="groundingQuestionCodes",
-        max_length=5,
-        description="Saved question codes containing grounding answers.",
-    )
-    avoid_topics: list[str] = Field(
-        alias="avoidTopics",
-        max_length=8,
-        description="Topics and semantic routes excluded from wording.",
-    )
-
-    @model_validator(mode="after")
-    def normalize_plan(self) -> "AgentQuestionPlan":
-        self.grounding_question_codes = list(
-            dict.fromkeys(self.grounding_question_codes)
-        )
-        self.avoid_topics = list(dict.fromkeys(self.avoid_topics))
-        if self.latest_user_intent in {
-            LatestUserIntent.REQUEST_EXAMPLE,
-            LatestUserIntent.REQUEST_EXPLANATION,
-            LatestUserIntent.RELEVANCE_FEEDBACK,
-            LatestUserIntent.DIFFICULTY_FEEDBACK,
-            LatestUserIntent.REPETITION_FEEDBACK,
-        } and self.preface_goal is None:
-            self.preface_goal = (
-                "Briefly respond to the user's request or conversation feedback "
-                "before asking the next question."
-            )
-        return self
-
-    def to_cbt_plan(self) -> CbtQuestionPlan:
-        return CbtQuestionPlan.model_validate(
-            self.model_dump(by_alias=True, mode="json")
-        )
-
-
 class AskQuestionAction(ApiModel):
     """다음 CBT 질문을 작성하고 Spring에 전달할 때 선택하는 tool입니다."""
 
     state: CbtSessionState
-    question_plan: AgentQuestionPlan = Field(alias="questionPlan")
+    question_plan: CbtQuestionPlan = Field(alias="questionPlan")
 
 
 class RequestConfirmationAction(ApiModel):
@@ -241,27 +158,7 @@ class SafetyStopAction(ApiModel):
 
     state: CbtSessionState
     suspected_reason: RiskReasonCode = Field(alias="suspectedReason")
-
-
-class SafetyVerification(ApiModel):
-    """Agent의 안전 중단 후보를 독립적으로 재검증한 결과입니다."""
-
-    confirmed: bool
-    risk: RiskAssessment
-    evidence: str | None = Field(min_length=1, max_length=300)
-
-    @model_validator(mode="after")
-    def validate_result_shape(self) -> "SafetyVerification":
-        if self.confirmed:
-            if self.risk.level == RiskLevel.NONE or self.evidence is None:
-                raise ValueError(
-                    "confirmed safety requires a risk and exact evidence"
-                )
-        elif self.risk.level != RiskLevel.NONE or self.evidence is not None:
-            raise ValueError(
-                "rejected safety requires NONE risk and null evidence"
-            )
-        return self
+    evidence: str = Field(min_length=1, max_length=300)
 
 
 AgentAction = AskQuestionAction | RequestConfirmationAction | SafetyStopAction
@@ -294,8 +191,8 @@ SAFETY_STOP_TOOL = StructuredTool.from_function(
     func=_tool_schema_only,
     name="safety_stop",
     description=(
-        "Submit a plausible harm-or-immediate-danger candidate for independent "
-        "verification."
+        "Stop for a plausible harm-or-immediate-danger signal and include an "
+        "exact excerpt from supplied user text."
     ),
     args_schema=SafetyStopAction,
 )
@@ -333,9 +230,7 @@ not safety signals by themselves.
 <context>
 On START, begin from empty state. On CONTINUE, preserve valid currentState and
 process latestInteraction. On REHYDRATE, rebuild state from every fullHistory item
-before planning. For a legacy rejected question with semanticRouteType=null, infer
-the most specific existing SemanticRouteType and preserve it in blockedRoutes. Do
-not discard valid prior evidence or blocked routes.
+before planning. Do not discard valid prior evidence or blocked routes.
 
 latestUserIntentHint is authoritative for explicit dialogue intent. blockedRoutes
 are hard exclusions. latestAnswerMeaningHint and turnFlags are conservative facts;
@@ -353,7 +248,6 @@ Interpret answers by meaning, never by the previous questionPurpose alone.
   balanced interpretation.
 - acknowledgement: an exact excerpt where the user distinguishes fact from
   inference or meaningfully reassesses certainty.
-- coveredPurposes: purposes actually asked, regardless of answer quality.
 - askedRoutes: semanticRouteType values already asked.
 - blockedRoutes: semanticRouteType values rejected as irrelevant or repetitive.
 
@@ -365,7 +259,6 @@ evidence again; choose the next direction from the whole semantic state.
 
 For RELEVANCE_FEEDBACK or REPETITION_FEEDBACK:
 - do not store the latest answer as evidence or acknowledgement;
-- set lastUserIntent from latestUserIntentHint when supplied;
 - add the rejected semantic route to blockedRoutes;
 - do not reuse its target, comparison, assumed cause, evidence source, or inference
   through paraphrasing or a different questionPurpose;
@@ -425,12 +318,10 @@ The user need not declare automaticThought false. "Possible but not certain from
 current facts" can be a valid outcome. Use exact saved excerpts, supplied distortion
 definitions, and tentative language. Never use feedback as coverage, invent scores,
 or re-propose a rejected distortion.
-confirmationCoverage must point to evidence actually present in the matching state
-lists, and acknowledgement must match state.acknowledgement.
 </confirmation>
 
 <tools>
-- safety_stop: only a plausible harm-or-danger candidate for independent verification.
+- safety_stop: only a plausible harm-or-danger signal with an exact user-text excerpt.
 - request_confirmation: only when the semantic completion conditions are satisfied.
 - ask_question: update state and plan exactly one new direction; never write the
   final user-facing question.
@@ -449,24 +340,6 @@ the report.
 """.strip()
 
 
-SAFETY_VERIFIER_PROMPT = """
-<role>Verify a proposed Mindot safety stop.</role>
-<confirm>Only an explicit or genuinely plausible reference to self-harm, suicide,
-harm to others, or immediate physical danger. CRISIS requires current or imminent
-danger; otherwise use REVIEW.</confirm>
-<reject>Anger, profanity, frustration, refusal, difficulty, anxiety, sadness, or
-conflict alone are not safety signals.</reject>
-<evidence>If confirmed, copy one exact supporting excerpt. Otherwise return
-confirmed=false, risk NONE, and evidence=null. Never infer from tone or invent text.</evidence>
-""".strip()
-
-
-@dataclass
-class AgentIdempotencyEntry:
-    fingerprint: str
-    response: CbtTurnResponse
-
-
 @dataclass
 class AgentSessionRuntime:
     session_id: int
@@ -474,12 +347,9 @@ class AgentSessionRuntime:
     history: list[QuestionAnswer] = field(default_factory=list)
     pending_question: GeneratedQuestion | None = None
     expires_at: float = 0.0
-    request_cache: OrderedDict[UUID, AgentIdempotencyEntry] = field(
-        default_factory=OrderedDict
-    )
-    fingerprint_cache: OrderedDict[str, AgentIdempotencyEntry] = field(
-        default_factory=OrderedDict
-    )
+    last_request_id: UUID | None = None
+    last_request_fingerprint: str | None = None
+    last_response: CbtTurnResponse | None = None
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
     expiry_task: asyncio.Task[None] | None = None
 
@@ -571,8 +441,7 @@ class CbtAgentSessionRegistry:
 
 
 _registry = CbtAgentSessionRegistry(CBT_AGENT_SESSION_TTL_SECONDS)
-_agent_models: dict[tuple[bool, bool], Any] = {}
-_safety_verifier_model: Any | None = None
+_agent_models: dict[bool, Any] = {}
 
 
 class CbtAgentIdempotencyError(RuntimeError):
@@ -603,24 +472,16 @@ def _cached_agent_response(
 ) -> CbtTurnResponse | None:
     """session lock 안에서만 호출하는 동일 프로세스 멱등성 검사입니다."""
 
-    request_entry = runtime.request_cache.get(request.request_id)
-    if request_entry is not None:
-        if request_entry.fingerprint != fingerprint:
+    if runtime.last_request_id == request.request_id:
+        if runtime.last_request_fingerprint != fingerprint:
             raise CbtAgentIdempotencyError(
                 "The same requestId cannot be reused with a different CBT payload"
             )
-        runtime.request_cache.move_to_end(request.request_id)
-        runtime.fingerprint_cache.move_to_end(fingerprint)
-        return request_entry.response.model_copy(
-            update={"request_id": request.request_id}
-        )
-
-    fingerprint_entry = runtime.fingerprint_cache.get(fingerprint)
-    if fingerprint_entry is not None:
-        runtime.fingerprint_cache.move_to_end(fingerprint)
-        runtime.request_cache[request.request_id] = fingerprint_entry
-        _trim_idempotency_cache(runtime)
-        return fingerprint_entry.response.model_copy(
+    if (
+        runtime.last_request_fingerprint == fingerprint
+        and runtime.last_response is not None
+    ):
+        return runtime.last_response.model_copy(
             update={"request_id": request.request_id}
         )
     return None
@@ -632,29 +493,9 @@ def _remember_agent_response(
     fingerprint: str,
     response: CbtTurnResponse,
 ) -> None:
-    # 세션별 bounded 캐시입니다. 재시작·멀티프로세스 멱등성은 Spring 또는
-    # 외부 저장소가 담당해야 합니다.
-    entry = AgentIdempotencyEntry(
-        fingerprint=fingerprint,
-        response=response,
-    )
-    runtime.request_cache[request.request_id] = entry
-    runtime.fingerprint_cache[fingerprint] = entry
-    _trim_idempotency_cache(runtime)
-
-
-def _trim_idempotency_cache(runtime: AgentSessionRuntime) -> None:
-    while len(runtime.request_cache) > AGENT_IDEMPOTENCY_CACHE_MAX_ENTRIES:
-        runtime.request_cache.popitem(last=False)
-    while len(runtime.fingerprint_cache) > AGENT_IDEMPOTENCY_CACHE_MAX_ENTRIES:
-        _, expired_entry = runtime.fingerprint_cache.popitem(last=False)
-        expired_request_ids = [
-            request_id
-            for request_id, entry in runtime.request_cache.items()
-            if entry is expired_entry
-        ]
-        for request_id in expired_request_ids:
-            runtime.request_cache.pop(request_id, None)
+    runtime.last_request_id = request.request_id
+    runtime.last_request_fingerprint = fingerprint
+    runtime.last_response = response
 
 
 def _empty_session_state() -> CbtSessionState:
@@ -664,46 +505,28 @@ def _empty_session_state() -> CbtSessionState:
         evidence_for=[],
         evidence_against=[],
         alternative_views=[],
-        covered_purposes=[],
         asked_routes=[],
         blocked_routes=[],
         acknowledgement=None,
-        last_user_intent=LatestUserIntent.START,
-        turn_count=0,
     )
 
 
 def _get_agent_model(
     confirmation_allowed: bool,
-    safety_allowed: bool = True,
 ) -> Any:
-    cache_key = (confirmation_allowed, safety_allowed)
-    model = _agent_models.get(cache_key)
+    model = _agent_models.get(confirmation_allowed)
     if model is None:
         tools = list(AGENT_TOOLS)
         if not confirmation_allowed:
             tools.remove(REQUEST_CONFIRMATION_TOOL)
-        if not safety_allowed:
-            tools.remove(SAFETY_STOP_TOOL)
         model = _get_llm().bind_tools(
             tools,
             tool_choice="required",
             strict=True,
             parallel_tool_calls=False,
         )
-        _agent_models[cache_key] = model
+        _agent_models[confirmation_allowed] = model
     return model
-
-
-def _get_safety_verifier_model() -> Any:
-    global _safety_verifier_model
-    if _safety_verifier_model is None:
-        _safety_verifier_model = _get_llm().with_structured_output(
-            SafetyVerification,
-            method="json_schema",
-            strict=True,
-        )
-    return _safety_verifier_model
 
 
 def _question_dump(item: QuestionAnswer) -> dict[str, Any]:
@@ -814,7 +637,6 @@ def _normalize_agent_state(
     state: CbtSessionState,
     request: CbtRequest,
     runtime: AgentSessionRuntime,
-    mode: str,
 ) -> CbtSessionState:
     """서버가 확정할 수 있는 상태를 이력 기준으로 병합·정규화합니다."""
 
@@ -873,10 +695,6 @@ def _normalize_agent_state(
     if acknowledgement is not None and not valid_evidence(acknowledgement):
         acknowledgement = None
 
-    detected_intent = _explicit_feedback_intent(request)
-    if history and _is_explicit_dialogue_refusal(history[-1].answer):
-        detected_intent = LatestUserIntent.UNCLEAR
-
     feedback_routes = [
         item.semantic_route_type
         for item in history
@@ -884,37 +702,10 @@ def _normalize_agent_state(
         if _classify_explicit_user_intent(item.answer)
         in CONVERSATION_FEEDBACK_INTENTS
     ]
-    legacy_feedback_count = sum(
-        item.semantic_route_type is None
-        and _classify_explicit_user_intent(item.answer)
-        in CONVERSATION_FEEDBACK_INTENTS
-        for item in history
-    )
-    restored_legacy_routes = (
-        [
-            route
-            for route in state.blocked_routes
-            if route not in previous.blocked_routes
-            and route not in feedback_routes
-            and route != SemanticRouteType.OTHER_SPECIFIC
-        ][:legacy_feedback_count]
-        if mode == "REHYDRATE"
-        else []
-    )
-    if (
-        mode == "REHYDRATE"
-        and legacy_feedback_count > 0
-        and not restored_legacy_routes
-    ):
-        raise CbtDraftValidationError(
-            "REHYDRATE must restore a specific semanticRouteType for legacy "
-            "rejected questions; OTHER_SPECIFIC is not sufficient"
-        )
     blocked_routes = list(
         dict.fromkeys(
             [
                 *previous.blocked_routes,
-                *restored_legacy_routes,
                 *feedback_routes,
             ]
         )
@@ -934,9 +725,6 @@ def _normalize_agent_state(
             "evidence_for": evidence_for,
             "evidence_against": evidence_against,
             "alternative_views": alternative_views,
-            "covered_purposes": list(
-                dict.fromkeys(item.question_purpose for item in history)
-            ),
             "asked_routes": list(
                 dict.fromkeys(
                     [*previous.asked_routes, *asked_routes]
@@ -944,8 +732,6 @@ def _normalize_agent_state(
             )[-24:],
             "blocked_routes": list(dict.fromkeys(blocked_routes))[-16:],
             "acknowledgement": acknowledgement,
-            "last_user_intent": detected_intent or state.last_user_intent,
-            "turn_count": len(history),
         }
     )
 
@@ -962,67 +748,17 @@ def _safety_source_texts(request: CbtRequest) -> list[str]:
     return texts
 
 
-def _validate_safety_verification(
-    verification: SafetyVerification,
+def _validate_safety_action(
+    action: SafetyStopAction,
     request: CbtRequest,
 ) -> None:
-    if not verification.confirmed:
-        return
-    assert verification.evidence is not None
     if not any(
-        verification.evidence in source
+        action.evidence in source
         for source in _safety_source_texts(request)
     ):
         raise CbtDraftValidationError(
             "Safety evidence must be an exact excerpt from supplied user text"
         )
-
-
-async def _verify_safety_candidate(
-    request: CbtRequest,
-    candidate: SafetyStopAction,
-    *,
-    safety_model: Any | None = None,
-) -> SafetyVerification:
-    payload = {
-        "suspectedReason": candidate.suspected_reason.value,
-        "record": {
-            "situation": request.record.situation,
-            "automaticThought": request.record.automatic_thought,
-        },
-        "userAnswers": [
-            {
-                "questionCode": item.question_code,
-                "answer": item.answer,
-            }
-            for item in _history_for(request)
-        ],
-    }
-    verification = await _invoke_structured(
-        model=safety_model or _get_safety_verifier_model(),
-        schema=SafetyVerification,
-        system_prompt=SAFETY_VERIFIER_PROMPT,
-        payload=payload,
-        validate=lambda result: _validate_safety_verification(
-            result,
-            request,
-        ),
-        stage="Agent safety verification",
-        retry_guidance=(
-            "Require exact harm-or-danger evidence; frustration or refusal alone "
-            "must be rejected."
-        ),
-    )
-    if CBT_DEBUG_LOG_ANALYSIS:
-        logger.info(
-            "CBT Agent safety verification: requestId=%s sessionId=%s "
-            "confirmed=%s risk=%s",
-            request.request_id,
-            request.session_id,
-            verification.confirmed,
-            verification.risk.level.value,
-        )
-    return verification
 
 
 def _validate_agent_action(
@@ -1034,27 +770,12 @@ def _validate_agent_action(
     ) -> SavedAnswerEvidence | None:
         return items[-1] if items else None
 
-    if isinstance(action, RequestConfirmationAction):
-        coverage = action.confirmation.confirmation_coverage
-        acknowledgement = SavedAnswerEvidence(
-            source_question_code=(
-                action.confirmation.acknowledgement_source_question_code
-            ),
-            excerpt=action.confirmation.acknowledgement_evidence,
-        )
-        progress = CbtSemanticProgress(
-            evidence_for=coverage.evidence_for,
-            evidence_against=coverage.evidence_against,
-            alternative_view=coverage.alternative_view,
-            acknowledgement=acknowledgement,
-        )
-    else:
-        progress = CbtSemanticProgress(
-            evidence_for=representative(action.state.evidence_for),
-            evidence_against=representative(action.state.evidence_against),
-            alternative_view=representative(action.state.alternative_views),
-            acknowledgement=action.state.acknowledgement,
-        )
+    progress = CbtSemanticProgress(
+        evidence_for=representative(action.state.evidence_for),
+        evidence_against=representative(action.state.evidence_against),
+        alternative_view=representative(action.state.alternative_views),
+        acknowledgement=action.state.acknowledgement,
+    )
 
     none_risk = RiskAssessment(level=RiskLevel.NONE, reason_code=None)
     if isinstance(action, AskQuestionAction):
@@ -1073,7 +794,7 @@ def _validate_agent_action(
         draft = CbtAnalysisDraft(
             result_type=CbtResultType.QUESTION,
             semantic_progress=progress,
-            question_plan=action.question_plan.to_cbt_plan(),
+            question_plan=action.question_plan,
             confirmation=None,
             risk=none_risk,
         )
@@ -1087,23 +808,6 @@ def _validate_agent_action(
             raise CbtDraftValidationError(
                 "Agent confirmation requires all four normalized state domains"
             )
-        coverage = action.confirmation.confirmation_coverage
-        if coverage.evidence_for not in action.state.evidence_for:
-            raise CbtDraftValidationError(
-                "confirmationCoverage.evidenceFor is not in state.evidenceFor"
-            )
-        if coverage.evidence_against not in action.state.evidence_against:
-            raise CbtDraftValidationError(
-                "confirmationCoverage.evidenceAgainst is not in state.evidenceAgainst"
-            )
-        if coverage.alternative_view not in action.state.alternative_views:
-            raise CbtDraftValidationError(
-                "confirmationCoverage.alternativeView is not in state.alternativeViews"
-            )
-        if acknowledgement != action.state.acknowledgement:
-            raise CbtDraftValidationError(
-                "confirmation acknowledgement does not match state.acknowledgement"
-            )
         draft = CbtAnalysisDraft(
             result_type=CbtResultType.CONFIRMATION_REQUIRED,
             semantic_progress=progress,
@@ -1112,6 +816,7 @@ def _validate_agent_action(
             risk=none_risk,
         )
     else:
+        _validate_safety_action(action, request)
         candidate_level = (
             RiskLevel.CRISIS
             if action.suspected_reason == RiskReasonCode.IMMEDIATE_DANGER
@@ -1137,15 +842,10 @@ async def _select_agent_action(
     mode: str,
     *,
     agent_model: Any | None = None,
-    safety_model: Any | None = None,
 ) -> tuple[AgentAction, CbtAnalysisDraft]:
     payload = _build_agent_payload(request, runtime, mode)
     confirmation_allowed = _confirmation_candidate_available(request)
-    safety_allowed = True
-    model = agent_model or _get_agent_model(
-        confirmation_allowed,
-        safety_allowed,
-    )
+    model = agent_model or _get_agent_model(confirmation_allowed)
     feedbacks: list[str] = []
 
     for attempt in range(CBT_AGENT_MODEL_OUTPUT_ATTEMPTS):
@@ -1171,7 +871,6 @@ async def _select_agent_action(
                 action.state,
                 request,
                 runtime,
-                mode,
             )
             history = _history_for(request)
             if (
@@ -1201,63 +900,6 @@ async def _select_agent_action(
         except CbtDraftValidationError as exc:
             feedback = str(exc)[:1_000]
         else:
-            if isinstance(action, SafetyStopAction):
-                verification = await _verify_safety_candidate(
-                    request,
-                    action,
-                    safety_model=safety_model,
-                )
-                if not verification.confirmed:
-                    feedback = (
-                        "The independent safety verifier rejected safety_stop. "
-                        "Treat tone, frustration, or refusal as conversation "
-                        "feedback and choose a non-safety action."
-                    )
-                    feedbacks.append(feedback)
-                    safety_allowed = False
-                    if agent_model is None:
-                        model = _get_agent_model(
-                            confirmation_allowed,
-                            safety_allowed,
-                        )
-                    if CBT_DEBUG_LOG_ANALYSIS:
-                        logger.info(
-                            "CBT Agent first-stage retry: requestId=%s "
-                            "sessionId=%s mode=%s attempt=%s reason=%s",
-                            request.request_id,
-                            request.session_id,
-                            mode,
-                            attempt + 1,
-                            feedback,
-                        )
-                    continue
-
-                draft = CbtAnalysisDraft(
-                    result_type=CbtResultType.SAFETY_STOP,
-                    semantic_progress=CbtSemanticProgress(
-                        evidence_for=(
-                            action.state.evidence_for[-1]
-                            if action.state.evidence_for
-                            else None
-                        ),
-                        evidence_against=(
-                            action.state.evidence_against[-1]
-                            if action.state.evidence_against
-                            else None
-                        ),
-                        alternative_view=(
-                            action.state.alternative_views[-1]
-                            if action.state.alternative_views
-                            else None
-                        ),
-                        acknowledgement=action.state.acknowledgement,
-                    ),
-                    question_plan=None,
-                    confirmation=None,
-                    risk=verification.risk,
-                )
-                _validate_analysis_draft(draft, request)
-
             if CBT_DEBUG_LOG_ANALYSIS:
                 logger.info(
                     "CBT Agent first-stage action: requestId=%s sessionId=%s "
@@ -1287,84 +929,6 @@ async def _select_agent_action(
         "CBT session Agent remained invalid after corrective retries: "
         f"{' | '.join(feedbacks)}"
     ) from None
-
-
-def _build_agent_writer_payload(
-    request: CbtRequest,
-    plan: CbtQuestionPlan,
-) -> dict[str, Any]:
-    history = _history_for(request)
-    grounding_codes = set(plan.grounding_question_codes)
-    return {
-        "record": {
-            "situation": request.record.situation,
-            "automaticThought": request.record.automatic_thought,
-            "primaryEmotionCode": request.record.primary_emotion_code,
-        },
-        "latestInteraction": _question_dump(history[-1]) if history else None,
-        "groundingAnswers": [
-            _question_dump(item)
-            for item in history
-            if item.question_code in grounding_codes
-        ],
-        "previousQuestions": [
-            {
-                "questionPurpose": item.question_purpose.value,
-                "semanticRouteType": (
-                    item.semantic_route_type.value
-                    if item.semantic_route_type is not None
-                    else None
-                ),
-                "question": item.question,
-            }
-            for item in history[
-                max(
-                    0,
-                    len(history) - WRITER_PREVIOUS_QUESTION_LIMIT - 1,
-                ):-1
-            ]
-        ],
-        "prefaceRequired": plan.preface_goal is not None,
-        "plan": plan.model_dump(by_alias=True, mode="json"),
-    }
-
-
-def _validate_agent_wording(
-    wording: QuestionWordingDraft,
-    plan: CbtQuestionPlan,
-    request: CbtRequest,
-) -> None:
-    _validate_wording_draft(wording, plan, request)
-    question = wording.question
-    if any(
-        marker in question
-        for marker in ("긍정적인 반응", "좋은 반응", "잘했다는 반응")
-    ):
-        raise CbtDraftValidationError(
-            "Writer must not replace the Agent plan with a positive counterexample"
-        )
-async def _write_agent_question(
-    request: CbtRequest,
-    plan: CbtQuestionPlan,
-    *,
-    writer_model: Any | None = None,
-) -> QuestionWordingDraft:
-    return await _invoke_structured(
-        model=writer_model or _get_writer_model(),
-        schema=QuestionWordingDraft,
-        system_prompt=WRITER_PROMPT,
-        payload=_build_agent_writer_payload(request, plan),
-        validate=lambda wording: _validate_agent_wording(
-            wording,
-            plan,
-            request,
-        ),
-        stage="Agent question wording",
-        retry_guidance=(
-            "Keep the Agent plan, avoid forbidden topics, and do not repeat a "
-            "previous question."
-        ),
-    )
 
 
 def _with_agent_meta(response: CbtTurnResponse) -> CbtTurnResponse:
@@ -1405,7 +969,6 @@ async def _run_agent_turn(
     mode: str,
     *,
     agent_model: Any | None = None,
-    safety_model: Any | None = None,
     writer_model: Any | None = None,
     registry: CbtAgentSessionRegistry = _registry,
 ) -> CbtTurnResponse:
@@ -1414,7 +977,6 @@ async def _run_agent_turn(
         runtime,
         mode,
         agent_model=agent_model,
-        safety_model=safety_model,
     )
     wording: QuestionWordingDraft | None = None
     if isinstance(action, AskQuestionAction):
@@ -1477,13 +1039,10 @@ async def _run_agent_turn(
                         == latest.question_code
                         else action.state.acknowledgement
                     ),
-                    "last_user_intent": (
-                        explicit_intent or LatestUserIntent.UNCLEAR
-                    ),
                 }
             )
             action = action.model_copy(update={"state": updated_state})
-        wording = await _write_agent_question(
+        wording = await _write_question(
             request,
             question_plan,
             writer_model=writer_model,
@@ -1509,7 +1068,6 @@ async def generate_agent_cbt_start(
     request: CbtStartRequest,
     *,
     agent_model: Any | None = None,
-    safety_model: Any | None = None,
     writer_model: Any | None = None,
     registry: CbtAgentSessionRegistry = _registry,
 ) -> CbtTurnResponse:
@@ -1531,7 +1089,6 @@ async def generate_agent_cbt_start(
             runtime,
             "START",
             agent_model=agent_model,
-            safety_model=safety_model,
             writer_model=writer_model,
             registry=registry,
         )
@@ -1543,7 +1100,6 @@ async def generate_agent_cbt_turn(
     request: CbtTurnRequest,
     *,
     agent_model: Any | None = None,
-    safety_model: Any | None = None,
     writer_model: Any | None = None,
     registry: CbtAgentSessionRegistry = _registry,
 ) -> CbtTurnResponse:
@@ -1567,7 +1123,6 @@ async def generate_agent_cbt_turn(
             runtime,
             mode,
             agent_model=agent_model,
-            safety_model=safety_model,
             writer_model=writer_model,
             registry=registry,
         )
