@@ -5,9 +5,12 @@ import com.my.mindot_back.records.entity.ReflectionSessions;
 import com.my.mindot_back.records.repository.ReflectionSessionsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.stereotype.Component;
+
 import java.util.Arrays;
 import java.util.List;
 
+@Component
 @RequiredArgsConstructor
 public class RagUtils {
     private final EmbeddingModel embeddingModel;
