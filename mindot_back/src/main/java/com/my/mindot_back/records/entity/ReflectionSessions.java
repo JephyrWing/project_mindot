@@ -1,6 +1,7 @@
 // 감정 기록을 바탕으로 진행한 CBT 성찰 질문, 답변 세션 Entity
 package com.my.mindot_back.records.entity;
 
+import com.my.mindot_back.records.dto.ai.FastApiCbtResponseDto;
 import com.my.mindot_back.users.entity.Users;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -159,6 +160,121 @@ public class ReflectionSessions {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    // 감정 기록을 바탕으로 새 CBT 성찰 세션을 생성하는 정적 생성 메서드
+    public static ReflectionSessions create(
+            // 성찰 세션을 소유하는 로그인 사용자
+            Users user,
+
+            // 성찰 세션의 원본 감정 기록
+            EmotionRecords emotionRecord
+    ){
+        ReflectionSessions reflectionSessions =
+                new ReflectionSessions();
+
+        // users 테이블의 사용자와 연결
+        reflectionSessions.user = user;
+
+        // emotion_records 테이블의 원본 감정 기록과 연결
+        reflectionSessions.emotionRecord = emotionRecord;
+
+        return reflectionSessions;
+    }
+
+    // FastAPI가 생성한 첫 CBT 질문을 question_answers JSONB에 저장
+    // 사용자 답변 전이므로 answer와 answeredAt은 null로 저장
+    public void addFirstQuestion(
+            FastApiCbtResponseDto.GeneratedQuestion nextQuestion
+    ){
+        // CONTINUE 상태인데 질문이 비어 있는 비정상 FastAPI 응답 처리
+        if (nextQuestion == null) {
+            throw new IllegalArgumentException(
+                    "저장할 CBT 질문이 없습니다."
+            );
+        }
+
+        // FastAPI QuestionAnswer 형식에 맞춰 JSONB 한 항목을 만듦
+        // answer, answeredAt이 null인 첫 질문은 HashMap 사용
+        Map<String, Object> questionAnswer = new HashMap<>();
+
+        // 질문을 구분하는 안정 코드
+        questionAnswer.put("questionCode", nextQuestion.questionCode());
+
+        // 질문 목적
+        questionAnswer.put("questionPurpose", nextQuestion.questionPurpose());
+
+        // 프론트에 보여 줄 실제 질문 문장
+        questionAnswer.put("question", nextQuestion.question());
+
+        // 첫 질문은 아직 답변 전이므로 null
+        questionAnswer.put("answer", null);
+
+        // 질문을 AI에게서 받은 현재 시각
+        questionAnswer.put("askedAt", Instant.now().toString());
+
+        // 아직 답변 전이므로 null
+        questionAnswer.put("answeredAt", null);
+
+        // question_answers JSON 배열에 질문 1개 추가
+        this.questionAnswers.add(questionAnswer);
+
+        // 현재 진행 단계를 방금 생성한 질문 코드로 저장
+        this.currentStep = nextQuestion.questionCode();
+    }
+
+    // FastAPI가 반환한 모델명, 프롬프트 버전을 ai_meta JSONB에 저장
+    public void applyAiMeta(
+            FastApiCbtResponseDto.AnalysisMeta meta
+    ){
+        // FastAPI가 필수 메타 정보를 누락한 비정상 응답 방어
+        if (meta == null) {
+            throw new IllegalArgumentException(
+                    "AI 처리 메타 정보가 없습니다."
+            );
+        }
+
+        // 이전 메타 정보가 있다면 이번 FastAPI 응답 값으로 교체
+        Map<String, Object> newAiMeta = new HashMap<>();
+
+        // 예: gpt-4o-mini
+        newAiMeta.put("model", meta.model());
+
+        // 예: cbt-turn-v1
+        newAiMeta.put("promptVersion", meta.promptVersion());
+
+        // AI 응답을 Spring이 받은 시각
+        newAiMeta.put("receivedAt", Instant.now().toString());
+
+        // reflection_sessions.ai_meta JSONB 컬럼에 저장될 값
+        this.aiMeta = newAiMeta;
+    }
+
+    // OpenAI가 생성한 두 임베딩 벡터를 성찰 세션에 반영
+    /*
+     * contextEmbedding:
+     * 자동사고를 제외한 상황·감정 중심의 검색 벡터
+     *
+     * thoughtAwareEmbedding:
+     * 자동사고까지 포함한 더 구체적인 검색 벡터
+     */
+    public void applyEmbedding(
+            float[] contextEmbedding,
+            float[] thoughtAwareEmbedding
+    ){
+        // PostgreSQL의 vector(1536) 컬럼에는 1536개 숫자만 저장 -> 미리 검사
+        if (contextEmbedding == null
+                || contextEmbedding.length != 1536
+                || thoughtAwareEmbedding == null
+                || thoughtAwareEmbedding.length != 1536) {
+            throw new IllegalArgumentException(
+                    "임베딩 벡터는 1536차원이어야 합니다."
+            );
+        }
+        // 자동사고를 제외한 유사 사례 검색용 벡터 저장
+        this.contextEmbedding = contextEmbedding;
+
+        // 자동사고를 포함한 유사 사례 검색용 벡터 저장
+        this.thoughtAwareEmbedding = thoughtAwareEmbedding;
+    }
 
     // DB에 처음 저장되기전 한번 실행
     // 생성, 수정 시각을 같은 현재 시각으로 설정
