@@ -745,23 +745,19 @@ def _validate_safety_action(
             "Safety evidence must itself contain an explicit harm or danger signal"
         )
 
-    source_reasons = [
-        _explicit_safety_reason_from_text(source)
+    if not any(
+        not _is_clearly_non_current_user_safety_text(source)
         for source in matching_sources
-        if not _is_clearly_non_current_user_safety_text(source)
-    ]
-    source_reasons = [reason for reason in source_reasons if reason is not None]
-    if not source_reasons:
+    ):
         raise CbtDraftValidationError(
             "Safety evidence is negated, resolved historical context, hypothetical, "
             "or attributed only to a third party"
         )
 
-    if not any(
-        action.suspected_reason
-        in {source_reason, RiskReasonCode.AMBIGUOUS_SAFETY_SIGNAL}
-        for source_reason in source_reasons
-    ):
+    if action.suspected_reason not in {
+        evidence_reason,
+        RiskReasonCode.AMBIGUOUS_SAFETY_SIGNAL,
+    }:
         raise CbtDraftValidationError(
             "Safety suspectedReason contradicts the supplied evidence"
         )
