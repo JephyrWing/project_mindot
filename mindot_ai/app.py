@@ -30,6 +30,7 @@ from cbt_agent import (
     generate_cbt_turn,
 )
 from cbt_session_agent import (
+    CbtAgentIdempotencyError,
     close_agent_cbt_session,
     generate_agent_cbt_start,
     generate_agent_cbt_turn,
@@ -152,6 +153,11 @@ async def _run_agent_cbt_start(request: CbtStartRequest) -> CbtTurnResponse:
 
     try:
         return await generate_agent_cbt_start(request)
+    except CbtAgentIdempotencyError as exc:
+        raise HTTPException(
+            status_code=409,
+            detail="requestId was reused with a different CBT Agent payload.",
+        ) from exc
     except Exception as exc:
         if CBT_DEBUG_LOG_ANALYSIS:
             logger.exception(
@@ -176,6 +182,11 @@ async def _run_agent_cbt_turn(request: CbtTurnRequest) -> CbtTurnResponse:
 
     try:
         return await generate_agent_cbt_turn(request)
+    except CbtAgentIdempotencyError as exc:
+        raise HTTPException(
+            status_code=409,
+            detail="requestId was reused with a different CBT Agent payload.",
+        ) from exc
     except Exception as exc:
         if CBT_DEBUG_LOG_ANALYSIS:
             logger.exception(
