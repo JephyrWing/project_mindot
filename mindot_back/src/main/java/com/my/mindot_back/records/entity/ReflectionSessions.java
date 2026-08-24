@@ -180,9 +180,9 @@ public class ReflectionSessions {
         return reflectionSessions;
     }
 
-    // FastAPI가 생성한 CBT 질문을 question_answers JSONB에 저장
+    // FastAPI가 생성한 첫 CBT 질문을 question_answers JSONB에 저장
     // 사용자 답변 전이므로 answer와 answeredAt은 null로 저장
-    public void addQuestion(
+    public void addFirstQuestion(
             FastApiCbtResponseDto.GeneratedQuestion nextQuestion
     ){
         // CONTINUE 상태인데 질문이 비어 있는 비정상 FastAPI 응답 처리
@@ -219,36 +219,6 @@ public class ReflectionSessions {
 
         // 현재 진행 단계를 방금 생성한 질문 코드로 저장
         this.currentStep = nextQuestion.questionCode();
-    }
-
-    // 현재 화면에 표시된 CBT 질문의 사용자 답변을 question_answers JSONB에 저장
-    public void answerCurrentQuestion(String answer) {
-        // 빈 답변은 전달할 수 없으므로 저장 전 검증
-        if (answer == null || answer.isBlank()) {
-            throw new IllegalArgumentException("답변 내용은 비어 있을 수 없습니다.");
-        }
-
-        // 아직 질문이 없는 세션에는 답변을 저장할 수 없음
-        if (currentStep == null) {
-            throw new IllegalArgumentException("현재 답변할 CBT 질문이 없습니다.");
-        }
-
-        // currentStep과 같은 questionCode를 가진 질문을 찾음
-        Map<String, Object> currentQuestion = questionAnswers.stream()
-                .filter(question -> currentStep.equals(question.get("questionCode")))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException(
-                        "현재 단계에 해당하는 CBT 질문을 찾을 수 없습니다."
-                ));
-
-        // 이미 답변된 질문에 다시 답변을 저장하는 요청 방지
-        if (currentQuestion.get("answer") != null) {
-            throw new IllegalStateException("이미 답변한 CBT 질문입니다.");
-        }
-
-        // JSONB의 기존 질문 항목에 사용자 답변, 답변 시각 채움
-        currentQuestion.put("answer", answer);
-        currentQuestion.put("answeredAt", Instant.now().toString());
     }
 
     // FastAPI가 반환한 모델명, 프롬프트 버전을 ai_meta JSONB에 저장
