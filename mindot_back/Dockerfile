@@ -1,9 +1,14 @@
 # ===== Build stage =====
 FROM amazoncorretto:17 AS build
 WORKDIR /app
+
+# xargs 필수 검사에 필요한 유틸인 findutils 설치
+RUN dnf install -y findutils \
+    && dnf clean all
+
 COPY . .
 # gradlew 실행 권한 추가
-RUN chmod 777 ./gradlew
+RUN chmod +x ./gradlew
 
 # Gradle은 보통 빌드 속도를 높이려고 백그라운드 데몬 프로세스를 띄움.
 # 데몬 안띄우게 하는 것임. -> 속도 빨라짐
