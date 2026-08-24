@@ -5,11 +5,11 @@ import com.my.mindot_back.distortions.entity.DistortionTypes;
 import com.my.mindot_back.distortions.repository.DistortionTypesRepository;
 import com.my.mindot_back.records.client.FastApiCbtClient;
 import com.my.mindot_back.records.dto.ReflectionSessionStartResponseDto;
+import com.my.mindot_back.records.dto.ReflectionSessionTurnResponseDto;
 import com.my.mindot_back.records.dto.ai.FastApiCbtResponseDto;
 import com.my.mindot_back.records.dto.ai.FastApiCbtStartRequestDto;
-import com.my.mindot_back.records.entity.EmotionRecords;
-import com.my.mindot_back.records.entity.ReflectionSessions;
-import com.my.mindot_back.records.entity.SessionDistortions;
+import com.my.mindot_back.records.dto.ai.FastApiCbtTurnRequestDto;
+import com.my.mindot_back.records.entity.*;
 import com.my.mindot_back.records.repository.EmotionRecordsRepository;
 import com.my.mindot_back.records.repository.ReflectionSessionsRepository;
 import com.my.mindot_back.records.repository.SessionDistortionsRepository;
@@ -127,7 +127,7 @@ public class ReflectionSessionsService {
         // CONTINUE일 때만 실제 질문을 question_answers JSONB에 저장
         // SAFETY_STOP이면 nextQuestion이 없을 수 있으므로 질문 저장 X
         if("CONTINUE".equals((fastApiResponse.status()))){
-            reflectionSession.addFirstQuestion(
+            reflectionSession.addQuestion(
                     fastApiResponse.nextQuestion()
             );
         }
@@ -162,11 +162,78 @@ public class ReflectionSessionsService {
         }
 
         // reflectionSession은 현재 JPA 관리 상태
-        /* addFirstQuestion, applyAiMeta로 변경한 값은
+        /* addQuestion, applyAiMeta로 변경한 값은
          *트랜잭션 종료 시 JPA Dirty Checking으로 UPDATE
          */
 
         return ReflectionSessionStartResponseDto.from(
+                reflectionSession,
+                fastApiResponse
+        );
+    }
+
+    // 사용자의 현재 답변을 저장하고 FastAPI에 다음 CBT 질문 생성을 요청
+    @Transactional
+    public ReflectionSessionTurnResponseDto answerAndContinue(
+            Long userId,
+            Long sessionId,
+            String answer
+    ){
+        // 답변을 저장할 성찰 세션 조회
+        ReflectionSessions reflectionSession =
+                reflectionSessionsRepository.findById(sessionId)
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "성찰 세션을 찾을 수 없습니다."
+                        ));
+
+        // 다른사용자의 성찰 세션 접근 막음 -> 404
+        if(!reflectionSession.getUser().getId().equals(userId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "성찰 세션을 찾을 수 없습니다."
+            );
+        }
+
+        // 완료, 취소된 세션에는 새 답변이나 질문을 추가할 수 없음
+        if (reflectionSession.getStatus() != ReflectionSessionStatus.OPEN) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "진행 중인 성찰 세션이 아닙니다."
+            );
+        }
+
+        // 현재 질문의 answer, answeredAt을 question_answers JSONB에 먼저 저장
+        reflectionSession.answerCurrentQuestion(answer);
+
+        // 성찰 전 단계의 인지왜곡 제안, 검토 정보를 조회
+        List<SessionDistortions> beforeDistortions =
+                sessionDistortionsRepository.findAllBySession_IdAndPhase(
+                        sessionId,
+                        DistortionPhase.BEFORE
+                );
+
+        // 원본 기록, 전체 질문답변 이력, 인지왜곡 상태를 FastAPI 요청 DTO로 변환
+        FastApiCbtTurnRequestDto request =
+                FastApiCbtTurnRequestDto.from(
+                        reflectionSession,
+                        beforeDistortions
+                );
+
+        // FastAPI가 다음 질문, 확인 요청, 안전 상태 중 하나를 생성
+        FastApiCbtResponseDto fastApiResponse =
+                fastApiCbtClient.turn(request);
+
+        // 이번 AI 응답의 모델명, 프롬프트 버전을 최신값으로 저장
+        reflectionSession.applyAiMeta(fastApiResponse.meta());
+
+        // 다음 질문 생성 상태일 때만 question_answers JSONB에 새 질문 추가
+        if("CONTINUE".equals((fastApiResponse.status()))){
+            reflectionSession.addQuestion(fastApiResponse.nextQuestion());
+        }
+
+        // 트랜잭션 종료시 JPA Dirty Checking으로 답변, AI 메타, 다음 질문이 DB에 반영됨
+        return ReflectionSessionTurnResponseDto.from(
                 reflectionSession,
                 fastApiResponse
         );
