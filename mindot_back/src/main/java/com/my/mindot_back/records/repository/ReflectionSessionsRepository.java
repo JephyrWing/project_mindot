@@ -11,6 +11,9 @@ import java.util.List;
 
 public interface ReflectionSessionsRepository
             extends JpaRepository<ReflectionSessions, Long> {
+
+    // 감정 기록에 성찰 세션이 이미 생성되어 있는지 확인 (중복 확인)
+    boolean existsByEmotionRecord_Id(Long emotionRecordId);
     @Query(value = """
             SELECT rs.*
             FROM reflection_sessions rs

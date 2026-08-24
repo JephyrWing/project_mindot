@@ -100,6 +100,47 @@ public class SessionDistortions {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    // FastAPI가 제안한 성찰 전 인지왜곡 라벨 생성
+    // source는 AI, reviewStatus는 PROPOSED가 기본값
+    public static SessionDistortions createAiProposal(
+            // 어느 CBT 성찰 세션의 라벨인지 연결
+            ReflectionSessions session,
+
+            // distortion_types 테이블의 기준 인지왜곡 유형
+            DistortionTypes distortionType,
+
+            // FastAPI가 반환한 분류 신뢰도: 0.0 ~ 1.0
+            Double classifierConfidence
+    ){
+        // FastAPI 응답이 비정상일 때 DB 제약 조건 오류 전 Java에서 검사
+        if(classifierConfidence == null
+                || classifierConfidence < 0
+                || classifierConfidence > 1){
+            throw new IllegalArgumentException(
+                    "인지왜곡 분류 신뢰도는 0과 1 사이여야 합니다."
+            );
+        }
+        SessionDistortions sessionDistortion =
+                new SessionDistortions();
+
+        // reflection_sessions.id 연결
+        sessionDistortion.session = session;
+
+        // FastAPI start 응답은 CBT 질문 전 자동사고를 기준으로 한 제안이므로
+        // BEFORE 단계 인지왜곡으로 저장
+        sessionDistortion.phase = DistortionPhase.BEFORE;
+
+        // distortion_types.id 연결
+        sessionDistortion.distortionType = distortionType;
+
+        // numeric(5,4) 타입에 맞도록 BigDecimal로 변환
+        sessionDistortion.classifierConfidence =
+                BigDecimal.valueOf(classifierConfidence);
+
+        return sessionDistortion;
+    }
+
+
     // DB 저장 전 한번 실행
     // 라벨 생성 시각을 현재 시각으로 저장
     @PrePersist
