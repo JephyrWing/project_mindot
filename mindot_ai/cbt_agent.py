@@ -623,156 +623,112 @@ class CbtTurnResponse(ApiModel):
 
 ANALYSIS_PROMPT = """
 <role>
-Plan one Korean CBT self-reflection turn. Decide safety, meaningful completion, or
-one next question direction. Do not diagnose, write the final question, or try to
-prove automaticThought false.
+Plan one Korean CBT reflection turn. Decide safety, confirmation, or one next
+question direction. The Writer creates the final sentence. Do not diagnose, invent
+facts, or try to prove automaticThought false.
 </role>
 
+<priority>
+1. Check a plausible current self-harm, suicide, harm-to-others, or immediate-danger
+   signal.
+2. Interpret the latest answer and explicit dialogue feedback.
+3. Update semanticProgress from saved answers.
+4. Return confirmation only when meaningfully ready; otherwise plan one question.
+</priority>
+
 <input>
-Read latestInteraction first, then the ordered questionAnswers.
-
-latestUserIntentHint is authoritative when it identifies an explicit dialogue
-request or feedback. latestAnswerMeaningHint and turnFlags are conservative
-server-derived facts. blockedRoutes are hard semantic exclusions.
-
-latestSafetyHint is only a candidate. Confirm its meaning from the original user
-text. Do not stop for a negated, quoted, historical, hypothetical, or otherwise
-non-current harm statement.
+Read latestInteraction first, then ordered questionAnswers.
+latestUserIntentHint is authoritative for explicit feedback or requests.
+latestSafetyHint is only a candidate; verify it from the original text and context.
+blockedRoutes are hard semantic exclusions.
 </input>
 
-<interpret>
-A previous questionPurpose records what was asked, not what the answer established.
-Interpret every answer by its actual meaning and answerDisposition.
+<meaning>
+A prior questionPurpose says what was asked, not what the answer established.
+Use answer meaning and answerDisposition.
 
-DIALOGUE_CONTROL, UNCLEAR, and SKIPPED fill no semantic domain.
-NO_DIRECT_EVIDENCE is never evidenceFor; it resolves direct-support search and may
-be evidenceAgainst when it meaningfully reduces certainty.
+DIALOGUE_CONTROL, UNCLEAR, and SKIPPED fill no CBT domain.
+NO_DIRECT_EVIDENCE is never evidenceFor. It may support evidenceAgainst when the
+absence meaningfully lowers certainty, and the same direct-support route is then
+resolved.
 
-Fill semanticProgress with at most one exact saved-answer excerpt per domain:
-evidenceFor, evidenceAgainst, alternativeView, and acknowledgement. The last means
-the user distinguished fact from inference or meaningfully reassessed certainty.
-questionPurpose does not decide which domain an answer can fill.
+semanticProgress may contain one exact saved-answer excerpt for each:
+- evidenceFor: supports the core claim;
+- evidenceAgainst: contradicts it or lowers certainty;
+- alternativeView: another plausible or balanced interpretation;
+- acknowledgement: distinguishes fact from inference or reassesses certainty.
 
-Separate:
-- observed facts,
-- the core claim in automaticThought,
-- the unresolved inference connecting them,
-- and routes already answered, rejected, or blocked.
-</interpret>
+Do not infer evidence from questionPurpose.
+</meaning>
 
 <feedback>
-For RELEVANCE_FEEDBACK or REPETITION_FEEDBACK:
-- treat the latest answer only as dialogue feedback;
-- do not use its questionCode as grounding;
-- block the rejected route's target, comparison, inferred cause, evidence source,
-  and assumed causal link;
-- choose a genuinely different information route.
+For RELEVANCE_FEEDBACK or REPETITION_FEEDBACK, treat the latest answer only as
+dialogue feedback. Do not ground the next question in it. Do not reuse the rejected
+target, comparison, cause, evidence source, causal link, or semanticRouteType.
+Changing wording or questionPurpose is not a new route.
 
-Changing only questionPurpose or wording is not a new route. The same purpose may
-remain when a different semanticRouteType serves it. A semanticRouteType in
-blockedRoutes is forbidden. Do not label a known route OTHER_SPECIFIC to evade a
-block.
-
-For REQUEST_EXPLANATION, REQUEST_EXAMPLE, or DIFFICULTY_FEEDBACK, use prefaceGoal
-to reply briefly, then continue with one relevant and answerable point.
+For REQUEST_EXAMPLE, REQUEST_EXPLANATION, or DIFFICULTY_FEEDBACK, set a brief
+prefaceGoal, then continue through one simpler relevant point.
 </feedback>
 
-<progress>
-Choose the single unresolved point with the highest information value. The answer
-must be capable of changing understanding, confidence, or the next decision.
+<question>
+Separate observed facts, the core claim in automaticThought, and the unresolved
+inference between them. Choose the one unresolved point whose answer could most
+change understanding or confidence. There is no fixed purpose order.
 
-Purpose meanings:
-- SITUATION_REFLECTION: observable fact needed to separate event from inference.
-- EMOTION_REFLECTION: the user's emotion or trigger only when genuinely unclear.
-- EVIDENCE_FOR: direct fact making the core claim more likely.
-- EVIDENCE_AGAINST: contradiction, missing certainty, absent expected support, or
-  another fact making the core claim less certain.
-- ALTERNATIVE_VIEW: another interpretation consistent with established facts.
-- BALANCED_THOUGHT: a fair conclusion containing both evidence and uncertainty.
-- FREE_REFLECTION: only when no specific purpose fits and the user must choose what
-  matters or where to continue.
+Purpose:
+- SITUATION_REFLECTION: needed observable fact;
+- EMOTION_REFLECTION: the user's emotion or trigger when unclear;
+- EVIDENCE_FOR: direct support for the core claim;
+- EVIDENCE_AGAINST: contradiction, uncertainty, or missing expected support;
+- ALTERNATIVE_VIEW: another explanation consistent with known facts;
+- BALANCED_THOUGHT: a fair conclusion containing evidence and uncertainty;
+- FREE_REFLECTION: only when the user must choose where to continue.
 
-There is no fixed order. Do not:
-- follow an adjacent detail merely because it was mentioned;
-- ask for another person's hidden thoughts or motives;
-- repeat or paraphrase an answered or blocked route;
-- seek another direct signal after the user meaningfully reported none;
-- demand a positive example or force optimism;
-- assume automaticThought is completely false.
-</progress>
+Do not ask for hidden motives, follow an irrelevant adjacent detail, repeat an
+answered or blocked route, seek another direct signal after none was reported,
+force optimism, or assume the original thought is entirely false.
 
-<question_plan>
-For QUESTION, questionGoal contains one new semantic target. A useful format is:
-
-확인된 사실: ...
-핵심 주장: ...
-미해결 간극: ...
-질문 목표: ...
-
-It is a Korean plan of at most 300 characters, not question wording.
-questionPurpose and semanticRouteType must both match 질문 목표. semanticRouteType
-names the information route, independently of questionPurpose.
-
-groundingQuestionCodes may reference only substantive saved answers that directly
-support the plan. Put answered, irrelevant, repeated, and blocked routes in
-avoidTopics. Use prefaceGoal only for a necessary reply or transition.
-</question_plan>
+For QUESTION, questionGoal is a short Korean plan for one target, not final wording:
+"확인된 사실: ...; 핵심 주장: ...; 미해결 간극: ...; 질문 목표: ..."
+questionPurpose and semanticRouteType must match that target.
+groundingQuestionCodes may contain only substantive saved answers.
+</question>
 
 <decision>
-Return SAFETY_STOP only for a contextually plausible current self-harm, suicide,
-harm to others, or immediate danger signal. Profanity, sadness, frustration,
-refusal, difficulty, and dialogue criticism alone are not safety signals.
+SAFETY_STOP only for a contextually plausible current harm or danger signal.
+Profanity, sadness, anxiety, frustration, refusal, and criticism alone are not
+safety signals.
 
-Return CONFIRMATION_REQUIRED only when confirmationAllowed and semanticProgress
-contains exact saved-answer evidence that semantically provides:
-- support for automaticThought,
-- contrary evidence or uncertainty,
-- the user's own alternative or balanced view,
-- and a distinction between fact and inference or a meaningful reassessment of
-  confidence.
+CONFIRMATION_REQUIRED only when confirmationAllowed and semanticProgress contains
+valid saved-answer evidence for all four domains: evidenceFor, evidenceAgainst,
+alternativeView, and acknowledgement. The user need not say the original thought
+was false; "possible but not certain" may qualify.
 
-The user need not declare the original thought false. "Possible but not certain
-from current facts" can qualify. Use only exact saved excerpts and supplied
-distortionDefinitions. Never use dialogue feedback as coverage, invent scores,
-re-propose a rejected distortion, or describe a diagnosis.
-
+Use supplied distortionDefinitions, exact saved excerpts, and tentative language.
+Never invent scores, use feedback as evidence, or re-propose a rejected distortion.
 Otherwise return QUESTION. Never return COMPLETE.
 </decision>
-
-<example>
-Situation: the manager frowned during the user's report but smiled at others.
-automaticThought: "The manager is upset because of me."
-The user rejects a question about when or why the manager smiled at others as
-irrelevant.
-
-Mark RELEVANCE_FEEDBACK and block that comparison-and-motive route. EVIDENCE_FOR
-may remain only through a genuinely new route, such as whether any direct words or
-actions linked dissatisfaction to the user or report. If the user then reports
-there were none, do not ask for another signal; choose the next unresolved issue
-from uncertainty, a grounded alternative, or a balanced conclusion.
-</example>
 """.strip()
 
 
 WRITER_PROMPT = """
 <role>
-Express the supplied CBT plan as one natural Korean response. Do not re-plan,
-classify, diagnose, add evidence, or change questionPurpose or semanticRouteType.
+Write one natural Korean response from the supplied plan. Do not re-plan, classify,
+diagnose, add evidence, or change questionPurpose or semanticRouteType.
 </role>
 
 <preface>
-Use a brief preface only when it helps fulfill prefaceGoal. It may acknowledge a
-dialogue problem, explain relevance, simplify the task, or give neutral examples
-when requested. Avoid generic repeated empathy or a new topic.
+If prefaceRequired is false, return preface=null. If true, write one brief statement
+that fulfills prefaceGoal. It may acknowledge feedback, explain relevance, simplify
+the task, or give neutral examples. Do not add a new topic.
 </preface>
 
 <question>
-Ask only the single semantic point in questionGoal. Respect questionPurpose,
-semanticRouteType, groundingAnswers, avoidTopics, and previousQuestions.
-
-Use simple, natural Korean honorifics. Do not use "당신", clinical or sharp
-language, multiple questions, another person's hidden motive, unsupported
-assumptions, forced positivity, or a repeated question.
+Ask only the single point in questionGoal. Respect groundingAnswers, avoidTopics,
+latestInteraction, and previousQuestions. Use simple Korean honorifics and one
+answerable question. Do not ask multiple questions, infer another person's hidden
+motive, force optimism, repeat a rejected route, or use "당신".
 </question>
 """.strip()
 
@@ -1075,13 +1031,69 @@ def _classify_answer_disposition(
     return AnswerDisposition.SUBSTANTIVE
 
 
-def _explicit_safety_hint(request: CbtRequest) -> RiskReasonCode | None:
-    """최신 답변의 명백한 위험 표현만 분석 전에 힌트로 제공합니다."""
+def _is_clearly_non_current_user_safety_text(text: str | None) -> bool:
+    """명백한 부정·제3자 인용·종료된 과거·가정 표현을 감지합니다."""
 
-    if not isinstance(request, CbtTurnRequest):
+    normalized = " ".join((text or "").lower().split())
+    if not normalized:
+        return False
+    harm = r"(?:죽고\s*싶|자살|자해|죽이|해치|위해를\s*가하)"
+
+    # 이중 부정은 안전하다고 확정할 수 없으므로 모델의 문맥 판단에 둡니다.
+    if re.search(r"(?:없|않)(?:는|은|었던)?\s*건\s*아니", normalized):
+        return False
+
+    negated = re.search(
+        rf"{harm}.{{0,45}}(?:전혀\s*|하나도\s*)?"
+        r"(?:지\s*않|생각(?:은|이)?\s*없|의도(?:는|가)?\s*없|없|아니)",
+        normalized,
+    )
+    historical_and_resolved = re.search(
+        rf"(?:예전|과거|전에는|한때).{{0,60}}{harm}.{{0,60}}"
+        r"(?:지금|현재|이제).{0,25}(?:없|아니|괜찮)",
+        normalized,
+    )
+    hypothetical = re.search(
+        rf"(?:만약|가령|예를\s*들|예시).{{0,45}}{harm}",
+        normalized,
+    )
+    third_party = re.search(
+        rf"(?:친구|가족|지인|동료|팀장|그\s*사람|상대|부모|형제|자매)"
+        rf"(?:가|이|은|는).{{0,45}}{harm}.{{0,30}}"
+        r"(?:말|얘기|이야기|문자|연락|라고|다고\s*했)",
+        normalized,
+    )
+    self_harm_statement = re.search(
+        rf"(?:나도|저도|나는|저는|내가|제가).{{0,35}}{harm}",
+        normalized,
+    )
+    quoted_only = third_party is not None and self_harm_statement is None
+    return any((negated, historical_and_resolved, hypothetical, quoted_only))
+
+
+def _explicit_safety_reason_from_text(
+    text: str | None,
+) -> RiskReasonCode | None:
+    """문자열에 있는 명시적 현재 위해 표현을 보수적으로 분류합니다."""
+
+    normalized = " ".join((text or "").lower().split())
+    if not normalized or _is_clearly_non_current_user_safety_text(normalized):
         return None
-    answer = " ".join((request.question_answers[-1].answer or "").lower().split())
     marker_groups = (
+        (
+            RiskReasonCode.HARM_TO_OTHERS,
+            (
+                "다른 사람을 해치",
+                "누군가를 해치",
+                "사람을 해치",
+                "너를 해치",
+                "죽이고 싶",
+                "죽이겠",
+                "누군가를 죽일",
+                "사람을 죽일",
+                "너를 죽일",
+            ),
+        ),
         (
             RiskReasonCode.SUICIDE,
             ("자살", "죽고 싶", "죽어 버리고", "죽어버리고", "목숨을 끊"),
@@ -1099,23 +1111,38 @@ def _explicit_safety_hint(request: CbtRequest) -> RiskReasonCode | None:
             ),
         ),
         (
-            RiskReasonCode.HARM_TO_OTHERS,
+            RiskReasonCode.IMMEDIATE_DANGER,
             (
-                "죽이고 싶",
-                "죽이겠",
-                "누군가를 죽일",
-                "사람을 죽일",
-                "너를 죽일",
-                "해치고 싶",
-                "해치겠",
-                "누군가를 해칠",
-                "다른 사람을 해칠",
-                "너를 해칠",
+                "지금 당장 위험",
+                "당장 위험해",
+                "위험에 처해",
+                "살려 줘",
+                "살려줘",
+                "누가 나를 죽이",
+                "공격받고 있어",
             ),
+        ),
+        (
+            RiskReasonCode.AMBIGUOUS_SAFETY_SIGNAL,
+            ("해치고 싶", "해치겠", "위해를 가할", "다치게 할 것 같"),
         ),
     )
     for reason, markers in marker_groups:
-        if any(marker in answer for marker in markers):
+        if any(marker in normalized for marker in markers):
+            return reason
+    return None
+
+
+def _explicit_safety_hint(request: CbtRequest) -> RiskReasonCode | None:
+    """현재 입력의 명백한 위험 표현만 분석 전에 힌트로 제공합니다."""
+
+    if isinstance(request, CbtTurnRequest):
+        texts = [request.question_answers[-1].answer]
+    else:
+        texts = [request.record.automatic_thought, request.record.situation]
+    for text in texts:
+        reason = _explicit_safety_reason_from_text(text)
+        if reason is not None:
             return reason
     return None
 
@@ -1123,50 +1150,21 @@ def _explicit_safety_hint(request: CbtRequest) -> RiskReasonCode | None:
 def _is_clearly_non_current_user_safety_reference(request: CbtRequest) -> bool:
     """명백한 부정·제3자 인용·과거 종료·가정 표현만 보수적으로 감지합니다."""
 
-    if not isinstance(request, CbtTurnRequest):
-        return False
-    normalized = " ".join((request.question_answers[-1].answer or "").lower().split())
-    harm = r"(?:죽고\s*싶|자살|자해|죽이|해치)"
-
-    # 이중 부정은 안전하다고 확정할 수 없으므로 분석 모델의 문맥 판단에 둡니다.
-    if re.search(r"(?:없|않)(?:는|은|었던)?\s*건\s*아니", normalized):
-        return False
-
-    negated = re.search(
-        rf"{harm}.{{0,45}}(?:전혀\s*|하나도\s*)?(?:없|아니)",
-        normalized,
+    if isinstance(request, CbtTurnRequest):
+        return _is_clearly_non_current_user_safety_text(
+            request.question_answers[-1].answer
+        )
+    texts = (request.record.automatic_thought, request.record.situation)
+    return _explicit_safety_hint(request) is None and any(
+        _is_clearly_non_current_user_safety_text(text)
+        for text in texts
     )
-    historical_and_resolved = re.search(
-        rf"(?:예전|과거|전에는|한때).{{0,60}}{harm}.{{0,60}}"
-        r"(?:지금|현재|이제).{0,25}(?:없|아니)",
-        normalized,
-    )
-    hypothetical = re.search(
-        rf"(?:만약|가령|예를\s*들|예시).{{0,45}}{harm}",
-        normalized,
-    )
-
-    third_party = re.search(
-        rf"(?:친구|가족|지인|동료|팀장|그\s*사람|상대|부모|형제|자매)"
-        rf"(?:가|이|은|는).{{0,45}}{harm}.{{0,30}}"
-        r"(?:말|얘기|이야기|문자|연락)",
-        normalized,
-    )
-    self_harm_statement = re.search(
-        rf"(?:나도|저도|나는|저는|내가|제가).{{0,35}}{harm}",
-        normalized,
-    )
-    quoted_only = third_party is not None and self_harm_statement is None
-    return any((negated, historical_and_resolved, hypothetical, quoted_only))
 
 
 def _contextual_safety_hint(request: CbtRequest) -> RiskReasonCode | None:
     """명백한 비현재·제3자 문맥을 제외한 위험 후보만 반환합니다."""
 
-    hint = _explicit_safety_hint(request)
-    if hint is not None and _is_clearly_non_current_user_safety_reference(request):
-        return None
-    return hint
+    return _explicit_safety_hint(request)
 
 
 def _analysis_turn_flags(

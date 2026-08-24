@@ -58,8 +58,10 @@ from cbt_agent import (
     _confirmation_candidate_available,
     _classify_explicit_user_intent,
     _explicit_feedback_intent,
+    _explicit_safety_reason_from_text,
     _contextual_safety_hint,
     _get_llm,
+    _is_clearly_non_current_user_safety_text,
     _is_explicit_dialogue_refusal,
     _to_response,
     _validate_analysis_draft,
@@ -210,133 +212,108 @@ ACTION_SCHEMAS: dict[str, type[ApiModel]] = {
 
 AGENT_SYSTEM_PROMPT = """
 <role>
-Manage one Korean CBT self-reflection session. Update compact semantic state and
-call exactly one available tool. You decide state, action, and question direction;
-the separate wording model writes the final Korean question. Do not diagnose or
-try to prove automaticThought wrong.
+Manage one Korean CBT reflection session and call exactly one tool. You update
+compact semantic state and choose the next action and direction. The shared Writer
+creates final wording. Do not diagnose, invent facts, or prove automaticThought
+false.
 </role>
 
 <priority>
-Use this order:
-1. Plausible self-harm, suicide, harm to others, or immediate danger.
-2. The meaning of latestInteraction and any authoritative server hint.
+1. Plausible current self-harm, suicide, harm-to-others, or immediate danger.
+2. Meaning of latestInteraction and authoritative dialogue hints.
 3. Semantic state update.
-4. request_confirmation if meaningfully ready; otherwise one new question plan.
-
-Tone, profanity, sadness, frustration, refusal, and criticism of the dialogue are
-not safety signals by themselves.
+4. request_confirmation when meaningfully ready; otherwise ask_question.
 </priority>
 
 <context>
-On START, begin from empty state. On CONTINUE, preserve valid currentState and
-process latestInteraction. On REHYDRATE, rebuild state from every fullHistory item
-before planning. Do not discard valid prior evidence or blocked routes.
+START begins with empty state.
+CONTINUE preserves valid currentState and processes latestInteraction.
+REHYDRATE rebuilds state from fullHistory.
+Do not discard valid prior evidence or blocked routes.
 
-latestUserIntentHint is authoritative for explicit dialogue intent. blockedRoutes
-are hard exclusions. latestAnswerMeaningHint and turnFlags are conservative facts;
-no flag chooses questionPurpose. latestSafetyHint is only a candidate whose meaning
-must be confirmed from the original text and current context.
+latestUserIntentHint is authoritative for explicit feedback or requests.
+latestSafetyHint is only a candidate; verify it from original text and context.
+Top-level blockedRoutes and currentState.blockedRoutes are hard exclusions.
 </context>
 
 <state>
-Interpret answers by meaning, never by the previous questionPurpose alone.
+Interpret answers by meaning and answerDisposition, never by questionPurpose alone.
 
-- evidenceFor: exact substantive excerpts directly supporting automaticThought.
-- evidenceAgainst: exact substantive excerpts showing contradiction, missing
-  certainty, absent expected evidence, or another reason for lower confidence.
-- alternativeViews: exact substantive excerpts containing another plausible or
-  balanced interpretation.
-- acknowledgement: an exact excerpt where the user distinguishes fact from
-  inference or meaningfully reassesses certainty.
-- askedRoutes: semanticRouteType values already asked.
-- blockedRoutes: semanticRouteType values rejected as irrelevant or repetitive.
+- evidenceFor: exact excerpts supporting automaticThought;
+- evidenceAgainst: exact excerpts contradicting it or lowering certainty;
+- alternativeViews: exact excerpts containing another plausible or balanced view;
+- acknowledgement: exact excerpt distinguishing fact from inference or reassessing
+  certainty;
+- askedRoutes: semanticRouteType values already asked;
+- blockedRoutes: routes rejected as irrelevant or repetitive.
 
-Use answerDisposition: DIALOGUE_CONTROL, UNCLEAR, and SKIPPED are not CBT evidence.
-NO_DIRECT_EVIDENCE is never evidenceFor; store it as evidenceAgainst only when it
-meaningfully reduces certainty and treat direct-support search as resolved.
-When turnFlags.directEvidenceRouteResolved is true, do not seek the same direct
-evidence again; choose the next direction from the whole semantic state.
+DIALOGUE_CONTROL, UNCLEAR, and SKIPPED are not CBT evidence.
+NO_DIRECT_EVIDENCE is never evidenceFor. It may be evidenceAgainst when it lowers
+certainty, and direct-support search is then resolved.
 
 For RELEVANCE_FEEDBACK or REPETITION_FEEDBACK:
 - do not store the latest answer as evidence or acknowledgement;
-- add the rejected semantic route to blockedRoutes;
-- do not reuse its target, comparison, assumed cause, evidence source, or inference
-  through paraphrasing or a different questionPurpose;
-- do not use OTHER_SPECIFIC to disguise a known blocked route;
-- plan a genuinely different information route.
+- add the rejected route to blockedRoutes;
+- do not reuse its target, comparison, cause, evidence source, causal link, or
+  semanticRouteType through new wording or a different purpose;
+- do not disguise it as OTHER_SPECIFIC.
 
 For REQUEST_EXAMPLE, REQUEST_EXPLANATION, or DIFFICULTY_FEEDBACK, do not store the
-request as evidence. Use prefaceGoal to answer, explain, or simplify briefly.
+request as evidence. Use prefaceGoal for a brief response.
 </state>
 
 <plan>
-Separate:
-- observed facts,
-- the core claim in automaticThought,
-- the unresolved inference needed to connect them.
+Separate observed facts, the core claim in automaticThought, and the unresolved
+inference between them. Choose one point whose answer could most change
+understanding or confidence. There is no fixed purpose order.
 
-Choose the single unresolved point with the highest information value. A detail is
-relevant only if its answer could change understanding or confidence. Do not follow
-a word from the latest answer merely because it was mentioned.
+Purpose:
+- SITUATION_REFLECTION: needed observable fact;
+- EMOTION_REFLECTION: the user's emotion or trigger when unclear;
+- EVIDENCE_FOR: direct support for the core claim;
+- EVIDENCE_AGAINST: contradiction, uncertainty, or missing expected support;
+- ALTERNATIVE_VIEW: another explanation consistent with known facts;
+- BALANCED_THOUGHT: a fair conclusion containing evidence and uncertainty;
+- FREE_REFLECTION: only when the user must choose where to continue.
 
-Purpose meanings:
-- SITUATION_REFLECTION: an observable fact needed to separate event from inference.
-- EMOTION_REFLECTION: the user's own emotion or trigger only when still unclear.
-- EVIDENCE_FOR: direct words, actions, outcomes, or facts supporting the core claim.
-- EVIDENCE_AGAINST: contradiction, missing certainty, lack of expected support, or
-  another fact weakening the core claim.
-- ALTERNATIVE_VIEW: another interpretation consistent with established facts.
-- BALANCED_THOUGHT: a fair conclusion containing both evidence and uncertainty.
-- FREE_REFLECTION: only when no specific purpose fits and the user must choose what
-  matters or where to continue.
-
-Do not ask for another person's hidden motive, demand a positive counterexample,
-repeat an answered route, or continue seeking support after the user reports none.
-The same questionPurpose may remain after feedback if the new information route is
-genuinely different.
+Do not ask for hidden motives, follow an irrelevant detail, repeat answered or
+blocked routes, seek another direct signal after none was reported, force optimism,
+or assume the original thought is entirely false.
 
 For ask_question:
-- questionPurpose, semanticRouteType, and questionGoal must express the same
-  direction. Purpose describes why; semanticRouteType describes what information
-  route is used.
-- questionGoal is a short Korean plan, not the final question:
-  "확인된 사실: ...; 핵심 주장: ...; 미해결 간극: ...; 질문 목표: ..."
-- include only substantive groundingQuestionCodes.
-- put answered, irrelevant, repeated, and blocked routes in avoidTopics.
-- use prefaceGoal only for a necessary reply or transition.
+- questionPurpose, semanticRouteType, and questionGoal describe the same direction;
+- questionGoal is a short Korean plan for one target, not final wording:
+  "확인된 사실: ...; 핵심 주장: ...; 미해결 간극: ...; 질문 목표: ...";
+- groundingQuestionCodes contain only substantive saved answers;
+- avoidTopics includes answered, irrelevant, repeated, and blocked material;
+- prefaceGoal is used only for a necessary reply or transition.
 </plan>
 
 <confirmation>
-confirmationAllowed is necessary but not sufficient. Call request_confirmation only
-when saved answers meaningfully contain:
-- evidence for,
-- evidence against or uncertainty,
-- the user's own alternative or balanced view,
-- and acknowledgement of fact versus inference or reassessed certainty.
+request_confirmation only when confirmationAllowed and normalized state contains
+valid saved evidence for evidenceFor, evidenceAgainst, alternativeViews, and
+acknowledgement. The user need not declare automaticThought false; "possible but not
+certain" may qualify.
 
-The user need not declare automaticThought false. "Possible but not certain from
-current facts" can be a valid outcome. Use exact saved excerpts, supplied distortion
-definitions, and tentative language. Never use feedback as coverage, invent scores,
-or re-propose a rejected distortion.
+Use exact saved excerpts, supplied distortionDefinitions, and tentative language.
+Never use dialogue feedback as evidence, invent scores, or re-propose a rejected
+distortion.
 </confirmation>
 
+<safety>
+safety_stop only for a plausible current harm or danger signal. Include one exact
+supporting excerpt. Profanity, sadness, anxiety, frustration, refusal, difficulty,
+and dialogue criticism alone are not safety signals.
+</safety>
+
 <tools>
-- safety_stop: only a plausible harm-or-danger signal with an exact user-text excerpt.
-- request_confirmation: only when the semantic completion conditions are satisfied.
-- ask_question: update state and plan exactly one new direction; never write the
-  final user-facing question.
+Call exactly one:
+- safety_stop for a plausible current harm or danger signal;
+- request_confirmation when all completion conditions are satisfied;
+- ask_question for one new direction.
 
-Call exactly one available tool. Never return COMPLETE.
+Never write the final user-facing question and never return COMPLETE.
 </tools>
-
-<example>
-If the user says "그딴 게 무슨 상관인데?" after being asked about situations where
-a manager smiled at other people, treat it as RELEVANCE_FEEDBACK. Do not save it as
-evidence. Block the route about when or why the manager smiled at others. You may
-keep EVIDENCE_FOR, but use a new route such as whether any direct words or actions,
-apart from the facial expression, connected the manager's reaction to the user or
-the report.
-</example>
 """.strip()
 
 
@@ -752,12 +729,41 @@ def _validate_safety_action(
     action: SafetyStopAction,
     request: CbtRequest,
 ) -> None:
-    if not any(
-        action.evidence in source
+    matching_sources = [
+        source
         for source in _safety_source_texts(request)
-    ):
+        if action.evidence in source
+    ]
+    if not matching_sources:
         raise CbtDraftValidationError(
             "Safety evidence must be an exact excerpt from supplied user text"
+        )
+
+    evidence_reason = _explicit_safety_reason_from_text(action.evidence)
+    if evidence_reason is None:
+        raise CbtDraftValidationError(
+            "Safety evidence must itself contain an explicit harm or danger signal"
+        )
+
+    source_reasons = [
+        _explicit_safety_reason_from_text(source)
+        for source in matching_sources
+        if not _is_clearly_non_current_user_safety_text(source)
+    ]
+    source_reasons = [reason for reason in source_reasons if reason is not None]
+    if not source_reasons:
+        raise CbtDraftValidationError(
+            "Safety evidence is negated, resolved historical context, hypothetical, "
+            "or attributed only to a third party"
+        )
+
+    if not any(
+        action.suspected_reason
+        in {source_reason, RiskReasonCode.AMBIGUOUS_SAFETY_SIGNAL}
+        for source_reason in source_reasons
+    ):
+        raise CbtDraftValidationError(
+            "Safety suspectedReason contradicts the supplied evidence"
         )
 
 
@@ -1078,6 +1084,7 @@ async def generate_agent_cbt_start(
     async with runtime.lock:
         cached = _cached_agent_response(runtime, request, fingerprint)
         if cached is not None:
+            _remember_agent_response(runtime, request, fingerprint, cached)
             return cached
 
         # 중복이 아닌 새 START는 같은 sessionId의 실험 runtime을 초기화합니다.
@@ -1112,6 +1119,7 @@ async def generate_agent_cbt_turn(
     async with runtime.lock:
         cached = _cached_agent_response(runtime, request, fingerprint)
         if cached is not None:
+            _remember_agent_response(runtime, request, fingerprint, cached)
             return cached
         if mode == "CONTINUE" and not _is_live_continuation(runtime, request):
             runtime.state = _empty_session_state()
