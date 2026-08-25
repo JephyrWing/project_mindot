@@ -140,6 +140,66 @@ public class SessionDistortions {
         return sessionDistortion;
     }
 
+    // FastAPI가 제안한 성찰 후 인지왜곡 라벨 생성
+    public static SessionDistortions createAfterAiProposal(
+            // 어느 CBT 성찰 세션의 라벨인지 연결
+            ReflectionSessions session,
+
+            DistortionTypes distortionType,
+
+            // FastAPI가 반환한 신뢰도 0.0~1.0
+            Double classifierConfidence
+    ) {
+        // DB 제약 조건 오류 전 Java에서 먼저 범위 검사
+        if (classifierConfidence == null
+                || classifierConfidence < 0
+                || classifierConfidence > 1){
+            throw new IllegalArgumentException(
+                    "인지왜곡 분류 신뢰도는 0과 1 사이여야 합니다."
+            );
+        }
+        SessionDistortions sessionDistortion =
+                new SessionDistortions();
+
+        // reflection_sessions.id 연결
+        sessionDistortion.session = session;
+
+        // 성찰 후 -> AFTER 단계에 저장
+        sessionDistortion.phase = DistortionPhase.AFTER;
+
+        // distortion_types.id 연결
+        sessionDistortion.distortionType = distortionType;
+
+        // numeric(5,4) 타입에 맞도록 BigDecimal로 변환
+        sessionDistortion.classifierConfidence =
+                BigDecimal.valueOf(classifierConfidence);
+
+        return sessionDistortion;
+    }
+
+    // 사용자가 AI가 제안한 인지왜곡 라벨을 확인하거나 거절한 결과 반영
+    public void applyUserReview(
+            DistortionReviewStatus reviewStatus
+    ){
+        // 검토 상태 없을때
+        if (reviewStatus == null) {
+            throw new IllegalArgumentException(
+                    "인지왜곡 검토 상태가 없습니다."
+            );
+        }
+
+        // 사용자가 선택한 상태 저장
+        this.reviewStatus = reviewStatus;
+
+        // PROPOSED면 검토시각 없음
+        if (reviewStatus == DistortionReviewStatus.PROPOSED) {
+            this.reviewedAt = null;
+            return;
+        }
+
+        // CONFIRMED or REJECTED를 선택한 시각 저장
+        this.reviewedAt = Instant.now();
+    }
 
     // DB 저장 전 한번 실행
     // 라벨 생성 시각을 현재 시각으로 저장
