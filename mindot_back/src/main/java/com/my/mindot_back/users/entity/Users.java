@@ -37,6 +37,10 @@ public class Users {
     @Column(nullable = false, length = 20)
     private AccountStatus status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "user_role", nullable = false, length = 20)
+    private UserRole userRole;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -57,6 +61,7 @@ public class Users {
         this.timezone = "Asia/Seoul";
         this.locale = "ko-KR";
         this.status = AccountStatus.ACTIVE;
+        this.userRole = UserRole.ROLE_USER;
     }
 
     public static Users create(

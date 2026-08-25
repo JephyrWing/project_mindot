@@ -81,6 +81,16 @@ public class SecurityConfig {
                                 "/api/auth/refresh",
                                 "/api/auth/logout"
                         ).permitAll()
+
+                        /*
+                         * 정상 JWT를 가진 USER만 접근 가능
+                         * JwtAuthenticationFilter에서 ROLE_USER를 넣어 주므로 통과함
+                         */
+                        .requestMatchers(
+                                "/api/records/**",
+                                "/api/reflections/**"
+                        ).hasAnyRole("USER", "ADMIN")
+
                         // 나머지 API는 정상 Access Token이 있어야 접근 가능
                         .anyRequest().authenticated()
                 );

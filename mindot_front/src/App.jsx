@@ -24,6 +24,8 @@ function App() {
   )
   // 중복 로그아웃 요청을 방지하기 위한 진행 상태 관리.
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  // CBT 성찰을 시작할 저장 완료 감정 기록 식별자 상태 관리.
+  const [cbtEmotionRecordId, setCbtEmotionRecordId] = useState(null)
   // 각 화면의 로고 선택 시 새로고침 없이 메인페이지로 이동하는 처리.
   const moveToMain = () => setCurrentPage('main')
   // 로그인 성공 후 인증 상태 반영과 메인페이지 이동 처리.
@@ -46,6 +48,11 @@ function App() {
       setIsLoggingOut(false)
       moveToMain()
     }
+  }
+  // 저장된 감정 기록 식별자를 보관하고 CBT 화면으로 이동하는 처리.
+  const handleCbtOpen = (emotionRecordId) => {
+    setCbtEmotionRecordId(emotionRecordId)
+    setCurrentPage('cbt')
   }
   // 현재 화면 상태에 따라 렌더링할 페이지 컴포넌트 보관.
   let currentPageContent
@@ -78,7 +85,7 @@ function App() {
         onSignUp={() => setCurrentPage('signup')}
         onEmotionHistory={() => setCurrentPage('emotion-history')}
         onCenter={() => setCurrentPage('center')}
-        onCBT={() => setCurrentPage('cbt')}
+        onCBT={handleCbtOpen}
         onWeeklyReport={() => setCurrentPage('weekly-report')}
         onHome={moveToMain}
       />
@@ -100,7 +107,12 @@ function App() {
     )
   } else if (currentPage === 'cbt') {
     // 감정 기록 저장 완료 후 선택한 CBT 성찰 화면 렌더링.
-    currentPageContent = <CBT onHome={moveToMain} />
+    currentPageContent = (
+      <CBT
+        emotionRecordId={cbtEmotionRecordId}
+        onHome={moveToMain}
+      />
+    )
   } else if (currentPage === 'weekly-report') {
     // 주간 리포트 화면 선택 시 간단한 리포트 초안 컴포넌트 렌더링.
     currentPageContent = (

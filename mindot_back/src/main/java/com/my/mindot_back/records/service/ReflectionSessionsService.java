@@ -1,9 +1,11 @@
 // CBT 성찰 세션 생성과 FastAPI 질문 생성을 연결하는 Service
 package com.my.mindot_back.records.service;
 
+import com.my.mindot_back.common.rag.RagUtils;
 import com.my.mindot_back.distortions.entity.DistortionTypes;
 import com.my.mindot_back.distortions.repository.DistortionTypesRepository;
 import com.my.mindot_back.records.client.FastApiCbtClient;
+import com.my.mindot_back.records.dto.ReflectionSessionConfirmRequestDto;
 import com.my.mindot_back.records.dto.ReflectionSessionStartResponseDto;
 import com.my.mindot_back.records.dto.ReflectionSessionTurnResponseDto;
 import com.my.mindot_back.records.dto.ai.FastApiCbtResponseDto;
@@ -21,7 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +40,9 @@ public class ReflectionSessionsService {
 
     // FastAPI CBT 첫 질문 생성 API 호출
     private final FastApiCbtClient fastApiCbtClient;
+
+    // 최종 확정된 CBT 성찰 세션의 RAG 검색용 임베딩 생성
+    private final RagUtils ragUtils;
 
     // FastAPI 인지왜곡 코드로 distortion_types 기준 데이터 조회
     private final DistortionTypesRepository distortionTypesRepository;
@@ -227,15 +232,175 @@ public class ReflectionSessionsService {
         // 이번 AI 응답의 모델명, 프롬프트 버전을 최신값으로 저장
         reflectionSession.applyAiMeta(fastApiResponse.meta());
 
+        // FastAPI가 질문 단계를 마치고 성찰 결과 초안을 반환한 경우
+        if ("CONFIRM_REQUIRED".equals((fastApiResponse.status()))) {
+            // 근거, 대안적 사고 초안을 reflection_sessions에 저장
+            // 사용자는 다음 화면에서 이 값 확인 or 수정한 뒤 최종 확정
+            reflectionSession.applyOutcomeDraft(
+                    fastApiResponse.outcomeDraft()
+            );
+
+            // FastAPI 가 제안한 성찰 후 인지왜곡 목록
+            List<FastApiCbtResponseDto.DistortionProposal> afterProposals =
+                    fastApiResponse.outcomeDraft().afterDistortions();
+
+            // AI가 AFTER 인지왜곡을 제안한 경우에만 저장
+            if (afterProposals != null && !afterProposals.isEmpty()) {
+                List<SessionDistortions> afterDistortions =
+                        afterProposals.stream()
+                                .map(proposal -> {
+                                    // FastAPI가 보낸 code로 기준 인지왜곡 유형 조회
+                                    DistortionTypes distortionTypes =
+                                            distortionTypesRepository
+                                                    .findByCode(proposal.code())
+                                                    .orElseThrow(() ->
+                                                            new ResponseStatusException(
+                                                                    HttpStatus.BAD_GATEWAY,
+                                                                    "AI가 알 수 없는 인지왜곡 코드를 반환했습니다."
+                                                            )
+                                                    );
+                                    // 성찰 후 단계의 AI 제안 라벨 Entity 생성
+                                    return SessionDistortions.createAfterAiProposal(
+                                            reflectionSession,
+                                            distortionTypes,
+                                            proposal.classifierConfidence()
+                                    );
+                                })
+                                .toList();
+
+                // DB 저장
+                sessionDistortionsRepository.saveAll(afterDistortions);
+            }
+        }
+
         // 다음 질문 생성 상태일 때만 question_answers JSONB에 새 질문 추가
         if("CONTINUE".equals((fastApiResponse.status()))){
             reflectionSession.addQuestion(fastApiResponse.nextQuestion());
         }
 
         // 트랜잭션 종료시 JPA Dirty Checking으로 답변, AI 메타, 다음 질문이 DB에 반영됨
+        // 새 AFTER 인지왜곡 라벨은 saveAll()로 저장 대상에 등록됨
         return ReflectionSessionTurnResponseDto.from(
                 reflectionSession,
                 fastApiResponse
         );
+    }
+
+    // 사용자가 성찰 결과와 인지왜곡 검토 결과를 최종 확정
+    @Transactional
+    public void confirmSession(
+            Long userId,
+            Long sessionId,
+            ReflectionSessionConfirmRequestDto request
+    ) {
+        // 최종 확정할 성찰 세션 조회
+        ReflectionSessions reflectionSession =
+                reflectionSessionsRepository.findById(sessionId)
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "성찰 세션을 찾을 수 없습니다."
+                        ));
+
+        // 다른 사용자가 성찰 세션 확정하는 것 방지'
+        if (!reflectionSession.getUser().getId().equals(userId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "성찰 세션을 찾을 수 없습니다."
+            );
+        }
+
+        // OPEN 상태가 아니면 이미 완료 또는 취소된 세션
+        if (reflectionSession.getStatus() != ReflectionSessionStatus.OPEN) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "진행 중인 성찰 세션이 아닙니다."
+            );
+        }
+
+        // FastAPI가 결과 초안을 만들고 사용자에게 확인을 요청한 단계인지 검사
+        if (!"CONFIRM_REQUIRED".equals(reflectionSession.getCurrentStep())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "아직 최종 확정할 수 있는 단계가 아닙니다."
+            );
+        }
+
+        // 사용자가 검토한 성찰 전 인지왜곡 라벨 반영
+        applyDistortionReviews(
+                sessionId,
+                DistortionPhase.BEFORE,
+                request.beforeDistortions()
+        );
+
+        // 사용자가 검토한 성찰 후 인지왜곡 라벨 반영
+        applyDistortionReviews(
+                sessionId,
+                DistortionPhase.AFTER,
+                request.afterDistortions()
+        );
+
+        // 사용자가 확인, 수정한 성찰 결과 저장 후 COMPLETED 상태로 완료 처리
+        reflectionSession.confirm(request);
+
+        // 최종 확정된 성찰 결과를 이후 유사 CBT 사례 검색에 사용하도록 1536차원 임베딩 생성
+        List<float[]> embeddings = ragUtils.CBTEmbed(reflectionSession);
+
+        // RagUtils가 반환한 두 벡터를 reflection_sessions의 vector 컬럼에 반영
+        reflectionSession.applyEmbedding(
+                embeddings.get(0),
+                embeddings.get(1)
+        );
+
+        // 조회한 Entity들이므로 save()를 호출하지 않아도 트랜잭션 종료 시
+        // Dirty Checking으로 UPDATE됨
+    }
+    // 사용자가 보낸 인지왜곡 검토 결과를 AI 제안 라벨에 반영
+    private void applyDistortionReviews(
+            Long sessionId,
+            DistortionPhase phase,
+            List<ReflectionSessionConfirmRequestDto.DistortionReviewDto> reviews
+    ){
+        // 해당 성찰 세션과 단계의 기존 AI 제안 레벨을 DB에서 조회
+        List<SessionDistortions> sessionDistortions =
+                sessionDistortionsRepository.findAllBySession_IdAndPhase(
+                        sessionId,
+                        phase
+                );
+
+        // "인지왜곡 코드 -> DB Entity" 형태로 빠르게 찾을 수 있게 변환
+        Map<String, SessionDistortions> distortionByCode =
+                new HashMap<>();
+
+        // List 안의 Entity를 하나씩 꺼냄 -> Entity에서 code 꺼냄
+        for (SessionDistortions sessionDistortion : sessionDistortions) {
+            String code = sessionDistortion.getDistortionType().getCode();
+            distortionByCode.put(code, sessionDistortion);
+        }
+        
+        // 같은 코드를 두번 보내는 잘못된 요청 방지
+        Set<String> reviewedCodes = new HashSet<>();
+        
+        for (ReflectionSessionConfirmRequestDto.DistortionReviewDto review : reviews) {
+            if (!reviewedCodes.add(review.code())) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "같은 인지왜곡 검토 결과가 중복되었습니다."
+                );
+            }
+            
+            // 사용자가 보낸 code가 해당 세션의 AI 제안 목록에 실제로 있는지 확인
+            SessionDistortions sessionDistortion =
+                    distortionByCode.get(review.code());
+
+            if (sessionDistortion == null) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "해당 성찰 세션에 없는 인지왜곡입니다."
+                );
+            }
+
+            // 사용자가 선택한 검토 상태, 검토 시각을 Entity에 반영
+            sessionDistortion.applyUserReview(review.reviewStatus());
+        }
     }
 }
