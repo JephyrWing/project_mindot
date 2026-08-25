@@ -13,10 +13,20 @@ const historyPeriodFilters = [
 const historySortOptions = [
   { value: 'latest', label: '최신순' },
   { value: 'oldest', label: '오래된순' },
+  { value: 'intensity-high', label: '강도 높은순' },
+  { value: 'intensity-low', label: '강도 낮은순' },
+]
+
+// 감정 기록의 대표 감정을 선택하기 위한 감정 필터 목록 설정.
+const historyEmotionFilters = [
+  { value: 'all', label: '전체 감정' },
+  { value: '기쁨', label: '기쁨' },
+  { value: '불안', label: '불안' },
+  { value: '평온', label: '평온' },
 ]
 
 // 한 페이지에 표시할 감정 기록 개수 설정.
-const recordsPerPage = 2
+const recordsPerPage = 3
 
 // 오늘을 기준으로 목록 화면 확인용 기록 날짜를 생성하는 함수 정의.
 const createPreviewDate = (daysAgo, hour) => {
@@ -102,6 +112,9 @@ function EmotionHistory({
   // 사용자가 선택한 감정 기록 정렬 순서를 보관하는 상태 설정.
   const [sortOrder, setSortOrder] = useState('latest')
 
+  // 사용자가 선택한 대표 감정 필터를 보관하는 상태 설정.
+  const [selectedEmotion, setSelectedEmotion] = useState('all')
+
   // 사용자가 입력한 감정 기록 검색어를 보관하는 상태 설정.
   const [searchKeyword, setSearchKeyword] = useState('')
 
@@ -123,15 +136,31 @@ function EmotionHistory({
       (record) => new Date(record.occurredAt) >= getPeriodStartDate(selectedPeriod),
     )
 
-  // 입력한 검색어가 포함된 감정 기록만 남기는 검색 처리.
+  // 선택한 대표 감정과 일치하는 기록만 남기는 감정 필터 처리.
+  const emotionFilteredRecords = selectedEmotion === 'all'
+    ? periodFilteredRecords
+    : periodFilteredRecords.filter(
+      (record) => record.emotion === selectedEmotion,
+    )
+
+  // 내용과 감정 및 상황 중 입력한 검색어가 포함된 기록만 남기는 검색 처리.
   const filteredRecords = normalizedSearchKeyword
-    ? periodFilteredRecords.filter((record) => (
-      record.content.toLocaleLowerCase('ko-KR').includes(normalizedSearchKeyword)
+    ? emotionFilteredRecords.filter((record) => (
+      [record.content, record.emotion, record.context].some((searchTarget) => (
+        searchTarget.toLocaleLowerCase('ko-KR').includes(normalizedSearchKeyword)
+      ))
     ))
-    : periodFilteredRecords
+    : emotionFilteredRecords
 
   // 선택한 정렬 기준에 따라 원본 배열을 변경하지 않고 기록 순서 정렬.
   const displayedRecords = [...filteredRecords].sort((firstRecord, secondRecord) => {
+    if (sortOrder === 'intensity-high') {
+      return secondRecord.intensity - firstRecord.intensity
+    }
+    if (sortOrder === 'intensity-low') {
+      return firstRecord.intensity - secondRecord.intensity
+    }
+
     const firstTime = new Date(firstRecord.occurredAt).getTime()
     const secondTime = new Date(secondRecord.occurredAt).getTime()
 
@@ -154,6 +183,8 @@ function EmotionHistory({
   // 선택한 기간에 따라 빈 목록의 현재 상태를 설명하는 제목 설정.
   const emptyTitle = normalizedSearchKeyword
     ? `'${searchKeyword.trim()}' 검색 결과가 없습니다.`
+    : selectedEmotion !== 'all'
+      ? `${selectedEmotion} 감정 기록이 없습니다.`
     : selectedPeriod === 'all'
       ? '아직 작성한 감정 기록이 없습니다.'
       : `${selectedPeriodLabel}에 작성한 감정 기록이 없습니다.`
@@ -167,6 +198,12 @@ function EmotionHistory({
   // 정렬 기준 변경 후 목록 첫 페이지로 이동하는 처리.
   const handleSortChange = (event) => {
     setSortOrder(event.target.value)
+    setCurrentPage(1)
+  }
+
+  // 대표 감정 필터 변경 후 목록 첫 페이지로 이동하는 처리.
+  const handleEmotionChange = (event) => {
+    setSelectedEmotion(event.target.value)
     setCurrentPage(1)
   }
 
@@ -232,6 +269,22 @@ function EmotionHistory({
             </div>
           </fieldset>
 
+          {/* 대표 감정을 기준으로 목록을 좁히는 선택 상자 배치. */}
+          <label htmlFor="emotion-history-emotion">
+            <span>감정</span>
+            <select
+              id="emotion-history-emotion"
+              value={selectedEmotion}
+              onChange={handleEmotionChange}
+            >
+              {historyEmotionFilters.map((filter) => (
+                <option value={filter.value} key={filter.value}>
+                  {filter.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
           <label htmlFor="emotion-history-sort">
             <span>정렬</span>
             <select
@@ -256,7 +309,7 @@ function EmotionHistory({
                 type="search"
                 value={searchKeyword}
                 onChange={handleSearchKeywordChange}
-                placeholder="기록 내용에서 검색"
+                placeholder="내용·감정·상황에서 검색"
               />
             </label>
             <button
