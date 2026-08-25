@@ -1,6 +1,7 @@
 // 감정 기록을 바탕으로 진행한 CBT 성찰 질문, 답변 세션 Entity
 package com.my.mindot_back.records.entity;
 
+import com.my.mindot_back.records.dto.ReflectionSessionConfirmRequestDto;
 import com.my.mindot_back.records.dto.ai.FastApiCbtResponseDto;
 import com.my.mindot_back.users.entity.Users;
 import jakarta.persistence.*;
@@ -276,6 +277,58 @@ public class ReflectionSessions {
 
         // reflection_sessions.ai_meta JSONB 컬럼에 저장될 값
         this.aiMeta = newAiMeta;
+    }
+
+    // FastAPI가 생성한 성찰 결과 초안을 세션에 저장
+    // 아직 사용자 확인 전 -> userConfirmed는 false
+    public void applyOutcomeDraft(
+            FastApiCbtResponseDto.ReflectionOutcomeDraft outcomeDraft
+    ){
+        // CONFIRM_REQUIRED인데 결과 초안이 없으면 비정상 응답
+        if (outcomeDraft == null) {
+            throw new IllegalArgumentException(
+                    "저장할 성찰 결과 초안이 없습니다."
+            );
+        }
+        // 자동사고를 뒷받침하는 근거 초안 저장
+        this.evidenceForText = outcomeDraft.evidenceForText();
+
+        // 자동사고와 다른 근거 초안 저장
+        this.evidenceAgainstText = outcomeDraft.evidenceAgainstText();
+
+        // AI가 제안한 대안적 사고 초안 저장
+        this.alternativeThoughtText = outcomeDraft.alternativeThoughtText();
+
+        // 현재 세션: 사용자 최종 확인 기다림
+        this.currentStep = "CONFIRM_REQUIRED";
+    }
+
+    // 사용자가 검토, 수정한 성찰 결과를 최종 확정하고 세션 완료 처리
+    public void confirm(
+            ReflectionSessionConfirmRequestDto request
+    ){
+        // 사용자가 확인하거나 수정한 근거로 AI 초안을 최종 교체
+        this.evidenceForText = request.evidenceForText();
+        this.evidenceAgainstText = request.evidenceAgainstText();
+        this.alternativeThoughtText = request.alternativeThoughtText();
+
+        // 성찰 전후 확신도, 최종 감정강도 저장
+        this.beforeBeliefStrength = request.beforeBeliefStrength();
+        this.afterBeliefStrength = request.afterBeliefStrength();
+        this.finalEmotionIntensity = request.finalEmotionIntensity();
+
+        // 성찰 도움 정도 저장
+        this.helpfulnessScore = request.helpfulnessScore();
+
+        // 사용자 최종확인한 성찰 결과임을 표시
+        this.userConfirmed = true;
+
+        // 완료세션으로 변경(더 이상 답변 추가 X)
+        this.status = ReflectionSessionStatus.COMPLETED;
+        this.currentStep = "COMPLETED";
+
+        // COMPLETED 상태일때 완료 시각 저장
+        this.completedAt = Instant.now();
     }
 
     // OpenAI가 생성한 두 임베딩 벡터를 성찰 세션에 반영
