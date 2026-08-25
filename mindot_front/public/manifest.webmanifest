@@ -9,5 +9,19 @@
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#f2f6fb",
-  "theme_color": "#1c5ed0"
+  "theme_color": "#1c5ed0",
+  "icons": [
+    {
+      "src": "/icons/mindot-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/mindot-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }
