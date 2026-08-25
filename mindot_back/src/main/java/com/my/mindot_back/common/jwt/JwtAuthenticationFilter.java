@@ -56,8 +56,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 /*
                 *principal : 현재 로그인 사용자 식별값 -> userId
                 * credentials : 비밀번호 다시 보관할 필요 X -> null
-                * authorities : user, admin 같은 역할 컬럼 X -> 빈 목록
-                 */
+                * authorities : 현재는 모든 로그인 사용자에게 ROLE_USER 권한 부여
+                */
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
                                 userId,

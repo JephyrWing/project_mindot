@@ -89,7 +89,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/records/**",
                                 "/api/reflections/**"
-                        ).hasRole("USER")
+                        ).hasAnyRole("USER", "ADMIN")
 
                         // 나머지 API는 정상 Access Token이 있어야 접근 가능
                         .anyRequest().authenticated()
