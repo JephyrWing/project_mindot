@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko">
   <head>
     <meta charset="UTF-8" />
     <!-- 모바일 기기의 노치와 홈 표시줄 영역까지 화면을 확장하기 위한 뷰포트 설정. -->
@@ -7,6 +7,15 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
+    <!-- 모바일 브라우저의 상단 UI에 MINDOT 핵심 색상을 적용하는 설정. -->
+    <meta name="theme-color" content="#1c5ed0" />
+    <!-- 홈 화면 실행 시 표시할 서비스 설명 제공. -->
+    <meta
+      name="description"
+      content="감정 기록과 AI CBT 대화를 돕는 자기이해 보조 서비스"
+    />
+    <!-- PWA 기본 정보가 담긴 웹 앱 매니페스트 연결. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
     <!-- Apache 2.0 무료 Material Symbols 메뉴 아이콘을 불러오는 Google Fonts 링크 연결. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,7 +23,7 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&amp;icon_names=menu"
     />
-    <title>mindot_front</title>
+    <title>MINDOT</title>
   </head>
   <body>
     <div id="root"></div>

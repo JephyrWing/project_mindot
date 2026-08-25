@@ -1,0 +1,13 @@
+{
+  "id": "/",
+  "name": "MINDOT",
+  "short_name": "MINDOT",
+  "description": "감정 기록과 AI CBT 대화를 돕는 자기이해 보조 서비스",
+  "lang": "ko-KR",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f2f6fb",
+  "theme_color": "#1c5ed0"
+}
