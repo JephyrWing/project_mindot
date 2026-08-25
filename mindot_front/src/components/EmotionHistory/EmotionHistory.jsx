@@ -63,6 +63,14 @@ const previewEmotionRecords = [
     content: '가족과 천천히 이야기를 나누며 편안한 시간을 보냈다.',
     occurredAt: createPreviewDate(40, 20),
   },
+  {
+    id: 'preview-4',
+    emotion: '슬픔',
+    intensity: 3,
+    context: '가족',
+    content: '부모님과 다투어서 눈물이 났다.',
+    occurredAt: createPreviewDate(50, 30),
+  },
 ]
 
 // 감정 기록 시각을 사용자가 읽기 쉬운 한국어 형식으로 변환하는 함수 정의.
