@@ -91,6 +91,14 @@
   background: var(--mindot-primary-strong);
 }
 
+/* CBT 시작 요청 중 또는 감정 기록이 없는 버튼의 비활성화 상태 설정. */
+.cbt-start-button:disabled {
+  color: var(--mindot-disabled);
+  border-color: var(--mindot-border);
+  background: var(--mindot-surface-muted);
+  cursor: not-allowed;
+}
+
 /* CBT AI 대화창과 카드 상단 로고 사이의 간격 설정. */
 .cbt-chat {
   margin-top: 32px;
@@ -191,6 +199,33 @@
 .cbt-chat-form textarea:hover {
   border-color: var(--mindot-primary);
   background: var(--mindot-primary-soft);
+}
+
+/* CBT 답변 입력 글자 수의 오른쪽 정렬. */
+.cbt-message-count {
+  margin-top: -6px;
+  color: var(--mindot-text-muted);
+  font-size: 12px;
+  text-align: right;
+}
+
+/* CBT API 요청 오류 문구의 경고 색상과 간격 설정. */
+.cbt-error {
+  margin: 10px 0 0;
+  color: var(--mindot-danger);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* CBT 대화 완료 또는 안전 중단 상태 안내 영역 설정. */
+.cbt-finished {
+  margin: 16px 0 0;
+  border-top: 1px solid var(--mindot-border);
+  padding-top: 18px;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  line-height: 1.7;
+  text-align: center;
 }
 
 /* 사용자 답변 전송 버튼의 크기와 색상 설정. */

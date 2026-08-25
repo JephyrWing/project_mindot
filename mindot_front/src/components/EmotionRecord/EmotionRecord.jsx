@@ -222,7 +222,7 @@ function EmotionRecord({
             <button
               className="emotion-record-cbt-button"
               type="button"
-              onClick={onCBT}
+              onClick={() => onCBT(savedRecord.recordId)}
             >
               CBT 검사 하기
             </button>
