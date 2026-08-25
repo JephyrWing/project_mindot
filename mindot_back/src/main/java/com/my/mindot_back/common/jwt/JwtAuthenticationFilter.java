@@ -17,6 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -61,8 +62,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         new UsernamePasswordAuthenticationToken(
                                 userId,
                                 null,
-                                List.of()
-                                // List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
+//                                List.of()
+                                 List.of(new SimpleGrantedAuthority("ROLE_USER"))
                         );
 
                 // 현재 요청의 SecurityContext에 인증 정보 저장 -> controller에서 현재 로그인한 id 신뢰 가능
