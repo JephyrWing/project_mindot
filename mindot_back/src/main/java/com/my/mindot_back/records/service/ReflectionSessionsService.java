@@ -1,6 +1,7 @@
 // CBT 성찰 세션 생성과 FastAPI 질문 생성을 연결하는 Service
 package com.my.mindot_back.records.service;
 
+import com.my.mindot_back.common.rag.RagUtils;
 import com.my.mindot_back.distortions.entity.DistortionTypes;
 import com.my.mindot_back.distortions.repository.DistortionTypesRepository;
 import com.my.mindot_back.records.client.FastApiCbtClient;
@@ -39,6 +40,9 @@ public class ReflectionSessionsService {
 
     // FastAPI CBT 첫 질문 생성 API 호출
     private final FastApiCbtClient fastApiCbtClient;
+
+    // 최종 확정된 CBT 성찰 세션의 RAG 검색용 임베딩 생성
+    private final RagUtils ragUtils;
 
     // FastAPI 인지왜곡 코드로 distortion_types 기준 데이터 조회
     private final DistortionTypesRepository distortionTypesRepository;
@@ -337,6 +341,15 @@ public class ReflectionSessionsService {
 
         // 사용자가 확인, 수정한 성찰 결과 저장 후 COMPLETED 상태로 완료 처리
         reflectionSession.confirm(request);
+
+        // 최종 확정된 성찰 결과를 이후 유사 CBT 사례 검색에 사용하도록 1536차원 임베딩 생성
+        List<float[]> embeddings = ragUtils.CBTEmbed(reflectionSession);
+
+        // RagUtils가 반환한 두 벡터를 reflection_sessions의 vector 컬럼에 반영
+        reflectionSession.applyEmbedding(
+                embeddings.get(0),
+                embeddings.get(1)
+        );
 
         // 조회한 Entity들이므로 save()를 호출하지 않아도 트랜잭션 종료 시
         // Dirty Checking으로 UPDATE됨
