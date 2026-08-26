@@ -5,9 +5,7 @@ import com.my.mindot_back.common.rag.RagUtils;
 import com.my.mindot_back.distortions.entity.DistortionTypes;
 import com.my.mindot_back.distortions.repository.DistortionTypesRepository;
 import com.my.mindot_back.records.client.FastApiCbtClient;
-import com.my.mindot_back.records.dto.ReflectionSessionConfirmRequestDto;
-import com.my.mindot_back.records.dto.ReflectionSessionStartResponseDto;
-import com.my.mindot_back.records.dto.ReflectionSessionTurnResponseDto;
+import com.my.mindot_back.records.dto.*;
 import com.my.mindot_back.records.dto.ai.FastApiCbtResponseDto;
 import com.my.mindot_back.records.dto.ai.FastApiCbtStartRequestDto;
 import com.my.mindot_back.records.dto.ai.FastApiCbtTurnRequestDto;
@@ -347,13 +345,95 @@ public class ReflectionSessionsService {
 
         // RagUtils가 반환한 두 벡터를 reflection_sessions의 vector 컬럼에 반영
         reflectionSession.applyEmbedding(
-                embeddings.get(0),
-                embeddings.get(1)
+                embeddings.get(0), // contextEmbedding
+                embeddings.get(1)  // thoughtAwareEmbedding
         );
 
         // 조회한 Entity들이므로 save()를 호출하지 않아도 트랜잭션 종료 시
         // Dirty Checking으로 UPDATE됨
     }
+
+    // 사용자가 진행중인 CBT 성찰 세션 중단
+    @Transactional
+    public void cancelSession(
+            Long userId,
+            Long sessionId
+    ) {
+        // 중단할 성찰 세션 조회
+        ReflectionSessions reflectionSession =
+                reflectionSessionsRepository.findById(sessionId)
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "성찰 세션을 찾을 수 없습니다."
+                        ));
+
+        // 다른 사용자가 성찰 세션을 중단하지 못하도록 소유자 확인 -> 404 처리
+        if (!reflectionSession.getUser().getId().equals(userId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "성찰 세션을 찾을 수 없습니다."
+            );
+        }
+
+        // OPEN이 아니면 이미 완료 or 이전에 중단한 세션
+        if (reflectionSession.getStatus() != ReflectionSessionStatus.OPEN) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "진행 중인 성찰 세션만 중단할 수 있습니다."
+            );
+        }
+
+        // Entity의 cancel()이 status와 currentStep을 CANCELLED로 변경
+        reflectionSession.cancel();
+    }
+
+    // 로그인 사용자가 자신의 CBT 성찰 세션 상세와 질문, 답변 이력 조회
+    @Transactional
+    public ReflectionSessionDetailResponseDto getSessionDetail(
+            Long userId,
+            Long sessionId
+    ) {
+        // 조회할 성찰 세션을 DB에서 찾기
+        ReflectionSessions reflectionSession =
+                reflectionSessionsRepository.findById(sessionId)
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "성찰 세션을 찾을 수 없습니다."
+                        ));
+        // 다른 사용자의 이력 조회 방지
+        if (!reflectionSession.getUser().getId().equals(userId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "성찰 세션을 찾을 수 없습니다."
+            );
+        }
+
+        // Entity 상태와 question_answers JSONB를 DTO로 변환해 반환
+        return ReflectionSessionDetailResponseDto.from(
+                reflectionSession
+        );
+    }
+
+    // 로그인 사용자의 진행 중인 OPEN CBT 성찰 세션 목록 조회
+    @Transactional
+    public List<OpenReflectionSessionResponseDto> getOpenSessions(
+            // JWT에서 꺼낸 로그인 사용자 ID
+            Long userId
+    ){
+        // 로그인 사용자가 소유한 OPEN 성찰 세션만 최신순으로 조회
+        List<ReflectionSessions> openSessions =
+                reflectionSessionsRepository
+                        .findAllByUser_IdAndStatusOrderByCreatedAtDesc(
+                                userId,
+                                ReflectionSessionStatus.OPEN
+                        );
+
+        // DB Entity 목록을 프론트에게 줄 DTO 목록으로 변환
+        return openSessions.stream()
+                .map(OpenReflectionSessionResponseDto::from)
+                .toList();
+    }
+
     // 사용자가 보낸 인지왜곡 검토 결과를 AI 제안 라벨에 반영
     private void applyDistortionReviews(
             Long sessionId,

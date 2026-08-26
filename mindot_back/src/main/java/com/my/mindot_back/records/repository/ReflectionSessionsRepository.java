@@ -2,6 +2,7 @@
 package com.my.mindot_back.records.repository;
 
 import com.my.mindot_back.common.rag.CbtSimilaritySearchRequest;
+import com.my.mindot_back.records.entity.ReflectionSessionStatus;
 import com.my.mindot_back.records.entity.ReflectionSessions;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -37,6 +38,7 @@ public interface ReflectionSessionsRepository
             LIMIT :#{#request.topK}
             """,
             nativeQuery = true)
+
     List<ReflectionSessions> findSimilarByContext(
             @Param("request")
             CbtSimilaritySearchRequest request
@@ -68,5 +70,11 @@ public interface ReflectionSessionsRepository
     List<ReflectionSessions> findSimilarByThoughtAware(
             @Param("request")
             CbtSimilaritySearchRequest request
+    );
+
+    // 로그인 사용자의 OPEN 상태 성찰 세션을 최신 생성 순으로 조회
+    List<ReflectionSessions> findAllByUser_IdAndStatusOrderByCreatedAtDesc(
+            Long userId,
+            ReflectionSessionStatus status
     );
 }

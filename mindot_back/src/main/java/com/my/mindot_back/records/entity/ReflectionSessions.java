@@ -331,6 +331,22 @@ public class ReflectionSessions {
         this.completedAt = Instant.now();
     }
 
+    // 사용자가 CBT 성찰을 중단할 때 세션 상태를 CANCELLED로 변경
+    public void cancel() {
+        // 이미 완료된 성찰은 중단 불가
+        if (this.status == ReflectionSessionStatus.COMPLETED) {
+            throw new  IllegalStateException(
+                    "완료된 CBT 성찰 세션은 중단할 수 없습니다."
+            );
+        }
+
+        // 중단된 세션은 이후 답변, 최종확정 진행 X
+        this.status = ReflectionSessionStatus.CANCELLED;
+
+        // 현재 화면 단계 대신 세션 중단 상태 저장
+        this.currentStep = "CANCELLED";
+    }
+
     // OpenAI가 생성한 두 임베딩 벡터를 성찰 세션에 반영
     /*
      * contextEmbedding:
