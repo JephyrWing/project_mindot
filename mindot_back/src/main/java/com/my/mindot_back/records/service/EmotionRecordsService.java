@@ -2,6 +2,8 @@
 package com.my.mindot_back.records.service;
 
 import com.my.mindot_back.records.client.FastApiRecordAnalysisClient;
+import com.my.mindot_back.records.dto.EmotionRecordsDetailResponseDto;
+import com.my.mindot_back.records.dto.EmotionRecordsListItemResponseDto;
 import com.my.mindot_back.records.dto.EmotionRecordsQuickCreateRequestDto;
 import com.my.mindot_back.records.dto.EmotionRecordsQuickCreateResponseDto;
 import com.my.mindot_back.records.dto.ai.FastApiRecordAnalysisResponseDto;
@@ -14,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -82,5 +86,38 @@ public class EmotionRecordsService {
                 savedEmotionRecord,
                 analysis
         );
+    }
+
+    // 로그인한 사용자의 감정 기록을 최신순으로 조회
+    @Transactional
+    public List<EmotionRecordsListItemResponseDto> getEmotionRecords(
+            Long userId
+    ) {
+        // 해당 사용자의 감정 기록 Entity 목록 조회
+        List<EmotionRecords> emotionRecords =
+                emotionRecordsRepository
+                        .findAllByUser_IdOrderByOccurredAtDesc(userId);
+
+        // Entity 목록을 프론트 응답용 DTO 목록으로 변환
+        return emotionRecords.stream()
+                .map(EmotionRecordsListItemResponseDto::from)
+                .toList();
+    }
+
+    // 로그인한 사용자의 감정 기록 상세 조회
+    @Transactional
+    public EmotionRecordsDetailResponseDto getEmotionRecordsDetail(
+            Long userId,
+            Long emotionRecordId
+    ){
+        // 기록 ID와 사용자 ID가 모두 일치하는 기록 조회
+        EmotionRecords emotionRecord = emotionRecordsRepository
+                .findByIdAndUser_Id(emotionRecordId, userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "감정 기록을 찾을 수 없습니다."
+                ));
+        // 조회한 Entity를 상세 응답 DTO로 변환
+        return EmotionRecordsDetailResponseDto.from(emotionRecord);
     }
 }
