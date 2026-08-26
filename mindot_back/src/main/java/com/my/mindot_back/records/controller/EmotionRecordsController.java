@@ -1,6 +1,8 @@
 // 간편 감정 기록 관련 HTTP API를 처리하는 Controller
 package com.my.mindot_back.records.controller;
 
+import com.my.mindot_back.records.dto.EmotionRecordsDetailResponseDto;
+import com.my.mindot_back.records.dto.EmotionRecordsListItemResponseDto;
 import com.my.mindot_back.records.dto.EmotionRecordsQuickCreateRequestDto;
 import com.my.mindot_back.records.dto.EmotionRecordsQuickCreateResponseDto;
 import com.my.mindot_back.records.service.EmotionRecordsService;
@@ -9,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/records")
@@ -31,5 +35,27 @@ public class EmotionRecordsController {
             @Valid @RequestBody EmotionRecordsQuickCreateRequestDto dto
     ){
         return emotionRecordsService.createQuickRecord(userId, dto);
+    }
+
+    // 로그인한 사용자의 감정 기록 목록 조회 API
+    @GetMapping
+    public List<EmotionRecordsListItemResponseDto> getEmotionRecords(
+            @AuthenticationPrincipal Long userId
+    ){
+        // JWT에서 확인한 로그인 사용자 ID로 목록 조회
+        return emotionRecordsService.getEmotionRecords(userId);
+    }
+
+    // 로그인한 사용자의 감정 기록 상세 조회 API
+    @GetMapping("/{emotionRecordId}")
+    public EmotionRecordsDetailResponseDto getEmotionRecordDetail(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long emotionRecordId
+    ){
+        // JWT 사용자 ID와 URL의 기록 ID로 본인 기록만 상세 조회
+        return emotionRecordsService.getEmotionRecordsDetail(
+                userId,
+                emotionRecordId
+        );
     }
 }
