@@ -1,0 +1,90 @@
+/* 로그인 필요 안내를 현재 화면 위에 고정하는 배경 영역 설정. */
+.login-required-backdrop {
+  position: fixed;
+  z-index: 1200;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding:
+    calc(20px + env(safe-area-inset-top, 0px))
+    calc(20px + env(safe-area-inset-right, 0px))
+    calc(20px + env(safe-area-inset-bottom, 0px))
+    calc(20px + env(safe-area-inset-left, 0px));
+  background: rgba(20, 32, 51, 0.52);
+}
+
+/* 로그인 필요 안내 문구와 선택 버튼을 담는 단일 모달 설정. */
+.login-required-modal {
+  width: min(100%, 420px);
+  border: 0;
+  border-radius: 14px;
+  padding: 32px;
+  background: var(--mindot-surface);
+  box-shadow: 0 12px 28px rgba(20, 32, 51, 0.2);
+}
+
+/* 로그인 필요 안내 제목의 정보 단계와 간격 설정. */
+.login-required-modal h2 {
+  margin: 0;
+  font-size: 1.5625rem;
+  font-weight: 700;
+}
+
+/* 로그인 필요 안내 본문의 읽기 쉬운 색상과 줄 간격 설정. */
+.login-required-modal p {
+  margin: 12px 0 0;
+  color: var(--mindot-text-secondary);
+  line-height: 1.7;
+  word-break: keep-all;
+}
+
+/* 로그인 이동과 닫기 버튼의 동일한 가로 너비 설정. */
+.login-required-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 28px;
+}
+
+/* 안내 모달 버튼의 충분한 터치 영역과 흰색 배경 설정. */
+.login-required-actions button {
+  min-height: 46px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  padding: 0 14px;
+  color: var(--mindot-primary-strong);
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+/* 로그인 화면 이동 버튼의 브랜드 핵심 색상 강조 설정. */
+.login-required-actions .login-required-login-button {
+  border-color: var(--mindot-primary);
+  color: var(--mindot-surface);
+  background: var(--mindot-primary);
+}
+
+/* 모달 선택 버튼 위에 커서를 올렸을 때의 상태 구분 설정. */
+.login-required-actions button:hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+.login-required-actions .login-required-login-button:hover {
+  border-color: var(--mindot-primary-strong);
+  color: var(--mindot-surface);
+  background: var(--mindot-primary-strong);
+}
+
+/* 좁은 화면에서 모달 여백과 버튼의 세로 배치 설정. */
+@media (max-width: 420px) {
+  .login-required-modal {
+    padding: 28px 22px;
+  }
+
+  .login-required-actions {
+    grid-template-columns: 1fr;
+  }
+}

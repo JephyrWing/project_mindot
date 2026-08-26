@@ -31,6 +31,7 @@ function Center({
   onSignUp = emptyNavigation,
   onEmotionHistory = emptyNavigation,
   onCenter = emptyNavigation,
+  onDailyCare = emptyNavigation,
   onHome = emptyNavigation,
 }) {
   // 사용자가 선택한 시·도 이름 상태 관리.
@@ -97,6 +98,7 @@ function Center({
         onSignUp={onSignUp}
         onEmotionHistory={onEmotionHistory}
         onCenter={onCenter}
+        onDailyCare={onDailyCare}
         onHome={onHome}
       />
 

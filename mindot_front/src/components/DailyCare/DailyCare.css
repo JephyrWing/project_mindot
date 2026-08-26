@@ -1,0 +1,177 @@
+/* 일일 마음 돌봄 화면의 전체 높이와 단색 배경 설정. */
+.daily-care-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  color: var(--mindot-text);
+  background: var(--mindot-page);
+}
+
+/* 주요 콘텐츠의 모바일 안전 영역과 최대 너비 설정. */
+.daily-care-main {
+  width: min(100%, 720px);
+  margin: 0 auto;
+  padding:
+    56px
+    max(24px, env(safe-area-inset-right, 0px))
+    calc(48px + env(safe-area-inset-bottom, 0px))
+    max(24px, env(safe-area-inset-left, 0px));
+}
+
+/* 화면 제목과 설명의 기본 간격 설정. */
+.daily-care-intro h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.daily-care-intro > p {
+  margin: 12px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 1rem;
+}
+
+/* 추천 근거 항목의 단순 가로 정보 배치 설정. */
+.daily-care-basis {
+  display: flex;
+  gap: 12px;
+  margin: 24px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+}
+
+.daily-care-basis dt {
+  font-weight: 600;
+}
+
+.daily-care-basis dd {
+  margin: 0;
+  color: var(--mindot-primary-strong);
+  font-weight: 600;
+}
+
+/* 오늘의 핵심 제안을 구분선으로 분리한 영역 설정. */
+.daily-care-suggestion {
+  margin-top: 36px;
+  border-top: 1px solid var(--mindot-border);
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 24px 0;
+}
+
+.daily-care-suggestion h2,
+.daily-care-feedback h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.daily-care-suggestion p {
+  margin: 8px 0 0;
+  color: var(--mindot-text-secondary);
+}
+
+/* 세 가지 활동을 한 단계 구조로 나열하는 영역 설정. */
+.daily-care-actions {
+  display: grid;
+  gap: 14px;
+  margin-top: 28px;
+}
+
+/* 개별 활동의 단일 테두리와 일정한 내부 간격 설정. */
+.daily-care-action {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+  border: 1px solid var(--mindot-border);
+  border-radius: 14px;
+  padding: 22px;
+  background: var(--mindot-surface);
+}
+
+.daily-care-action h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.daily-care-action p {
+  margin: 6px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+}
+
+/* 각 활동 실행 버튼의 공통 흰색 배경과 터치 영역 설정. */
+.daily-care-action button,
+.daily-care-feedback-actions button {
+  min-height: 44px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  padding: 0 18px;
+  color: var(--mindot-primary-strong);
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+/* 주요 호흡 활동 버튼의 브랜드 색상 강조 설정. */
+.daily-care-action .daily-care-primary-button {
+  border-color: var(--mindot-primary);
+  color: var(--mindot-surface);
+  background: var(--mindot-primary);
+}
+
+/* 활동과 만족도 버튼의 선택 가능 상태 강조 설정. */
+.daily-care-action button:hover,
+.daily-care-feedback-actions button:hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+.daily-care-action .daily-care-primary-button:hover {
+  border-color: var(--mindot-primary-strong);
+  color: var(--mindot-surface);
+  background: var(--mindot-primary-strong);
+}
+
+/* 추천 만족도 문구와 선택 버튼의 하단 영역 설정. */
+.daily-care-feedback {
+  margin-top: 36px;
+  border-top: 1px solid var(--mindot-border);
+  padding-top: 28px;
+  text-align: center;
+}
+
+.daily-care-feedback-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+/* 작은 화면에서 콘텐츠 간격과 활동 버튼의 세로 배치 설정. */
+@media (max-width: 600px) {
+  .daily-care-main {
+    padding-top: 36px;
+  }
+
+  .daily-care-intro h1 {
+    font-size: 1.75rem;
+  }
+
+  .daily-care-action {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 20px;
+  }
+
+  .daily-care-action button {
+    width: 100%;
+  }
+}
+
+/* 매우 좁은 화면에서 만족도 버튼의 세로 배치 설정. */
+@media (max-width: 420px) {
+  .daily-care-feedback-actions {
+    grid-template-columns: 1fr;
+  }
+}

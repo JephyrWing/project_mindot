@@ -11,6 +11,7 @@ function Sidebar({
   onSignUp,
   onEmotionHistory,
   onCenter,
+  onDailyCare,
   onHome,
 }) {
   // 사이드바 열림 여부 상태 관리.
@@ -109,9 +110,17 @@ function Sidebar({
               </button>
             </>
           )}
-          <button type="button" onClick={() => moveToPage(onEmotionHistory)}>
-            감정 기록 목록
-          </button>
+          {/* 로그인 사용자에게만 개인 기록과 추천 화면 이동 버튼 표시. */}
+          {isAuthenticated && (
+            <>
+              <button type="button" onClick={() => moveToPage(onEmotionHistory)}>
+                감정 기록 목록
+              </button>
+              <button type="button" onClick={() => moveToPage(onDailyCare)}>
+                일일 마음 돌봄 서비스
+              </button>
+            </>
+          )}
           <button type="button" onClick={() => moveToPage(onCenter)}>
             관련 기관 찾기
           </button>

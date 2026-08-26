@@ -46,6 +46,7 @@ function EmotionRecord({
   onSignUp,
   onEmotionHistory,
   onCenter,
+  onDailyCare,
   onCBT,
   onWeeklyReport,
   onHome,
@@ -137,6 +138,7 @@ function EmotionRecord({
         onSignUp={onSignUp}
         onEmotionHistory={onEmotionHistory}
         onCenter={onCenter}
+        onDailyCare={onDailyCare}
         onHome={onHome}
       />
 
