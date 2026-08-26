@@ -168,53 +168,57 @@ public class EmotionRecords {
             InputType inputType,
             Instant occurredAt
     ) {
+        // 아직 DB에 저장되지 않은 감정 기록 Entity 생성
         EmotionRecords emotionRecord = new EmotionRecords();
 
-        // 로그인한 기록 작성자
+        // 생성 시 변하지 않는 기본 정보 반영
         emotionRecord.user = user;
-
-        // DTO로 받은 원문, 입력 방식, 감정 발생 시각
         emotionRecord.rawText = rawText;
         emotionRecord.inputType = inputType;
-        emotionRecord.occurredAt = occurredAt;
 
-        // Instant는 UTC 기준 -> 변환 후 평일, 주말 계산
-        ZonedDateTime occurredAtInSeoul = occurredAt.atZone(
-                ZoneId.of(emotionRecord.recordTimezone)
-        );
-
-        // 변환된 한국 시간에서 '시'만 가져옴
-        int hour = occurredAtInSeoul.getHour();
-
-        // 발생 시각의 ‘시’를 기준으로 시간대 구분
-        if (hour < 6) {
-            emotionRecord.timeBucket = TimeBucket.DAWN;
-        } else if (hour < 12) {
-            emotionRecord.timeBucket = TimeBucket.MORNING;
-        } else if (hour < 18) {
-            emotionRecord.timeBucket = TimeBucket.AFTERNOON;
-        } else if (hour < 21) {
-            emotionRecord.timeBucket = TimeBucket.EVENING;
-        } else {
-            emotionRecord.timeBucket = TimeBucket.NIGHT;
-        }
-
-        DayOfWeek dayOfWeek = occurredAtInSeoul.getDayOfWeek();
-
-        // 토요일·일요일이면 WEEKEND, 나머지는 WEEKDAY
-        if (dayOfWeek == DayOfWeek.SATURDAY
-                || dayOfWeek == DayOfWeek.SUNDAY) {
-            emotionRecord.weekdayType = WeekdayType.WEEKEND;
-        } else {
-            emotionRecord.weekdayType = WeekdayType.WEEKDAY;
-        }
+        // 발생 시각, 시간대 계산
+        emotionRecord.updateOccurredAt(occurredAt);
 
         // service로 return
         return emotionRecord;
     }
 
-    // FastAPI가 반환한 구조화 결과를 현재 감정 기록에 반영
+    // 감정 발생 시각 변경 후 시간대와 평일·주말 구분 재계산
+    public void updateOccurredAt(
+            Instant occurredAt
+    ) {
+        this.occurredAt = occurredAt;
 
+        // 기록 시간대를 기준으로 발생 시각 해석
+        ZonedDateTime occurredAtInTimezone = occurredAt.atZone(
+                ZoneId.of(this.recordTimezone)
+        );
+
+        int hour = occurredAtInTimezone.getHour();
+
+        if (hour < 6) {
+            this.timeBucket = TimeBucket.DAWN;
+        } else if (hour < 12) {
+            this.timeBucket = TimeBucket.MORNING;
+        } else if (hour < 18) {
+            this.timeBucket = TimeBucket.AFTERNOON;
+        } else if (hour < 21) {
+            this.timeBucket = TimeBucket.EVENING;
+        } else {
+            this.timeBucket = TimeBucket.NIGHT;
+        }
+
+        DayOfWeek dayOfWeek = occurredAtInTimezone.getDayOfWeek();
+
+        if (dayOfWeek == DayOfWeek.SATURDAY
+                || dayOfWeek == DayOfWeek.SUNDAY) {
+            this.weekdayType = WeekdayType.WEEKEND;
+        } else {
+            this.weekdayType = WeekdayType.WEEKDAY;
+        }
+    }
+
+    // FastAPI가 반환한 구조화 결과를 현재 감정 기록에 반영
     // AI 분석 후 사용자 추가 확인 필요 > PARTIAL 상태로 변경
     public void applyAiAnalysis(
             FastApiRecordAnalysisResponseDto analysis
