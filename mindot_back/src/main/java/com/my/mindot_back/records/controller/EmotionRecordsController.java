@@ -70,4 +70,31 @@ public class EmotionRecordsController {
                 dto
         );
     }
+
+    // 감정 기록 발생 시각 수정 API
+    @PatchMapping("/{emotionRecordId}")
+    public EmotionRecordsDetailResponseDto updateEmotionRecord(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long emotionRecordId,
+            @Valid @RequestBody EmotionRecordsUpdateRequestDto dto
+    ) {
+        // JWT 사용자 ID와 수정할 발생 시각을 Service에 전달
+        return emotionRecordsService.updateEmotionRecord(
+                userId,
+                emotionRecordId,
+                dto
+        );
+    }
+    // 감정기록 + 파생 데이터 함께 삭제하는 API
+    @DeleteMapping("/{emotionRecordId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteEmotionRecord(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long emotionRecordId
+    ) {
+        emotionRecordsService.deleteEmotionRecord(
+                userId,
+                emotionRecordId
+        );
+    }
 }

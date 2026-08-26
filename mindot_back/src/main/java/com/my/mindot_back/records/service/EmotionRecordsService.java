@@ -1,12 +1,15 @@
 // 간편 감정 기록의 저장과 FastAPI AI 구조화 연동을 담당하는 service
 package com.my.mindot_back.records.service;
 
+import com.my.mindot_back.ai.entity.AiJobEntityType;
+import com.my.mindot_back.ai.repository.AiJobsRepository;
 import com.my.mindot_back.records.client.FastApiRecordAnalysisClient;
 import com.my.mindot_back.records.dto.*;
 import com.my.mindot_back.records.dto.ai.FastApiRecordAnalysisResponseDto;
 import com.my.mindot_back.records.entity.CompletionStatus;
 import com.my.mindot_back.records.entity.EmotionRecords;
 import com.my.mindot_back.records.repository.EmotionRecordsRepository;
+import com.my.mindot_back.records.repository.ReflectionSessionsRepository;
 import com.my.mindot_back.users.entity.Users;
 import com.my.mindot_back.users.repository.UsersRepository;
 import jakarta.transaction.Transactional;
@@ -29,6 +32,12 @@ public class EmotionRecordsService {
 
     // Spring > FastAPI 감정 원문 구조화 API 호출
     private final FastApiRecordAnalysisClient  fastApiRecordAnalysisClient;
+
+    // 감정 기록, CBT 세션과 연결된 AI 작업 이력 삭제
+    private final AiJobsRepository aiJobsRepository;
+
+    // 감정 기록에 연결된 CBT 성찰 세션 조회
+    private final ReflectionSessionsRepository reflectionSessionsRepository;
 
     /*
      * 1. 로그인 사용자 확인
@@ -146,5 +155,64 @@ public class EmotionRecordsService {
 
         // JPA Dirty Checking으로 변경 내용을 저장하고 상세 응답 반환
         return EmotionRecordsDetailResponseDto.from(emotionRecord);
+    }
+
+    // 감정 기록 발생 시각 수정
+    @Transactional
+    public EmotionRecordsDetailResponseDto updateEmotionRecord(
+            Long userId,
+            Long emotionRecordId,
+            EmotionRecordsUpdateRequestDto dto
+    ) {
+        // 본인 소유의 감정 기록만 조회
+        EmotionRecords emotionRecord = emotionRecordsRepository
+                .findByIdAndUser_Id(emotionRecordId, userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "감정 기록을 찾을 수 없습니다."
+                ));
+
+        // 발생 시각 수정과 함께 시간대·평일/주말 값 재계산
+        emotionRecord.updateOccurredAt(dto.occurredAt());
+
+        // JPA Dirty Checking으로 수정값 저장 후 상세 응답 반환
+        return EmotionRecordsDetailResponseDto.from(emotionRecord);
+    }
+
+    // 감정 기록과 연결된 파생 데이터를 함께 삭제
+    @Transactional
+    public void deleteEmotionRecord(
+            Long userId,
+            Long emotionRecordId
+    ) {
+        // 본인 소유의 감정 기록만 삭제 가능
+        EmotionRecords emotionRecord = emotionRecordsRepository
+                .findByIdAndUser_Id(emotionRecordId, userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "감정 기록을 찾을 수 없습니다."
+                ));
+
+        // 연결된 CBT 세션이 있으면 해당 세션의 AI 작업 이력 먼저 삭제
+        reflectionSessionsRepository
+                .findByEmotionRecord_IdAndUser_Id(emotionRecordId, userId)
+                .ifPresent(reflectionSessions ->
+                        aiJobsRepository
+                                .deleteAllByUser_IdAndEntityTypeAndEntityId(
+                                        userId,
+                                        AiJobEntityType.REFLECTION,
+                                        reflectionSessions.getId()
+                                )
+                );
+
+        // 감정 기록 자체와 연결된 AI 작업 이력 삭제
+        aiJobsRepository.deleteAllByUser_IdAndEntityTypeAndEntityId(
+                userId,
+                AiJobEntityType.EMOTION_RECORD,
+                emotionRecord.getId()
+        );
+
+        // DB cascade로 CBT 세션, 인지왜곡 라벨, 안전 이벤트 모두 삭제
+        emotionRecordsRepository.delete(emotionRecord);
     }
 }

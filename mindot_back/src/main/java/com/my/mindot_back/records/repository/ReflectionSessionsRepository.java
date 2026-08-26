@@ -9,12 +9,20 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ReflectionSessionsRepository
             extends JpaRepository<ReflectionSessions, Long> {
 
     // 감정 기록에 성찰 세션이 이미 생성되어 있는지 확인 (중복 확인)
     boolean existsByEmotionRecord_Id(Long emotionRecordId);
+
+    // 감정 기록과 로그인 사용자에게 연결된 CBT 성찰 세션 조회
+    Optional <ReflectionSessions> findByEmotionRecord_IdAndUser_Id(
+            Long emotionRecordId,
+            Long userId
+    );
+
     @Query(value = """
             SELECT rs.*
             FROM reflection_sessions rs
