@@ -112,6 +112,7 @@ function EmotionHistory({
   onEmotionHistory,
   onEmotionRecord,
   onCenter,
+  onDailyCare,
   onHome,
 }) {
   // 사용자가 선택한 감정 기록 조회 기간을 보관하는 상태 설정.
@@ -239,6 +240,7 @@ function EmotionHistory({
         onSignUp={onSignUp}
         onEmotionHistory={onEmotionHistory}
         onCenter={onCenter}
+        onDailyCare={onDailyCare}
         onHome={onHome}
       />
 

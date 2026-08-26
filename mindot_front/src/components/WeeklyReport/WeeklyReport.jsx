@@ -49,6 +49,7 @@ function WeeklyReport({
   onSignUp,
   onEmotionHistory,
   onCenter,
+  onDailyCare,
   onBack,
   onHome,
 }) {
@@ -69,6 +70,7 @@ function WeeklyReport({
         onSignUp={onSignUp}
         onEmotionHistory={onEmotionHistory}
         onCenter={onCenter}
+        onDailyCare={onDailyCare}
         onHome={onHome}
       />
 

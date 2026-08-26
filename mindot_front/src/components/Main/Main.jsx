@@ -14,6 +14,7 @@ function Main({
   onEmotionHistory,
   onWeeklyReport,
   onCenter,
+  onDailyCare,
   onHome,
 }) {
   // 사용자의 현재 날짜를 한국어 월·일·요일 형식으로 표시하기 위한 값 생성.
@@ -36,6 +37,7 @@ function Main({
         onSignUp={onSignUp}
         onEmotionHistory={onEmotionHistory}
         onCenter={onCenter}
+        onDailyCare={onDailyCare}
         onHome={onHome}
       />
 

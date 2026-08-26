@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
+import Navbar from '../Navbar/Navbar.jsx'
 import {
   startReflection,
   submitReflectionAnswer,
@@ -42,7 +43,18 @@ const getResponseMessage = (response) => {
 }
 
 // 감정 기록을 바탕으로 생각을 돌아보는 기본 CBT 성찰 화면 컴포넌트 정의.
-function CBT({ emotionRecordId, onHome }) {
+function CBT({
+  emotionRecordId,
+  isAuthenticated,
+  isLoggingOut,
+  onLogin,
+  onLogout,
+  onSignUp,
+  onEmotionHistory,
+  onCenter,
+  onDailyCare,
+  onHome,
+}) {
   // CBT AI 대화창 시작 여부 상태 관리.
   const [isChatStarted, setIsChatStarted] = useState(false)
   // 사용자가 작성 중인 답변 내용 상태 관리.
@@ -132,11 +144,26 @@ function CBT({ emotionRecordId, onHome }) {
   // CBT 소개 화면과 간단한 AI 대화창을 포함한 화면 반환.
   return (
     <main className="cbt-page">
-      <section
-        className="cbt-card"
-        aria-labelledby={isChatStarted ? 'cbt-chat-title' : 'cbt-title'}
-      >
-        <BrandLogo className="cbt-logo" onClick={onHome} />
+      {/* 다른 서비스 화면과 동일한 크기와 기능의 공통 네비게이션 배치. */}
+      <Navbar
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={onLogin}
+        onLogout={onLogout}
+        onSignUp={onSignUp}
+        onEmotionHistory={onEmotionHistory}
+        onCenter={onCenter}
+        onDailyCare={onDailyCare}
+        onHome={onHome}
+      />
+
+      {/* 공통 네비게이션 아래 CBT 성찰 카드를 중앙에 배치하는 영역. */}
+      <div className="cbt-content">
+        <section
+          className="cbt-card"
+          aria-labelledby={isChatStarted ? 'cbt-chat-title' : 'cbt-title'}
+        >
+          <BrandLogo className="cbt-logo" onClick={onHome} />
 
         {!isChatStarted ? (
           <>
@@ -243,7 +270,8 @@ function CBT({ emotionRecordId, onHome }) {
             )}
           </section>
         )}
-      </section>
+        </section>
+      </div>
     </main>
   )
 }
