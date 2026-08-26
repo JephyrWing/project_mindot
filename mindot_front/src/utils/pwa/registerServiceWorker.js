@@ -1,6 +1,6 @@
-// 현재 브라우저의 서비스 워커 지원 여부 확인 후 기본 워커 등록 처리.
+// 프로덕션 환경과 현재 브라우저의 서비스 워커 지원 여부 확인 후 기본 워커 등록 처리.
 export const registerServiceWorker = () => {
-  if (!('serviceWorker' in navigator)) return
+  if (!import.meta.env.PROD || !('serviceWorker' in navigator)) return
 
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(() => {
