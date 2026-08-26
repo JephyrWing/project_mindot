@@ -85,4 +85,31 @@ public interface ReflectionSessionsRepository
             Long userId,
             ReflectionSessionStatus status
     );
+
+    // 패턴 분석에 사용할 사용자 확정 완료 CBT 세션 수 조회
+    long countByUser_IdAndStatusAndUserConfirmedTrue(
+            Long userId,
+            ReflectionSessionStatus status
+    );
+
+    // 패턴 분석에 사용할 서로 다른 날에 발생한 감정기록이 몇개인지 조회 (완료된 CBT만)
+    @Query(value = """
+                    SELECT COUNT(DISTINCT DATE(er.occurred_at AT TIME ZONE er.record_timezone))
+                    FROM reflection_sessions rs
+                    JOIN emotion_records er ON er.id = rs.emotion_record_id
+                    WHERE rs.user_id = :userId
+                        AND rs.status = 'COMPLETED'
+                        AND rs.user_confirmed = true
+                    """, nativeQuery = true)
+    long countDistinctCompletedReflectionDates(
+            @Param("userId") Long userId
+    );
+
+    // 사용자에게 도움이 된 확정 완료 CBT 세션 존재 여부 조회
+    boolean existsByUser_IdAndStatusAndUserConfirmedTrueAndHelpfulnessScoreGreaterThanEqual(
+            Long userId,
+            ReflectionSessionStatus status,
+            short helpfulnessScore
+    );
 }
+
