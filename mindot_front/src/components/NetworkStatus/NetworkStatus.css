@@ -1,0 +1,39 @@
+/* 모든 화면 하단에 네트워크 제한 안내를 고정하는 영역 설정. */
+.network-status {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right, 0px));
+  bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  left: max(16px, env(safe-area-inset-left, 0px));
+  z-index: 1100;
+  display: flex;
+  width: min(calc(100% - 32px), 620px);
+  min-height: 48px;
+  align-items: center;
+  gap: 12px;
+  margin: 0 auto;
+  border: 1px solid var(--mindot-danger);
+  border-radius: 10px;
+  padding: 12px 16px;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+  background: var(--mindot-surface);
+}
+
+/* 오프라인 상태 이름의 경고 색상과 줄바꿈 방지 설정. */
+.network-status strong {
+  flex: 0 0 auto;
+  color: var(--mindot-danger);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* 작은 화면에서 상태 이름과 기능 제한 안내의 세로 배치. */
+@media (max-width: 480px) {
+  .network-status {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+    padding: 11px 14px;
+  }
+}
