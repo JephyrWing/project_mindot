@@ -56,6 +56,18 @@ public class EmotionRecordsController {
         );
     }
 
+    // 현재 감정 기록과 유사한 완료 CBT를 기반으로 패턴 설명 생성하는 API
+    @PostMapping("/{emotionRecordId}/pattern-explanation")
+    public  PatternExplanationResponseDto explainPattern(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long emotionRecordId
+    ) {
+        return emotionRecordsService.explainPattern(
+                userId,
+                emotionRecordId
+        );
+    }
+
     // AI 구조화 결과를 사용자가 수정, 확정하는 API
     @PostMapping("/{emotionRecordId}/confirm")
     public EmotionRecordsDetailResponseDto confirmEmotionRecord(
