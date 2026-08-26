@@ -2,11 +2,9 @@
 package com.my.mindot_back.records.service;
 
 import com.my.mindot_back.records.client.FastApiRecordAnalysisClient;
-import com.my.mindot_back.records.dto.EmotionRecordsDetailResponseDto;
-import com.my.mindot_back.records.dto.EmotionRecordsListItemResponseDto;
-import com.my.mindot_back.records.dto.EmotionRecordsQuickCreateRequestDto;
-import com.my.mindot_back.records.dto.EmotionRecordsQuickCreateResponseDto;
+import com.my.mindot_back.records.dto.*;
 import com.my.mindot_back.records.dto.ai.FastApiRecordAnalysisResponseDto;
+import com.my.mindot_back.records.entity.CompletionStatus;
 import com.my.mindot_back.records.entity.EmotionRecords;
 import com.my.mindot_back.records.repository.EmotionRecordsRepository;
 import com.my.mindot_back.users.entity.Users;
@@ -118,6 +116,35 @@ public class EmotionRecordsService {
                         "감정 기록을 찾을 수 없습니다."
                 ));
         // 조회한 Entity를 상세 응답 DTO로 변환
+        return EmotionRecordsDetailResponseDto.from(emotionRecord);
+    }
+
+    // 사용자가 AI 구조화 결과를 수정, 확정
+    @Transactional
+    public EmotionRecordsDetailResponseDto confirmEmotionRecord(
+            Long userId,
+            Long emotionRecordId,
+            EmotionRecordsConfirmRequestDto dto
+    ){
+        // 본인 소유의 감정 기록만 조회
+        EmotionRecords emotionRecord = emotionRecordsRepository
+                .findByIdAndUser_Id(emotionRecordId, userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "감정 기록을 찾을 수 없습니다."
+                ));
+        // AI 구조화가 끝나 확인 대기 중인 기록만 확정 가능
+        if (emotionRecord.getCompletionStatus()
+                != CompletionStatus.PARTIAL) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "확정할 수 있는 감정 기록 상태가 아닙니다."
+            );
+        }
+        // 사용자 최종값 반영 후 PARTIAL에서 COMPLETE로 변경
+        emotionRecord.confirm(dto);
+
+        // JPA Dirty Checking으로 변경 내용을 저장하고 상세 응답 반환
         return EmotionRecordsDetailResponseDto.from(emotionRecord);
     }
 }

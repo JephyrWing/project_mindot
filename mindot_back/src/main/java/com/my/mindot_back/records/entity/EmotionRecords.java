@@ -1,6 +1,7 @@
 // 사용자의 감정 원문과 AI 구조화 결과를 저장하는 Entity
 package com.my.mindot_back.records.entity;
 
+import com.my.mindot_back.records.dto.EmotionRecordsConfirmRequestDto;
 import com.my.mindot_back.records.dto.ai.FastApiRecordAnalysisResponseDto;
 import com.my.mindot_back.users.entity.Users;
 import jakarta.persistence.*;
@@ -304,6 +305,31 @@ public class EmotionRecords {
 
         // AI 구조화 끝 but 사용자 확인 전 -> PARTIAL
         this.completionStatus = CompletionStatus.PARTIAL;
+    }
+
+    // 사용자가 수정, 확인한 구조화 값을 Entity에 반영
+    public void confirm(
+            EmotionRecordsConfirmRequestDto dto
+    ){
+        // 사용자가 확인한 일반 구조화 필드 반영
+        this.situationText = dto.situationText();
+        this.automaticThought = dto.automaticThought();
+        this.primaryEmotionCode = dto.primaryEmotionCode();
+        this.primaryIntensity = dto.primaryIntensity();
+        this.contextCategory = dto.contextCategory();
+        this.relatedPersonType = dto.relatedPersonType();
+
+        // null로 들어오면 DB의 NOT NULL JSONB 컬럼에 빈 값 저장
+        this.secondaryEmotions = dto.secondaryEmotions() != null
+                ? new ArrayList<>(dto.secondaryEmotions())
+                : new ArrayList<>();
+
+        this.details = dto.details() != null
+                ? new HashMap<>(dto.details())
+                : new HashMap<>();
+
+        // 사용자 확인까지 끝 -> 상태 변경
+        this.completionStatus = CompletionStatus.COMPLETE;
     }
 
     // null 값은 JSONB Map에 넣지 않음 (공통 메서드)
