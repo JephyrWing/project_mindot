@@ -9,6 +9,7 @@ import CBT from './components/CBT/CBT.jsx'
 import WeeklyReport from './components/WeeklyReport/WeeklyReport.jsx'
 import AppIntroModal from './components/AppIntroModal/AppIntroModal.jsx'
 import Center from './components/Center/Center.jsx'
+import NetworkStatus from './components/NetworkStatus/NetworkStatus.jsx'
 import { logout } from './utils/auth/authApi.js'
 import { getAccessToken } from './utils/auth/tokenStorage.js'
 
@@ -170,6 +171,8 @@ function App() {
         />
       )}
       {currentPageContent}
+      {/* 네트워크 연결 해제 시 모든 화면에서 서버 기능 제한 안내 표시. */}
+      <NetworkStatus />
     </>
   )
 }
