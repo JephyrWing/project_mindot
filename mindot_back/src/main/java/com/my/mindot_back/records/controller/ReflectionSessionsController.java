@@ -1,16 +1,15 @@
 // CBT 성찰 세션 시작 요청을 받는 Controller
 package com.my.mindot_back.records.controller;
 
-import com.my.mindot_back.records.dto.ReflectionSessionConfirmRequestDto;
-import com.my.mindot_back.records.dto.ReflectionSessionStartResponseDto;
-import com.my.mindot_back.records.dto.ReflectionSessionTurnRequestDto;
-import com.my.mindot_back.records.dto.ReflectionSessionTurnResponseDto;
+import com.my.mindot_back.records.dto.*;
 import com.my.mindot_back.records.service.ReflectionSessionsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/reflections")
@@ -76,6 +75,46 @@ public class ReflectionSessionsController {
                 userId,
                 sessionId,
                 request
+        );
+    }
+
+    // POST /api/reflections/1/cancel
+    // 사용자가 진행 중인 CBT 성찰 세션을 완전히 중단
+    @PostMapping("/{sessionId}/cancel")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void cancelSession(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long sessionId
+    ) {
+        // 세션 조회, 소유권 확인, OPEN 상태 확인, CANCELLED 변경을 Service가 처리
+        reflectionSessionsService.cancelSession(
+                userId,
+                sessionId
+        );
+    }
+
+    // GET /api/reflections/open
+    // 로그인 사용자의 진행 중인 OPEN CBT 성찰 세션 목록 조회
+    @GetMapping("/open")
+    public List<OpenReflectionSessionResponseDto> getOpenSessions(
+            // JWT 인증 필터가 SecurityContext에 저장한 현재 로그인 사용자 ID
+            @AuthenticationPrincipal Long userId
+    ) {
+        // OPEN 세션 목록 조회는 Service가 처리
+        return reflectionSessionsService.getOpenSessions(userId);
+    }
+
+    // GET /api/reflections/1
+    // 로그인 사용자가 자신의 CBT 성찰 세션과 질문·답변 이력을 조회
+    @GetMapping("/{sessionId}")
+    public ReflectionSessionDetailResponseDto getSessionDetail(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long sessionId
+    ) {
+        // 세션 조회와 소유권 검증은 Service가 처리
+        return reflectionSessionsService.getSessionDetail(
+                userId,
+                sessionId
         );
     }
 }
