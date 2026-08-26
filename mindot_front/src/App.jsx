@@ -10,6 +10,7 @@ import WeeklyReport from './components/WeeklyReport/WeeklyReport.jsx'
 import AppIntroModal from './components/AppIntroModal/AppIntroModal.jsx'
 import Center from './components/Center/Center.jsx'
 import NetworkStatus from './components/NetworkStatus/NetworkStatus.jsx'
+import PwaInstallPrompt from './components/PwaInstallPrompt/PwaInstallPrompt.jsx'
 import { logout } from './utils/auth/authApi.js'
 import { getAccessToken } from './utils/auth/tokenStorage.js'
 
@@ -171,6 +172,8 @@ function App() {
         />
       )}
       {currentPageContent}
+      {/* 시작 안내창을 닫은 뒤 PWA 설치 버튼 또는 수동 설치 방법 안내 표시. */}
+      {!isIntroOpen && <PwaInstallPrompt />}
       {/* 네트워크 연결 해제 시 모든 화면에서 서버 기능 제한 안내 표시. */}
       <NetworkStatus />
     </>
