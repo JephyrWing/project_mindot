@@ -1,10 +1,7 @@
 // 간편 감정 기록 관련 HTTP API를 처리하는 Controller
 package com.my.mindot_back.records.controller;
 
-import com.my.mindot_back.records.dto.EmotionRecordsDetailResponseDto;
-import com.my.mindot_back.records.dto.EmotionRecordsListItemResponseDto;
-import com.my.mindot_back.records.dto.EmotionRecordsQuickCreateRequestDto;
-import com.my.mindot_back.records.dto.EmotionRecordsQuickCreateResponseDto;
+import com.my.mindot_back.records.dto.*;
 import com.my.mindot_back.records.service.EmotionRecordsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +53,21 @@ public class EmotionRecordsController {
         return emotionRecordsService.getEmotionRecordsDetail(
                 userId,
                 emotionRecordId
+        );
+    }
+
+    // AI 구조화 결과를 사용자가 수정, 확정하는 API
+    @PostMapping("/{emotionRecordId}/confirm")
+    public EmotionRecordsDetailResponseDto confirmEmotionRecord(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long emotionRecordId,
+            @Valid @RequestBody EmotionRecordsConfirmRequestDto dto
+    ) {
+        // JWT 사용자 ID와 확정할 감정 기록 정보를 Service에 전달
+        return emotionRecordsService.confirmEmotionRecord(
+                userId,
+                emotionRecordId,
+                dto
         );
     }
 }
