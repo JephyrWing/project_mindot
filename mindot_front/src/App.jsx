@@ -5,10 +5,15 @@ import Login from './components/Login/Login.jsx'
 import SignUp from './components/SignUp/SignUp.jsx'
 import EmotionRecord from './components/EmotionRecord/EmotionRecord.jsx'
 import EmotionHistory from './components/EmotionHistory/EmotionHistory.jsx'
+import EmotionRecordDetail from './components/EmotionRecordDetail/EmotionRecordDetail.jsx'
 import CBT from './components/CBT/CBT.jsx'
 import WeeklyReport from './components/WeeklyReport/WeeklyReport.jsx'
 import AppIntroModal from './components/AppIntroModal/AppIntroModal.jsx'
 import Center from './components/Center/Center.jsx'
+import DailyCare from './components/DailyCare/DailyCare.jsx'
+import LoginRequiredModal from './components/LoginRequiredModal/LoginRequiredModal.jsx'
+import NetworkStatus from './components/NetworkStatus/NetworkStatus.jsx'
+import PwaInstallPrompt from './components/PwaInstallPrompt/PwaInstallPrompt.jsx'
 import { logout } from './utils/auth/authApi.js'
 import { getAccessToken } from './utils/auth/tokenStorage.js'
 
@@ -24,14 +29,33 @@ function App() {
   )
   // 중복 로그아웃 요청을 방지하기 위한 진행 상태 관리.
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  // 비로그인 사용자의 보호 기능 선택 시 안내 모달 표시 상태 관리.
+  const [isLoginRequiredOpen, setIsLoginRequiredOpen] = useState(false)
   // CBT 성찰을 시작할 저장 완료 감정 기록 식별자 상태 관리.
   const [cbtEmotionRecordId, setCbtEmotionRecordId] = useState(null)
+  // 감정 기록 목록에서 선택한 상세 조회 대상 식별자 상태 관리.
+  const [selectedEmotionRecordId, setSelectedEmotionRecordId] = useState(null)
   // 각 화면의 로고 선택 시 새로고침 없이 메인페이지로 이동하는 처리.
   const moveToMain = () => setCurrentPage('main')
   // 로그인 성공 후 인증 상태 반영과 메인페이지 이동 처리.
   const handleLoginSuccess = () => {
     setIsAuthenticated(true)
+    setIsLoginRequiredOpen(false)
     moveToMain()
+  }
+  // 로그인 여부 확인 후 보호 화면 이동 또는 로그인 필요 안내 표시 처리.
+  const moveToProtectedPage = (pageName) => {
+    if (!isAuthenticated) {
+      setIsLoginRequiredOpen(true)
+      return
+    }
+
+    setCurrentPage(pageName)
+  }
+  // 로그인 필요 안내를 닫고 로그인 화면으로 이동하는 처리.
+  const moveToLoginFromRequiredModal = () => {
+    setIsLoginRequiredOpen(false)
+    setCurrentPage('login')
   }
   // 로그아웃 API 호출 후 로컬 인증 상태 해제와 메인페이지 이동 처리.
   const handleLogout = async () => {
@@ -53,6 +77,11 @@ function App() {
   const handleCbtOpen = (emotionRecordId) => {
     setCbtEmotionRecordId(emotionRecordId)
     setCurrentPage('cbt')
+  }
+  // 목록에서 선택한 감정 기록 식별자를 보관하고 상세 화면으로 이동하는 처리.
+  const handleEmotionRecordDetailOpen = (emotionRecordId) => {
+    setSelectedEmotionRecordId(emotionRecordId)
+    setCurrentPage('emotion-record-detail')
   }
   // 현재 화면 상태에 따라 렌더링할 페이지 컴포넌트 보관.
   let currentPageContent
@@ -83,10 +112,11 @@ function App() {
         onLogin={() => setCurrentPage('login')}
         onLogout={handleLogout}
         onSignUp={() => setCurrentPage('signup')}
-        onEmotionHistory={() => setCurrentPage('emotion-history')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
         onCenter={() => setCurrentPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
         onCBT={handleCbtOpen}
-        onWeeklyReport={() => setCurrentPage('weekly-report')}
+        onWeeklyReport={() => moveToProtectedPage('weekly-report')}
         onHome={moveToMain}
       />
     )
@@ -99,9 +129,28 @@ function App() {
         onLogin={() => setCurrentPage('login')}
         onLogout={handleLogout}
         onSignUp={() => setCurrentPage('signup')}
-        onEmotionHistory={() => setCurrentPage('emotion-history')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onRecordDetail={handleEmotionRecordDetailOpen}
         onEmotionRecord={() => setCurrentPage('emotion-record')}
         onCenter={() => setCurrentPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
+        onHome={moveToMain}
+      />
+    )
+  } else if (currentPage === 'emotion-record-detail') {
+    // 감정 기록 목록에서 선택한 한 건의 상세 조회 화면 렌더링.
+    currentPageContent = (
+      <EmotionRecordDetail
+        emotionRecordId={selectedEmotionRecordId}
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={() => setCurrentPage('login')}
+        onLogout={handleLogout}
+        onSignUp={() => setCurrentPage('signup')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onCenter={() => setCurrentPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
+        onBack={() => setCurrentPage('emotion-history')}
         onHome={moveToMain}
       />
     )
@@ -110,6 +159,14 @@ function App() {
     currentPageContent = (
       <CBT
         emotionRecordId={cbtEmotionRecordId}
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={() => setCurrentPage('login')}
+        onLogout={handleLogout}
+        onSignUp={() => setCurrentPage('signup')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onCenter={() => setCurrentPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
         onHome={moveToMain}
       />
     )
@@ -122,8 +179,9 @@ function App() {
         onLogin={() => setCurrentPage('login')}
         onLogout={handleLogout}
         onSignUp={() => setCurrentPage('signup')}
-        onEmotionHistory={() => setCurrentPage('emotion-history')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
         onCenter={() => setCurrentPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
         onBack={moveToMain}
         onHome={moveToMain}
       />
@@ -137,9 +195,26 @@ function App() {
         onLogin={() => setCurrentPage('login')}
         onLogout={handleLogout}
         onSignUp={() => setCurrentPage('signup')}
-        onEmotionHistory={() => setCurrentPage('emotion-history')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
         onCenter={() => setCurrentPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
         onHome={moveToMain}
+      />
+    )
+  } else if (currentPage === 'daily-care') {
+    // 사이드바에서 마음 돌봄 추천 선택 시 기본 추천 화면 렌더링.
+    currentPageContent = (
+      <DailyCare
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={() => setCurrentPage('login')}
+        onLogout={handleLogout}
+        onSignUp={() => setCurrentPage('signup')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onCenter={() => setCurrentPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
+        onHome={moveToMain}
+        onCBT={() => setCurrentPage('cbt')}
       />
     )
   } else {
@@ -152,9 +227,10 @@ function App() {
         onLogout={handleLogout}
         onSignUp={() => setCurrentPage('signup')}
         onEmotionRecord={() => setCurrentPage('emotion-record')}
-        onEmotionHistory={() => setCurrentPage('emotion-history')}
-        onWeeklyReport={() => setCurrentPage('weekly-report')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onWeeklyReport={() => moveToProtectedPage('weekly-report')}
         onCenter={() => setCurrentPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
         onHome={moveToMain}
       />
     )
@@ -170,6 +246,17 @@ function App() {
         />
       )}
       {currentPageContent}
+      {/* 비로그인 사용자의 보호 기능 선택 시 로그인 필요 안내 표시. */}
+      {isLoginRequiredOpen && (
+        <LoginRequiredModal
+          onClose={() => setIsLoginRequiredOpen(false)}
+          onLogin={moveToLoginFromRequiredModal}
+        />
+      )}
+      {/* 시작 안내창을 닫은 뒤 PWA 설치 버튼 또는 수동 설치 방법 안내 표시. */}
+      {!isIntroOpen && <PwaInstallPrompt />}
+      {/* 네트워크 연결 해제 시 모든 화면에서 서버 기능 제한 안내 표시. */}
+      <NetworkStatus />
     </>
   )
 }

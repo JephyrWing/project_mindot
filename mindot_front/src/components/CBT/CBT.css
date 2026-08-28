@@ -1,17 +1,23 @@
-/* CBT 성찰 카드를 화면 중앙에 배치하는 단색 배경 영역 설정. */
+/* 공통 네비게이션과 CBT 성찰 내용을 담는 단색 배경 영역 설정. */
 .cbt-page {
-  display: flex;
   min-height: 100vh;
   min-height: 100dvh;
+  color: var(--mindot-text);
+  background: var(--mindot-page);
+}
+
+/* 공통 네비게이션 아래 CBT 성찰 카드를 중앙에 배치하는 영역 설정. */
+.cbt-content {
+  display: flex;
+  min-height: calc(100vh - 72px - env(safe-area-inset-top, 0px));
+  min-height: calc(100dvh - 72px - env(safe-area-inset-top, 0px));
   align-items: center;
   justify-content: center;
   padding:
-    calc(20px + env(safe-area-inset-top, 0px))
+    40px
     calc(20px + env(safe-area-inset-right, 0px))
     calc(20px + env(safe-area-inset-bottom, 0px))
     calc(20px + env(safe-area-inset-left, 0px));
-  color: var(--mindot-text);
-  background: var(--mindot-page);
 }
 
 /* CBT 제목과 대화 영역을 담는 단일 테두리 카드 설정. */
@@ -95,6 +101,85 @@
 .cbt-start-button:disabled {
   color: var(--mindot-disabled);
   border-color: var(--mindot-border);
+  background: var(--mindot-surface-muted);
+  cursor: not-allowed;
+}
+
+/* CBT 시작에 필요한 자동 사고 보완 항목의 구분선 기반 세로 배치. */
+.cbt-automatic-thought-form {
+  display: grid;
+  gap: 12px;
+  border-top: 1px solid var(--mindot-border);
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 20px 0;
+}
+
+/* 자동 사고 보완 영역 제목의 본문 단계 크기 설정. */
+.cbt-automatic-thought-form h3 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+/* 자동 사고 보완 이유를 전달하는 안내 문구 설정. */
+.cbt-automatic-thought-form > div > p {
+  margin: 8px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* 자동 사고 입력 항목 이름의 본문 강조. */
+.cbt-automatic-thought-form label > span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--mindot-text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* 자동 사고 입력창의 크기와 단일 테두리 설정. */
+.cbt-automatic-thought-form textarea {
+  width: 100%;
+  min-height: 110px;
+  resize: vertical;
+  border: 1px solid var(--mindot-border-strong);
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--mindot-text);
+  font: inherit;
+  line-height: 1.7;
+  background: var(--mindot-surface);
+}
+
+/* 활성화된 자동 사고 입력창 위의 옅은 파란색 강조. */
+.cbt-automatic-thought-form textarea:not(:disabled):hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+/* 자동 사고 저장 후 CBT 시작 버튼의 핵심 파란색 설정. */
+.cbt-automatic-thought-form button {
+  min-height: 48px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  background: var(--mindot-primary);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 활성화된 자동 사고 저장 버튼 위의 진한 파란색 강조. */
+.cbt-automatic-thought-form button:not(:disabled):hover {
+  border-color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-strong);
+}
+
+/* 자동 사고 미입력 또는 저장 중 버튼의 비활성 상태 설정. */
+.cbt-automatic-thought-form button:disabled {
+  border-color: var(--mindot-border);
+  color: var(--mindot-disabled);
   background: var(--mindot-surface-muted);
   cursor: not-allowed;
 }
@@ -254,9 +339,182 @@
   background: var(--mindot-primary-strong);
 }
 
+/* CBT 최종 결과 확인 항목을 구분선 기반 세로 영역으로 배치. */
+.cbt-confirm-form {
+  display: grid;
+  gap: 20px;
+  margin-top: 20px;
+  border-top: 1px solid var(--mindot-border);
+  padding-top: 24px;
+}
+
+/* CBT 최종 결과 확인 제목의 본문 단계 크기 설정. */
+.cbt-confirm-form header h2 {
+  margin: 0;
+  font-size: 1.5625rem;
+}
+
+/* CBT 최종 결과 확인 목적을 알려 주는 안내 문구 설정. */
+.cbt-confirm-form header p,
+.cbt-distortion-reviews > p {
+  margin: 8px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* CBT 최종 결과의 텍스트 입력 항목 이름 강조. */
+.cbt-confirm-form > label > span,
+.cbt-confirm-scores label > span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--mindot-text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* CBT 최종 결과 텍스트 입력창의 단일 테두리 설정. */
+.cbt-confirm-form textarea {
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+  border: 1px solid var(--mindot-border-strong);
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--mindot-text);
+  font: inherit;
+  line-height: 1.7;
+  background: var(--mindot-surface);
+}
+
+/* 활성화된 CBT 최종 결과 입력창 위의 옅은 파란색 강조. */
+.cbt-confirm-form textarea:not(:disabled):hover,
+.cbt-confirm-scores input:not(:disabled):hover,
+.cbt-distortion-reviews select:not(:disabled):hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+/* 확신도와 감정 강도 및 도움 정도 입력 항목의 두 열 배치. */
+.cbt-confirm-scores {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  border-top: 1px solid var(--mindot-border);
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 20px 0;
+}
+
+/* CBT 최종 점수 숫자 입력창의 크기와 단일 테두리 설정. */
+.cbt-confirm-scores input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--mindot-border-strong);
+  border-radius: 8px;
+  padding: 0 12px;
+  color: var(--mindot-text);
+  font: inherit;
+  background: var(--mindot-surface);
+}
+
+/* 인지왜곡 검토 영역의 브라우저 기본 테두리 제거. */
+.cbt-distortion-reviews {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* 인지왜곡 검토 제목의 본문 강조. */
+.cbt-distortion-reviews legend {
+  padding: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+/* 인지왜곡 이름과 사용자 검토 선택 상자의 양쪽 배치. */
+.cbt-distortion-reviews label {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 140px;
+  align-items: center;
+  gap: 14px;
+  border-top: 1px solid var(--mindot-border);
+  padding-top: 12px;
+}
+
+/* 인지왜곡 이름의 본문 글자색과 줄 간격 설정. */
+.cbt-distortion-reviews label > span {
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+/* 인지왜곡 사용자 검토 선택 상자의 크기와 단일 테두리 설정. */
+.cbt-distortion-reviews select {
+  min-height: 44px;
+  border: 1px solid var(--mindot-border-strong);
+  border-radius: 8px;
+  padding: 0 10px;
+  color: var(--mindot-text);
+  font: inherit;
+  background: var(--mindot-surface);
+}
+
+/* CBT 최종 결과 확정 버튼의 핵심 파란색과 터치 영역 설정. */
+.cbt-confirm-form > button {
+  min-height: 48px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  background: var(--mindot-primary);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 활성화된 CBT 최종 결과 확정 버튼 위의 진한 파란색 강조. */
+.cbt-confirm-form > button:not(:disabled):hover {
+  border-color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-strong);
+}
+
+/* CBT 최종 결과 확정 중 버튼의 비활성 상태 설정. */
+.cbt-confirm-form > button:disabled {
+  border-color: var(--mindot-border);
+  color: var(--mindot-disabled);
+  background: var(--mindot-surface-muted);
+  cursor: wait;
+}
+
+/* CBT 최종 결과 확정 완료 안내의 구분선과 중앙 정렬 설정. */
+.cbt-confirmed {
+  margin-top: 20px;
+  border-top: 1px solid var(--mindot-border);
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 24px 0;
+  text-align: center;
+}
+
+/* CBT 최종 결과 확정 완료 제목의 성공 색상 강조. */
+.cbt-confirmed strong {
+  color: var(--mindot-success);
+}
+
+/* CBT 최종 결과 확정 완료 안내 문구 설정. */
+.cbt-confirmed p {
+  margin: 8px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
 /* 작은 화면에서 CBT 카드 여백과 입력 요소 크기를 조정. */
 @media (max-width: 480px) {
-  .cbt-page {
+  .cbt-content {
     align-items: flex-start;
     padding-right: 14px;
     padding-left: 14px;
@@ -268,7 +526,18 @@
   }
 
   .cbt-chat-form textarea,
-  .cbt-chat-form button {
+  .cbt-chat-form button,
+  .cbt-automatic-thought-form textarea,
+  .cbt-automatic-thought-form button,
+  .cbt-confirm-form textarea,
+  .cbt-confirm-form input,
+  .cbt-confirm-form select,
+  .cbt-confirm-form button {
     font-size: 16px;
+  }
+
+  .cbt-confirm-scores,
+  .cbt-distortion-reviews label {
+    grid-template-columns: 1fr;
   }
 }

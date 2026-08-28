@@ -12,6 +12,7 @@ function Navbar({
   onSignUp,
   onEmotionHistory,
   onCenter,
+  onDailyCare,
   onHome,
 }) {
   // 화면별 추가 클래스와 공통 네비게이션 클래스 결합.
@@ -29,6 +30,7 @@ function Navbar({
         onSignUp={onSignUp}
         onEmotionHistory={onEmotionHistory}
         onCenter={onCenter}
+        onDailyCare={onDailyCare}
         onHome={onHome}
       />
 

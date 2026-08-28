@@ -1,0 +1,464 @@
+/* 감정 기록 상세 화면의 전체 높이와 단색 배경 설정. */
+.emotion-detail-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  color: var(--mindot-text);
+  background: var(--mindot-page);
+}
+
+/* 상세 제목과 조회 결과를 담는 흰색 단일 테두리 영역 설정. */
+.emotion-detail-content {
+  width: min(calc(100% - 48px), 720px);
+  margin: 56px auto 32px;
+  border: 1px solid var(--mindot-border);
+  border-radius: 14px;
+  padding: 36px;
+  background: var(--mindot-surface);
+}
+
+/* 상세 화면 상단 프로젝트 로고 크기 설정. */
+.emotion-detail-logo {
+  color: var(--mindot-text);
+  font-size: 15px;
+}
+
+/* 상세 화면 제목과 목록 이동 버튼의 양쪽 배치. */
+.emotion-detail-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 32px;
+}
+
+/* 감정 기록 상세 제목의 Noto Sans KR 크기 설정. */
+.emotion-detail-heading h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+/* 상세 화면의 목적을 알려 주는 안내 문구 설정. */
+.emotion-detail-heading p {
+  margin: 10px 0 0;
+  color: var(--mindot-text-secondary);
+  line-height: 1.7;
+}
+
+/* 상세 화면에서 목록으로 돌아가는 보조 버튼 설정. */
+.emotion-detail-heading button,
+.emotion-detail-state-actions button {
+  min-height: 44px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  padding: 0 18px;
+  color: var(--mindot-primary-strong);
+  font: inherit;
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 상세 화면의 보조 버튼 위에 옅은 파란색 강조. */
+.emotion-detail-heading button:hover,
+.emotion-detail-state-actions button:hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+/* 상세 조회 결과의 상단 정보와 본문 영역 간격 설정. */
+.emotion-detail-result {
+  margin-top: 28px;
+  border-top: 1px solid var(--mindot-border);
+}
+
+/* 대표 감정 정보와 기록 시각의 양쪽 배치. */
+.emotion-detail-summary {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 0;
+  border-bottom: 1px solid var(--mindot-border);
+}
+
+/* 대표 감정과 강도 및 상황 문구의 가로 배치. */
+.emotion-detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+
+/* 대표 감정의 핵심 파란색 강조. */
+.emotion-detail-tags strong {
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: #ffffff;
+  font-size: 13px;
+  background: var(--mindot-primary);
+}
+
+/* 감정 강도와 상황에 옅은 파란색 단색 적용. */
+.emotion-detail-tags span {
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--mindot-primary-strong);
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--mindot-primary-soft);
+}
+
+/* 감정 기록 작성 날짜와 시간의 보조 글자색 설정. */
+.emotion-detail-summary time {
+  flex: 0 0 auto;
+  color: var(--mindot-text-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* 실제 감정 발생 시각을 수정하는 영역의 구분선과 여백 설정. */
+.emotion-detail-time-editor {
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 24px 0;
+}
+
+/* 감정 발생 시각 수정 제목의 본문 단계 크기 설정. */
+.emotion-detail-time-editor h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+/* 감정 발생 시각 수정 목적을 설명하는 보조 문구 설정. */
+.emotion-detail-time-editor > div > p {
+  margin: 8px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 날짜 및 시간 입력창과 수정 버튼의 가로 배치. */
+.emotion-detail-time-editor form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+/* 날짜 및 시간 입력 항목 이름의 세미 볼드 설정. */
+.emotion-detail-time-editor label > span {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* 감정 발생 날짜 및 시간 입력창의 크기와 단일 테두리 설정. */
+.emotion-detail-time-editor input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--mindot-border-strong);
+  border-radius: 8px;
+  padding: 0 12px;
+  color: var(--mindot-text);
+  font: inherit;
+  background: var(--mindot-surface);
+}
+
+/* 날짜 및 시간 입력창 위에 옅은 파란색 강조. */
+.emotion-detail-time-editor input:not(:disabled):hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+/* 잘못된 감정 발생 시각 입력의 경고 테두리 설정. */
+.emotion-detail-time-editor input[aria-invalid='true'] {
+  border-color: var(--mindot-danger);
+}
+
+/* 감정 발생 시각 수정 버튼의 핵심 파란색과 터치 영역 설정. */
+.emotion-detail-time-editor button {
+  min-height: 44px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  padding: 0 18px;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  background: var(--mindot-primary);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 활성화된 감정 발생 시각 수정 버튼 위의 진한 파란색 강조. */
+.emotion-detail-time-editor button:not(:disabled):hover {
+  border-color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-strong);
+}
+
+/* 감정 발생 시각 수정 중 버튼의 비활성 상태 설정. */
+.emotion-detail-time-editor button:disabled {
+  border-color: var(--mindot-border);
+  color: var(--mindot-disabled);
+  background: var(--mindot-surface-muted);
+  cursor: wait;
+}
+
+/* 감정 발생 시각 수정 결과 문구의 공통 여백과 크기 설정. */
+.emotion-detail-time-editor > p {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* 감정 발생 시각 수정 성공 문구의 녹색 강조. */
+.emotion-detail-time-editor > p.is-success {
+  color: var(--mindot-success);
+}
+
+/* 감정 발생 시각 수정 실패 문구의 경고 색상 강조. */
+.emotion-detail-time-editor > p.is-error {
+  color: var(--mindot-danger);
+}
+
+/* 사용자가 작성한 감정 원문 영역의 구분선과 여백 설정. */
+.emotion-detail-section {
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 24px 0;
+}
+
+/* 감정 원문 항목 제목의 본문 단계 크기 설정. */
+.emotion-detail-section h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+/* 감정 원문의 충분한 대비와 줄 간격 설정. */
+.emotion-detail-section p {
+  margin: 12px 0 0;
+  color: var(--mindot-text-secondary);
+  line-height: 1.8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* 구조화된 상세 항목을 중첩 카드 없이 세로 목록으로 배치. */
+.emotion-detail-list {
+  margin: 0;
+}
+
+/* 상세 항목 이름과 값의 두 열 배치 및 행 구분선 설정. */
+.emotion-detail-list > div {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 20px;
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 18px 0;
+}
+
+/* 상세 항목 이름의 보조 글자색과 세미 볼드 설정. */
+.emotion-detail-list dt {
+  color: var(--mindot-text-secondary);
+  font-weight: 600;
+}
+
+/* 상세 항목 값의 본문 대비와 줄바꿈 설정. */
+.emotion-detail-list dd {
+  margin: 0;
+  color: var(--mindot-text);
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* 감정 기록과 연결된 CBT 성찰 데이터를 삭제하는 영역의 여백 설정. */
+.emotion-detail-delete {
+  padding-top: 28px;
+}
+
+/* 감정 기록 삭제 제목의 본문 단계 크기 설정. */
+.emotion-detail-delete h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+/* 감정 기록 삭제 목적을 설명하는 보조 문구 설정. */
+.emotion-detail-delete > div:first-child > p {
+  margin: 8px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 감정 기록 삭제 확인 영역을 여는 경고 버튼 설정. */
+.emotion-detail-delete-open {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--mindot-danger);
+  border-radius: 8px;
+  margin-top: 18px;
+  color: var(--mindot-danger);
+  font: inherit;
+  font-weight: 700;
+  background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 감정 기록 삭제 버튼 위에 옅은 경고 배경 강조. */
+.emotion-detail-delete-open:hover {
+  background: #fff2f2;
+}
+
+/* 최종 삭제 전 경고 문구와 버튼을 구분선 영역에 배치. */
+.emotion-detail-delete-confirm {
+  margin-top: 18px;
+  border-top: 1px solid var(--mindot-danger);
+  border-bottom: 1px solid var(--mindot-danger);
+  padding: 18px 0;
+}
+
+/* 삭제할 데이터 범위를 알리는 경고 제목 강조. */
+.emotion-detail-delete-confirm > strong {
+  color: var(--mindot-danger);
+}
+
+/* 연결된 CBT 성찰 데이터 삭제 경고 문구 설정. */
+.emotion-detail-delete-confirm > p {
+  margin: 8px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* 삭제 취소와 최종 확인 버튼의 오른쪽 배치. */
+.emotion-detail-delete-confirm > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* 삭제 확인 영역 버튼의 공통 크기와 흰색 배경 설정. */
+.emotion-detail-delete-confirm button {
+  min-width: 100px;
+  min-height: 44px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  padding: 0 16px;
+  color: var(--mindot-primary-strong);
+  font: inherit;
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 삭제 취소 버튼 위에 옅은 파란색 강조. */
+.emotion-detail-delete-confirm button:not(:disabled):hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+/* 최종 삭제 확인 버튼의 경고 색상 설정. */
+.emotion-detail-delete-confirm button.emotion-detail-delete-confirm-button {
+  border-color: var(--mindot-danger);
+  color: #ffffff;
+  background: var(--mindot-danger);
+}
+
+/* 최종 삭제 확인 버튼 위의 진한 경고 색상 강조. */
+.emotion-detail-delete-confirm button.emotion-detail-delete-confirm-button:not(:disabled):hover {
+  border-color: #b4232d;
+  background: #b4232d;
+}
+
+/* 감정 기록 삭제 진행 중 버튼의 비활성 상태 설정. */
+.emotion-detail-delete-confirm button:disabled {
+  border-color: var(--mindot-border);
+  color: var(--mindot-disabled);
+  background: var(--mindot-surface-muted);
+  cursor: wait;
+}
+
+/* 감정 기록 삭제 실패 안내 문구의 경고 색상 설정. */
+.emotion-detail-delete-error {
+  margin: 10px 0 0;
+  color: var(--mindot-danger);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* 상세 조회 중 또는 실패 상태를 단순 구분선 영역으로 표시. */
+.emotion-detail-state {
+  margin-top: 28px;
+  border-top: 1px solid var(--mindot-border);
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 48px 20px;
+  text-align: center;
+}
+
+/* 상세 조회 상태 제목의 본문 단계 크기 설정. */
+.emotion-detail-state h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+/* 상세 조회 상태의 보조 안내 문구 설정. */
+.emotion-detail-state p {
+  margin: 10px 0 0;
+  color: var(--mindot-text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 상세 조회 실패 후 이동과 재조회 버튼의 중앙 배치. */
+.emotion-detail-state-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+/* 작은 화면에서 상세 영역과 정보 목록을 세로 중심으로 조정. */
+@media (max-width: 480px) {
+  .emotion-detail-content {
+    width: calc(100% - 28px);
+    margin: 28px auto 20px;
+    border-radius: 12px;
+    padding: 28px 20px;
+  }
+
+  .emotion-detail-heading,
+  .emotion-detail-summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .emotion-detail-heading button {
+    width: 100%;
+  }
+
+  .emotion-detail-list > div {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .emotion-detail-time-editor form {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .emotion-detail-delete-confirm > div {
+    flex-direction: column;
+  }
+
+  .emotion-detail-delete-confirm button {
+    width: 100%;
+  }
+
+  .emotion-detail-state-actions {
+    flex-direction: column;
+  }
+}

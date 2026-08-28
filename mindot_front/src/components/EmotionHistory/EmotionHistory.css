@@ -204,14 +204,6 @@
   cursor: not-allowed;
 }
 
-/* 임시 기록임을 알려 주는 안내 문구 설정. */
-.emotion-history-preview-notice {
-  margin: 14px 2px 0;
-  color: var(--mindot-text-muted);
-  font-size: 12px;
-  text-align: right;
-}
-
 /* 선택 조건에 맞는 감정 기록 카드의 세로 목록 배치. */
 .emotion-history-list {
   display: grid;
@@ -221,10 +213,31 @@
 
 /* 감정과 시각 및 기록 내용을 보여 주는 단일 테두리 카드 설정. */
 .emotion-history-item {
+  display: block;
+  width: 100%;
   border: 1px solid var(--mindot-border);
   border-radius: 12px;
   padding: 20px;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+/* 감정 기록 카드 위에 커서를 올렸을 때 상세 조회 가능 여부 강조. */
+.emotion-history-item:hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+/* 키보드로 감정 기록 카드를 선택했을 때 명확한 초점 표시 설정. */
+.emotion-history-item:focus-visible {
+  border-color: var(--mindot-primary);
+  outline: 2px solid var(--mindot-primary-line);
+  outline-offset: 2px;
 }
 
 /* 감정 분류 정보와 작성 시각의 양쪽 배치. */
@@ -271,7 +284,8 @@
 }
 
 /* 기록 원문의 충분한 대비와 줄 간격 설정. */
-.emotion-history-item > p {
+.emotion-history-item-content {
+  display: block;
   margin: 16px 0 0;
   color: var(--mindot-text-secondary);
   line-height: 1.7;
@@ -437,10 +451,6 @@
 
   .emotion-history-search button {
     width: 100%;
-  }
-
-  .emotion-history-preview-notice {
-    text-align: left;
   }
 
   .emotion-history-item-header {

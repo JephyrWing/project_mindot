@@ -82,7 +82,7 @@ public class Reports {
 
     // 어느 시점까지의 원본 데이터를 바탕으로 리포트 만들었는지 표시
     @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "source_snapshot_at", nullable = false, updatable = false)
+    @Column(name = "source_snapshot_at", nullable = false)
     private Instant sourceSnapshotAt;
     // Instant: 시간도 필요
 
@@ -97,7 +97,33 @@ public class Reports {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    // DB 저장전 원본, 생성 시각을 현재 시각으로 설정ㅈ
+    // 사용자 감정 기록을 바탕으로 주간 리포트 entity 생성
+    public static Reports createWeekly(
+            Users user,
+            LocalDate periodStart,
+            LocalDate periodEnd,
+            Map<String, Object> content
+    ){
+        Reports reports = new Reports();
+
+        reports.user = user;
+        reports.reportType = ReportType.WEEKLY;
+        reports.periodStart = periodStart;
+        reports.periodEnd = periodEnd;
+        reports.content = new HashMap<>(content);
+
+        return reports;
+    }
+
+    // 같은 주의 최신 감정 기록 기준으로 리포트 집계 결과 갱신
+    public void updateContent(
+            Map<String, Object> content
+    ) {
+        this.content = new HashMap<>(content);
+        this.sourceSnapshotAt = Instant.now();
+    }
+
+    // DB 저장전 원본, 생성 시각을 현재 시각으로 설정
     @PrePersist
     void prePersist() {
         Instant now = Instant.now();
