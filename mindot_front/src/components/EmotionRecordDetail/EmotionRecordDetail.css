@@ -272,6 +272,124 @@
   overflow-wrap: anywhere;
 }
 
+/* 감정 기록과 연결된 CBT 성찰 데이터를 삭제하는 영역의 여백 설정. */
+.emotion-detail-delete {
+  padding-top: 28px;
+}
+
+/* 감정 기록 삭제 제목의 본문 단계 크기 설정. */
+.emotion-detail-delete h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+/* 감정 기록 삭제 목적을 설명하는 보조 문구 설정. */
+.emotion-detail-delete > div:first-child > p {
+  margin: 8px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 감정 기록 삭제 확인 영역을 여는 경고 버튼 설정. */
+.emotion-detail-delete-open {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--mindot-danger);
+  border-radius: 8px;
+  margin-top: 18px;
+  color: var(--mindot-danger);
+  font: inherit;
+  font-weight: 700;
+  background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 감정 기록 삭제 버튼 위에 옅은 경고 배경 강조. */
+.emotion-detail-delete-open:hover {
+  background: #fff2f2;
+}
+
+/* 최종 삭제 전 경고 문구와 버튼을 구분선 영역에 배치. */
+.emotion-detail-delete-confirm {
+  margin-top: 18px;
+  border-top: 1px solid var(--mindot-danger);
+  border-bottom: 1px solid var(--mindot-danger);
+  padding: 18px 0;
+}
+
+/* 삭제할 데이터 범위를 알리는 경고 제목 강조. */
+.emotion-detail-delete-confirm > strong {
+  color: var(--mindot-danger);
+}
+
+/* 연결된 CBT 성찰 데이터 삭제 경고 문구 설정. */
+.emotion-detail-delete-confirm > p {
+  margin: 8px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* 삭제 취소와 최종 확인 버튼의 오른쪽 배치. */
+.emotion-detail-delete-confirm > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* 삭제 확인 영역 버튼의 공통 크기와 흰색 배경 설정. */
+.emotion-detail-delete-confirm button {
+  min-width: 100px;
+  min-height: 44px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  padding: 0 16px;
+  color: var(--mindot-primary-strong);
+  font: inherit;
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 삭제 취소 버튼 위에 옅은 파란색 강조. */
+.emotion-detail-delete-confirm button:not(:disabled):hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+/* 최종 삭제 확인 버튼의 경고 색상 설정. */
+.emotion-detail-delete-confirm button.emotion-detail-delete-confirm-button {
+  border-color: var(--mindot-danger);
+  color: #ffffff;
+  background: var(--mindot-danger);
+}
+
+/* 최종 삭제 확인 버튼 위의 진한 경고 색상 강조. */
+.emotion-detail-delete-confirm button.emotion-detail-delete-confirm-button:not(:disabled):hover {
+  border-color: #b4232d;
+  background: #b4232d;
+}
+
+/* 감정 기록 삭제 진행 중 버튼의 비활성 상태 설정. */
+.emotion-detail-delete-confirm button:disabled {
+  border-color: var(--mindot-border);
+  color: var(--mindot-disabled);
+  background: var(--mindot-surface-muted);
+  cursor: wait;
+}
+
+/* 감정 기록 삭제 실패 안내 문구의 경고 색상 설정. */
+.emotion-detail-delete-error {
+  margin: 10px 0 0;
+  color: var(--mindot-danger);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 /* 상세 조회 중 또는 실패 상태를 단순 구분선 영역으로 표시. */
 .emotion-detail-state {
   margin-top: 28px;
@@ -330,6 +448,14 @@
   .emotion-detail-time-editor form {
     grid-template-columns: 1fr;
     align-items: stretch;
+  }
+
+  .emotion-detail-delete-confirm > div {
+    flex-direction: column;
+  }
+
+  .emotion-detail-delete-confirm button {
+    width: 100%;
   }
 
   .emotion-detail-state-actions {
