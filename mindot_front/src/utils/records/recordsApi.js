@@ -20,6 +20,14 @@ export const createRecordsApi = (client) => ({
 
     return data
   },
+  // 선택한 감정 기록의 실제 감정 발생 시각을 수정하는 처리.
+  updateEmotionRecordOccurredAt: async (emotionRecordId, occurredAt) => {
+    const { data } = await client.patch(`/api/records/${emotionRecordId}`, {
+      occurredAt,
+    })
+
+    return data
+  },
 })
 
 // 공통 HTTP 클라이언트를 사용하는 감정 기록 API 함수 제공.
@@ -27,4 +35,5 @@ export const {
   createQuickRecord,
   getEmotionRecords,
   getEmotionRecordDetail,
+  updateEmotionRecordOccurredAt,
 } = createRecordsApi(httpClient)
