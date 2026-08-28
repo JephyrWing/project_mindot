@@ -57,6 +57,7 @@ from cbt_agent import (
     _blocked_routes_from_history,
     _build_deterministic_fallback,
     _classify_answer_disposition,
+    _completion_candidates,
     _confirmation_candidate_available,
     _classify_explicit_user_intent,
     _explicit_feedback_intent,
@@ -69,13 +70,14 @@ from cbt_agent import (
     _hard_blocked_route_families,
     _log_fallback_usage,
     _resolved_but_irrelevant_topics,
+    _semantic_route_definitions_payload,
     _to_response,
     _validate_analysis_draft,
     _write_question,
 )
 
 
-CBT_AGENT_PROMPT_VERSION = "cbt-session-agent-quality-v1"
+CBT_AGENT_PROMPT_VERSION = "cbt-session-agent-quality-v2"
 CBT_AGENT_SESSION_TTL_SECONDS = int(
     os.getenv("CBT_AGENT_SESSION_TTL_SECONDS", "600")
 )
@@ -219,116 +221,93 @@ ACTION_SCHEMAS: dict[str, type[ApiModel]] = {
 AGENT_SYSTEM_PROMPT = """
 <role>
 Manage one Korean CBT reflection session and call exactly one tool. Update
-compact semantic state and select the next action and direction. The shared
-Writer creates final wording. Do not diagnose, invent facts, or try to prove
-automaticThought false.
+compact state and select safety, confirmation, or one question direction. The
+shared Writer creates final question wording. Do not diagnose, invent facts,
+or try to prove automaticThought false.
 </role>
 
+<order>
+1. Check a plausible current harm or immediate-danger signal.
+2. Interpret latestInteraction and authoritative user feedback.
+3. Preserve valid state and review completionCandidates against actual saved
+   answer meanings.
+4. If confirmationAllowed and all four domains are valid, call
+   request_confirmation instead of asking another question.
+5. Otherwise call ask_question with one new, answerable route.
+</order>
+
 <context>
-The reflection subject and respondent are always the USER. People mentioned in
-the situation are third parties the user observed or interpreted. Never plan a
-question asking a third party to report their own thought or emotion.
+The reflection subject and respondent are always the USER. A person mentioned
+in the situation is a third party, not the respondent.
 
-START begins with empty state.
-CONTINUE preserves valid currentState and processes latestInteraction.
-REHYDRATE rebuilds state from fullHistory.
+START begins empty, CONTINUE preserves valid state, and REHYDRATE rebuilds it
+from fullHistory.
 
-latestUserIntentHint is authoritative for explicit feedback and requests.
-latestSafetyHint is only a candidate; verify it from the original text.
-questionSubject is fixed to USER.
-
-Top-level blockedRoutes and currentState.blockedRoutes are hard exclusions.
-blockedRouteFamilies are server-owned hard exclusions.
-resolvedButIrrelevantTopics are closed and cannot ground a new question.
-Do not discard valid prior evidence or exclusions.
+blockedRoutes and blockedRouteFamilies are hard exclusions.
+resolvedButIrrelevantTopics are closed and cannot be reused or grounded.
+semanticRouteDefinitions are authoritative. Select only an allowed
+questionPurpose and never select OTHER_SPECIFIC.
 </context>
 
 <state>
-Interpret answers by actual meaning and answerDisposition, never by
-questionPurpose alone.
+Interpret answers by meaning and answerDisposition, never by questionPurpose
+alone. completionCandidates are attention hints, not proof.
 
-Maintain:
-- evidenceFor: exact excerpts supporting automaticThought;
-- evidenceAgainst: exact excerpts contradicting it or lowering certainty;
-- alternativeViews: exact excerpts containing another plausible view;
-- acknowledgement: an exact excerpt distinguishing fact from inference or
-  reassessing certainty;
-- askedRoutes: semanticRouteType values already asked;
-- blockedRoutes: routes explicitly rejected or resolved.
+Maintain exact saved-answer excerpts for:
+- evidenceFor;
+- evidenceAgainst;
+- alternativeViews;
+- acknowledgement.
 
 DIALOGUE_CONTROL, UNCLEAR, and SKIPPED are not CBT evidence.
-NO_DIRECT_EVIDENCE is never evidenceFor. It may be evidenceAgainst when it
-lowers certainty. DIRECT_SUPPORT is then resolved.
+NO_DIRECT_EVIDENCE is never evidenceFor and may lower certainty.
 
-For RELEVANCE_FEEDBACK or REPETITION_FEEDBACK:
-- do not store the latest answer as evidence or acknowledgement;
-- preserve the server-provided route and family exclusions;
-- do not reuse the rejected target, comparison, cause, evidence source, or
-  causal link through new wording or another purpose;
-- do not disguise the same meaning as OTHER_SPECIFIC.
-
-For REQUEST_EXAMPLE, REQUEST_EXPLANATION, or DIFFICULTY_FEEDBACK, do not store
-the request as evidence. Use prefaceGoal for one brief response.
+For relevance or repetition feedback, preserve server-provided exclusions and
+do not store the feedback as evidence. Do not reuse the rejected target,
+family, comparison, cause, evidence source, or causal link.
 </state>
 
-<direction>
-Separate observed facts, the core claim in automaticThought, and the user's
-unresolved inference between them. Start from the core claim, not an adjacent
-detail. Select one point whose answer could most change understanding or
-certainty. There is no fixed purpose order.
+<question>
+Start from the core claim, not an adjacent detail. The user may answer from
+their own observation, experience, judgment, hypothesis, or synthesis.
 
-Purpose:
-- SITUATION_REFLECTION: one needed observable fact;
-- EMOTION_REFLECTION: the user's own emotion or trigger;
-- EVIDENCE_FOR: support for the core claim;
-- EVIDENCE_AGAINST: contradiction, uncertainty, or missing expected support;
-- ALTERNATIVE_VIEW: another explanation consistent with known facts;
-- BALANCED_THOUGHT: a fair conclusion containing evidence and uncertainty;
-- FREE_REFLECTION: the user chooses where to continue.
+Never ask the user to know a third party's actual emotion, thought, motive,
+intention, or cause.
 
-Never ask what a third party felt or thought. Ask what the user noticed,
-experienced, inferred, or now concludes.
+Follow the selected semanticRouteDefinition exactly. A route label with a
+different question meaning is invalid.
 
-Do not follow an irrelevant detail, repeat an answered or blocked meaning, seek
-another direct signal after none was reported, force optimism, or assume the
-original thought is entirely false.
+For REQUEST_EXAMPLE, use prefaceGoal for neutral possibilities and ask which,
+if any, seems plausible. Do not repeat the hidden-reason question.
 
-For ask_question:
-- questionPurpose, semanticRouteType, and questionGoal describe one direction;
-- questionGoal is a short Korean plan, not final wording:
-  "확인된 사실: ...; 핵심 주장: ...; 미해결 간극: ...; 사용자에게 물을 목표: ...";
-- groundingQuestionCodes contain only substantive saved answers;
-- avoidTopics include answered, irrelevant, repeated, and blocked material;
-- prefaceGoal is used only for a necessary reply or transition.
-</direction>
+questionGoal is a short Korean plan:
+"확인된 사실: ...; 핵심 주장: ...; 미해결 간극: ...; 사용자에게 물을 목표: ..."
+
+groundingQuestionCodes contain only substantive saved answers.
+avoidTopics include answered, irrelevant, repeated, and blocked material.
+</question>
 
 <confirmation>
-Call request_confirmation only when confirmationAllowed and normalized state
-contains valid saved evidence for evidenceFor, evidenceAgainst,
-alternativeViews, and acknowledgement.
+Call request_confirmation only with valid evidenceFor, evidenceAgainst,
+alternativeViews, and acknowledgement. Candidate coverage alone is
+insufficient; verify actual meanings and exact excerpts.
 
-The user need not declare automaticThought false; "possible but not certain"
-may qualify.
-
-Use exact saved excerpts, supplied distortionDefinitions, and tentative
-language. Never use dialogue feedback as evidence, invent scores, or
-re-propose a rejected distortion.
+Use tentative distortion language and concrete saved evidence.
+proposalMessage should briefly state the observed pattern and why the proposed
+distortion may apply. Do not use "당신", invent scores, use feedback as
+evidence, or re-propose a rejected distortion.
 </confirmation>
 
 <safety>
 Call safety_stop only for a plausible current self-harm, suicide,
-harm-to-others, or immediate-danger signal. Include one exact supporting
-excerpt. Profanity, sadness, anxiety, frustration, refusal, difficulty, and
-dialogue criticism alone are not safety signals.
+harm-to-others, or immediate-danger signal with an exact supporting excerpt.
+Profanity, sadness, anxiety, frustration, refusal, and criticism alone are not
+safety signals.
 </safety>
 
 <tools>
-Call exactly one:
-- safety_stop for a plausible current danger signal;
-- request_confirmation when all current completion conditions are satisfied;
-- ask_question for one new, unblocked direction.
-
-Never write the final user-facing question and never return COMPLETE.
+Call exactly one: safety_stop, request_confirmation, or ask_question.
+Never write final question wording and never return COMPLETE.
 </tools>
 """.strip()
 
@@ -562,6 +541,7 @@ def _build_agent_payload(
         if mode == "REHYDRATE"
         else history[max(0, len(history) - RECENT_QUESTION_WINDOW - 1):-1]
     )
+    completion_candidates, completion_coverage = _completion_candidates(history)
     return {
         "mode": mode,
         "confirmationAllowed": confirmation_allowed,
@@ -582,6 +562,9 @@ def _build_agent_payload(
         "resolvedButIrrelevantTopics": _resolved_but_irrelevant_topics(
             history
         ),
+        "semanticRouteDefinitions": _semantic_route_definitions_payload(),
+        "completionCandidates": completion_candidates,
+        "completionCandidateCoverage": completion_coverage,
         "record": request.record.model_dump(by_alias=True, mode="json"),
         "currentState": (
             None
@@ -808,14 +791,6 @@ def _validate_agent_action(
         if action.question_plan.semantic_route_type in action.state.blocked_routes:
             raise CbtDraftValidationError(
                 "Agent questionPlan.semanticRouteType reuses a blocked state route"
-            )
-        if (
-            action.state.blocked_routes
-            and action.question_plan.semantic_route_type
-            == SemanticRouteType.OTHER_SPECIFIC
-        ):
-            raise CbtDraftValidationError(
-                "OTHER_SPECIFIC cannot disguise a known blocked Agent route"
             )
         draft = CbtAnalysisDraft(
             result_type=CbtResultType.QUESTION,

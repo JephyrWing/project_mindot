@@ -16,6 +16,7 @@ from collections.abc import Callable
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
+from types import MappingProxyType
 from typing import Annotated, Any, Literal, TypeVar
 from uuid import UUID
 
@@ -29,7 +30,10 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_valida
 load_dotenv(Path(__file__).resolve().parent.parent / "infra" / ".env.local")
 
 CBT_MODEL = os.getenv("OPENAI_CBT_MODEL", "gpt-4o-mini")
-CBT_PROMPT_VERSION = "cbt-reflection-quality-v1"
+CBT_PROMPT_VERSION = "cbt-reflection-quality-v2"
+CBT_WRITER_TEMPERATURE = float(
+    os.getenv("OPENAI_CBT_WRITER_TEMPERATURE", "0.3")
+)
 CBT_MODEL_OUTPUT_ATTEMPTS = 2
 WRITER_PREVIOUS_QUESTION_LIMIT = 4
 CBT_DEBUG_LOG_ANALYSIS = os.getenv(
@@ -243,6 +247,165 @@ SEMANTIC_ROUTE_FAMILY_BY_TYPE = {
     SemanticRouteType.USER_SELECTED_DIRECTION: SemanticRouteFamily.USER_CHOICE,
     SemanticRouteType.OTHER_SPECIFIC: SemanticRouteFamily.OTHER,
 }
+
+
+SEMANTIC_ROUTE_DEFINITIONS = MappingProxyType(
+    {
+        SemanticRouteType.OBSERVABLE_EVENT_DETAIL: MappingProxyType(
+            {
+                "meaning": "사용자가 직접 관찰한 구체적인 사건·행동·상황을 확인",
+                "informationSource": "USER_OBSERVATION",
+                "forbiddenDirections": (
+                    "그 사건의 의미, 이유, 제3자의 감정·생각·의도 추측",
+                ),
+            }
+        ),
+        SemanticRouteType.DIRECT_WORD_OR_ACTION: MappingProxyType(
+            {
+                "meaning": "핵심 생각을 직접 뒷받침하는 실제 말이나 행동 확인",
+                "informationSource": "USER_OBSERVATION",
+                "forbiddenDirections": (
+                    "제3자의 숨은 동기·감정·원인 추측",
+                ),
+            }
+        ),
+        SemanticRouteType.EXPECTED_SIGNAL_ABSENCE: MappingProxyType(
+            {
+                "meaning": (
+                    "핵심 생각이 맞다면 예상되지만 실제로는 없었던 "
+                    "관찰 가능한 신호 확인"
+                ),
+                "informationSource": "USER_OBSERVATION",
+                "forbiddenDirections": (
+                    "왜 그 신호가 없었는지, 상대의 의도나 속마음 질문",
+                ),
+            }
+        ),
+        SemanticRouteType.CONTRADICTORY_FACT: MappingProxyType(
+            {
+                "meaning": "핵심 생각의 확실성을 낮추는 구체적으로 알려진 사실 확인",
+                "informationSource": "USER_OBSERVATION_OR_KNOWN_FACT",
+                "forbiddenDirections": (
+                    "다른 가능성, 숨은 원인, 제3자의 감정 질문으로 변환",
+                ),
+            }
+        ),
+        SemanticRouteType.OTHER_PEOPLE_COMPARISON: MappingProxyType(
+            {
+                "meaning": (
+                    "핵심 주장과 직접 관련된 경우에만 관찰 가능한 행동 차이를 비교"
+                ),
+                "informationSource": "USER_OBSERVATION",
+                "forbiddenDirections": (
+                    "다른 사람이 무엇을 생각·느낌·인지했는지 질문",
+                ),
+            }
+        ),
+        SemanticRouteType.CERTAINTY_REASSESSMENT: MappingProxyType(
+            {
+                "meaning": (
+                    "사용자가 사실과 추론을 구별하거나 현재 확신 정도를 다시 판단"
+                ),
+                "informationSource": "USER_JUDGMENT",
+                "forbiddenDirections": (
+                    "제3자의 이유·동기·감정·의도 질문",
+                ),
+            }
+        ),
+        SemanticRouteType.ALTERNATIVE_EXPLANATION: MappingProxyType(
+            {
+                "meaning": (
+                    "확인되지 않은 실제 원인을 맞히지 않고 가능한 설명을 가설로 검토"
+                ),
+                "informationSource": "USER_HYPOTHESIS",
+                "forbiddenDirections": (
+                    "제3자의 실제 이유나 진짜 의도를 단정하거나 맞히게 하기",
+                ),
+            }
+        ),
+        SemanticRouteType.BALANCED_CONCLUSION: MappingProxyType(
+            {
+                "meaning": (
+                    "확인된 근거와 불확실성을 함께 반영한 균형 잡힌 결론 구성"
+                ),
+                "informationSource": "USER_SYNTHESIS",
+                "forbiddenDirections": (
+                    "새로운 원인·근거·제3자 내면 질문",
+                ),
+            }
+        ),
+        SemanticRouteType.EMOTION_OR_TRIGGER: MappingProxyType(
+            {
+                "meaning": (
+                    "상황에서 사용자가 느낀 감정이나 그 감정을 촉발한 지점 확인"
+                ),
+                "informationSource": "USER_EXPERIENCE",
+                "forbiddenDirections": (
+                    "제3자의 감정·생각·의도 질문",
+                ),
+            }
+        ),
+        SemanticRouteType.USER_SELECTED_DIRECTION: MappingProxyType(
+            {
+                "meaning": (
+                    "사용자가 자신의 경험 중 어느 부분을 이어서 살펴볼지 선택"
+                ),
+                "informationSource": "USER_CHOICE",
+                "forbiddenDirections": (
+                    "제3자 숨은 상태 추측, 이미 거부된 방향 반복",
+                ),
+            }
+        ),
+        SemanticRouteType.OTHER_SPECIFIC: MappingProxyType(
+            {
+                "meaning": "과거 데이터 복원 전용 legacy route",
+                "informationSource": "LEGACY_ONLY",
+                "forbiddenDirections": ("새 질문 계획에서 선택",),
+            }
+        ),
+    }
+)
+
+
+ALLOWED_QUESTION_PURPOSES_BY_ROUTE = MappingProxyType(
+    {
+        SemanticRouteType.OBSERVABLE_EVENT_DETAIL: frozenset(
+            {QuestionPurpose.SITUATION_REFLECTION}
+        ),
+        SemanticRouteType.DIRECT_WORD_OR_ACTION: frozenset(
+            {QuestionPurpose.EVIDENCE_FOR}
+        ),
+        SemanticRouteType.EXPECTED_SIGNAL_ABSENCE: frozenset(
+            {QuestionPurpose.EVIDENCE_AGAINST}
+        ),
+        SemanticRouteType.CONTRADICTORY_FACT: frozenset(
+            {QuestionPurpose.EVIDENCE_AGAINST}
+        ),
+        SemanticRouteType.OTHER_PEOPLE_COMPARISON: frozenset(
+            {
+                QuestionPurpose.SITUATION_REFLECTION,
+                QuestionPurpose.EVIDENCE_FOR,
+                QuestionPurpose.EVIDENCE_AGAINST,
+            }
+        ),
+        SemanticRouteType.CERTAINTY_REASSESSMENT: frozenset(
+            {QuestionPurpose.BALANCED_THOUGHT}
+        ),
+        SemanticRouteType.ALTERNATIVE_EXPLANATION: frozenset(
+            {QuestionPurpose.ALTERNATIVE_VIEW}
+        ),
+        SemanticRouteType.BALANCED_CONCLUSION: frozenset(
+            {QuestionPurpose.BALANCED_THOUGHT}
+        ),
+        SemanticRouteType.EMOTION_OR_TRIGGER: frozenset(
+            {QuestionPurpose.EMOTION_REFLECTION}
+        ),
+        SemanticRouteType.USER_SELECTED_DIRECTION: frozenset(
+            {QuestionPurpose.FREE_REFLECTION}
+        ),
+        SemanticRouteType.OTHER_SPECIFIC: frozenset(),
+    }
+)
 
 
 class LatestUserIntent(str, Enum):
@@ -668,140 +831,139 @@ class CbtTurnResponse(ApiModel):
 
 ANALYSIS_PROMPT = """
 <role>
-Plan one Korean CBT reflection turn. Select safety, confirmation, or one new
-question direction. The Writer creates the final sentence. Do not diagnose,
-invent facts, or try to prove automaticThought false.
+Plan one Korean CBT reflection turn. Select SAFETY_STOP,
+CONFIRMATION_REQUIRED, or one QUESTION direction. The Writer creates final
+question wording. Do not diagnose, invent facts, or try to prove
+automaticThought false.
 </role>
 
-<context>
-The reflection subject and respondent are always the USER. People mentioned in
-the situation are third parties the user observed or interpreted. Never plan a
-question asking a third party to report their own thought or emotion.
+<order>
+1. Check a plausible current harm or immediate-danger signal.
+2. Interpret latestInteraction and authoritative user feedback.
+3. Review completionCandidates and rebuild semanticProgress from the actual
+   saved-answer meanings and exact excerpts.
+4. If confirmationAllowed and all four domains are valid, return
+   CONFIRMATION_REQUIRED instead of asking another question.
+5. Otherwise select one new, answerable route.
+</order>
 
-Read latestInteraction first, then ordered questionAnswers.
-latestUserIntentHint is authoritative for explicit feedback and requests.
-latestSafetyHint is only a candidate; verify it from the original text.
-questionSubject is fixed to USER.
+<context>
+The reflection subject and respondent are always the USER. A person mentioned
+in the situation is a third party, not the respondent.
 
 blockedRoutes and blockedRouteFamilies are hard exclusions.
-resolvedButIrrelevantTopics are closed: do not reuse, reinterpret, compare, or
-ground a new question in them.
+resolvedButIrrelevantTopics are closed and cannot be reused or grounded.
+semanticRouteDefinitions are authoritative. Select only an allowed
+questionPurpose and never select OTHER_SPECIFIC.
 </context>
 
-<meaning>
-Separate observed facts, the core claim in automaticThought, and the user's
-inference connecting them.
-
-Interpret answers by actual meaning and answerDisposition, never by
-questionPurpose alone.
+<evidence>
+Interpret answers by meaning and answerDisposition, never by questionPurpose
+alone. completionCandidates are attention hints, not proof.
 
 DIALOGUE_CONTROL, UNCLEAR, and SKIPPED fill no CBT domain.
-NO_DIRECT_EVIDENCE is never evidenceFor. It may support evidenceAgainst when the
-absence lowers certainty. DIRECT_SUPPORT is then resolved.
+NO_DIRECT_EVIDENCE is never evidenceFor and may lower certainty.
 
-semanticProgress may contain one exact saved-answer excerpt for:
-- evidenceFor: information supporting the core claim;
-- evidenceAgainst: information contradicting it or lowering certainty;
-- alternativeView: another plausible or balanced interpretation;
-- acknowledgement: recognition of fact versus inference or changed certainty.
-
-Do not infer progress from a prior question's wording or purpose.
-</meaning>
+semanticProgress uses exact saved-answer excerpts:
+- evidenceFor supports the core claim;
+- evidenceAgainst contradicts it or lowers certainty;
+- alternativeView contains another plausible or balanced interpretation;
+- acknowledgement separates fact from inference or reassesses certainty.
+</evidence>
 
 <feedback>
-For RELEVANCE_FEEDBACK or REPETITION_FEEDBACK, the latest answer is dialogue
-feedback, not CBT evidence.
+RELEVANCE_FEEDBACK and REPETITION_FEEDBACK are dialogue control, not evidence.
+Do not reuse the rejected route, family, topic, comparison, cause, evidence
+source, or causal link.
 
-Do not reuse the rejected route, route family, target, comparison, cause,
-evidence source, or causal link. Changing wording or questionPurpose does not
-make it a new direction. Do not use OTHER_SPECIFIC to bypass a block.
+For REQUEST_EXAMPLE, give neutral possibilities in prefaceGoal, then ask which,
+if any, seems plausible. Do not ask for the third party's actual hidden reason.
 
-For REQUEST_EXAMPLE, REQUEST_EXPLANATION, or DIFFICULTY_FEEDBACK, use one brief
-prefaceGoal and continue with one simpler relevant point. The request itself is
-not CBT evidence.
+For REQUEST_EXPLANATION or DIFFICULTY_FEEDBACK, use one brief prefaceGoal and
+one simpler relevant direction.
 </feedback>
 
-<direction>
+<question>
 Start from the core claim, not an adjacent detail. Choose one unresolved point
-whose answer could most change the user's understanding or certainty. There is
-no fixed question order.
+whose answer could most change the user's understanding or certainty.
 
-Purpose:
-- SITUATION_REFLECTION: one needed observable fact;
-- EMOTION_REFLECTION: the user's own emotion or trigger;
-- EVIDENCE_FOR: support for the core claim;
-- EVIDENCE_AGAINST: contradiction, uncertainty, or missing expected support;
-- ALTERNATIVE_VIEW: another explanation consistent with known facts;
-- BALANCED_THOUGHT: a fair conclusion containing evidence and uncertainty;
-- FREE_REFLECTION: the user chooses where to continue.
+The user may answer from their own observation, experience, judgment,
+hypothesis, or synthesis. Never ask the user to know a third party's actual
+emotion, thought, motive, intention, or cause.
 
-Never ask what a third party felt or thought. Ask what the user noticed,
-experienced, inferred, or now concludes.
+Follow the selected semanticRouteDefinition exactly. A route label with a
+different question meaning is invalid.
 
-Do not follow an irrelevant detail, repeat an answered or blocked meaning, seek
-another direct signal after none was reported, force optimism, or assume the
-original thought is entirely false.
-
-For QUESTION, questionGoal is a short Korean plan, not final wording:
+questionGoal is a short Korean plan, not final wording:
 "확인된 사실: ...; 핵심 주장: ...; 미해결 간극: ...; 사용자에게 물을 목표: ..."
 
-questionPurpose and semanticRouteType must describe the same target.
 groundingQuestionCodes may contain only substantive saved answers.
-</direction>
+Do not repeat a closed meaning, force optimism, or assume the original thought
+is entirely false.
+</question>
 
-<decision>
+<confirmation>
+Confirmation requires valid evidenceFor, evidenceAgainst, alternativeView, and
+acknowledgement. Candidate coverage alone is insufficient; verify answer
+meaning and exact excerpts.
+
+Use tentative distortion language and concrete saved evidence.
+proposalMessage should briefly state the observed pattern and why the proposed
+distortion may apply. Do not use "당신", invent scores, use feedback as
+evidence, or re-propose a rejected distortion.
+</confirmation>
+
+<safety>
 SAFETY_STOP only for a contextually plausible current self-harm, suicide,
 harm-to-others, or immediate-danger signal. Profanity, sadness, anxiety,
 frustration, refusal, and criticism alone are not safety signals.
-
-CONFIRMATION_REQUIRED only when confirmationAllowed and semanticProgress has
-valid saved-answer evidence for evidenceFor, evidenceAgainst, alternativeView,
-and acknowledgement. The user need not declare the original thought false;
-"possible but not certain" may qualify.
-
-Use supplied distortionDefinitions, exact saved excerpts, and tentative
-language. Never invent scores, use feedback as evidence, or re-propose a
-rejected distortion.
-
-Otherwise return QUESTION. Never return COMPLETE.
-</decision>
+</safety>
 """.strip()
 
 
 WRITER_PROMPT = """
 <role>
-Write one natural Korean response from the supplied plan. Do not re-plan,
-classify, diagnose, add evidence, or change questionPurpose or
-semanticRouteType.
+Write one natural Korean response from the supplied plan. Do not change
+questionPurpose or semanticRouteType, add evidence, classify, or diagnose.
 </role>
 
-<subject>
-questionSubject is always USER. Other people are only people the user observed
-or interpreted. Never ask what a third party personally felt or thought.
+<route>
+selectedRouteDefinition is authoritative. Express exactly its meaning using
+the grounded topic. Do not turn CONTRADICTORY_FACT into another-possibility
+question or EMOTION_OR_TRIGGER into a third-party emotion question.
 
-Wrong: "팀장님은 어떤 감정을 느끼셨나요?"
-Right: ask what the user felt, noticed, inferred, or now thinks.
+For ALTERNATIVE_EXPLANATION, ask which possibility may fit, not what the third
+party's actual hidden reason was.
+</route>
+
+<subject>
+questionSubject is USER. Ask what the user observed, experienced, inferred,
+judged, or can consider. Never ask for a third party's actual emotion, thought,
+motive, intention, or cause. Never use "당신".
 </subject>
 
 <preface>
-If prefaceRequired is false, return preface=null. If true, write one brief
-statement fulfilling prefaceGoal. It may acknowledge feedback, explain
-relevance, simplify the task, or give neutral examples. Do not add a new topic.
+If prefaceRequired is false, return preface=null. If true, fulfill
+prefaceGoal in one brief statement without adding a new topic.
+
+For REQUEST_EXAMPLE, give brief neutral possibilities and then ask whether any
+of them seems plausible. Do not repeat the same open-ended hidden-reason
+question.
 </preface>
 
 <question>
-Ask only the single point in questionGoal. Respect groundingAnswers,
+Ask one simple, answerable Korean question. Respect groundingAnswers,
 blockedRoutes, blockedRouteFamilies, resolvedButIrrelevantTopics, avoidTopics,
 latestInteraction, and previousQuestions.
 
-Use simple Korean honorifics and one answerable question. Do not repeat or
-reinterpret a closed topic, ask multiple questions, infer a hidden motive,
-force optimism, or use "당신".
+Do not repeat a closed meaning, ask multiple questions, force optimism, or
+invent facts.
 </question>
 """.strip()
 
 
 _llm: ChatOpenAI | None = None
+_writer_llm: ChatOpenAI | None = None
 _analysis_models: dict[bool, Any] = {}
 _writer_model: Any | None = None
 
@@ -836,6 +998,19 @@ def _get_analysis_model(confirmation_allowed: bool) -> Any:
     return model
 
 
+def _get_writer_llm() -> ChatOpenAI:
+    global _writer_llm
+    if _writer_llm is None:
+        _writer_llm = ChatOpenAI(
+            model=CBT_MODEL,
+            temperature=CBT_WRITER_TEMPERATURE,
+            timeout=30.0,
+            max_retries=2,
+            use_responses_api=True,
+        )
+    return _writer_llm
+
+
 def _confirmation_candidate_available(request: CbtRequest) -> bool:
     """실질 답변 수로 완료 출력 스키마 노출만 결정합니다.
 
@@ -858,7 +1033,7 @@ def _confirmation_candidate_available(request: CbtRequest) -> bool:
 def _get_writer_model() -> Any:
     global _writer_model
     if _writer_model is None:
-        _writer_model = _get_llm().with_structured_output(
+        _writer_model = _get_writer_llm().with_structured_output(
             QuestionWordingDraft,
             method="json_schema",
             strict=True,
@@ -978,6 +1153,44 @@ def _semantic_route_family(
     route_type: SemanticRouteType,
 ) -> SemanticRouteFamily:
     return SEMANTIC_ROUTE_FAMILY_BY_TYPE[route_type]
+
+
+def _semantic_route_definition_payload(
+    route_type: SemanticRouteType,
+) -> dict[str, Any]:
+    definition = SEMANTIC_ROUTE_DEFINITIONS[route_type]
+    return {
+        "semanticRouteType": route_type.value,
+        "semanticRouteFamily": _semantic_route_family(route_type).value,
+        "meaning": definition["meaning"],
+        "informationSource": definition["informationSource"],
+        "forbiddenDirections": list(definition["forbiddenDirections"]),
+        "allowedQuestionPurposes": sorted(
+            purpose.value
+            for purpose in ALLOWED_QUESTION_PURPOSES_BY_ROUTE[route_type]
+        ),
+    }
+
+
+def _semantic_route_definitions_payload() -> list[dict[str, Any]]:
+    return [
+        _semantic_route_definition_payload(route_type)
+        for route_type in SemanticRouteType
+    ]
+
+
+def _validate_question_plan_route(plan: CbtQuestionPlan) -> None:
+    if plan.semantic_route_type == SemanticRouteType.OTHER_SPECIFIC:
+        raise CbtDraftValidationError(
+            "OTHER_SPECIFIC is legacy-only and cannot be selected for a new question"
+        )
+    allowed_purposes = ALLOWED_QUESTION_PURPOSES_BY_ROUTE[
+        plan.semantic_route_type
+    ]
+    if plan.question_purpose not in allowed_purposes:
+        raise CbtDraftValidationError(
+            "questionPurpose is not allowed for the selected semanticRouteType"
+        )
 
 
 def _feedback_blocked_route_families(
@@ -1328,6 +1541,90 @@ def _analysis_turn_flags(
     }
 
 
+def _completion_candidates(
+    question_answers: list[QuestionAnswer],
+) -> tuple[dict[str, list[dict[str, Any]]], dict[str, bool]]:
+    candidates: dict[str, list[dict[str, Any]]] = {
+        "evidenceFor": [],
+        "evidenceAgainst": [],
+        "alternativeView": [],
+        "acknowledgement": [],
+    }
+    excluded = {
+        AnswerDisposition.DIALOGUE_CONTROL,
+        AnswerDisposition.UNCLEAR,
+        AnswerDisposition.SKIPPED,
+    }
+
+    for order, item in enumerate(question_answers):
+        if item.answer is None or not item.answer.strip():
+            continue
+        disposition = _classify_answer_disposition(item)
+        if disposition in excluded:
+            continue
+        candidate = {
+            "questionCode": item.question_code,
+            "answer": item.answer,
+            "answerDisposition": disposition.value,
+            "questionPurpose": item.question_purpose.value,
+            "semanticRouteType": (
+                item.semantic_route_type.value
+                if item.semantic_route_type is not None
+                else None
+            ),
+            "answeredAt": (
+                item.answered_at.isoformat()
+                if item.answered_at is not None
+                else None
+            ),
+            "order": order,
+        }
+        if (
+            disposition != AnswerDisposition.NO_DIRECT_EVIDENCE
+            and (
+                item.question_purpose == QuestionPurpose.EVIDENCE_FOR
+                or item.semantic_route_type
+                == SemanticRouteType.DIRECT_WORD_OR_ACTION
+            )
+        ):
+            candidates["evidenceFor"].append(candidate)
+        if (
+            item.question_purpose == QuestionPurpose.EVIDENCE_AGAINST
+            or item.semantic_route_type
+            in {
+                SemanticRouteType.EXPECTED_SIGNAL_ABSENCE,
+                SemanticRouteType.CONTRADICTORY_FACT,
+            }
+            or disposition == AnswerDisposition.NO_DIRECT_EVIDENCE
+        ):
+            candidates["evidenceAgainst"].append(candidate)
+        if (
+            item.question_purpose == QuestionPurpose.ALTERNATIVE_VIEW
+            or item.semantic_route_type
+            == SemanticRouteType.ALTERNATIVE_EXPLANATION
+        ):
+            candidates["alternativeView"].append(candidate)
+        if (
+            item.question_purpose == QuestionPurpose.BALANCED_THOUGHT
+            or item.semantic_route_type
+            in {
+                SemanticRouteType.CERTAINTY_REASSESSMENT,
+                SemanticRouteType.BALANCED_CONCLUSION,
+            }
+        ):
+            candidates["acknowledgement"].append(candidate)
+
+    candidates = {
+        domain: items[-4:]
+        for domain, items in candidates.items()
+    }
+    coverage = {
+        domain: bool(items)
+        for domain, items in candidates.items()
+    }
+    return candidates, coverage
+
+
 def _build_analysis_payload(
     request: CbtRequest,
 ) -> dict[str, Any]:
@@ -1364,6 +1661,7 @@ def _build_analysis_payload(
         if isinstance(request, CbtTurnRequest)
         else []
     )
+    completion_candidates, completion_coverage = _completion_candidates(history)
 
     return {
         "requestType": (
@@ -1393,6 +1691,9 @@ def _build_analysis_payload(
         "resolvedButIrrelevantTopics": _resolved_but_irrelevant_topics(
             history
         ),
+        "semanticRouteDefinitions": _semantic_route_definitions_payload(),
+        "completionCandidates": completion_candidates,
+        "completionCandidateCoverage": completion_coverage,
         "questionAnswers": question_answers,
         "beforeDistortions": before_distortions,
         "distortionDefinitions": (
@@ -1493,6 +1794,12 @@ def _build_writer_payload(
             if isinstance(request, CbtTurnRequest)
             else []
         ),
+        "selectedRouteDefinition": _semantic_route_definition_payload(
+            plan.semantic_route_type
+        ),
+        "selectedRouteFamily": _semantic_route_family(
+            plan.semantic_route_type
+        ).value,
         "prefaceRequired": plan.preface_goal is not None,
         "plan": plan.model_dump(by_alias=True, mode="json"),
     }
@@ -1673,6 +1980,14 @@ def _semantic_progress_complete(progress: CbtSemanticProgress) -> bool:
     )
 
 
+def _validate_generated_user_visible_text(*texts: str | None) -> None:
+    if any(text is not None and "당신" in text for text in texts):
+        raise CbtDraftValidationError(
+            "Generated user-visible text must not use the cold second-person "
+            "expression '당신'"
+        )
+
+
 def _validate_analysis_draft(
     draft: CbtAnalysisDraft,
     request: CbtRequest,
@@ -1709,6 +2024,7 @@ def _validate_analysis_draft(
     if draft.result_type == CbtResultType.QUESTION:
         assert draft.question_plan is not None
         plan = draft.question_plan
+        _validate_question_plan_route(plan)
         explicit_intent = _explicit_feedback_intent(request)
         if (
             isinstance(request, CbtTurnRequest)
@@ -1781,6 +2097,10 @@ def _validate_analysis_draft(
 
         assert draft.confirmation is not None
         confirmation = draft.confirmation
+        _validate_generated_user_visible_text(
+            confirmation.proposal_message,
+            confirmation.outcome_draft.alternative_thought_text,
+        )
         rejected_codes = {
             item.code
             for item in request.before_distortions
@@ -2191,7 +2511,10 @@ async def _write_question(
         schema=QuestionWordingDraft,
         system_prompt=WRITER_PROMPT,
         payload=_build_writer_payload(request, plan),
-        validate=lambda _: None,
+        validate=lambda draft: _validate_generated_user_visible_text(
+            draft.preface,
+            draft.question,
+        ),
         stage="question wording",
         retry_guidance=(
             "Keep the same plan, avoid forbidden topics, and do not repeat a "
