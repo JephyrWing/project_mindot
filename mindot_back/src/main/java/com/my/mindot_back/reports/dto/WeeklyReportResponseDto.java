@@ -3,6 +3,7 @@ package com.my.mindot_back.reports.dto;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 
 public record WeeklyReportResponseDto (
@@ -14,9 +15,10 @@ public record WeeklyReportResponseDto (
         Double averageIntensity,
         int completedCbtCount,
         Double averageHelpfulnessScore,
+        List<RepeatedEmotionPatternDto> repeatedPatterns,
         Map<String, Long> emotionCounts,
         Map<String, Long> weekdayCounts,
         Map<String, Long> timeBucketCounts,
         Instant sourceSnapshotAt
-){
+) {
 }
