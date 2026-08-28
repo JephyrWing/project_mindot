@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -110,6 +111,15 @@ public interface ReflectionSessionsRepository
             Long userId,
             ReflectionSessionStatus status,
             short helpfulnessScore
+    );
+
+    // 선택한 기간에 최종 확정된 CBT 성찰 세션을 완료 시각 오래된 순으로 조회
+    List<ReflectionSessions>
+    findAllByUser_IdAndStatusAndUserConfirmedTrueAndCompletedAtGreaterThanEqualAndCompletedAtLessThanOrderByCompletedAtAsc(
+            Long userId,
+            ReflectionSessionStatus status,
+            Instant periodStart,
+            Instant periodEndExclusive
     );
 }
 
