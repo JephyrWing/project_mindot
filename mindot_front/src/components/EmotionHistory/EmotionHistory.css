@@ -213,10 +213,31 @@
 
 /* 감정과 시각 및 기록 내용을 보여 주는 단일 테두리 카드 설정. */
 .emotion-history-item {
+  display: block;
+  width: 100%;
   border: 1px solid var(--mindot-border);
   border-radius: 12px;
   padding: 20px;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+/* 감정 기록 카드 위에 커서를 올렸을 때 상세 조회 가능 여부 강조. */
+.emotion-history-item:hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+/* 키보드로 감정 기록 카드를 선택했을 때 명확한 초점 표시 설정. */
+.emotion-history-item:focus-visible {
+  border-color: var(--mindot-primary);
+  outline: 2px solid var(--mindot-primary-line);
+  outline-offset: 2px;
 }
 
 /* 감정 분류 정보와 작성 시각의 양쪽 배치. */
@@ -263,7 +284,8 @@
 }
 
 /* 기록 원문의 충분한 대비와 줄 간격 설정. */
-.emotion-history-item > p {
+.emotion-history-item-content {
+  display: block;
   margin: 16px 0 0;
   color: var(--mindot-text-secondary);
   line-height: 1.7;
