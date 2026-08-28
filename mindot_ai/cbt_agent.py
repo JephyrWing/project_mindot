@@ -30,7 +30,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_valida
 load_dotenv(Path(__file__).resolve().parent.parent / "infra" / ".env.local")
 
 CBT_MODEL = os.getenv("OPENAI_CBT_MODEL", "gpt-4o-mini")
-CBT_PROMPT_VERSION = "cbt-reflection-quality-v2"
+CBT_PROMPT_VERSION = "cbt-reflection-quality-v3"
 CBT_WRITER_TEMPERATURE = float(
     os.getenv("OPENAI_CBT_WRITER_TEMPERATURE", "0.3")
 )
@@ -408,6 +408,42 @@ ALLOWED_QUESTION_PURPOSES_BY_ROUTE = MappingProxyType(
 )
 
 
+USER_OPERATION_BY_ROUTE = MappingProxyType(
+    {
+        SemanticRouteType.OBSERVABLE_EVENT_DETAIL: (
+            "직접 관찰한 사건의 구체적 내용을 말하기"
+        ),
+        SemanticRouteType.DIRECT_WORD_OR_ACTION: (
+            "직접 들은 말이나 본 행동을 말하기"
+        ),
+        SemanticRouteType.EXPECTED_SIGNAL_ABSENCE: (
+            "예상했지만 없었던 관찰 가능한 신호를 확인하기"
+        ),
+        SemanticRouteType.CONTRADICTORY_FACT: (
+            "처음 생각의 확실성을 낮추는 알려진 사실을 확인하기"
+        ),
+        SemanticRouteType.OTHER_PEOPLE_COMPARISON: (
+            "직접 관찰한 행동 차이를 비교하기"
+        ),
+        SemanticRouteType.CERTAINTY_REASSESSMENT: (
+            "사실과 추론을 구별하고 확신을 다시 판단하기"
+        ),
+        SemanticRouteType.ALTERNATIVE_EXPLANATION: (
+            "실제 원인을 맞히지 않고 가능한 설명을 검토하기"
+        ),
+        SemanticRouteType.BALANCED_CONCLUSION: (
+            "근거와 불확실성을 반영한 결론을 구성하기"
+        ),
+        SemanticRouteType.EMOTION_OR_TRIGGER: (
+            "사용자의 감정이나 촉발 지점을 말하기"
+        ),
+        SemanticRouteType.USER_SELECTED_DIRECTION: (
+            "사용자가 이어갈 자신의 경험 영역을 선택하기"
+        ),
+    }
+)
+
+
 class LatestUserIntent(str, Enum):
     START = "START"
     CBT_ANSWER = "CBT_ANSWER"
@@ -619,6 +655,11 @@ class GeneratedQuestion(ApiModel):
 class CbtQuestionPlan(ApiModel):
     """1차 분석 모델이 정하는 다음 질문의 의미와 금지 경로입니다."""
 
+    direction_code: str = Field(
+        alias="directionCode",
+        min_length=3,
+        max_length=100,
+    )
     question_purpose: QuestionPurpose = Field(alias="questionPurpose")
     semantic_route_type: SemanticRouteType = Field(alias="semanticRouteType")
     latest_user_intent: LatestUserIntent = Field(
@@ -658,6 +699,37 @@ class CbtQuestionPlan(ApiModel):
                 "Briefly respond to the user's request or conversation feedback "
                 "before asking the next question."
             )
+        return self
+
+
+class CbtQuestionSelection(ApiModel):
+    """모델이 현재 허용 목록에서 고르는 최소 질문 계획입니다."""
+
+    direction_code: str = Field(
+        alias="directionCode",
+        min_length=3,
+        max_length=100,
+    )
+    latest_user_intent: LatestUserIntent = Field(alias="latestUserIntent")
+    question_goal: str = Field(alias="questionGoal", min_length=1, max_length=300)
+    preface_required: bool = Field(alias="prefaceRequired")
+    preface_goal: str | None = Field(alias="prefaceGoal", max_length=300)
+    grounding_question_codes: list[str] = Field(
+        alias="groundingQuestionCodes",
+        max_length=5,
+    )
+    avoid_topics: list[str] = Field(alias="avoidTopics", max_length=8)
+
+    @model_validator(mode="after")
+    def validate_selection(self) -> "CbtQuestionSelection":
+        self.grounding_question_codes = list(
+            dict.fromkeys(self.grounding_question_codes)
+        )
+        self.avoid_topics = list(dict.fromkeys(self.avoid_topics))
+        if self.preface_required and self.preface_goal is None:
+            raise ValueError("prefaceGoal is required when prefaceRequired is true")
+        if not self.preface_required:
+            self.preface_goal = None
         return self
 
 
@@ -733,6 +805,10 @@ class CbtAnalysisDraft(ApiModel):
     question_plan: CbtQuestionPlan | None = Field(alias="questionPlan")
     confirmation: CbtConfirmationDraft | None
     risk: RiskAssessment
+    safety_evidence: str | None = Field(
+        alias="safetyEvidence",
+        max_length=300,
+    )
 
     @model_validator(mode="after")
     def validate_result_shape(self) -> "CbtAnalysisDraft":
@@ -743,6 +819,8 @@ class CbtAnalysisDraft(ApiModel):
                 raise ValueError("QUESTION must not include confirmation")
             if self.risk.level != RiskLevel.NONE:
                 raise ValueError("QUESTION is not allowed when a safety signal exists")
+            if self.safety_evidence is not None:
+                raise ValueError("QUESTION must not include safetyEvidence")
 
         elif self.result_type == CbtResultType.CONFIRMATION_REQUIRED:
             if self.question_plan is not None:
@@ -755,53 +833,50 @@ class CbtAnalysisDraft(ApiModel):
                 raise ValueError(
                     "CONFIRMATION_REQUIRED is not allowed when a safety signal exists"
                 )
+            if self.safety_evidence is not None:
+                raise ValueError(
+                    "CONFIRMATION_REQUIRED must not include safetyEvidence"
+                )
 
         else:
             if self.question_plan is not None or self.confirmation is not None:
                 raise ValueError("SAFETY_STOP must not include CBT output")
             if self.risk.level == RiskLevel.NONE:
                 raise ValueError("SAFETY_STOP requires REVIEW or CRISIS risk")
+            if self.safety_evidence is None:
+                raise ValueError("SAFETY_STOP requires safetyEvidence")
 
         return self
 
 
-class CbtQuestionOrSafetyDraft(ApiModel):
-    """확인 조건이 부족할 때 confirmation을 표현할 수 없는 분석 결과입니다."""
+class CbtAnalysisSelectionDraft(ApiModel):
+    """분석 모델이 directionCode만 선택하는 strict 출력입니다."""
+
+    result_type: CbtResultType = Field(alias="resultType")
+    semantic_progress: CbtSemanticProgress = Field(alias="semanticProgress")
+    question_selection: CbtQuestionSelection | None = Field(alias="questionPlan")
+    confirmation: CbtConfirmationDraft | None
+    risk: RiskAssessment
+    safety_evidence: str | None = Field(
+        alias="safetyEvidence",
+        max_length=300,
+    )
+
+
+class CbtQuestionOrSafetySelectionDraft(ApiModel):
+    """confirmation이 비활성일 때 사용하는 최소 분석 출력입니다."""
 
     result_type: Literal[
         CbtResultType.QUESTION,
         CbtResultType.SAFETY_STOP,
     ] = Field(alias="resultType")
     semantic_progress: CbtSemanticProgress = Field(alias="semanticProgress")
-    question_plan: CbtQuestionPlan | None = Field(alias="questionPlan")
+    question_selection: CbtQuestionSelection | None = Field(alias="questionPlan")
     risk: RiskAssessment
-
-    @model_validator(mode="after")
-    def validate_result_shape(self) -> "CbtQuestionOrSafetyDraft":
-        if self.result_type == CbtResultType.QUESTION:
-            if self.question_plan is None:
-                raise ValueError("QUESTION requires questionPlan")
-            if self.risk.level != RiskLevel.NONE:
-                raise ValueError(
-                    "QUESTION is not allowed when a safety signal exists"
-                )
-        else:
-            if self.question_plan is not None:
-                raise ValueError("SAFETY_STOP must not include questionPlan")
-            if self.risk.level == RiskLevel.NONE:
-                raise ValueError(
-                    "SAFETY_STOP requires REVIEW or CRISIS risk"
-                )
-        return self
-
-    def to_analysis_draft(self) -> CbtAnalysisDraft:
-        return CbtAnalysisDraft(
-            result_type=self.result_type,
-            semantic_progress=self.semantic_progress,
-            question_plan=self.question_plan,
-            confirmation=None,
-            risk=self.risk,
-        )
+    safety_evidence: str | None = Field(
+        alias="safetyEvidence",
+        max_length=300,
+    )
 
 
 class AnalysisMeta(ApiModel):
@@ -831,40 +906,33 @@ class CbtTurnResponse(ApiModel):
 
 ANALYSIS_PROMPT = """
 <role>
-Plan one Korean CBT reflection turn. Select SAFETY_STOP,
-CONFIRMATION_REQUIRED, or one QUESTION direction. The Writer creates final
-question wording. Do not diagnose, invent facts, or try to prove
-automaticThought false.
+Plan one Korean CBT reflection turn. Select safety, confirmation, or one item
+from allowedNextDirections. The Writer creates final question wording. Do not
+diagnose, invent facts, or try to prove automaticThought false.
 </role>
 
 <order>
-1. Check a plausible current harm or immediate-danger signal.
-2. Interpret latestInteraction and authoritative user feedback.
-3. Review completionCandidates and rebuild semanticProgress from the actual
-   saved-answer meanings and exact excerpts.
-4. If confirmationAllowed and all four domains are valid, return
-   CONFIRMATION_REQUIRED instead of asking another question.
-5. Otherwise select one new, answerable route.
+1. Use safetyCandidates.
+2. Interpret latestInteraction and authoritative dialogue feedback.
+3. Verify completionCandidates against actual saved-answer meanings.
+4. Return confirmation when all four domains are valid.
+5. Otherwise select one allowed direction.
 </order>
 
-<context>
-The reflection subject and respondent are always the USER. A person mentioned
-in the situation is a third party, not the respondent.
-
-blockedRoutes and blockedRouteFamilies are hard exclusions.
-resolvedButIrrelevantTopics are closed and cannot be reused or grounded.
-semanticRouteDefinitions are authoritative. Select only an allowed
-questionPurpose and never select OTHER_SPECIFIC.
-</context>
+<safety>
+Return SAFETY_STOP only when safetyCandidates contains matching current-user
+evidence. Copy one candidate's exact evidence and compatible reason. If the
+list is empty, never return a safety decision.
+</safety>
 
 <evidence>
-Interpret answers by meaning and answerDisposition, never by questionPurpose
-alone. completionCandidates are attention hints, not proof.
+Interpret answers by meaning and answerDisposition, not questionPurpose alone.
+completionCandidates are attention hints, not proof.
 
 DIALOGUE_CONTROL, UNCLEAR, and SKIPPED fill no CBT domain.
 NO_DIRECT_EVIDENCE is never evidenceFor and may lower certainty.
 
-semanticProgress uses exact saved-answer excerpts:
+Use exact saved-answer excerpts:
 - evidenceFor supports the core claim;
 - evidenceAgainst contradicts it or lowers certainty;
 - alternativeView contains another plausible or balanced interpretation;
@@ -873,90 +941,78 @@ semanticProgress uses exact saved-answer excerpts:
 
 <feedback>
 RELEVANCE_FEEDBACK and REPETITION_FEEDBACK are dialogue control, not evidence.
-Do not reuse the rejected route, family, topic, comparison, cause, evidence
-source, or causal link.
+Do not reuse rejected or server-excluded topics.
 
-For REQUEST_EXAMPLE, give neutral possibilities in prefaceGoal, then ask which,
-if any, seems plausible. Do not ask for the third party's actual hidden reason.
+For REQUEST_EXAMPLE, use prefaceGoal for brief neutral possibilities and ask
+which, if any, the user considers plausible. Do not ask for a third party's
+actual hidden reason.
 
-For REQUEST_EXPLANATION or DIFFICULTY_FEEDBACK, use one brief prefaceGoal and
-one simpler relevant direction.
+For explanation or difficulty feedback, use one brief prefaceGoal and one
+simpler allowed direction.
 </feedback>
 
-<question>
-Start from the core claim, not an adjacent detail. Choose one unresolved point
-whose answer could most change the user's understanding or certainty.
+<direction>
+allowedNextDirections is the complete set of valid choices for this turn.
+Select exactly one directionCode and do not invent another direction.
 
-The user may answer from their own observation, experience, judgment,
-hypothesis, or synthesis. Never ask the user to know a third party's actual
-emotion, thought, motive, intention, or cause.
-
-Follow the selected semanticRouteDefinition exactly. A route label with a
-different question meaning is invalid.
-
-questionGoal is a short Korean plan, not final wording:
+questionGoal supplies one concrete topic for the selected userOperation:
 "확인된 사실: ...; 핵심 주장: ...; 미해결 간극: ...; 사용자에게 물을 목표: ..."
 
-groundingQuestionCodes may contain only substantive saved answers.
-Do not repeat a closed meaning, force optimism, or assume the original thought
-is entirely false.
-</question>
+The answer must be obtainable from the selected answerSource. Never ask the
+user to know a third party's actual emotion, thought, motive, intention, or
+cause. Respect forbiddenTargets, resolvedButIrrelevantTopics, and saved
+answers. Do not repeat a closed meaning or force optimism.
+</direction>
 
 <confirmation>
-Confirmation requires valid evidenceFor, evidenceAgainst, alternativeView, and
-acknowledgement. Candidate coverage alone is insufficient; verify answer
-meaning and exact excerpts.
+Return CONFIRMATION_REQUIRED only with valid evidenceFor, evidenceAgainst,
+alternativeView, and acknowledgement. Candidate coverage alone is
+insufficient.
 
-Use tentative distortion language and concrete saved evidence.
-proposalMessage should briefly state the observed pattern and why the proposed
-distortion may apply. Do not use "당신", invent scores, use feedback as
-evidence, or re-propose a rejected distortion.
+Use concrete saved evidence and tentative distortion language. Do not invent
+scores, use dialogue feedback as evidence, or re-propose a rejected
+distortion.
 </confirmation>
-
-<safety>
-SAFETY_STOP only for a contextually plausible current self-harm, suicide,
-harm-to-others, or immediate-danger signal. Profanity, sadness, anxiety,
-frustration, refusal, and criticism alone are not safety signals.
-</safety>
 """.strip()
 
 
 WRITER_PROMPT = """
 <role>
-Write one natural Korean response from the supplied plan. Do not change
-questionPurpose or semanticRouteType, add evidence, classify, or diagnose.
+Write one natural Korean response from the supplied plan. Express the selected
+direction without changing, extending, or reclassifying it.
 </role>
 
-<route>
-selectedRouteDefinition is authoritative. Express exactly its meaning using
-the grounded topic. Do not turn CONTRADICTORY_FACT into another-possibility
-question or EMOTION_OR_TRIGGER into a third-party emotion question.
+<contract>
+selectedDirection is authoritative. Perform its userOperation, use an
+answerable target from its answerSource, and avoid all forbiddenTargets.
 
-For ALTERNATIVE_EXPLANATION, ask which possibility may fit, not what the third
-party's actual hidden reason was.
-</route>
+questionGoal supplies the concrete topic only. If part of questionGoal
+conflicts with selectedDirection, discard the conflicting part instead of
+switching to another route.
+</contract>
 
 <subject>
-questionSubject is USER. Ask what the user observed, experienced, inferred,
-judged, or can consider. Never ask for a third party's actual emotion, thought,
-motive, intention, or cause. Never use "당신".
+The respondent is always the user. Ask what the user observed, experienced,
+judged, can consider, can synthesize, or wants to choose.
+
+Never ask for a third party's actual emotion, thought, motive, intention, or
+cause. A possible explanation must remain a hypothesis, not hidden knowledge.
 </subject>
 
 <preface>
 If prefaceRequired is false, return preface=null. If true, fulfill
 prefaceGoal in one brief statement without adding a new topic.
 
-For REQUEST_EXAMPLE, give brief neutral possibilities and then ask whether any
-of them seems plausible. Do not repeat the same open-ended hidden-reason
-question.
+For an example request, give brief neutral possibilities and ask whether any
+seems plausible. Do not repeat an open-ended hidden-reason question.
 </preface>
 
 <question>
-Ask one simple, answerable Korean question. Respect groundingAnswers,
-blockedRoutes, blockedRouteFamilies, resolvedButIrrelevantTopics, avoidTopics,
+Ask one simple, answerable question using natural Korean honorifics. Respect
+groundingAnswers, resolvedButIrrelevantTopics, avoidTopics,
 latestInteraction, and previousQuestions.
 
-Do not repeat a closed meaning, ask multiple questions, force optimism, or
+Do not ask multiple questions, repeat a closed meaning, force optimism, or
 invent facts.
 </question>
 """.strip()
@@ -985,9 +1041,9 @@ def _get_analysis_model(confirmation_allowed: bool) -> Any:
     model = _analysis_models.get(confirmation_allowed)
     if model is None:
         schema = (
-            CbtAnalysisDraft
+            CbtAnalysisSelectionDraft
             if confirmation_allowed
-            else CbtQuestionOrSafetyDraft
+            else CbtQuestionOrSafetySelectionDraft
         )
         model = _get_llm().with_structured_output(
             schema,
@@ -1155,30 +1211,6 @@ def _semantic_route_family(
     return SEMANTIC_ROUTE_FAMILY_BY_TYPE[route_type]
 
 
-def _semantic_route_definition_payload(
-    route_type: SemanticRouteType,
-) -> dict[str, Any]:
-    definition = SEMANTIC_ROUTE_DEFINITIONS[route_type]
-    return {
-        "semanticRouteType": route_type.value,
-        "semanticRouteFamily": _semantic_route_family(route_type).value,
-        "meaning": definition["meaning"],
-        "informationSource": definition["informationSource"],
-        "forbiddenDirections": list(definition["forbiddenDirections"]),
-        "allowedQuestionPurposes": sorted(
-            purpose.value
-            for purpose in ALLOWED_QUESTION_PURPOSES_BY_ROUTE[route_type]
-        ),
-    }
-
-
-def _semantic_route_definitions_payload() -> list[dict[str, Any]]:
-    return [
-        _semantic_route_definition_payload(route_type)
-        for route_type in SemanticRouteType
-    ]
-
-
 def _validate_question_plan_route(plan: CbtQuestionPlan) -> None:
     if plan.semantic_route_type == SemanticRouteType.OTHER_SPECIFIC:
         raise CbtDraftValidationError(
@@ -1191,6 +1223,114 @@ def _validate_question_plan_route(plan: CbtQuestionPlan) -> None:
         raise CbtDraftValidationError(
             "questionPurpose is not allowed for the selected semanticRouteType"
         )
+    if plan.direction_code != _direction_code(
+        plan.semantic_route_type,
+        plan.question_purpose,
+    ):
+        raise CbtDraftValidationError(
+            "directionCode does not match the restored route and purpose"
+        )
+
+
+def _direction_code(
+    route_type: SemanticRouteType,
+    purpose: QuestionPurpose,
+) -> str:
+    return f"{route_type.value}:{purpose.value}"
+
+
+def _direction_payload(
+    route_type: SemanticRouteType,
+    purpose: QuestionPurpose,
+) -> dict[str, Any]:
+    definition = SEMANTIC_ROUTE_DEFINITIONS[route_type]
+    answer_source = definition["informationSource"]
+    if answer_source == "USER_OBSERVATION_OR_KNOWN_FACT":
+        answer_source = "USER_OBSERVATION"
+    return {
+        "directionCode": _direction_code(route_type, purpose),
+        "semanticRouteType": route_type.value,
+        "semanticRouteFamily": _semantic_route_family(route_type).value,
+        "questionPurpose": purpose.value,
+        "meaning": definition["meaning"],
+        "userOperation": USER_OPERATION_BY_ROUTE[route_type],
+        "answerSource": answer_source,
+        "forbiddenTargets": list(definition["forbiddenDirections"]),
+    }
+
+
+def _resolved_semantic_route_types(
+    question_answers: list[QuestionAnswer],
+) -> set[SemanticRouteType]:
+    return {
+        item.semantic_route_type
+        for item in question_answers
+        if item.semantic_route_type is not None
+        and item.semantic_route_type != SemanticRouteType.OTHER_SPECIFIC
+        and _classify_answer_disposition(item)
+        in {
+            AnswerDisposition.SUBSTANTIVE,
+            AnswerDisposition.NO_DIRECT_EVIDENCE,
+        }
+    }
+
+
+def _allowed_next_directions(request: CbtRequest) -> list[dict[str, Any]]:
+    history = (
+        request.question_answers
+        if isinstance(request, CbtTurnRequest)
+        else []
+    )
+    blocked_routes = _blocked_semantic_route_types(history)
+    blocked_families = _hard_blocked_route_families(history)
+    resolved_routes = _resolved_semantic_route_types(history)
+    directions: list[dict[str, Any]] = []
+    for route_type in SemanticRouteType:
+        if route_type == SemanticRouteType.OTHER_SPECIFIC:
+            continue
+        if route_type in blocked_routes or route_type in resolved_routes:
+            continue
+        if _semantic_route_family(route_type) in blocked_families:
+            continue
+        for purpose in sorted(
+            ALLOWED_QUESTION_PURPOSES_BY_ROUTE[route_type],
+            key=lambda item: item.value,
+        ):
+            directions.append(_direction_payload(route_type, purpose))
+    if not directions:
+        raise RuntimeError("No allowed CBT direction is available for this turn")
+    return directions
+
+
+def _resolve_question_selection(
+    request: CbtRequest,
+    selection: CbtQuestionSelection,
+) -> CbtQuestionPlan:
+    directions = {
+        item["directionCode"]: item
+        for item in _allowed_next_directions(request)
+    }
+    selected = directions.get(selection.direction_code)
+    if selected is None:
+        raise CbtDraftValidationError(
+            "directionCode is not present in allowedNextDirections"
+        )
+    route_type = SemanticRouteType(selected["semanticRouteType"])
+    purpose = QuestionPurpose(selected["questionPurpose"])
+    plan = CbtQuestionPlan(
+        direction_code=selection.direction_code,
+        question_purpose=purpose,
+        semantic_route_type=route_type,
+        latest_user_intent=selection.latest_user_intent,
+        question_goal=selection.question_goal,
+        preface_goal=(
+            selection.preface_goal if selection.preface_required else None
+        ),
+        grounding_question_codes=selection.grounding_question_codes,
+        avoid_topics=selection.avoid_topics,
+    )
+    _validate_question_plan_route(plan)
+    return plan
 
 
 def _feedback_blocked_route_families(
@@ -1413,6 +1553,54 @@ def _is_clearly_non_current_user_safety_text(text: str | None) -> bool:
     return any((negated, historical_and_resolved, hypothetical, quoted_only))
 
 
+SAFETY_MARKERS_BY_REASON = MappingProxyType(
+    {
+        RiskReasonCode.HARM_TO_OTHERS: (
+            "다른 사람을 해치",
+            "누군가를 해치",
+            "사람을 해치",
+            "너를 해치",
+            "죽이고 싶",
+            "죽이겠",
+            "누군가를 죽일",
+            "사람을 죽일",
+            "너를 죽일",
+        ),
+        RiskReasonCode.SUICIDE: (
+            "자살",
+            "죽고 싶",
+            "죽어 버리고",
+            "죽어버리고",
+            "목숨을 끊",
+        ),
+        RiskReasonCode.SELF_HARM: (
+            "자해",
+            "나를 해치",
+            "나를 해칠",
+            "내 몸을 해치",
+            "내 몸을 해칠",
+            "스스로를 해치",
+            "스스로를 해칠",
+        ),
+        RiskReasonCode.IMMEDIATE_DANGER: (
+            "지금 당장 위험",
+            "당장 위험해",
+            "위험에 처해",
+            "살려 줘",
+            "살려줘",
+            "누가 나를 죽이",
+            "공격받고 있어",
+        ),
+        RiskReasonCode.AMBIGUOUS_SAFETY_SIGNAL: (
+            "해치고 싶",
+            "해치겠",
+            "위해를 가할",
+            "다치게 할 것 같",
+        ),
+    }
+)
+
+
 def _explicit_safety_reason_from_text(
     text: str | None,
 ) -> RiskReasonCode | None:
@@ -1421,72 +1609,60 @@ def _explicit_safety_reason_from_text(
     normalized = " ".join((text or "").lower().split())
     if not normalized or _is_clearly_non_current_user_safety_text(normalized):
         return None
-    marker_groups = (
-        (
-            RiskReasonCode.HARM_TO_OTHERS,
-            (
-                "다른 사람을 해치",
-                "누군가를 해치",
-                "사람을 해치",
-                "너를 해치",
-                "죽이고 싶",
-                "죽이겠",
-                "누군가를 죽일",
-                "사람을 죽일",
-                "너를 죽일",
-            ),
-        ),
-        (
-            RiskReasonCode.SUICIDE,
-            ("자살", "죽고 싶", "죽어 버리고", "죽어버리고", "목숨을 끊"),
-        ),
-        (
-            RiskReasonCode.SELF_HARM,
-            (
-                "자해",
-                "나를 해치",
-                "나를 해칠",
-                "내 몸을 해치",
-                "내 몸을 해칠",
-                "스스로를 해치",
-                "스스로를 해칠",
-            ),
-        ),
-        (
-            RiskReasonCode.IMMEDIATE_DANGER,
-            (
-                "지금 당장 위험",
-                "당장 위험해",
-                "위험에 처해",
-                "살려 줘",
-                "살려줘",
-                "누가 나를 죽이",
-                "공격받고 있어",
-            ),
-        ),
-        (
-            RiskReasonCode.AMBIGUOUS_SAFETY_SIGNAL,
-            ("해치고 싶", "해치겠", "위해를 가할", "다치게 할 것 같"),
-        ),
-    )
-    for reason, markers in marker_groups:
+    for reason, markers in SAFETY_MARKERS_BY_REASON.items():
         if any(marker in normalized for marker in markers):
             return reason
     return None
 
 
+def _safety_candidates(request: CbtRequest) -> list[dict[str, str]]:
+    sources: list[tuple[str, str | None]]
+    if isinstance(request, CbtTurnRequest):
+        sources = [("LATEST_INTERACTION", request.question_answers[-1].answer)]
+    else:
+        sources = [
+            ("AUTOMATIC_THOUGHT", request.record.automatic_thought),
+            ("SITUATION", request.record.situation),
+        ]
+
+    candidates: list[dict[str, str]] = []
+    seen: set[tuple[RiskReasonCode, str, str]] = set()
+    for source_type, source in sources:
+        if not source or _is_clearly_non_current_user_safety_text(source):
+            continue
+        lowered = source.lower()
+        for reason, markers in SAFETY_MARKERS_BY_REASON.items():
+            for marker in markers:
+                start = lowered.find(marker)
+                if start < 0:
+                    continue
+                evidence = source[start:start + len(marker)]
+                evidence_reason = _explicit_safety_reason_from_text(evidence)
+                if evidence_reason != reason:
+                    continue
+                key = (reason, evidence, source_type)
+                if key in seen:
+                    continue
+                seen.add(key)
+                candidates.append(
+                    {
+                        "reason": reason.value,
+                        "evidence": evidence,
+                        "sourceType": source_type,
+                    }
+                )
+    return candidates
+
+
 def _explicit_safety_hint(request: CbtRequest) -> RiskReasonCode | None:
     """현재 입력의 명백한 위험 표현만 분석 전에 힌트로 제공합니다."""
 
-    if isinstance(request, CbtTurnRequest):
-        texts = [request.question_answers[-1].answer]
-    else:
-        texts = [request.record.automatic_thought, request.record.situation]
-    for text in texts:
-        reason = _explicit_safety_reason_from_text(text)
-        if reason is not None:
-            return reason
-    return None
+    candidates = _safety_candidates(request)
+    return (
+        RiskReasonCode(candidates[0]["reason"])
+        if candidates
+        else None
+    )
 
 
 def _is_clearly_non_current_user_safety_reference(request: CbtRequest) -> bool:
@@ -1507,6 +1683,30 @@ def _contextual_safety_hint(request: CbtRequest) -> RiskReasonCode | None:
     """명백한 비현재·제3자 문맥을 제외한 위험 후보만 반환합니다."""
 
     return _explicit_safety_hint(request)
+
+
+def _validate_safety_decision(
+    reason: RiskReasonCode | None,
+    evidence: str | None,
+    request: CbtRequest,
+) -> None:
+    candidates = _safety_candidates(request)
+    if not candidates:
+        raise CbtDraftValidationError(
+            "Safety decision is invalid because safetyCandidates is empty"
+        )
+    if reason is None or evidence is None:
+        raise CbtDraftValidationError(
+            "Safety decision requires candidate reason and exact evidence"
+        )
+    if not any(
+        candidate["reason"] == reason.value
+        and candidate["evidence"] == evidence
+        for candidate in candidates
+    ):
+        raise CbtDraftValidationError(
+            "Safety reason and evidence must match one safetyCandidates item"
+        )
 
 
 def _analysis_turn_flags(
@@ -1645,7 +1845,6 @@ def _build_analysis_payload(
         ]
 
     latest_user_intent_hint = _explicit_feedback_intent(request)
-    latest_safety_hint = _contextual_safety_hint(request)
     latest_answer_meaning_hint, turn_flags = _analysis_turn_flags(
         request,
         latest_user_intent_hint,
@@ -1672,9 +1871,7 @@ def _build_analysis_payload(
         "latestInteraction": (
             question_answers[-1] if question_answers else None
         ),
-        "latestSafetyHint": (
-            latest_safety_hint.value if latest_safety_hint is not None else None
-        ),
+        "safetyCandidates": _safety_candidates(request),
         "latestUserIntentHint": (
             latest_user_intent_hint.value
             if latest_user_intent_hint is not None
@@ -1684,14 +1881,10 @@ def _build_analysis_payload(
         "turnFlags": turn_flags,
         "questionSubject": "USER",
         "blockedRoutes": blocked_routes,
-        "blockedRouteFamilies": sorted(
-            family.value
-            for family in _hard_blocked_route_families(history)
-        ),
         "resolvedButIrrelevantTopics": _resolved_but_irrelevant_topics(
             history
         ),
-        "semanticRouteDefinitions": _semantic_route_definitions_payload(),
+        "allowedNextDirections": _allowed_next_directions(request),
         "completionCandidates": completion_candidates,
         "completionCandidateCoverage": completion_coverage,
         "questionAnswers": question_answers,
@@ -1776,32 +1969,19 @@ def _build_writer_payload(
         "latestInteraction": latest_interaction,
         "groundingAnswers": grounding_answers,
         "previousQuestions": previous_questions,
-        "blockedRoutes": (
-            _blocked_routes_from_history(request.question_answers)
-            if isinstance(request, CbtTurnRequest)
-            else []
-        ),
-        "blockedRouteFamilies": sorted(
-            family.value
-            for family in _hard_blocked_route_families(
-                request.question_answers
-                if isinstance(request, CbtTurnRequest)
-                else []
-            )
-        ),
         "resolvedButIrrelevantTopics": _resolved_but_irrelevant_topics(
             request.question_answers
             if isinstance(request, CbtTurnRequest)
             else []
         ),
-        "selectedRouteDefinition": _semantic_route_definition_payload(
-            plan.semantic_route_type
+        "selectedDirection": _direction_payload(
+            plan.semantic_route_type,
+            plan.question_purpose,
         ),
-        "selectedRouteFamily": _semantic_route_family(
-            plan.semantic_route_type
-        ).value,
         "prefaceRequired": plan.preface_goal is not None,
-        "plan": plan.model_dump(by_alias=True, mode="json"),
+        "prefaceGoal": plan.preface_goal,
+        "questionGoal": plan.question_goal,
+        "avoidTopics": plan.avoid_topics,
     }
 
 
@@ -1980,14 +2160,6 @@ def _semantic_progress_complete(progress: CbtSemanticProgress) -> bool:
     )
 
 
-def _validate_generated_user_visible_text(*texts: str | None) -> None:
-    if any(text is not None and "당신" in text for text in texts):
-        raise CbtDraftValidationError(
-            "Generated user-visible text must not use the cold second-person "
-            "expression '당신'"
-        )
-
-
 def _validate_analysis_draft(
     draft: CbtAnalysisDraft,
     request: CbtRequest,
@@ -2002,15 +2174,11 @@ def _validate_analysis_draft(
         history,
     )
 
-    if (
-        draft.result_type == CbtResultType.SAFETY_STOP
-        and _is_clearly_non_current_user_safety_reference(request)
-    ):
-        raise CbtDraftValidationError(
-            "SAFETY_STOP is invalid because the harm wording is clearly negated, "
-            "resolved historical context, hypothetical, or attributed only to a "
-            "third party. Re-read the original answer and continue without treating "
-            "it as the user's current safety signal"
+    if draft.result_type == CbtResultType.SAFETY_STOP:
+        _validate_safety_decision(
+            draft.risk.reason_code,
+            draft.safety_evidence,
+            request,
         )
 
     if (
@@ -2097,10 +2265,6 @@ def _validate_analysis_draft(
 
         assert draft.confirmation is not None
         confirmation = draft.confirmation
-        _validate_generated_user_visible_text(
-            confirmation.proposal_message,
-            confirmation.outcome_draft.alternative_thought_text,
-        )
         rejected_codes = {
             item.code
             for item in request.before_distortions
@@ -2381,8 +2545,10 @@ def _build_deterministic_fallback(
         semantic_progress or _empty_semantic_progress(),
         history,
     )
-    safety_reason = _contextual_safety_hint(request)
-    if safety_reason is not None:
+    safety_candidates = _safety_candidates(request)
+    if safety_candidates:
+        safety_candidate = safety_candidates[0]
+        safety_reason = RiskReasonCode(safety_candidate["reason"])
         level = (
             RiskLevel.CRISIS
             if safety_reason == RiskReasonCode.IMMEDIATE_DANGER
@@ -2398,31 +2564,30 @@ def _build_deterministic_fallback(
                     level=level,
                     reason_code=safety_reason,
                 ),
+                safety_evidence=safety_candidate["evidence"],
             ),
             None,
         )
 
-    used_routes = {
-        item.semantic_route_type
-        for item in history
-        if item.semantic_route_type is not None
+    allowed = {
+        item["directionCode"]: item
+        for item in _allowed_next_directions(request)
     }
-    blocked_routes = _blocked_semantic_route_types(history)
-    blocked_families = _hard_blocked_route_families(history)
     selected: tuple[QuestionPurpose, SemanticRouteType, str] | None = None
     for candidate in FALLBACK_QUESTION_CANDIDATES:
-        _, route, _ = candidate
-        if route in used_routes or route in blocked_routes:
-            continue
-        if _semantic_route_family(route) in blocked_families:
-            continue
-        selected = candidate
-        break
+        purpose, route, _ = candidate
+        if _direction_code(route, purpose) in allowed:
+            selected = candidate
+            break
     if selected is None:
-        selected = FALLBACK_QUESTION_CANDIDATES[-1]
+        first_direction = next(iter(allowed.values()))
+        route = SemanticRouteType(first_direction["semanticRouteType"])
+        purpose = QuestionPurpose(first_direction["questionPurpose"])
+        selected = (purpose, route, FALLBACK_QUESTION_BY_ROUTE[route])
 
     purpose, route, question = selected
     plan = CbtQuestionPlan(
+        direction_code=_direction_code(route, purpose),
         question_purpose=purpose,
         semantic_route_type=route,
         latest_user_intent=_fallback_latest_user_intent(request),
@@ -2438,6 +2603,7 @@ def _build_deterministic_fallback(
         question_plan=plan,
         confirmation=None,
         risk=RiskAssessment(level=RiskLevel.NONE, reason_code=None),
+        safety_evidence=None,
     )
     return draft, _deterministic_fallback_wording(request, plan)
 
@@ -2472,32 +2638,61 @@ async def _analyze_turn(
 ) -> CbtAnalysisDraft:
     confirmation_allowed = _confirmation_candidate_available(request)
     schema = (
-        CbtAnalysisDraft
+        CbtAnalysisSelectionDraft
         if confirmation_allowed
-        else CbtQuestionOrSafetyDraft
+        else CbtQuestionOrSafetySelectionDraft
     )
+
+    def materialize(
+        selection_draft: (
+            CbtAnalysisSelectionDraft
+            | CbtQuestionOrSafetySelectionDraft
+        ),
+    ) -> CbtAnalysisDraft:
+        if selection_draft.result_type == CbtResultType.QUESTION:
+            if selection_draft.question_selection is None:
+                raise CbtDraftValidationError(
+                    "QUESTION requires questionPlan with a directionCode"
+                )
+            question_plan = _resolve_question_selection(
+                request,
+                selection_draft.question_selection,
+            )
+        else:
+            if selection_draft.question_selection is not None:
+                raise CbtDraftValidationError(
+                    "Non-question result must not include questionPlan"
+                )
+            question_plan = None
+        confirmation = getattr(selection_draft, "confirmation", None)
+        return CbtAnalysisDraft(
+            result_type=selection_draft.result_type,
+            semantic_progress=selection_draft.semantic_progress,
+            question_plan=question_plan,
+            confirmation=confirmation,
+            risk=selection_draft.risk,
+            safety_evidence=selection_draft.safety_evidence,
+        )
+
     result = await _invoke_structured(
         model=analysis_model or _get_analysis_model(confirmation_allowed),
         schema=schema,
         system_prompt=ANALYSIS_PROMPT,
         payload=_build_analysis_payload(request),
         validate=lambda draft: _validate_analysis_draft(
-            (
-                draft
-                if isinstance(draft, CbtAnalysisDraft)
-                else draft.to_analysis_draft()
-            ),
+            materialize(draft),
             request,
         ),
         stage="analysis",
         retry_guidance=(
-            "Re-check progress, saved-answer references, the selected result "
-            "container, and rejected distortions."
+            "Choose one of these directionCodes when asking a question: "
+            + ", ".join(
+                item["directionCode"]
+                for item in _allowed_next_directions(request)
+            )
         ),
     )
-    if isinstance(result, CbtAnalysisDraft):
-        return result
-    return result.to_analysis_draft()
+    return materialize(result)
 
 
 async def _write_question(
@@ -2511,10 +2706,7 @@ async def _write_question(
         schema=QuestionWordingDraft,
         system_prompt=WRITER_PROMPT,
         payload=_build_writer_payload(request, plan),
-        validate=lambda draft: _validate_generated_user_visible_text(
-            draft.preface,
-            draft.question,
-        ),
+        validate=lambda _: None,
         stage="question wording",
         retry_guidance=(
             "Keep the same plan, avoid forbidden topics, and do not repeat a "
