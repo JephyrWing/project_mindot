@@ -204,14 +204,6 @@
   cursor: not-allowed;
 }
 
-/* 임시 기록임을 알려 주는 안내 문구 설정. */
-.emotion-history-preview-notice {
-  margin: 14px 2px 0;
-  color: var(--mindot-text-muted);
-  font-size: 12px;
-  text-align: right;
-}
-
 /* 선택 조건에 맞는 감정 기록 카드의 세로 목록 배치. */
 .emotion-history-list {
   display: grid;
@@ -437,10 +429,6 @@
 
   .emotion-history-search button {
     width: 100%;
-  }
-
-  .emotion-history-preview-notice {
-    text-align: left;
   }
 
   .emotion-history-item-header {
