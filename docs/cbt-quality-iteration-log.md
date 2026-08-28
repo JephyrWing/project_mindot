@@ -626,3 +626,88 @@ tokens로 Q4가 2,129 tokens, 약 3.45% 더 많았다. 턴별 값은 다음과 �
 - 향후 reflection readiness와 distortion presence를 분리해야 한다.
 - 이번에는 DTO, enum, completion 상태를 변경하지 않았다.
 - Q4 결과를 기준으로 별도 iteration에서 다룬다.
+
+## Q4R · 운영 Agent 전환과 audited rerun
+
+작업 시작 기준은 `5089376d9c2238ddb3c62b73807527fc4d532a29`, Q2 비교 기준은
+`083f42dcf7132ea940c3c3f121c0b5814baca364`, Q4R 품질 코드는
+`77913375831066e579fa381cdf0cbb5eed708f06`이다. 작업 중 최신 `develop` 병합도
+보존했다.
+
+### 구현 결정
+
+- `AGENT_SYSTEM_PROMPT`를 4,287자에서 2,830자로, 공통 `WRITER_PROMPT`를
+  1,384자에서 909자로 전면 교체했다. 실제 문자열은 지시 원문과 동일하고
+  Q4R prompt version은 `cbt-session-agent-quality-q4r`로 분리했다.
+- 내부 질문 plan과 Writer 입력에 `exampleOptions`를 두었다. strict tool schema
+  때문에 필드는 항상 존재하되 일반 질문은 빈 목록, `REQUEST_EXAMPLE`은 길이와
+  문자열 길이만 검증한 중립적 예시 정확히 2개다. 외부 응답 DTO에는 노출하지 않는다.
+- 도구는 `(safety_allowed, confirmation_allowed)` 조합으로 동적 구성한다.
+  `ask_question`은 항상, `safety_stop`은 서버 safety candidate가 있을 때만,
+  `request_confirmation`은 confirmation candidate와 서버 정규화 네 영역이 모두
+  준비됐을 때만 모델에 노출한다.
+- confirmation action은 distortion 후보, 네 영역의 저장 answer code/excerpt,
+  balanced thought를 구조화한다. 서버가 실제 저장 답변과 exact excerpt를 검증한
+  뒤 Writer 없이 여섯 요소가 포함된 표시 문구를 결정론적으로 렌더링한다.
+- 이중 LLM 구현은 비교·rollback용으로 그대로 보존했다. 운영 FastAPI CBT 경로만
+  Q4R Agent로 전환했다.
+
+운영 route table은 다음과 같다.
+
+| route | 호출 함수 | 동작 |
+| --- | --- | --- |
+| `POST /internal/ai/reflections/start` | `generate_agent_cbt_start()` | Q4R START |
+| `POST /internal/ai/reflections/turn` | `generate_agent_cbt_turn()` | runtime 존재 시 CONTINUE, 없으면 REHYDRATE |
+| `DELETE /internal/ai/reflections/{session_id}` | `close_agent_cbt_session()` | runtime·pending state 제거 |
+
+외부 URL, 요청·응답 DTO, enum, 기본값과 HTTP 상태는 유지했다. 수정 전후 OpenAPI의
+세 route와 관련 18개 component schema를 저장소 밖 임시 파일로 추출해 의미 비교한
+결과 동일했다. Spring `FastApiCbtClient`는 기존 운영 `start`와 `turn`만 호출하므로
+변경하지 않았다. Agent 전용 route, 핸들러와 adapter는 제거했고 전용 외부 DTO나
+전용 테스트는 존재하지 않았다. 저장소 전체 검색에서 과거 Agent 전용 route 문자열은
+0건이다.
+
+### 외부 API 없는 검증
+
+- `git diff --check`, 대상 4개 파일 `py_compile`, `compileall -q mindot_ai` 통과
+- FastAPI import와 운영 route table, START, CONTINUE, REHYDRATE, DELETE 통과
+- 409 idempotency, fallback 후 state, request/response 계약 통과
+- safety 후보 유무와 confirmation 네 영역 유무의 4개 동적 tool 조합 통과
+- confirmation 여섯 표시 요소와 exact code/excerpt 검증 통과
+- 일반 질문 외부 응답에서 `exampleOptions` 미노출 확인
+- 이중 LLM 직접 호출과 compile 확인
+- evaluator 회귀에서 E01 자기성찰 비오탐, D01 관찰 route 일치, 실제 제3자
+  숨은 상태, 실제 route mismatch, semantic repeat 점수 제약, confirmation 두
+  failure 분리, 모순 grader note 거부를 확인
+- exporter smoke에서 12개 시트, 7개 native chart, 실제 series range를 확인
+
+### CBT_AGENT_STRESS_V2_AUDITED 결과
+
+Q2 40건과 Q4R 40건을 새로 호출했다. grader 70건 중 Q2 15건과 Q4R 17건이
+rubric 합과 overall 불일치로 최대 2회 재시도 뒤 `GRADER_INVALID`가 됐다. 따라서
+공식 품질 평가는 불완전하며, 유효 출력의 질문/confirmation/overall 기술 평균은
+Q2 `68.667 / 100.000 / 76.500`, Q4R `81.231 / 100.000 / 86.444`다.
+양쪽 모두 유효한 15개 case의 대응 차이는 평균 `+4.800`, 개선 4, 동점 10,
+하락 1이다. 최대 개선은 `A04 +56`, 최대 하락은 `C03 -35`다.
+
+결정론적 safety gate는 Q2 `8/10`, Q4R `10/10`이다. Q2는 가정형 `D07`
+오탐과 `A08` exact evidence 실패가 있었다. audited failure 행은 Q2 15,
+Q4R 5이며 false-positive로 거부된 candidate는 0이다. 다만 canonical 이름으로
+정규화되지 않은 LLM candidate 8개가 `unmapped`로 true 처리돼 failure 합계도
+참고값으로 남긴다.
+
+공식 40건 token은 Q2 276,727, Q4R 202,443으로 Q4R이 26.85% 적었다.
+Agent/Writer token은 각각 Q2 249,287/27,440, Q4R 175,327/27,116이고 모델
+호출은 81/76회다. 평균·중앙·최대 latency는 Q2
+`5.526/4.760/19.024초`, Q4R `4.325/4.069/10.004초`다.
+
+장기 세션 누적 token은 Q2 69,666, Q4R 33,087이고 fallback은 4/0이다.
+Q2는 미완료 네 영역에서 confirmation tool을 조기 노출해 이후 네 operation에서
+검증 실패와 fallback이 발생했다. Q4R은 같은 흐름에서 confirmation tool을 한 번도
+노출하지 않아 미완료 confirmation 재시도가 0건이었다.
+
+결과 Excel은 저장소 밖
+`cbt-agent-stress-v2-audited-results-20260828T080500Z.xlsx`에 생성했다. 첫 시트는
+Dashboard이고 총 12개 시트와 7개 chart가 있다. 재오픈, 행 수, source range,
+수식 오류, Dashboard·Summary·콘솔 수치 일치와 12개 시트 PNG 렌더링을 확인했다.
+점수 확인 뒤 CBT 코드, 프롬프트, 입력, rubric과 grader를 변경하지 않았다.
