@@ -12,6 +12,8 @@ public record WeeklyReportResponseDto (
         int recordCount,
         String dominantEmotionCode,
         Double averageIntensity,
+        int completedCbtCount,
+        Double averageHelpfulnessScore,
         Map<String, Long> emotionCounts,
         Map<String, Long> weekdayCounts,
         Map<String, Long> timeBucketCounts,

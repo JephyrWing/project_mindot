@@ -2,7 +2,10 @@
 package com.my.mindot_back.reports.service;
 
 import com.my.mindot_back.records.entity.EmotionRecords;
+import com.my.mindot_back.records.entity.ReflectionSessionStatus;
+import com.my.mindot_back.records.entity.ReflectionSessions;
 import com.my.mindot_back.records.repository.EmotionRecordsRepository;
+import com.my.mindot_back.records.repository.ReflectionSessionsRepository;
 import com.my.mindot_back.reports.dto.WeeklyReportResponseDto;
 import com.my.mindot_back.reports.entity.ReportType;
 import com.my.mindot_back.reports.entity.Reports;
@@ -31,6 +34,9 @@ public class WeeklyReportsService {
 
     // 선택한 기간의 감정 기록 조회
     private final EmotionRecordsRepository emotionRecordsRepository;
+
+    // 선택한 기간에 완료, 확정된 CBT 성찰 세션 조회
+    private final ReflectionSessionsRepository reflectionSessionsRepository;
 
     // 사용자 시간대와 사용자 존재 여부 확인
     private final UsersRepository usersRepository;
@@ -82,9 +88,43 @@ public class WeeklyReportsService {
                 );
     }
 
+    // 사용자 시간대를 기준으로 선택한 주에 완료, 확정된 CBT 세션 조회
+private List<ReflectionSessions> findWeeklyCompletedReflectionSessions(
+        Long userId,
+        LocalDate weekStart
+) {
+    // 월요일이 시작일인지 검증
+    validateWeekStart(weekStart);
+
+    // 사용자 시간대를 기준으로 기간 경계 계산
+    Users user = usersRepository.findById(userId)
+            .orElseThrow(() -> new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "사용자를 찾을 수 없습니다."
+            ));
+
+    ZoneId zoneId = ZoneId.of(user.getTimezone());
+    Instant periodStart = weekStart.atStartOfDay(zoneId).toInstant();
+
+    Instant periodEndExclusive = weekStart
+            .plusDays(7)
+            .atStartOfDay(zoneId)
+            .toInstant();
+
+    // 완료, 사용자 확정 상태인 CBT만 조회
+    return reflectionSessionsRepository
+            .findAllByUser_IdAndStatusAndUserConfirmedTrueAndCompletedAtGreaterThanEqualAndCompletedAtLessThanOrderByCompletedAtAsc(
+                    userId,
+                    ReflectionSessionStatus.COMPLETED,
+                    periodStart,
+                    periodEndExclusive
+            );
+}
+
     // 주간 감정 기록을 감정·요일·시간대별 통계 Map으로 변환
     private Map<String, Object> createWeeklyContent(
             List<EmotionRecords> emotionRecords,
+            List<ReflectionSessions> reflectionSessions,
             ZoneId zoneId
     ) {
         // 감정 코드별 기록 수 집계
@@ -134,11 +174,27 @@ public class WeeklyReportsService {
                 .map(Map.Entry::getKey)
                 .orElse(null);
 
+        // 선택한 주에 최종 확정된 CBT 완료 횟수
+        int completedCbtCount = reflectionSessions.size();
+
+        // 도움 점수가 입력된 완료 CBT만 평균 도움 점수 계산
+        OptionalDouble helpfulnessAverage = reflectionSessions.stream()
+                .map(ReflectionSessions::getHelpfulnessScore)
+                .filter(Objects::nonNull)
+                .mapToInt(Short::intValue)
+                .average();
+
+        Double averageHelpfulnessScore = helpfulnessAverage.isPresent()
+                ? helpfulnessAverage.getAsDouble()
+                : null;
+
         // reports.content JSONB에 저장할 통계 구조 생성
         Map<String, Object> content = new LinkedHashMap<>();
         content.put("recordCount", emotionRecords.size());
         content.put("dominantEmotionCode", dominantEmotionCode);
         content.put("averageIntensity", averageIntensity);
+        content.put("completedCbtCount", completedCbtCount);
+        content.put("averageHelpfulnessScore", averageHelpfulnessScore);
         content.put("emotionCounts", emotionCounts);
         content.put("weekdayCounts", weekdayCounts);
         content.put("timeBucketCounts", timeBucketCounts);
@@ -161,6 +217,16 @@ public class WeeklyReportsService {
                         ? number.doubleValue()
                         : null;
 
+        int completedCbtCount =
+                content.get("completedCbtCount") instanceof Number number
+                        ? number.intValue()
+                        : 0;
+
+        Double averageHelpfulnessScore =
+                content.get("averageHelpfulnessScore") instanceof Number number
+                        ? number.doubleValue()
+                        : null;
+
         String dominantEmotionCode =
                 content.get("dominantEmotionCode") instanceof String emotionCode
                         ? emotionCode
@@ -173,6 +239,8 @@ public class WeeklyReportsService {
                 recordCount,
                 dominantEmotionCode,
                 averageIntensity,
+                completedCbtCount,
+                averageHelpfulnessScore,
                 toLongMap(content.get("emotionCounts")),
                 toLongMap(content.get("weekdayCounts")),
                 toLongMap(content.get("timeBucketCounts")),
@@ -224,6 +292,13 @@ public class WeeklyReportsService {
         List<EmotionRecords> emotionRecords =
                 findWeeklyEmotionRecords(userId, weekStart);
 
+        // 선택한 주에 최종 확정된 CBT 세션 조회
+        List<ReflectionSessions> reflectionSessions =
+                findWeeklyCompletedReflectionSessions(
+                        userId,
+                        weekStart
+                );
+
         // 기록이 없는 주에는 리포트 생성 불가
         if (emotionRecords.isEmpty()) {
             throw new ResponseStatusException(
@@ -234,7 +309,11 @@ public class WeeklyReportsService {
 
         // 감정·요일·시간대 통계 생성
         Map<String, Object> content =
-                createWeeklyContent(emotionRecords, zoneId);
+                createWeeklyContent(
+                        emotionRecords,
+                        reflectionSessions,
+                        zoneId
+                );
 
         // 같은 사용자·같은 주 리포트가 있으면 갱신, 없으면 새로 저장
         Reports report = reportsRepository
