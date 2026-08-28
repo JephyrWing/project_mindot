@@ -29,7 +29,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_valida
 load_dotenv(Path(__file__).resolve().parent.parent / "infra" / ".env.local")
 
 CBT_MODEL = os.getenv("OPENAI_CBT_MODEL", "gpt-4o-mini")
-CBT_PROMPT_VERSION = "cbt-reflection-dev"
+CBT_PROMPT_VERSION = "cbt-reflection-quality-v1"
 CBT_MODEL_OUTPUT_ATTEMPTS = 2
 WRITER_PREVIOUS_QUESTION_LIMIT = 4
 CBT_DEBUG_LOG_ANALYSIS = os.getenv(
@@ -44,6 +44,18 @@ logger = logging.getLogger("uvicorn.error")
 
 class CbtDraftValidationError(RuntimeError):
     """모델 출력이 서버의 CBT 의미 규칙을 위반했음을 나타냅니다."""
+
+
+class CbtModelOutputExhaustedError(RuntimeError):
+    """모델 출력의 검증·파싱 재시도가 소진됐음을 나타냅니다."""
+
+    def __init__(self, stage: str, feedbacks: list[str]) -> None:
+        self.stage = stage
+        self.feedbacks = tuple(feedbacks)
+        super().__init__(
+            f"CBT {stage} remained invalid after corrective retries: "
+            f"{' | '.join(feedbacks)}"
+        )
 
 
 class ApiModel(BaseModel):
@@ -198,6 +210,39 @@ class SemanticRouteType(str, Enum):
     EMOTION_OR_TRIGGER = "EMOTION_OR_TRIGGER"
     USER_SELECTED_DIRECTION = "USER_SELECTED_DIRECTION"
     OTHER_SPECIFIC = "OTHER_SPECIFIC"
+
+
+class SemanticRouteFamily(str, Enum):
+    """외부 계약에 노출하지 않는 CBT 질문 경로의 상위 의미 계열입니다."""
+
+    CONTEXT_OBSERVATION = "CONTEXT_OBSERVATION"
+    DIRECT_SUPPORT = "DIRECT_SUPPORT"
+    COUNTEREVIDENCE = "COUNTEREVIDENCE"
+    CERTAINTY = "CERTAINTY"
+    ALTERNATIVE = "ALTERNATIVE"
+    SYNTHESIS = "SYNTHESIS"
+    EMOTION = "EMOTION"
+    USER_CHOICE = "USER_CHOICE"
+    OTHER = "OTHER"
+
+
+SEMANTIC_ROUTE_FAMILY_BY_TYPE = {
+    SemanticRouteType.OBSERVABLE_EVENT_DETAIL: (
+        SemanticRouteFamily.CONTEXT_OBSERVATION
+    ),
+    SemanticRouteType.OTHER_PEOPLE_COMPARISON: (
+        SemanticRouteFamily.CONTEXT_OBSERVATION
+    ),
+    SemanticRouteType.DIRECT_WORD_OR_ACTION: SemanticRouteFamily.DIRECT_SUPPORT,
+    SemanticRouteType.EXPECTED_SIGNAL_ABSENCE: SemanticRouteFamily.DIRECT_SUPPORT,
+    SemanticRouteType.CONTRADICTORY_FACT: SemanticRouteFamily.COUNTEREVIDENCE,
+    SemanticRouteType.CERTAINTY_REASSESSMENT: SemanticRouteFamily.CERTAINTY,
+    SemanticRouteType.ALTERNATIVE_EXPLANATION: SemanticRouteFamily.ALTERNATIVE,
+    SemanticRouteType.BALANCED_CONCLUSION: SemanticRouteFamily.SYNTHESIS,
+    SemanticRouteType.EMOTION_OR_TRIGGER: SemanticRouteFamily.EMOTION,
+    SemanticRouteType.USER_SELECTED_DIRECTION: SemanticRouteFamily.USER_CHOICE,
+    SemanticRouteType.OTHER_SPECIFIC: SemanticRouteFamily.OTHER,
+}
 
 
 class LatestUserIntent(str, Enum):
@@ -422,8 +467,8 @@ class CbtQuestionPlan(ApiModel):
         min_length=1,
         max_length=300,
         description=(
-            "A short Korean plan targeting one unresolved inference and matching "
-            "questionPurpose and semanticRouteType."
+            "A short Korean plan targeting one unresolved inference owned by the "
+            "USER and matching questionPurpose and semanticRouteType."
         ),
     )
     preface_goal: str | None = Field(alias="prefaceGoal", max_length=300)
@@ -623,90 +668,101 @@ class CbtTurnResponse(ApiModel):
 
 ANALYSIS_PROMPT = """
 <role>
-Plan one Korean CBT reflection turn. Decide safety, confirmation, or one next
-question direction. The Writer creates the final sentence. Do not diagnose, invent
-facts, or try to prove automaticThought false.
+Plan one Korean CBT reflection turn. Select safety, confirmation, or one new
+question direction. The Writer creates the final sentence. Do not diagnose,
+invent facts, or try to prove automaticThought false.
 </role>
 
-<priority>
-1. Check a plausible current self-harm, suicide, harm-to-others, or immediate-danger
-   signal.
-2. Interpret the latest answer and explicit dialogue feedback.
-3. Update semanticProgress from saved answers.
-4. Return confirmation only when meaningfully ready; otherwise plan one question.
-</priority>
+<context>
+The reflection subject and respondent are always the USER. People mentioned in
+the situation are third parties the user observed or interpreted. Never plan a
+question asking a third party to report their own thought or emotion.
 
-<input>
 Read latestInteraction first, then ordered questionAnswers.
-latestUserIntentHint is authoritative for explicit feedback or requests.
-latestSafetyHint is only a candidate; verify it from the original text and context.
-blockedRoutes are hard semantic exclusions.
-</input>
+latestUserIntentHint is authoritative for explicit feedback and requests.
+latestSafetyHint is only a candidate; verify it from the original text.
+questionSubject is fixed to USER.
+
+blockedRoutes and blockedRouteFamilies are hard exclusions.
+resolvedButIrrelevantTopics are closed: do not reuse, reinterpret, compare, or
+ground a new question in them.
+</context>
 
 <meaning>
-A prior questionPurpose says what was asked, not what the answer established.
-Use answer meaning and answerDisposition.
+Separate observed facts, the core claim in automaticThought, and the user's
+inference connecting them.
+
+Interpret answers by actual meaning and answerDisposition, never by
+questionPurpose alone.
 
 DIALOGUE_CONTROL, UNCLEAR, and SKIPPED fill no CBT domain.
 NO_DIRECT_EVIDENCE is never evidenceFor. It may support evidenceAgainst when the
-absence meaningfully lowers certainty, and the same direct-support route is then
-resolved.
+absence lowers certainty. DIRECT_SUPPORT is then resolved.
 
-semanticProgress may contain one exact saved-answer excerpt for each:
-- evidenceFor: supports the core claim;
-- evidenceAgainst: contradicts it or lowers certainty;
+semanticProgress may contain one exact saved-answer excerpt for:
+- evidenceFor: information supporting the core claim;
+- evidenceAgainst: information contradicting it or lowering certainty;
 - alternativeView: another plausible or balanced interpretation;
-- acknowledgement: distinguishes fact from inference or reassesses certainty.
+- acknowledgement: recognition of fact versus inference or changed certainty.
 
-Do not infer evidence from questionPurpose.
+Do not infer progress from a prior question's wording or purpose.
 </meaning>
 
 <feedback>
-For RELEVANCE_FEEDBACK or REPETITION_FEEDBACK, treat the latest answer only as
-dialogue feedback. Do not ground the next question in it. Do not reuse the rejected
-target, comparison, cause, evidence source, causal link, or semanticRouteType.
-Changing wording or questionPurpose is not a new route.
+For RELEVANCE_FEEDBACK or REPETITION_FEEDBACK, the latest answer is dialogue
+feedback, not CBT evidence.
 
-For REQUEST_EXAMPLE, REQUEST_EXPLANATION, or DIFFICULTY_FEEDBACK, set a brief
-prefaceGoal, then continue through one simpler relevant point.
+Do not reuse the rejected route, route family, target, comparison, cause,
+evidence source, or causal link. Changing wording or questionPurpose does not
+make it a new direction. Do not use OTHER_SPECIFIC to bypass a block.
+
+For REQUEST_EXAMPLE, REQUEST_EXPLANATION, or DIFFICULTY_FEEDBACK, use one brief
+prefaceGoal and continue with one simpler relevant point. The request itself is
+not CBT evidence.
 </feedback>
 
-<question>
-Separate observed facts, the core claim in automaticThought, and the unresolved
-inference between them. Choose the one unresolved point whose answer could most
-change understanding or confidence. There is no fixed purpose order.
+<direction>
+Start from the core claim, not an adjacent detail. Choose one unresolved point
+whose answer could most change the user's understanding or certainty. There is
+no fixed question order.
 
 Purpose:
-- SITUATION_REFLECTION: needed observable fact;
-- EMOTION_REFLECTION: the user's emotion or trigger when unclear;
-- EVIDENCE_FOR: direct support for the core claim;
+- SITUATION_REFLECTION: one needed observable fact;
+- EMOTION_REFLECTION: the user's own emotion or trigger;
+- EVIDENCE_FOR: support for the core claim;
 - EVIDENCE_AGAINST: contradiction, uncertainty, or missing expected support;
 - ALTERNATIVE_VIEW: another explanation consistent with known facts;
 - BALANCED_THOUGHT: a fair conclusion containing evidence and uncertainty;
-- FREE_REFLECTION: only when the user must choose where to continue.
+- FREE_REFLECTION: the user chooses where to continue.
 
-Do not ask for hidden motives, follow an irrelevant adjacent detail, repeat an
-answered or blocked route, seek another direct signal after none was reported,
-force optimism, or assume the original thought is entirely false.
+Never ask what a third party felt or thought. Ask what the user noticed,
+experienced, inferred, or now concludes.
 
-For QUESTION, questionGoal is a short Korean plan for one target, not final wording:
-"확인된 사실: ...; 핵심 주장: ...; 미해결 간극: ...; 질문 목표: ..."
-questionPurpose and semanticRouteType must match that target.
+Do not follow an irrelevant detail, repeat an answered or blocked meaning, seek
+another direct signal after none was reported, force optimism, or assume the
+original thought is entirely false.
+
+For QUESTION, questionGoal is a short Korean plan, not final wording:
+"확인된 사실: ...; 핵심 주장: ...; 미해결 간극: ...; 사용자에게 물을 목표: ..."
+
+questionPurpose and semanticRouteType must describe the same target.
 groundingQuestionCodes may contain only substantive saved answers.
-</question>
+</direction>
 
 <decision>
-SAFETY_STOP only for a contextually plausible current harm or danger signal.
-Profanity, sadness, anxiety, frustration, refusal, and criticism alone are not
-safety signals.
+SAFETY_STOP only for a contextually plausible current self-harm, suicide,
+harm-to-others, or immediate-danger signal. Profanity, sadness, anxiety,
+frustration, refusal, and criticism alone are not safety signals.
 
-CONFIRMATION_REQUIRED only when confirmationAllowed and semanticProgress contains
-valid saved-answer evidence for all four domains: evidenceFor, evidenceAgainst,
-alternativeView, and acknowledgement. The user need not say the original thought
-was false; "possible but not certain" may qualify.
+CONFIRMATION_REQUIRED only when confirmationAllowed and semanticProgress has
+valid saved-answer evidence for evidenceFor, evidenceAgainst, alternativeView,
+and acknowledgement. The user need not declare the original thought false;
+"possible but not certain" may qualify.
 
-Use supplied distortionDefinitions, exact saved excerpts, and tentative language.
-Never invent scores, use feedback as evidence, or re-propose a rejected distortion.
+Use supplied distortionDefinitions, exact saved excerpts, and tentative
+language. Never invent scores, use feedback as evidence, or re-propose a
+rejected distortion.
+
 Otherwise return QUESTION. Never return COMPLETE.
 </decision>
 """.strip()
@@ -714,21 +770,33 @@ Otherwise return QUESTION. Never return COMPLETE.
 
 WRITER_PROMPT = """
 <role>
-Write one natural Korean response from the supplied plan. Do not re-plan, classify,
-diagnose, add evidence, or change questionPurpose or semanticRouteType.
+Write one natural Korean response from the supplied plan. Do not re-plan,
+classify, diagnose, add evidence, or change questionPurpose or
+semanticRouteType.
 </role>
 
+<subject>
+questionSubject is always USER. Other people are only people the user observed
+or interpreted. Never ask what a third party personally felt or thought.
+
+Wrong: "팀장님은 어떤 감정을 느끼셨나요?"
+Right: ask what the user felt, noticed, inferred, or now thinks.
+</subject>
+
 <preface>
-If prefaceRequired is false, return preface=null. If true, write one brief statement
-that fulfills prefaceGoal. It may acknowledge feedback, explain relevance, simplify
-the task, or give neutral examples. Do not add a new topic.
+If prefaceRequired is false, return preface=null. If true, write one brief
+statement fulfilling prefaceGoal. It may acknowledge feedback, explain
+relevance, simplify the task, or give neutral examples. Do not add a new topic.
 </preface>
 
 <question>
-Ask only the single point in questionGoal. Respect groundingAnswers, avoidTopics,
-latestInteraction, and previousQuestions. Use simple Korean honorifics and one
-answerable question. Do not ask multiple questions, infer another person's hidden
-motive, force optimism, repeat a rejected route, or use "당신".
+Ask only the single point in questionGoal. Respect groundingAnswers,
+blockedRoutes, blockedRouteFamilies, resolvedButIrrelevantTopics, avoidTopics,
+latestInteraction, and previousQuestions.
+
+Use simple Korean honorifics and one answerable question. Do not repeat or
+reinterpret a closed topic, ask multiple questions, infer a hidden motive,
+force optimism, or use "당신".
 </question>
 """.strip()
 
@@ -904,6 +972,67 @@ def _blocked_semantic_route_types(
         and _classify_explicit_user_intent(item.answer)
         in CONVERSATION_FEEDBACK_INTENTS
     }
+
+
+def _semantic_route_family(
+    route_type: SemanticRouteType,
+) -> SemanticRouteFamily:
+    return SEMANTIC_ROUTE_FAMILY_BY_TYPE[route_type]
+
+
+def _feedback_blocked_route_families(
+    question_answers: list[QuestionAnswer],
+) -> set[SemanticRouteFamily]:
+    return {
+        _semantic_route_family(item.semantic_route_type)
+        for item in question_answers
+        if item.semantic_route_type is not None
+        and _classify_explicit_user_intent(item.answer)
+        in CONVERSATION_FEEDBACK_INTENTS
+    }
+
+
+def _direct_support_resolved(
+    question_answers: list[QuestionAnswer],
+) -> bool:
+    return any(
+        _has_explicit_no_direct_evidence(item)
+        for item in question_answers
+    )
+
+
+def _hard_blocked_route_families(
+    question_answers: list[QuestionAnswer],
+) -> set[SemanticRouteFamily]:
+    blocked = _feedback_blocked_route_families(question_answers)
+    if _direct_support_resolved(question_answers):
+        blocked.add(SemanticRouteFamily.DIRECT_SUPPORT)
+    return blocked
+
+
+def _resolved_but_irrelevant_topics(
+    question_answers: list[QuestionAnswer],
+) -> list[dict[str, Any]]:
+    topics: list[dict[str, Any]] = []
+    for item in question_answers:
+        if (
+            item.semantic_route_type is None
+            or _classify_explicit_user_intent(item.answer)
+            not in CONVERSATION_FEEDBACK_INTENTS
+        ):
+            continue
+        topics.append(
+            {
+                "sourceQuestionCode": item.question_code,
+                "questionPurpose": item.question_purpose.value,
+                "semanticRouteType": item.semantic_route_type.value,
+                "semanticRouteFamily": _semantic_route_family(
+                    item.semantic_route_type
+                ).value,
+                "rejectedQuestion": item.question,
+            }
+        )
+    return topics
 
 
 def _is_explicit_no_direct_evidence_answer(answer: str | None) -> bool:
@@ -1178,7 +1307,9 @@ def _analysis_turn_flags(
         }
 
     latest = request.question_answers[-1]
-    direct_evidence_route_resolved = _has_explicit_no_direct_evidence(latest)
+    direct_evidence_route_resolved = _direct_support_resolved(
+        request.question_answers
+    )
     latest_answer_is_dialogue_control = (
         intent in DIALOGUE_CONTROL_INTENTS
         or _is_explicit_dialogue_refusal(latest.answer)
@@ -1228,6 +1359,11 @@ def _build_analysis_payload(
         if isinstance(request, CbtTurnRequest)
         else []
     )
+    history = (
+        request.question_answers
+        if isinstance(request, CbtTurnRequest)
+        else []
+    )
 
     return {
         "requestType": (
@@ -1248,7 +1384,15 @@ def _build_analysis_payload(
         ),
         "latestAnswerMeaningHint": latest_answer_meaning_hint,
         "turnFlags": turn_flags,
+        "questionSubject": "USER",
         "blockedRoutes": blocked_routes,
+        "blockedRouteFamilies": sorted(
+            family.value
+            for family in _hard_blocked_route_families(history)
+        ),
+        "resolvedButIrrelevantTopics": _resolved_but_irrelevant_topics(
+            history
+        ),
         "questionAnswers": question_answers,
         "beforeDistortions": before_distortions,
         "distortionDefinitions": (
@@ -1322,6 +1466,7 @@ def _build_writer_payload(
         }
 
     return {
+        "questionSubject": "USER",
         "record": {
             "situation": request.record.situation,
             "automaticThought": request.record.automatic_thought,
@@ -1330,6 +1475,24 @@ def _build_writer_payload(
         "latestInteraction": latest_interaction,
         "groundingAnswers": grounding_answers,
         "previousQuestions": previous_questions,
+        "blockedRoutes": (
+            _blocked_routes_from_history(request.question_answers)
+            if isinstance(request, CbtTurnRequest)
+            else []
+        ),
+        "blockedRouteFamilies": sorted(
+            family.value
+            for family in _hard_blocked_route_families(
+                request.question_answers
+                if isinstance(request, CbtTurnRequest)
+                else []
+            )
+        ),
+        "resolvedButIrrelevantTopics": _resolved_but_irrelevant_topics(
+            request.question_answers
+            if isinstance(request, CbtTurnRequest)
+            else []
+        ),
         "prefaceRequired": plan.preface_goal is not None,
         "plan": plan.model_dump(by_alias=True, mode="json"),
     }
@@ -1417,14 +1580,19 @@ def _apply_feedback_constraints(
     if feedback_intent is None:
         return plan.model_copy(update=updates)
 
-    rejected_route = request.question_answers[-1].semantic_route_type
-    avoid_topics = plan.avoid_topics
+    latest = request.question_answers[-1]
+    rejected_route = latest.semantic_route_type
+    rejected_question = latest.question
+    if len(rejected_question) > 180:
+        rejected_question = f"{rejected_question[:177].rstrip()}..."
+    avoid_topics = [
+        *plan.avoid_topics,
+        f"거부된 질문 소재: {rejected_question}",
+    ]
     if rejected_route is not None:
-        avoid_topics = list(
-            dict.fromkeys(
-                [*avoid_topics, f"Blocked route: {rejected_route.value}"]
-            )
-        )[-8:]
+        rejected_family = _semantic_route_family(rejected_route)
+        avoid_topics.append(f"차단된 의미 계열: {rejected_family.value}")
+    avoid_topics = list(dict.fromkeys(avoid_topics))[-8:]
     updates["latest_user_intent"] = feedback_intent
     updates["avoid_topics"] = avoid_topics
     return plan.model_copy(update=updates)
@@ -1578,26 +1746,24 @@ def _validate_analysis_draft(
             and code != blocked_grounding_code
         ]
         blocked_route_types = _blocked_semantic_route_types(history)
+        hard_blocked_families = _hard_blocked_route_families(history)
+        selected_family = _semantic_route_family(plan.semantic_route_type)
         if plan.semantic_route_type in blocked_route_types:
             raise CbtDraftValidationError(
                 "questionPlan.semanticRouteType reuses a route the user rejected"
             )
+        if selected_family in hard_blocked_families:
+            raise CbtDraftValidationError(
+                "questionPlan.semanticRouteType belongs to a hard-blocked route "
+                "family"
+            )
         if (
-            blocked_route_types
+            hard_blocked_families
             and plan.semantic_route_type == SemanticRouteType.OTHER_SPECIFIC
         ):
             raise CbtDraftValidationError(
-                "OTHER_SPECIFIC cannot hide a known rejected semantic route; "
+                "OTHER_SPECIFIC cannot hide a hard-blocked semantic route family; "
                 "choose the precise new semanticRouteType"
-            )
-        _, turn_flags = _analysis_turn_flags(request, explicit_intent)
-        if (
-            turn_flags["directEvidenceRouteResolved"]
-            and plan.semantic_route_type in DIRECT_EVIDENCE_ROUTES
-        ):
-            raise CbtDraftValidationError(
-                "questionPlan.semanticRouteType reopens a resolved direct-evidence "
-                "route"
             )
         return
 
@@ -1771,10 +1937,212 @@ async def _invoke_structured(
                 validation_feedback,
             )
 
-    raise RuntimeError(
-        f"CBT {stage} remained invalid after corrective retries: "
-        f"{' | '.join(validation_feedbacks)}"
-    ) from None
+    raise CbtModelOutputExhaustedError(stage, validation_feedbacks) from None
+
+
+FALLBACK_QUESTION_CANDIDATES = (
+    (
+        QuestionPurpose.EVIDENCE_FOR,
+        SemanticRouteType.DIRECT_WORD_OR_ACTION,
+        "그 생각이 사실이라고 느끼게 한 직접적인 말이나 행동이 있었나요?",
+    ),
+    (
+        QuestionPurpose.EVIDENCE_AGAINST,
+        SemanticRouteType.CONTRADICTORY_FACT,
+        "그 생각이 확실하다고 보기 어렵게 만드는 사실도 있었나요?",
+    ),
+    (
+        QuestionPurpose.ALTERNATIVE_VIEW,
+        SemanticRouteType.ALTERNATIVE_EXPLANATION,
+        "같은 상황을 설명할 수 있는 다른 가능성이 있다면 무엇일까요?",
+    ),
+    (
+        QuestionPurpose.BALANCED_THOUGHT,
+        SemanticRouteType.CERTAINTY_REASSESSMENT,
+        "지금까지 확인한 내용을 보면, 처음 생각을 어느 정도 확실한 사실이라고 느끼시나요?",
+    ),
+    (
+        QuestionPurpose.BALANCED_THOUGHT,
+        SemanticRouteType.BALANCED_CONCLUSION,
+        "확인된 사실과 아직 확실하지 않은 부분을 함께 담으면, 지금 어떤 생각으로 정리할 수 있을까요?",
+    ),
+    (
+        QuestionPurpose.FREE_REFLECTION,
+        SemanticRouteType.USER_SELECTED_DIRECTION,
+        "지금 이 생각에서 어떤 부분부터 살펴보는 것이 가장 도움이 될까요?",
+    ),
+)
+
+
+FALLBACK_QUESTION_BY_ROUTE = {
+    SemanticRouteType.OBSERVABLE_EVENT_DETAIL: (
+        "그 상황에서 직접 보고 들은 사실은 무엇이었나요?"
+    ),
+    SemanticRouteType.DIRECT_WORD_OR_ACTION: FALLBACK_QUESTION_CANDIDATES[0][2],
+    SemanticRouteType.EXPECTED_SIGNAL_ABSENCE: (
+        "그 생각이 맞다면 예상할 만한 말이나 행동 중 실제로 없었던 것도 있었나요?"
+    ),
+    SemanticRouteType.CONTRADICTORY_FACT: FALLBACK_QUESTION_CANDIDATES[1][2],
+    SemanticRouteType.OTHER_PEOPLE_COMPARISON: (
+        "그 상황에서 다른 사람과 비교해 직접 확인한 사실은 무엇이었나요?"
+    ),
+    SemanticRouteType.CERTAINTY_REASSESSMENT: FALLBACK_QUESTION_CANDIDATES[3][2],
+    SemanticRouteType.ALTERNATIVE_EXPLANATION: FALLBACK_QUESTION_CANDIDATES[2][2],
+    SemanticRouteType.BALANCED_CONCLUSION: FALLBACK_QUESTION_CANDIDATES[4][2],
+    SemanticRouteType.EMOTION_OR_TRIGGER: "그 상황에서 어떤 감정을 느꼈나요?",
+    SemanticRouteType.USER_SELECTED_DIRECTION: FALLBACK_QUESTION_CANDIDATES[5][2],
+    SemanticRouteType.OTHER_SPECIFIC: (
+        "지금 이 생각에서 아직 확인하지 못한 한 가지는 무엇인가요?"
+    ),
+}
+
+
+FALLBACK_PREFACE_BY_INTENT = {
+    LatestUserIntent.RELEVANCE_FEEDBACK: (
+        "핵심에서 벗어난 질문이었네요. 다른 방향으로 살펴볼게요."
+    ),
+    LatestUserIntent.REPETITION_FEEDBACK: (
+        "같은 내용을 되물었네요. 이번에는 다른 방향으로 살펴볼게요."
+    ),
+    LatestUserIntent.DIFFICULTY_FEEDBACK: (
+        "질문을 조금 더 간단히 바꿔볼게요."
+    ),
+    LatestUserIntent.REQUEST_EXPLANATION: (
+        "이 질문은 확인된 사실과 추측을 나누어 보기 위한 거예요."
+    ),
+    LatestUserIntent.REQUEST_EXAMPLE: (
+        "예를 들면 직접 들은 말, 반복된 행동, 반대되는 사례 같은 것이 있어요."
+    ),
+}
+
+
+def _empty_semantic_progress() -> CbtSemanticProgress:
+    return CbtSemanticProgress(
+        evidence_for=None,
+        evidence_against=None,
+        alternative_view=None,
+        acknowledgement=None,
+    )
+
+
+def _fallback_latest_user_intent(request: CbtRequest) -> LatestUserIntent:
+    explicit = _explicit_feedback_intent(request)
+    if explicit is not None:
+        return explicit
+    if isinstance(request, CbtStartRequest):
+        return LatestUserIntent.START
+    if _is_explicit_dialogue_refusal(request.question_answers[-1].answer):
+        return LatestUserIntent.UNCLEAR
+    return LatestUserIntent.CBT_ANSWER
+
+
+def _deterministic_fallback_wording(
+    request: CbtRequest,
+    plan: CbtQuestionPlan,
+) -> QuestionWordingDraft:
+    intent = _fallback_latest_user_intent(request)
+    return QuestionWordingDraft(
+        preface=FALLBACK_PREFACE_BY_INTENT.get(intent),
+        question=FALLBACK_QUESTION_BY_ROUTE[plan.semantic_route_type],
+    )
+
+
+def _build_deterministic_fallback(
+    request: CbtRequest,
+    *,
+    semantic_progress: CbtSemanticProgress | None = None,
+) -> tuple[CbtAnalysisDraft, QuestionWordingDraft | None]:
+    history = (
+        request.question_answers
+        if isinstance(request, CbtTurnRequest)
+        else []
+    )
+    progress = _normalize_semantic_progress(
+        semantic_progress or _empty_semantic_progress(),
+        history,
+    )
+    safety_reason = _contextual_safety_hint(request)
+    if safety_reason is not None:
+        level = (
+            RiskLevel.CRISIS
+            if safety_reason == RiskReasonCode.IMMEDIATE_DANGER
+            else RiskLevel.REVIEW
+        )
+        return (
+            CbtAnalysisDraft(
+                result_type=CbtResultType.SAFETY_STOP,
+                semantic_progress=progress,
+                question_plan=None,
+                confirmation=None,
+                risk=RiskAssessment(
+                    level=level,
+                    reason_code=safety_reason,
+                ),
+            ),
+            None,
+        )
+
+    used_routes = {
+        item.semantic_route_type
+        for item in history
+        if item.semantic_route_type is not None
+    }
+    blocked_routes = _blocked_semantic_route_types(history)
+    blocked_families = _hard_blocked_route_families(history)
+    selected: tuple[QuestionPurpose, SemanticRouteType, str] | None = None
+    for candidate in FALLBACK_QUESTION_CANDIDATES:
+        _, route, _ = candidate
+        if route in used_routes or route in blocked_routes:
+            continue
+        if _semantic_route_family(route) in blocked_families:
+            continue
+        selected = candidate
+        break
+    if selected is None:
+        selected = FALLBACK_QUESTION_CANDIDATES[-1]
+
+    purpose, route, question = selected
+    plan = CbtQuestionPlan(
+        question_purpose=purpose,
+        semantic_route_type=route,
+        latest_user_intent=_fallback_latest_user_intent(request),
+        question_goal=f"사용자에게 물을 목표: {question}",
+        preface_goal=None,
+        grounding_question_codes=[],
+        avoid_topics=[],
+    )
+    plan = _apply_feedback_constraints(request, plan)
+    draft = CbtAnalysisDraft(
+        result_type=CbtResultType.QUESTION,
+        semantic_progress=progress,
+        question_plan=plan,
+        confirmation=None,
+        risk=RiskAssessment(level=RiskLevel.NONE, reason_code=None),
+    )
+    return draft, _deterministic_fallback_wording(request, plan)
+
+
+def _log_fallback_usage(
+    request: CbtRequest,
+    *,
+    architecture: str,
+    failed_stage: str,
+    draft: CbtAnalysisDraft,
+) -> None:
+    selected_route = (
+        draft.question_plan.semantic_route_type.value
+        if draft.question_plan is not None
+        else f"SAFETY_STOP:{draft.risk.reason_code.value}"
+    )
+    logger.info(
+        "CBT deterministic fallback: requestId=%s sessionId=%s "
+        "architecture=%s failedStage=%s selectedFallbackRoute=%s",
+        request.request_id,
+        request.session_id,
+        architecture,
+        failed_stage,
+        selected_route,
+    )
 
 
 async def _analyze_turn(
@@ -1838,10 +2206,20 @@ async def _generate(
     analysis_model: Any | None = None,
     writer_model: Any | None = None,
 ) -> CbtTurnResponse:
-    analysis = await _analyze_turn(
-        request,
-        analysis_model=analysis_model,
-    )
+    try:
+        analysis = await _analyze_turn(
+            request,
+            analysis_model=analysis_model,
+        )
+    except CbtModelOutputExhaustedError as exc:
+        analysis, wording = _build_deterministic_fallback(request)
+        _log_fallback_usage(
+            request,
+            architecture="dual-llm",
+            failed_stage=exc.stage,
+            draft=analysis,
+        )
+        return _to_response(analysis, request, wording)
     if CBT_DEBUG_LOG_ANALYSIS:
         logger.info(
             "CBT first-stage analysis: requestId=%s sessionId=%s draft=%s",
@@ -1862,11 +2240,20 @@ async def _generate(
             update={"question_plan": question_plan}
         )
 
-    wording = await _write_question(
-        request,
-        question_plan,
-        writer_model=writer_model,
-    )
+    try:
+        wording = await _write_question(
+            request,
+            question_plan,
+            writer_model=writer_model,
+        )
+    except CbtModelOutputExhaustedError as exc:
+        wording = _deterministic_fallback_wording(request, question_plan)
+        _log_fallback_usage(
+            request,
+            architecture="dual-llm",
+            failed_stage=exc.stage,
+            draft=analysis,
+        )
     return _to_response(analysis, request, wording)
 
 

@@ -32,6 +32,7 @@ from cbt_agent import (
     CbtApiStatus,
     CbtConfirmationDraft,
     CbtDraftValidationError,
+    CbtModelOutputExhaustedError,
     CbtRequest,
     CbtResultType,
     CbtStartRequest,
@@ -54,22 +55,27 @@ from cbt_agent import (
     _analysis_turn_flags,
     _apply_feedback_constraints,
     _blocked_routes_from_history,
+    _build_deterministic_fallback,
     _classify_answer_disposition,
     _confirmation_candidate_available,
     _classify_explicit_user_intent,
     _explicit_feedback_intent,
     _explicit_safety_reason_from_text,
     _contextual_safety_hint,
+    _deterministic_fallback_wording,
     _get_llm,
     _is_clearly_non_current_user_safety_text,
     _is_explicit_dialogue_refusal,
+    _hard_blocked_route_families,
+    _log_fallback_usage,
+    _resolved_but_irrelevant_topics,
     _to_response,
     _validate_analysis_draft,
     _write_question,
 )
 
 
-CBT_AGENT_PROMPT_VERSION = "cbt-session-agent-dev"
+CBT_AGENT_PROMPT_VERSION = "cbt-session-agent-quality-v1"
 CBT_AGENT_SESSION_TTL_SECONDS = int(
     os.getenv("CBT_AGENT_SESSION_TTL_SECONDS", "600")
 )
@@ -212,105 +218,115 @@ ACTION_SCHEMAS: dict[str, type[ApiModel]] = {
 
 AGENT_SYSTEM_PROMPT = """
 <role>
-Manage one Korean CBT reflection session and call exactly one tool. You update
-compact semantic state and choose the next action and direction. The shared Writer
-creates final wording. Do not diagnose, invent facts, or prove automaticThought
-false.
+Manage one Korean CBT reflection session and call exactly one tool. Update
+compact semantic state and select the next action and direction. The shared
+Writer creates final wording. Do not diagnose, invent facts, or try to prove
+automaticThought false.
 </role>
 
-<priority>
-1. Plausible current self-harm, suicide, harm-to-others, or immediate danger.
-2. Meaning of latestInteraction and authoritative dialogue hints.
-3. Semantic state update.
-4. request_confirmation when meaningfully ready; otherwise ask_question.
-</priority>
-
 <context>
+The reflection subject and respondent are always the USER. People mentioned in
+the situation are third parties the user observed or interpreted. Never plan a
+question asking a third party to report their own thought or emotion.
+
 START begins with empty state.
 CONTINUE preserves valid currentState and processes latestInteraction.
 REHYDRATE rebuilds state from fullHistory.
-Do not discard valid prior evidence or blocked routes.
 
-latestUserIntentHint is authoritative for explicit feedback or requests.
-latestSafetyHint is only a candidate; verify it from original text and context.
+latestUserIntentHint is authoritative for explicit feedback and requests.
+latestSafetyHint is only a candidate; verify it from the original text.
+questionSubject is fixed to USER.
+
 Top-level blockedRoutes and currentState.blockedRoutes are hard exclusions.
+blockedRouteFamilies are server-owned hard exclusions.
+resolvedButIrrelevantTopics are closed and cannot ground a new question.
+Do not discard valid prior evidence or exclusions.
 </context>
 
 <state>
-Interpret answers by meaning and answerDisposition, never by questionPurpose alone.
+Interpret answers by actual meaning and answerDisposition, never by
+questionPurpose alone.
 
+Maintain:
 - evidenceFor: exact excerpts supporting automaticThought;
 - evidenceAgainst: exact excerpts contradicting it or lowering certainty;
-- alternativeViews: exact excerpts containing another plausible or balanced view;
-- acknowledgement: exact excerpt distinguishing fact from inference or reassessing
-  certainty;
+- alternativeViews: exact excerpts containing another plausible view;
+- acknowledgement: an exact excerpt distinguishing fact from inference or
+  reassessing certainty;
 - askedRoutes: semanticRouteType values already asked;
-- blockedRoutes: routes rejected as irrelevant or repetitive.
+- blockedRoutes: routes explicitly rejected or resolved.
 
 DIALOGUE_CONTROL, UNCLEAR, and SKIPPED are not CBT evidence.
-NO_DIRECT_EVIDENCE is never evidenceFor. It may be evidenceAgainst when it lowers
-certainty, and direct-support search is then resolved.
+NO_DIRECT_EVIDENCE is never evidenceFor. It may be evidenceAgainst when it
+lowers certainty. DIRECT_SUPPORT is then resolved.
 
 For RELEVANCE_FEEDBACK or REPETITION_FEEDBACK:
 - do not store the latest answer as evidence or acknowledgement;
-- add the rejected route to blockedRoutes;
-- do not reuse its target, comparison, cause, evidence source, causal link, or
-  semanticRouteType through new wording or a different purpose;
-- do not disguise it as OTHER_SPECIFIC.
+- preserve the server-provided route and family exclusions;
+- do not reuse the rejected target, comparison, cause, evidence source, or
+  causal link through new wording or another purpose;
+- do not disguise the same meaning as OTHER_SPECIFIC.
 
-For REQUEST_EXAMPLE, REQUEST_EXPLANATION, or DIFFICULTY_FEEDBACK, do not store the
-request as evidence. Use prefaceGoal for a brief response.
+For REQUEST_EXAMPLE, REQUEST_EXPLANATION, or DIFFICULTY_FEEDBACK, do not store
+the request as evidence. Use prefaceGoal for one brief response.
 </state>
 
-<plan>
-Separate observed facts, the core claim in automaticThought, and the unresolved
-inference between them. Choose one point whose answer could most change
-understanding or confidence. There is no fixed purpose order.
+<direction>
+Separate observed facts, the core claim in automaticThought, and the user's
+unresolved inference between them. Start from the core claim, not an adjacent
+detail. Select one point whose answer could most change understanding or
+certainty. There is no fixed purpose order.
 
 Purpose:
-- SITUATION_REFLECTION: needed observable fact;
-- EMOTION_REFLECTION: the user's emotion or trigger when unclear;
-- EVIDENCE_FOR: direct support for the core claim;
+- SITUATION_REFLECTION: one needed observable fact;
+- EMOTION_REFLECTION: the user's own emotion or trigger;
+- EVIDENCE_FOR: support for the core claim;
 - EVIDENCE_AGAINST: contradiction, uncertainty, or missing expected support;
 - ALTERNATIVE_VIEW: another explanation consistent with known facts;
 - BALANCED_THOUGHT: a fair conclusion containing evidence and uncertainty;
-- FREE_REFLECTION: only when the user must choose where to continue.
+- FREE_REFLECTION: the user chooses where to continue.
 
-Do not ask for hidden motives, follow an irrelevant detail, repeat answered or
-blocked routes, seek another direct signal after none was reported, force optimism,
-or assume the original thought is entirely false.
+Never ask what a third party felt or thought. Ask what the user noticed,
+experienced, inferred, or now concludes.
+
+Do not follow an irrelevant detail, repeat an answered or blocked meaning, seek
+another direct signal after none was reported, force optimism, or assume the
+original thought is entirely false.
 
 For ask_question:
-- questionPurpose, semanticRouteType, and questionGoal describe the same direction;
-- questionGoal is a short Korean plan for one target, not final wording:
-  "확인된 사실: ...; 핵심 주장: ...; 미해결 간극: ...; 질문 목표: ...";
+- questionPurpose, semanticRouteType, and questionGoal describe one direction;
+- questionGoal is a short Korean plan, not final wording:
+  "확인된 사실: ...; 핵심 주장: ...; 미해결 간극: ...; 사용자에게 물을 목표: ...";
 - groundingQuestionCodes contain only substantive saved answers;
-- avoidTopics includes answered, irrelevant, repeated, and blocked material;
+- avoidTopics include answered, irrelevant, repeated, and blocked material;
 - prefaceGoal is used only for a necessary reply or transition.
-</plan>
+</direction>
 
 <confirmation>
-request_confirmation only when confirmationAllowed and normalized state contains
-valid saved evidence for evidenceFor, evidenceAgainst, alternativeViews, and
-acknowledgement. The user need not declare automaticThought false; "possible but not
-certain" may qualify.
+Call request_confirmation only when confirmationAllowed and normalized state
+contains valid saved evidence for evidenceFor, evidenceAgainst,
+alternativeViews, and acknowledgement.
 
-Use exact saved excerpts, supplied distortionDefinitions, and tentative language.
-Never use dialogue feedback as evidence, invent scores, or re-propose a rejected
-distortion.
+The user need not declare automaticThought false; "possible but not certain"
+may qualify.
+
+Use exact saved excerpts, supplied distortionDefinitions, and tentative
+language. Never use dialogue feedback as evidence, invent scores, or
+re-propose a rejected distortion.
 </confirmation>
 
 <safety>
-safety_stop only for a plausible current harm or danger signal. Include one exact
-supporting excerpt. Profanity, sadness, anxiety, frustration, refusal, difficulty,
-and dialogue criticism alone are not safety signals.
+Call safety_stop only for a plausible current self-harm, suicide,
+harm-to-others, or immediate-danger signal. Include one exact supporting
+excerpt. Profanity, sadness, anxiety, frustration, refusal, difficulty, and
+dialogue criticism alone are not safety signals.
 </safety>
 
 <tools>
 Call exactly one:
-- safety_stop for a plausible current harm or danger signal;
-- request_confirmation when all completion conditions are satisfied;
-- ask_question for one new direction.
+- safety_stop for a plausible current danger signal;
+- request_confirmation when all current completion conditions are satisfied;
+- ask_question for one new, unblocked direction.
 
 Never write the final user-facing question and never return COMPLETE.
 </tools>
@@ -549,6 +565,7 @@ def _build_agent_payload(
     return {
         "mode": mode,
         "confirmationAllowed": confirmation_allowed,
+        "questionSubject": "USER",
         "latestSafetyHint": (
             latest_safety_hint.value if latest_safety_hint is not None else None
         ),
@@ -558,6 +575,13 @@ def _build_agent_payload(
         "latestAnswerMeaningHint": latest_answer_meaning_hint,
         "turnFlags": turn_flags,
         "blockedRoutes": blocked_routes,
+        "blockedRouteFamilies": sorted(
+            family.value
+            for family in _hard_blocked_route_families(history)
+        ),
+        "resolvedButIrrelevantTopics": _resolved_but_irrelevant_topics(
+            history
+        ),
         "record": request.record.model_dump(by_alias=True, mode="json"),
         "currentState": (
             None
@@ -927,10 +951,7 @@ async def _select_agent_action(
                 feedback,
             )
 
-    raise RuntimeError(
-        "CBT session Agent remained invalid after corrective retries: "
-        f"{' | '.join(feedbacks)}"
-    ) from None
+    raise CbtModelOutputExhaustedError("agent action", feedbacks) from None
 
 
 def _with_agent_meta(response: CbtTurnResponse) -> CbtTurnResponse:
@@ -974,14 +995,46 @@ async def _run_agent_turn(
     writer_model: Any | None = None,
     registry: CbtAgentSessionRegistry = _registry,
 ) -> CbtTurnResponse:
-    action, draft = await _select_agent_action(
-        request,
-        runtime,
-        mode,
-        agent_model=agent_model,
-    )
     wording: QuestionWordingDraft | None = None
-    if isinstance(action, AskQuestionAction):
+    try:
+        action, draft = await _select_agent_action(
+            request,
+            runtime,
+            mode,
+            agent_model=agent_model,
+        )
+    except CbtModelOutputExhaustedError as exc:
+        state_for_runtime = _normalize_agent_state(
+            runtime.state,
+            request,
+            runtime,
+        )
+
+        def representative(
+            items: list[SavedAnswerEvidence],
+        ) -> SavedAnswerEvidence | None:
+            return items[-1] if items else None
+
+        progress = CbtSemanticProgress(
+            evidence_for=representative(state_for_runtime.evidence_for),
+            evidence_against=representative(state_for_runtime.evidence_against),
+            alternative_view=representative(state_for_runtime.alternative_views),
+            acknowledgement=state_for_runtime.acknowledgement,
+        )
+        draft, wording = _build_deterministic_fallback(
+            request,
+            semantic_progress=progress,
+        )
+        _log_fallback_usage(
+            request,
+            architecture="agent",
+            failed_stage=exc.stage,
+            draft=draft,
+        )
+    else:
+        state_for_runtime = action.state
+
+    if draft.result_type == CbtResultType.QUESTION:
         assert draft.question_plan is not None
         explicit_intent = _explicit_feedback_intent(request)
         is_dialogue_refusal = (
@@ -1006,7 +1059,7 @@ async def _run_agent_turn(
             and isinstance(request, CbtTurnRequest)
         ):
             latest = request.question_answers[-1]
-            blocked_routes = action.state.blocked_routes
+            blocked_routes = state_for_runtime.blocked_routes
             if (
                 explicit_intent in CONVERSATION_FEEDBACK_INTENTS
                 and latest.semantic_route_type is not None
@@ -1016,50 +1069,62 @@ async def _run_agent_turn(
                         [*blocked_routes, latest.semantic_route_type]
                     )
                 )[-16:]
-            updated_state = action.state.model_copy(
+            state_for_runtime = state_for_runtime.model_copy(
                 update={
                     "evidence_for": [
                         item
-                        for item in action.state.evidence_for
+                        for item in state_for_runtime.evidence_for
                         if item.source_question_code != latest.question_code
                     ],
                     "evidence_against": [
                         item
-                        for item in action.state.evidence_against
+                        for item in state_for_runtime.evidence_against
                         if item.source_question_code != latest.question_code
                     ],
                     "alternative_views": [
                         item
-                        for item in action.state.alternative_views
+                        for item in state_for_runtime.alternative_views
                         if item.source_question_code != latest.question_code
                     ],
                     "blocked_routes": blocked_routes,
                     "acknowledgement": (
                         None
-                        if action.state.acknowledgement is not None
-                        and action.state.acknowledgement.source_question_code
+                        if state_for_runtime.acknowledgement is not None
+                        and state_for_runtime.acknowledgement.source_question_code
                         == latest.question_code
-                        else action.state.acknowledgement
+                        else state_for_runtime.acknowledgement
                     ),
                 }
             )
-            action = action.model_copy(update={"state": updated_state})
-        wording = await _write_question(
-            request,
-            question_plan,
-            writer_model=writer_model,
-        )
+        if wording is None:
+            try:
+                wording = await _write_question(
+                    request,
+                    question_plan,
+                    writer_model=writer_model,
+                )
+            except CbtModelOutputExhaustedError as exc:
+                wording = _deterministic_fallback_wording(
+                    request,
+                    question_plan,
+                )
+                _log_fallback_usage(
+                    request,
+                    architecture="agent",
+                    failed_stage=exc.stage,
+                    draft=draft,
+                )
     response = _with_agent_meta(_to_response(draft, request, wording))
 
     if response.status == CbtApiStatus.CONTINUE:
         assert response.next_question is not None
-        runtime.state = action.state
+        runtime.state = state_for_runtime
         runtime.history = list(_history_for(request))
         runtime.pending_question = response.next_question
     else:
         # 마지막 요청의 HTTP 재시도에도 동일 응답을 돌려줄 수 있도록 TTL까지
         # runtime을 유지합니다. 명시적 중단은 close endpoint가 즉시 제거합니다.
-        runtime.state = action.state
+        runtime.state = state_for_runtime
         runtime.history = list(_history_for(request))
         runtime.pending_question = None
     await registry.get(runtime.session_id)
