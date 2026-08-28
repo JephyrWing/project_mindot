@@ -119,6 +119,7 @@ function EmotionHistory({
   onLogout,
   onSignUp,
   onEmotionHistory,
+  onRecordDetail,
   onEmotionRecord,
   onCenter,
   onDailyCare,
@@ -432,9 +433,15 @@ function EmotionHistory({
             aria-label={`${selectedPeriodLabel} 감정 기록`}
           >
             {paginatedRecords.map((record) => (
-              <article className="emotion-history-item" key={record.id}>
-                <div className="emotion-history-item-header">
-                  <div className="emotion-history-item-tags">
+              <button
+                className="emotion-history-item"
+                type="button"
+                key={record.id}
+                onClick={() => onRecordDetail(record.id)}
+                aria-label={`${record.emotion} 감정 기록 상세 보기`}
+              >
+                <span className="emotion-history-item-header">
+                  <span className="emotion-history-item-tags">
                     <strong>{record.emotion}</strong>
                     <span>
                       {record.intensity === null
@@ -442,13 +449,15 @@ function EmotionHistory({
                         : `강도 ${record.intensity}/10`}
                     </span>
                     <span>{record.context}</span>
-                  </div>
+                  </span>
                   <time dateTime={record.occurredAt}>
                     {formatHistoryDate(record.occurredAt)}
                   </time>
-                </div>
-                <p>{record.content}</p>
-              </article>
+                </span>
+                <span className="emotion-history-item-content">
+                  {record.content}
+                </span>
+              </button>
             ))}
 
             {/* 감정 기록이 한 페이지를 넘을 때 이전 및 다음 페이지 이동 기능 표시. */}

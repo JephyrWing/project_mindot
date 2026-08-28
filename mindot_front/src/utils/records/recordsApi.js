@@ -14,10 +14,17 @@ export const createRecordsApi = (client) => ({
 
     return data
   },
+  // 선택한 감정 기록 식별자로 로그인 사용자의 상세 정보를 조회하는 처리.
+  getEmotionRecordDetail: async (emotionRecordId) => {
+    const { data } = await client.get(`/api/records/${emotionRecordId}`)
+
+    return data
+  },
 })
 
 // 공통 HTTP 클라이언트를 사용하는 감정 기록 API 함수 제공.
 export const {
   createQuickRecord,
   getEmotionRecords,
+  getEmotionRecordDetail,
 } = createRecordsApi(httpClient)

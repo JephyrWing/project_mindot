@@ -5,6 +5,7 @@ import Login from './components/Login/Login.jsx'
 import SignUp from './components/SignUp/SignUp.jsx'
 import EmotionRecord from './components/EmotionRecord/EmotionRecord.jsx'
 import EmotionHistory from './components/EmotionHistory/EmotionHistory.jsx'
+import EmotionRecordDetail from './components/EmotionRecordDetail/EmotionRecordDetail.jsx'
 import CBT from './components/CBT/CBT.jsx'
 import WeeklyReport from './components/WeeklyReport/WeeklyReport.jsx'
 import AppIntroModal from './components/AppIntroModal/AppIntroModal.jsx'
@@ -32,6 +33,8 @@ function App() {
   const [isLoginRequiredOpen, setIsLoginRequiredOpen] = useState(false)
   // CBT 성찰을 시작할 저장 완료 감정 기록 식별자 상태 관리.
   const [cbtEmotionRecordId, setCbtEmotionRecordId] = useState(null)
+  // 감정 기록 목록에서 선택한 상세 조회 대상 식별자 상태 관리.
+  const [selectedEmotionRecordId, setSelectedEmotionRecordId] = useState(null)
   // 각 화면의 로고 선택 시 새로고침 없이 메인페이지로 이동하는 처리.
   const moveToMain = () => setCurrentPage('main')
   // 로그인 성공 후 인증 상태 반영과 메인페이지 이동 처리.
@@ -74,6 +77,11 @@ function App() {
   const handleCbtOpen = (emotionRecordId) => {
     setCbtEmotionRecordId(emotionRecordId)
     setCurrentPage('cbt')
+  }
+  // 목록에서 선택한 감정 기록 식별자를 보관하고 상세 화면으로 이동하는 처리.
+  const handleEmotionRecordDetailOpen = (emotionRecordId) => {
+    setSelectedEmotionRecordId(emotionRecordId)
+    setCurrentPage('emotion-record-detail')
   }
   // 현재 화면 상태에 따라 렌더링할 페이지 컴포넌트 보관.
   let currentPageContent
@@ -122,9 +130,27 @@ function App() {
         onLogout={handleLogout}
         onSignUp={() => setCurrentPage('signup')}
         onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onRecordDetail={handleEmotionRecordDetailOpen}
         onEmotionRecord={() => setCurrentPage('emotion-record')}
         onCenter={() => setCurrentPage('center')}
         onDailyCare={() => moveToProtectedPage('daily-care')}
+        onHome={moveToMain}
+      />
+    )
+  } else if (currentPage === 'emotion-record-detail') {
+    // 감정 기록 목록에서 선택한 한 건의 상세 조회 화면 렌더링.
+    currentPageContent = (
+      <EmotionRecordDetail
+        emotionRecordId={selectedEmotionRecordId}
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={() => setCurrentPage('login')}
+        onLogout={handleLogout}
+        onSignUp={() => setCurrentPage('signup')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onCenter={() => setCurrentPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
+        onBack={() => setCurrentPage('emotion-history')}
         onHome={moveToMain}
       />
     )
