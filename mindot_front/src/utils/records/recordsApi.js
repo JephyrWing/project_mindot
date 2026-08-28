@@ -28,6 +28,10 @@ export const createRecordsApi = (client) => ({
 
     return data
   },
+  // 선택한 감정 기록과 연결된 CBT 성찰 데이터를 함께 삭제하는 처리.
+  deleteEmotionRecord: async (emotionRecordId) => {
+    await client.delete(`/api/records/${emotionRecordId}`)
+  },
 })
 
 // 공통 HTTP 클라이언트를 사용하는 감정 기록 API 함수 제공.
@@ -36,4 +40,5 @@ export const {
   getEmotionRecords,
   getEmotionRecordDetail,
   updateEmotionRecordOccurredAt,
+  deleteEmotionRecord,
 } = createRecordsApi(httpClient)
