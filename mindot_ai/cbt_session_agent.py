@@ -1,4 +1,4 @@
-"""세션 상태를 유지하며 CBT tool을 선택하는 비교 실험용 Agent 구현입니다.
+"""세션 상태를 유지하며 CBT tool을 선택하는 운영 Q4R Agent 구현입니다.
 
 Spring의 JSONB가 영속 원본입니다. 살아 있는 세션에서는 전체 문답 대신 구조화된
 작업 상태와 최신 문답만 메인 Agent에 전달하고, 질문 문장만 보조 LLM이 작성합니다.
@@ -78,7 +78,7 @@ from cbt_agent import (
 )
 
 
-CBT_AGENT_PROMPT_VERSION = "cbt-session-agent-quality-v4"
+CBT_AGENT_PROMPT_VERSION = "cbt-session-agent-quality-q4r"
 CBT_AGENT_SESSION_TTL_SECONDS = int(
     os.getenv("CBT_AGENT_SESSION_TTL_SECONDS", "600")
 )
@@ -163,6 +163,10 @@ class AgentQuestionPlan(ApiModel):
         max_length=5,
     )
     avoid_topics: list[str] = Field(alias="avoidTopics", max_length=8)
+    example_options: list[str] = Field(
+        alias="exampleOptions",
+        max_length=2,
+    )
 
     @model_validator(mode="after")
     def validate_plan(self) -> "AgentQuestionPlan":
@@ -170,6 +174,20 @@ class AgentQuestionPlan(ApiModel):
             dict.fromkeys(self.grounding_question_codes)
         )
         self.avoid_topics = list(dict.fromkeys(self.avoid_topics))
+        self.example_options = list(dict.fromkeys(self.example_options))
+        if self.latest_user_intent == LatestUserIntent.REQUEST_EXAMPLE:
+            if len(self.example_options) != 2:
+                raise ValueError(
+                    "REQUEST_EXAMPLE requires exactly two exampleOptions"
+                )
+            if any(not option or len(option) > 100 for option in self.example_options):
+                raise ValueError(
+                    "Each REQUEST_EXAMPLE option must contain 1 to 100 characters"
+                )
+        elif self.example_options:
+            raise ValueError(
+                "exampleOptions must be empty unless latestUserIntent is REQUEST_EXAMPLE"
+            )
         if self.latest_user_intent in DIALOGUE_CONTROL_INTENTS:
             self.preface_goal = self.preface_goal or (
                 "Briefly respond to the user's request or conversation feedback "
@@ -235,11 +253,6 @@ SAFETY_STOP_TOOL = StructuredTool.from_function(
     ),
     args_schema=SafetyStopAction,
 )
-AGENT_TOOLS = (
-    ASK_QUESTION_TOOL,
-    REQUEST_CONFIRMATION_TOOL,
-    SAFETY_STOP_TOOL,
-)
 ACTION_SCHEMAS: dict[str, type[ApiModel]] = {
     ASK_QUESTION_TOOL.name: AskQuestionAction,
     REQUEST_CONFIRMATION_TOOL.name: RequestConfirmationAction,
@@ -249,111 +262,67 @@ ACTION_SCHEMAS: dict[str, type[ApiModel]] = {
 
 AGENT_SYSTEM_PROMPT = """
 <role>
-Manage one Korean CBT reflection session and call exactly one tool. Update
-compact semantic state and choose safety, confirmation, or one next question
-direction. The shared Writer creates final wording. Do not diagnose, invent
-facts, or try to prove automaticThought false.
+Manage one Korean CBT reflection turn and call exactly one available tool.
+Update compact state and choose safety, confirmation, or one question
+direction. The shared Writer creates final question wording. Do not diagnose,
+invent facts, or try to prove automaticThought false.
 </role>
 
-<priority>
-1. Use server-validated safetyCandidates.
-2. Interpret latestInteraction and authoritative dialogue feedback.
-3. Preserve and update semantic state from actual answer meaning.
-4. Request confirmation when all four completion domains are valid.
-5. Otherwise choose one unresolved direction that can advance reflection.
-</priority>
+<input>
+The respondent and reflection subject are always USER. Mentioned people are
+third parties. START begins empty, CONTINUE preserves valid state, and
+REHYDRATE rebuilds from fullHistory.
 
-<context>
-The reflection subject and respondent are always the USER. A person mentioned
-in the situation is a third party, not the respondent.
-
-START begins with empty state. CONTINUE preserves valid currentState.
-REHYDRATE rebuilds state from fullHistory.
-
-blockedRoutes and blockedRouteFamilies are hard exclusions.
-resolvedButIrrelevantTopics cannot be reused or grounded.
-semanticRouteDefinitions are authoritative. Never select OTHER_SPECIFIC for a
-new question.
-</context>
-
-<safety>
-Call safety_stop only when safetyCandidates contains matching current-user
-evidence. Copy one candidate's exact evidence and use a compatible reason.
-If the list is empty, never call safety_stop.
-</safety>
+Available tools already reflect server eligibility. safetyCandidates,
+semanticRouteDefinitions, confirmationAllowed, blockedRoutes,
+blockedRouteFamilies, and resolvedButIrrelevantTopics are authoritative.
+Never create a new OTHER_SPECIFIC route.
+</input>
 
 <state>
-Interpret answers by meaning and answerDisposition, never by questionPurpose
-alone.
-
-Maintain exact saved-answer excerpts for:
+Interpret the latest answer by meaning and answerDisposition, not by the prior
+questionPurpose. Preserve exact saved-answer excerpts:
 - evidenceFor: supports the core claim;
 - evidenceAgainst: contradicts it or lowers certainty;
-- alternativeViews: another plausible or balanced interpretation;
-- acknowledgement: separates fact from inference or reassesses certainty.
+- alternativeViews contains another plausible or balanced view;
+- acknowledgement separates fact from inference or revises certainty.
 
 DIALOGUE_CONTROL, UNCLEAR, and SKIPPED are not CBT evidence.
-NO_DIRECT_EVIDENCE is never evidenceFor. It may lower certainty and closes the
-search for another direct supporting signal.
+NO_DIRECT_EVIDENCE is never evidenceFor and closes further search for the same
+direct support.
 
-For relevance or repetition feedback, do not store the feedback as evidence.
-Preserve server-provided exclusions and do not reuse the rejected target,
-comparison, cause, evidence source, causal link, route, or family.
-
-For an example, explanation, or difficulty request, do not store the request
-as evidence. Use prefaceGoal for the necessary brief response.
+Relevance or repetition feedback is not evidence. Preserve all exclusions and
+change the actual target, comparison, cause, evidence source, and information
+requested. Example, explanation, and difficulty requests are dialogue control.
 </state>
 
-<question>
-Separate observed facts, the core claim in automaticThought, and the
-unresolved inference between them. Choose one unresolved point whose answer
-could most change the user's understanding or certainty. There is no fixed
-purpose order.
+<decision>
+Use safety_stop only with one exact matching safetyCandidate. Safety has
+priority.
 
-The user may answer from their own observation, experience, judgment,
-hypothesis, or synthesis. Never ask the user to know a third party's actual
-emotion, thought, motive, intention, or cause.
+Use request_confirmation only when that tool is available. Ground every domain
+in saved answers, use tentative distortion language, and provide a concrete
+balanced thought. The original thought need not be completely false.
 
-Follow semanticRouteDefinitions exactly. The selected questionPurpose,
-semanticRouteType, and questionGoal must describe the same meaning.
+Otherwise use ask_question for one unresolved point that could change the
+user's understanding or certainty. Separate observed fact, core claim, and the
+inference between them. Ask what the user observed, experienced, judged, or
+can consider; never require a third party's actual hidden state.
 
-After NO_DIRECT_EVIDENCE, do not seek another wording, person, time, or example
-of the same direct support.
+After NO_DIRECT_EVIDENCE, move to contradiction, uncertainty, certainty, or an
+alternative view instead of seeking another direct signal. After relevance or
+repetition feedback, do not rephrase the rejected meaning. For
+REQUEST_EXAMPLE, supply two short neutral exampleOptions and ask which, if
+any, seems plausible.
+</decision>
 
-For REQUEST_EXAMPLE, use prefaceGoal for brief neutral possibilities and ask
-which, if any, seems plausible. Do not repeat the original open-ended request
-for another possibility.
-
-questionGoal is a short Korean plan for one target:
-"확인된 사실: ...; 핵심 주장: ...; 미해결 간극: ...; 사용자에게 물을 목표: ..."
-
-groundingQuestionCodes contain only substantive saved answers.
-avoidTopics include answered, irrelevant, repeated, and blocked material.
-Do not repeat a closed meaning, force optimism, or assume the original thought
-is entirely false.
-</question>
-
-<confirmation>
-Call request_confirmation only when confirmationAllowed and state contains
-valid saved evidence for evidenceFor, evidenceAgainst, alternativeViews, and
-acknowledgement.
-
-Candidate coverage alone is insufficient. Verify actual answer meanings and
-exact excerpts. The user need not declare automaticThought completely false.
-
-Use tentative distortion language and concrete saved evidence. Do not invent
-scores, use dialogue feedback as evidence, or re-propose a rejected
-distortion.
-</confirmation>
-
-<tools>
-Call exactly one:
-- safety_stop for matching server-validated current danger evidence;
-- request_confirmation when all completion conditions are satisfied;
-- ask_question for one genuinely unresolved direction.
-
-Never write final question wording and never return COMPLETE.
-</tools>
+<plan>
+questionPurpose, semanticRouteType, selected route definition, and
+questionGoal must express one meaning. questionGoal is a short Korean plan,
+not final wording. groundingQuestionCodes use only substantive saved answers.
+avoidTopics includes answered, irrelevant, repeated, and blocked material.
+Call exactly one available tool and never return COMPLETE.
+</plan>
 """.strip()
 
 
@@ -458,7 +427,7 @@ class CbtAgentSessionRegistry:
 
 
 _registry = CbtAgentSessionRegistry(CBT_AGENT_SESSION_TTL_SECONDS)
-_agent_models: dict[bool, Any] = {}
+_agent_models: dict[tuple[bool, bool], Any] = {}
 
 
 class CbtAgentIdempotencyError(RuntimeError):
@@ -529,20 +498,24 @@ def _empty_session_state() -> CbtSessionState:
 
 
 def _get_agent_model(
+    safety_allowed: bool,
     confirmation_allowed: bool,
 ) -> Any:
-    model = _agent_models.get(confirmation_allowed)
+    eligibility = (safety_allowed, confirmation_allowed)
+    model = _agent_models.get(eligibility)
     if model is None:
-        tools = list(AGENT_TOOLS)
-        if not confirmation_allowed:
-            tools.remove(REQUEST_CONFIRMATION_TOOL)
+        tools = [ASK_QUESTION_TOOL]
+        if safety_allowed:
+            tools.append(SAFETY_STOP_TOOL)
+        if confirmation_allowed:
+            tools.append(REQUEST_CONFIRMATION_TOOL)
         model = _get_llm().bind_tools(
             tools,
             tool_choice="required",
             strict=True,
             parallel_tool_calls=False,
         )
-        _agent_models[confirmation_allowed] = model
+        _agent_models[eligibility] = model
     return model
 
 
@@ -561,6 +534,63 @@ def _question_dump(item: QuestionAnswer) -> dict[str, Any]:
     }
 
 
+def _confirmation_eligible_state(
+    request: CbtRequest,
+    runtime: AgentSessionRuntime,
+) -> CbtSessionState:
+    """모델 호출 전에 저장 이력으로 확인 도구의 최소 자격을 계산합니다."""
+
+    history = _history_for(request)
+    candidates, _ = _completion_candidates(history)
+
+    def candidate_evidence(domain: str) -> list[SavedAnswerEvidence]:
+        return [
+            SavedAnswerEvidence(
+                source_question_code=item["questionCode"],
+                excerpt=item["answer"][:300],
+            )
+            for item in candidates[domain]
+        ]
+
+    candidate_state = runtime.state.model_copy(
+        update={
+            "evidence_for": [
+                *runtime.state.evidence_for,
+                *candidate_evidence("evidenceFor"),
+            ],
+            "evidence_against": [
+                *runtime.state.evidence_against,
+                *candidate_evidence("evidenceAgainst"),
+            ],
+            "alternative_views": [
+                *runtime.state.alternative_views,
+                *candidate_evidence("alternativeView"),
+            ],
+            "acknowledgement": (
+                candidate_evidence("acknowledgement")[-1]
+                if candidates["acknowledgement"]
+                else runtime.state.acknowledgement
+            ),
+        }
+    )
+    return _normalize_agent_state(candidate_state, request, runtime)
+
+
+def _confirmation_tool_allowed(
+    request: CbtRequest,
+    runtime: AgentSessionRuntime,
+) -> bool:
+    if not _confirmation_candidate_available(request):
+        return False
+    state = _confirmation_eligible_state(request, runtime)
+    return bool(
+        state.evidence_for
+        and state.evidence_against
+        and state.alternative_views
+        and state.acknowledgement is not None
+    )
+
+
 def _build_agent_payload(
     request: CbtRequest,
     runtime: AgentSessionRuntime,
@@ -569,7 +599,7 @@ def _build_agent_payload(
     history = (
         request.question_answers if isinstance(request, CbtTurnRequest) else []
     )
-    confirmation_allowed = _confirmation_candidate_available(request)
+    confirmation_allowed = _confirmation_tool_allowed(request, runtime)
     detected_feedback = _explicit_feedback_intent(request)
     latest_answer_meaning_hint, turn_flags = _analysis_turn_flags(
         request,
@@ -670,6 +700,7 @@ def _to_shared_question_plan(plan: AgentQuestionPlan) -> CbtQuestionPlan:
         preface_goal=plan.preface_goal,
         grounding_question_codes=plan.grounding_question_codes,
         avoid_topics=plan.avoid_topics,
+        example_options=plan.example_options,
     )
 
 
@@ -791,6 +822,70 @@ def _validate_safety_action(
     )
 
 
+def _render_confirmation(
+    action: RequestConfirmationAction,
+    request: CbtTurnRequest,
+) -> CbtConfirmationDraft:
+    """구조화 근거를 외부 기존 confirmation 필드에 결정론적으로 매핑합니다."""
+
+    evidence_for = action.state.evidence_for[-1]
+    evidence_against = action.state.evidence_against[-1]
+    alternative = action.state.alternative_views[-1]
+    acknowledgement = action.state.acknowledgement
+    assert acknowledgement is not None
+
+    rejected_codes = {
+        item.code
+        for item in request.before_distortions
+        if item.review_status.value == "REJECTED"
+    }
+    proposed_codes = {
+        item.code for item in action.confirmation.before_distortions
+    }
+    proposed_codes.update(
+        item.code for item in action.confirmation.outcome_draft.after_distortions
+    )
+    if not proposed_codes or proposed_codes & rejected_codes:
+        raise CbtDraftValidationError(
+            "Confirmation distortion must be defined and not previously rejected"
+        )
+
+    primary_distortion = action.confirmation.before_distortions[0].code
+    definition = DISTORTION_DEFINITIONS[primary_distortion]
+    balanced_thought = action.confirmation.outcome_draft.alternative_thought_text
+
+    def display(item: SavedAnswerEvidence) -> str:
+        excerpt = item.excerpt[:120]
+        return f"[{item.source_question_code}] {excerpt}"
+
+    proposal_message = "\n".join(
+        (
+            f"처음 생각을 지지한 근거: {display(evidence_for)}",
+            f"확신을 낮추는 근거: {display(evidence_against)}",
+            f"가능한 다른 관점: {display(alternative)}",
+            f"사실과 추론·확신을 나눈 내용: {display(acknowledgement)}",
+            (
+                "잠정적으로 살펴볼 인지 왜곡: "
+                f"{definition['nameKo']} ({primary_distortion.value})"
+            ),
+            f"균형 잡힌 생각: {balanced_thought}",
+        )
+    )
+    outcome = action.confirmation.outcome_draft.model_copy(
+        update={
+            "evidence_for_text": evidence_for.excerpt,
+            "evidence_against_text": evidence_against.excerpt,
+            "alternative_thought_text": balanced_thought,
+        }
+    )
+    return action.confirmation.model_copy(
+        update={
+            "outcome_draft": outcome,
+            "proposal_message": proposal_message[:1_000],
+        }
+    )
+
+
 def _validate_agent_action(
     action: AgentAction,
     request: CbtRequest,
@@ -831,6 +926,11 @@ def _validate_agent_action(
             raise CbtDraftValidationError(
                 "Agent confirmation requires all four normalized state domains"
             )
+        if not isinstance(request, CbtTurnRequest):
+            raise CbtDraftValidationError(
+                "Agent confirmation requires saved user answers"
+            )
+        action.confirmation = _render_confirmation(action, request)
         draft = CbtAnalysisDraft(
             result_type=CbtResultType.CONFIRMATION_REQUIRED,
             semantic_progress=progress,
@@ -869,8 +969,12 @@ async def _select_agent_action(
     agent_model: Any | None = None,
 ) -> tuple[AgentAction, CbtAnalysisDraft]:
     payload = _build_agent_payload(request, runtime, mode)
-    confirmation_allowed = _confirmation_candidate_available(request)
-    model = agent_model or _get_agent_model(confirmation_allowed)
+    confirmation_allowed = bool(payload["confirmationAllowed"])
+    safety_allowed = bool(payload["safetyCandidates"])
+    model = agent_model or _get_agent_model(
+        safety_allowed,
+        confirmation_allowed,
+    )
     feedbacks: list[str] = []
 
     for attempt in range(CBT_AGENT_MODEL_OUTPUT_ATTEMPTS):
@@ -897,6 +1001,29 @@ async def _select_agent_action(
                 request,
                 runtime,
             )
+            if safety_allowed and not isinstance(action, SafetyStopAction):
+                raise CbtDraftValidationError(
+                    "A matching current-user safetyCandidate requires safety_stop"
+                )
+            if (
+                isinstance(action, RequestConfirmationAction)
+                and not confirmation_allowed
+            ):
+                raise CbtDraftValidationError(
+                    "request_confirmation is unavailable for this turn"
+                )
+            explicit_intent = _explicit_feedback_intent(request)
+            if isinstance(action, AskQuestionAction) and explicit_intent is not None:
+                if (
+                    explicit_intent == LatestUserIntent.REQUEST_EXAMPLE
+                    and len(action.question_plan.example_options) != 2
+                ):
+                    raise CbtDraftValidationError(
+                        "REQUEST_EXAMPLE requires exactly two exampleOptions"
+                    )
+                action.question_plan = action.question_plan.model_copy(
+                    update={"latest_user_intent": explicit_intent}
+                )
             history = _history_for(request)
             if (
                 isinstance(action, AskQuestionAction)

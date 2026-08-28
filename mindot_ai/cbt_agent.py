@@ -7,10 +7,9 @@ Structured Output 호출로 문장을 작성합니다. 세션 완료는 사용�
 """
 
 # NOTE:
-# The dual-LLM CBT implementation is retained and remains the FastAPI runtime
-# path because the backend integration contract depends on it.
-# cbt_session_agent.py is retained for Q2/Q4 Agent evaluation and comparison;
-# the runtime and evaluation paths are intentionally separate.
+# The dual-LLM CBT implementation is retained for comparison and rollback.
+# FastAPI production CBT routes use the Q4 Agent in cbt_session_agent.py while
+# preserving the existing external URLs and DTO contract.
 
 from __future__ import annotations
 
@@ -687,6 +686,10 @@ class CbtQuestionPlan(ApiModel):
         max_length=5,
     )
     avoid_topics: list[str] = Field(alias="avoidTopics", max_length=8)
+    example_options: list[str] = Field(
+        alias="exampleOptions",
+        max_length=2,
+    )
 
     @model_validator(mode="after")
     def validate_plan(self) -> "CbtQuestionPlan":
@@ -694,6 +697,23 @@ class CbtQuestionPlan(ApiModel):
             dict.fromkeys(self.grounding_question_codes)
         )
         self.avoid_topics = list(dict.fromkeys(self.avoid_topics))
+        self.example_options = list(dict.fromkeys(self.example_options))
+        if self.latest_user_intent == LatestUserIntent.REQUEST_EXAMPLE:
+            if len(self.example_options) != 2:
+                raise ValueError(
+                    "REQUEST_EXAMPLE requires exactly two exampleOptions"
+                )
+            if any(
+                not option or len(option) > 100
+                for option in self.example_options
+            ):
+                raise ValueError(
+                    "Each REQUEST_EXAMPLE option must contain 1 to 100 characters"
+                )
+        elif self.example_options:
+            raise ValueError(
+                "exampleOptions must be empty unless latestUserIntent is REQUEST_EXAMPLE"
+            )
         if self.latest_user_intent in {
             LatestUserIntent.REQUEST_EXAMPLE,
             LatestUserIntent.REQUEST_EXPLANATION,
@@ -725,6 +745,10 @@ class CbtQuestionSelection(ApiModel):
         max_length=5,
     )
     avoid_topics: list[str] = Field(alias="avoidTopics", max_length=8)
+    example_options: list[str] = Field(
+        alias="exampleOptions",
+        max_length=2,
+    )
 
     @model_validator(mode="after")
     def validate_selection(self) -> "CbtQuestionSelection":
@@ -732,6 +756,23 @@ class CbtQuestionSelection(ApiModel):
             dict.fromkeys(self.grounding_question_codes)
         )
         self.avoid_topics = list(dict.fromkeys(self.avoid_topics))
+        self.example_options = list(dict.fromkeys(self.example_options))
+        if self.latest_user_intent == LatestUserIntent.REQUEST_EXAMPLE:
+            if len(self.example_options) != 2:
+                raise ValueError(
+                    "REQUEST_EXAMPLE requires exactly two exampleOptions"
+                )
+            if any(
+                not option or len(option) > 100
+                for option in self.example_options
+            ):
+                raise ValueError(
+                    "Each REQUEST_EXAMPLE option must contain 1 to 100 characters"
+                )
+        elif self.example_options:
+            raise ValueError(
+                "exampleOptions must be empty unless latestUserIntent is REQUEST_EXAMPLE"
+            )
         if self.preface_required and self.preface_goal is None:
             raise ValueError("prefaceGoal is required when prefaceRequired is true")
         if not self.preface_required:
@@ -989,40 +1030,23 @@ classify, diagnose, add evidence, or change questionPurpose or
 semanticRouteType.
 </role>
 
-<route>
-selectedRouteDefinition is authoritative. Express exactly its meaning using
-the grounded topic.
+<rules>
+selectedRouteDefinition and questionGoal are authoritative. Ask one answerable
+point about what the USER observed, experienced, inferred, judged, or can
+consider. Never ask for a third party's actual hidden emotion, thought, motive,
+intention, or cause.
 
-Do not turn CONTRADICTORY_FACT into another-possibility question or
-EMOTION_OR_TRIGGER into a third-party emotion question.
+Respect groundingAnswers, exclusions, latestInteraction, and
+previousQuestions. Do not repeat a closed meaning, invent facts, force
+optimism, or ask multiple questions.
 
-For ALTERNATIVE_EXPLANATION, ask which possibility may fit, not what the third
-party's actual hidden reason was.
-</route>
+If prefaceRequired is false, return preface=null. Otherwise fulfill
+prefaceGoal briefly. For REQUEST_EXAMPLE, state the supplied exampleOptions as
+tentative possibilities and ask which, if any, seems plausible; do not ask the
+same open-ended request again.
 
-<subject>
-questionSubject is USER. Ask what the user observed, experienced, inferred,
-judged, or can consider. Never ask for a third party's actual emotion,
-thought, motive, intention, or cause.
-</subject>
-
-<preface>
-If prefaceRequired is false, return preface=null. If true, fulfill
-prefaceGoal in one brief statement without adding a new topic.
-
-For REQUEST_EXAMPLE, give brief neutral possibilities and ask whether any of
-them seems plausible. Do not repeat the same open-ended request for another
-possibility.
-</preface>
-
-<question>
-Ask only the single point in questionGoal. Respect groundingAnswers,
-blockedRoutes, blockedRouteFamilies, resolvedButIrrelevantTopics, avoidTopics,
-latestInteraction, and previousQuestions.
-
-Use natural Korean honorifics. Do not ask multiple questions, repeat a closed
-meaning, force optimism, or invent facts.
-</question>
+Use simple natural Korean honorifics.
+</rules>
 """.strip()
 
 
@@ -1360,6 +1384,7 @@ def _resolve_question_selection(
         ),
         grounding_question_codes=selection.grounding_question_codes,
         avoid_topics=selection.avoid_topics,
+        example_options=selection.example_options,
     )
     _validate_question_plan_route(plan)
     return plan
@@ -2032,6 +2057,27 @@ def _build_writer_payload(
             if isinstance(request, CbtTurnRequest)
             else []
         ),
+        "exclusions": {
+            "blockedRoutes": (
+                _blocked_routes_from_history(request.question_answers)
+                if isinstance(request, CbtTurnRequest)
+                else []
+            ),
+            "blockedRouteFamilies": sorted(
+                family.value
+                for family in _hard_blocked_route_families(
+                    request.question_answers
+                    if isinstance(request, CbtTurnRequest)
+                    else []
+                )
+            ),
+            "resolvedButIrrelevantTopics": _resolved_but_irrelevant_topics(
+                request.question_answers
+                if isinstance(request, CbtTurnRequest)
+                else []
+            ),
+            "avoidTopics": plan.avoid_topics,
+        },
         "selectedRouteDefinition": _semantic_route_definition_payload(
             plan.semantic_route_type
         ),
@@ -2039,6 +2085,7 @@ def _build_writer_payload(
             plan.semantic_route_type
         ).value,
         "prefaceRequired": plan.preface_goal is not None,
+        "exampleOptions": plan.example_options,
         "plan": plan.model_dump(by_alias=True, mode="json"),
     }
 
@@ -2644,15 +2691,21 @@ def _build_deterministic_fallback(
         selected = (purpose, route, FALLBACK_QUESTION_BY_ROUTE[route])
 
     purpose, route, question = selected
+    fallback_intent = _fallback_latest_user_intent(request)
     plan = CbtQuestionPlan(
         direction_code=_direction_code(route, purpose),
         question_purpose=purpose,
         semantic_route_type=route,
-        latest_user_intent=_fallback_latest_user_intent(request),
+        latest_user_intent=fallback_intent,
         question_goal=f"사용자에게 물을 목표: {question}",
         preface_goal=None,
         grounding_question_codes=[],
         avoid_topics=[],
+        example_options=(
+            ["다른 일로 지쳐 있었을 가능성", "상황 자체가 급했을 가능성"]
+            if fallback_intent == LatestUserIntent.REQUEST_EXAMPLE
+            else []
+        ),
     )
     plan = _apply_feedback_constraints(request, plan)
     draft = CbtAnalysisDraft(

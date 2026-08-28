@@ -182,9 +182,7 @@ FastAPI import와 다음 다섯 경로의 존재를 확인했다.
 ```text
 /internal/ai/reflections/start
 /internal/ai/reflections/turn
-/internal/ai/reflections/agent/start
-/internal/ai/reflections/agent/turn
-/internal/ai/reflections/agent/{session_id}
+Q2 시점의 비교 실험용 Agent 전용 start·turn·delete 경로
 ```
 
 저장소 밖 임시 스크립트로 지시된 20개 항목을 모두 확인했다. 세 payload의 사용자 관점, 11개 route 매핑, 두 쌍의 동일 family, 관련성·반복 feedback 차단, 과거 `NO_DIRECT_EVIDENCE` 유지, 일반 답변 비차단, 거부 질문 기록, feedback grounding 제거, 공통 helper 사용, `OTHER_SPECIFIC` 우회 거부, 전용 예외, 양쪽 분석 단계 fallback, Writer fallback의 plan 유지, 사용·차단 route 건너뛰기, 현재/부정 자살 표현 구분, Agent runtime·멱등성 저장이 통과했다. `ValueError`, 모의 timeout, 예상하지 못한 `RuntimeError`가 fallback으로 숨겨지지 않고 전파되는 것도 확인했다.
@@ -295,9 +293,7 @@ FastAPI import와 다음 다섯 경로의 로딩을 확인했다.
 ```text
 /internal/ai/reflections/start
 /internal/ai/reflections/turn
-/internal/ai/reflections/agent/start
-/internal/ai/reflections/agent/turn
-/internal/ai/reflections/agent/{session_id}
+Q3 시점의 비교 실험용 Agent 전용 start·turn·delete 경로
 ```
 
 저장소 밖 임시 스크립트로 지시된 34개 항목을 모두 통과했다.
@@ -531,9 +527,9 @@ Q2 비교 기준은 `083f42dcf7132ea940c3c3f121c0b5814baca364`, Q4 품질 코드
 | `POST /internal/ai/reflections/start` | `cbt_agent.generate_cbt_start()` | 운영 이중 LLM |
 | `POST /internal/ai/reflections/turn` | `cbt_agent.generate_cbt_turn()` | 운영 이중 LLM |
 | `DELETE /internal/ai/reflections/{session_id}` | stateless no-op | 운영 계약 |
-| `POST /internal/ai/reflections/agent/start` | `cbt_session_agent.generate_agent_cbt_start()` | 평가·비교 전용 |
-| `POST /internal/ai/reflections/agent/turn` | `cbt_session_agent.generate_agent_cbt_turn()` | 평가·비교 전용 |
-| `DELETE /internal/ai/reflections/agent/{session_id}` | Agent registry 종료 | 평가·비교 전용 |
+| Q4 당시 Agent 전용 POST start | `cbt_session_agent.generate_agent_cbt_start()` | 평가·비교 전용 |
+| Q4 당시 Agent 전용 POST turn | `cbt_session_agent.generate_agent_cbt_turn()` | 평가·비교 전용 |
+| Q4 당시 Agent 전용 DELETE | Agent registry 종료 | 평가·비교 전용 |
 
 저장소 전체 호출처를 검사한 결과 Spring의 `FastApiCbtClient`는 운영 `start`와
 `turn`만 호출한다. Agent route 호출처는 없고 Frontend에도 FastAPI 직접 호출은
