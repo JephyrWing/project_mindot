@@ -579,4 +579,7 @@ gradle-app.setting
 # Local Codex project instructions
 /AGENTS.md
 
+# Local project documentation
+/docs/
+
 # End of https://www.toptal.com/developers/gitignore/api/intellij+all,java,python,venv,react,node,gradle,dotenv,linux,windows,pycharm+all
