@@ -39,11 +39,11 @@ from cbt_agent import (
     CbtTurnRequest,
     CbtTurnResponse,
     CbtQuestionPlan,
-    CbtQuestionSelection,
     CbtSemanticProgress,
     DistortionCode,
     GeneratedQuestion,
     LatestUserIntent,
+    QuestionPurpose,
     QuestionAnswer,
     QuestionWordingDraft,
     RiskAssessment,
@@ -54,7 +54,6 @@ from cbt_agent import (
     CONVERSATION_FEEDBACK_INTENTS,
     DIALOGUE_CONTROL_INTENTS,
     _analysis_turn_flags,
-    _allowed_next_directions,
     _apply_feedback_constraints,
     _blocked_routes_from_history,
     _build_deterministic_fallback,
@@ -65,11 +64,13 @@ from cbt_agent import (
     _explicit_feedback_intent,
     _deterministic_fallback_wording,
     _get_llm,
+    _hard_blocked_route_families,
     _is_explicit_dialogue_refusal,
     _log_fallback_usage,
     _resolved_but_irrelevant_topics,
-    _resolve_question_selection,
     _safety_candidates,
+    _semantic_route_definitions_payload,
+    _direction_code,
     _to_response,
     _validate_analysis_draft,
     _validate_safety_decision,
@@ -77,7 +78,7 @@ from cbt_agent import (
 )
 
 
-CBT_AGENT_PROMPT_VERSION = "cbt-session-agent-quality-v3"
+CBT_AGENT_PROMPT_VERSION = "cbt-session-agent-quality-v4"
 CBT_AGENT_SESSION_TTL_SECONDS = int(
     os.getenv("CBT_AGENT_SESSION_TTL_SECONDS", "600")
 )
@@ -149,18 +150,39 @@ class CbtSessionState(ApiModel):
         return self
 
 
+class AgentQuestionPlan(ApiModel):
+    """Q4 Agent가 의미 경로와 목적을 직접 계획하는 내부 tool 스키마입니다."""
+
+    question_purpose: QuestionPurpose = Field(alias="questionPurpose")
+    semantic_route_type: SemanticRouteType = Field(alias="semanticRouteType")
+    latest_user_intent: LatestUserIntent = Field(alias="latestUserIntent")
+    question_goal: str = Field(alias="questionGoal", min_length=1, max_length=300)
+    preface_goal: str | None = Field(alias="prefaceGoal", max_length=300)
+    grounding_question_codes: list[str] = Field(
+        alias="groundingQuestionCodes",
+        max_length=5,
+    )
+    avoid_topics: list[str] = Field(alias="avoidTopics", max_length=8)
+
+    @model_validator(mode="after")
+    def validate_plan(self) -> "AgentQuestionPlan":
+        self.grounding_question_codes = list(
+            dict.fromkeys(self.grounding_question_codes)
+        )
+        self.avoid_topics = list(dict.fromkeys(self.avoid_topics))
+        if self.latest_user_intent in DIALOGUE_CONTROL_INTENTS:
+            self.preface_goal = self.preface_goal or (
+                "Briefly respond to the user's request or conversation feedback "
+                "before asking the next question."
+            )
+        return self
+
+
 class AskQuestionAction(ApiModel):
-    """다음 CBT 질문을 작성하고 Spring에 전달할 때 선택하는 tool입니다."""
+    """다음 CBT 질문의 의미를 직접 계획하는 Agent tool action입니다."""
 
     state: CbtSessionState
-    question_plan: CbtQuestionPlan = Field(alias="questionPlan")
-
-
-class AskQuestionToolAction(ApiModel):
-    """Agent tool이 directionCode만 선택하는 질문 action입니다."""
-
-    state: CbtSessionState
-    question_selection: CbtQuestionSelection = Field(alias="questionPlan")
+    question_plan: AgentQuestionPlan = Field(alias="questionPlan")
 
 
 class RequestConfirmationAction(ApiModel):
@@ -194,7 +216,7 @@ ASK_QUESTION_TOOL = StructuredTool.from_function(
         "Update compact CBT state and plan exactly one new question direction. "
         "Final Korean wording is handled separately."
     ),
-    args_schema=AskQuestionToolAction,
+    args_schema=AskQuestionAction,
 )
 REQUEST_CONFIRMATION_TOOL = StructuredTool.from_function(
     func=_tool_schema_only,
@@ -219,7 +241,7 @@ AGENT_TOOLS = (
     SAFETY_STOP_TOOL,
 )
 ACTION_SCHEMAS: dict[str, type[ApiModel]] = {
-    ASK_QUESTION_TOOL.name: AskQuestionToolAction,
+    ASK_QUESTION_TOOL.name: AskQuestionAction,
     REQUEST_CONFIRMATION_TOOL.name: RequestConfirmationAction,
     SAFETY_STOP_TOOL.name: SafetyStopAction,
 }
@@ -227,65 +249,109 @@ ACTION_SCHEMAS: dict[str, type[ApiModel]] = {
 
 AGENT_SYSTEM_PROMPT = """
 <role>
-Manage one Korean CBT reflection turn and call exactly one tool. Preserve
-valid state and select safety, confirmation, or one item from
-allowedNextDirections. The shared Writer creates final question wording.
+Manage one Korean CBT reflection session and call exactly one tool. Update
+compact semantic state and choose safety, confirmation, or one next question
+direction. The shared Writer creates final wording. Do not diagnose, invent
+facts, or try to prove automaticThought false.
 </role>
 
-<order>
-1. Use safetyCandidates.
+<priority>
+1. Use server-validated safetyCandidates.
 2. Interpret latestInteraction and authoritative dialogue feedback.
-3. Preserve valid state and verify completionCandidates.
-4. Call request_confirmation when all four domains are valid.
-5. Otherwise select one allowed direction and call ask_question.
-</order>
+3. Preserve and update semantic state from actual answer meaning.
+4. Request confirmation when all four completion domains are valid.
+5. Otherwise choose one unresolved direction that can advance reflection.
+</priority>
+
+<context>
+The reflection subject and respondent are always the USER. A person mentioned
+in the situation is a third party, not the respondent.
+
+START begins with empty state. CONTINUE preserves valid currentState.
+REHYDRATE rebuilds state from fullHistory.
+
+blockedRoutes and blockedRouteFamilies are hard exclusions.
+resolvedButIrrelevantTopics cannot be reused or grounded.
+semanticRouteDefinitions are authoritative. Never select OTHER_SPECIFIC for a
+new question.
+</context>
 
 <safety>
 Call safety_stop only when safetyCandidates contains matching current-user
-evidence. Copy one candidate's exact evidence and compatible reason. If the
-list is empty, never call safety_stop.
+evidence. Copy one candidate's exact evidence and use a compatible reason.
+If the list is empty, never call safety_stop.
 </safety>
 
 <state>
-Interpret answers by meaning and answerDisposition, not questionPurpose alone.
-completionCandidates are attention hints, not proof.
+Interpret answers by meaning and answerDisposition, never by questionPurpose
+alone.
 
-Preserve exact saved-answer excerpts for evidenceFor, evidenceAgainst,
-alternativeViews, and acknowledgement.
+Maintain exact saved-answer excerpts for:
+- evidenceFor: supports the core claim;
+- evidenceAgainst: contradicts it or lowers certainty;
+- alternativeViews: another plausible or balanced interpretation;
+- acknowledgement: separates fact from inference or reassesses certainty.
 
 DIALOGUE_CONTROL, UNCLEAR, and SKIPPED are not CBT evidence.
-NO_DIRECT_EVIDENCE is never evidenceFor and may lower certainty.
-Dialogue feedback is not evidence and server exclusions must be preserved.
+NO_DIRECT_EVIDENCE is never evidenceFor. It may lower certainty and closes the
+search for another direct supporting signal.
+
+For relevance or repetition feedback, do not store the feedback as evidence.
+Preserve server-provided exclusions and do not reuse the rejected target,
+comparison, cause, evidence source, causal link, route, or family.
+
+For an example, explanation, or difficulty request, do not store the request
+as evidence. Use prefaceGoal for the necessary brief response.
 </state>
 
-<direction>
-allowedNextDirections is the complete set of valid choices for this turn.
-Select exactly one directionCode and do not invent another direction.
+<question>
+Separate observed facts, the core claim in automaticThought, and the
+unresolved inference between them. Choose one unresolved point whose answer
+could most change the user's understanding or certainty. There is no fixed
+purpose order.
 
-questionGoal supplies one concrete topic for the selected userOperation:
+The user may answer from their own observation, experience, judgment,
+hypothesis, or synthesis. Never ask the user to know a third party's actual
+emotion, thought, motive, intention, or cause.
+
+Follow semanticRouteDefinitions exactly. The selected questionPurpose,
+semanticRouteType, and questionGoal must describe the same meaning.
+
+After NO_DIRECT_EVIDENCE, do not seek another wording, person, time, or example
+of the same direct support.
+
+For REQUEST_EXAMPLE, use prefaceGoal for brief neutral possibilities and ask
+which, if any, seems plausible. Do not repeat the original open-ended request
+for another possibility.
+
+questionGoal is a short Korean plan for one target:
 "확인된 사실: ...; 핵심 주장: ...; 미해결 간극: ...; 사용자에게 물을 목표: ..."
 
-The answer must be obtainable from the selected answerSource. Never ask the
-user to know a third party's actual emotion, thought, motive, intention, or
-cause. Respect forbiddenTargets, resolvedButIrrelevantTopics, avoidTopics,
-and saved answers.
-
-For an example request, use prefaceGoal for brief neutral possibilities and
-ask which, if any, the user considers plausible.
-</direction>
+groundingQuestionCodes contain only substantive saved answers.
+avoidTopics include answered, irrelevant, repeated, and blocked material.
+Do not repeat a closed meaning, force optimism, or assume the original thought
+is entirely false.
+</question>
 
 <confirmation>
-Call request_confirmation only with valid evidenceFor, evidenceAgainst,
-alternativeViews, and acknowledgement. Candidate coverage alone is
-insufficient.
+Call request_confirmation only when confirmationAllowed and state contains
+valid saved evidence for evidenceFor, evidenceAgainst, alternativeViews, and
+acknowledgement.
 
-Use concrete saved evidence and tentative distortion language. Do not invent
+Candidate coverage alone is insufficient. Verify actual answer meanings and
+exact excerpts. The user need not declare automaticThought completely false.
+
+Use tentative distortion language and concrete saved evidence. Do not invent
 scores, use dialogue feedback as evidence, or re-propose a rejected
 distortion.
 </confirmation>
 
 <tools>
-Call exactly one: safety_stop, request_confirmation, or ask_question.
+Call exactly one:
+- safety_stop for matching server-validated current danger evidence;
+- request_confirmation when all completion conditions are satisfied;
+- ask_question for one genuinely unresolved direction.
+
 Never write final question wording and never return COMPLETE.
 </tools>
 """.strip()
@@ -531,10 +597,14 @@ def _build_agent_payload(
         "latestAnswerMeaningHint": latest_answer_meaning_hint,
         "turnFlags": turn_flags,
         "blockedRoutes": blocked_routes,
+        "blockedRouteFamilies": sorted(
+            family.value
+            for family in _hard_blocked_route_families(history)
+        ),
         "resolvedButIrrelevantTopics": _resolved_but_irrelevant_topics(
             history
         ),
-        "allowedNextDirections": _allowed_next_directions(request),
+        "semanticRouteDefinitions": _semantic_route_definitions_payload(),
         "completionCandidates": completion_candidates,
         "completionCandidateCoverage": completion_coverage,
         "record": request.record.model_dump(by_alias=True, mode="json"),
@@ -572,9 +642,7 @@ def _build_agent_payload(
     }
 
 
-def _parse_agent_action(
-    message: Any,
-) -> AgentAction | AskQuestionToolAction:
+def _parse_agent_action(message: Any) -> AgentAction:
     tool_calls = getattr(message, "tool_calls", None)
     if not isinstance(tool_calls, list) or len(tool_calls) != 1:
         raise CbtDraftValidationError("CBT Agent must call exactly one tool")
@@ -585,6 +653,24 @@ def _parse_agent_action(
     if schema is None or not isinstance(args, dict):
         raise CbtDraftValidationError("CBT Agent selected an unknown tool")
     return schema.model_validate(args)
+
+
+def _to_shared_question_plan(plan: AgentQuestionPlan) -> CbtQuestionPlan:
+    """Agent가 고른 의미를 바꾸지 않고 공통 Writer 계약으로 변환합니다."""
+
+    return CbtQuestionPlan(
+        direction_code=_direction_code(
+            plan.semantic_route_type,
+            plan.question_purpose,
+        ),
+        question_purpose=plan.question_purpose,
+        semantic_route_type=plan.semantic_route_type,
+        latest_user_intent=plan.latest_user_intent,
+        question_goal=plan.question_goal,
+        preface_goal=plan.preface_goal,
+        grounding_question_codes=plan.grounding_question_codes,
+        avoid_topics=plan.avoid_topics,
+    )
 
 
 def _history_for(request: CbtRequest) -> list[QuestionAnswer]:
@@ -730,7 +816,7 @@ def _validate_agent_action(
         draft = CbtAnalysisDraft(
             result_type=CbtResultType.QUESTION,
             semantic_progress=progress,
-            question_plan=action.question_plan,
+            question_plan=_to_shared_question_plan(action.question_plan),
             confirmation=None,
             risk=none_risk,
             safety_evidence=None,
@@ -793,13 +879,10 @@ async def _select_agent_action(
             messages.append(
                 SystemMessage(
                     content=(
-                        "Validation failed:\n- "
+                        "Previous tool calls failed these validations:\n- "
                         + "\n- ".join(feedbacks)
-                        + "\nAllowed directionCodes: "
-                        + ", ".join(
-                            item["directionCode"]
-                            for item in payload["allowedNextDirections"]
-                        )
+                        + "\nRe-read the same payload, preserve valid session "
+                        "state, and call exactly one corrected tool."
                     )
                 )
             )
@@ -808,17 +891,7 @@ async def _select_agent_action(
         )
         try:
             message = await model.ainvoke(messages)
-            parsed_action = _parse_agent_action(message)
-            if isinstance(parsed_action, AskQuestionToolAction):
-                action: AgentAction = AskQuestionAction(
-                    state=parsed_action.state,
-                    question_plan=_resolve_question_selection(
-                        request,
-                        parsed_action.question_selection,
-                    ),
-                )
-            else:
-                action = parsed_action
+            action = _parse_agent_action(message)
             action.state = _normalize_agent_state(
                 action.state,
                 request,

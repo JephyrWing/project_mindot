@@ -244,6 +244,21 @@ async def run_cbt_turn(request: CbtTurnRequest) -> CbtTurnResponse:
     return await _run_cbt_turn(request)
 
 
+@app.delete(
+    "/internal/ai/reflections/{session_id}",
+    status_code=204,
+)
+async def stop_cbt_session(
+    session_id: int = ApiPath(gt=0),
+) -> Response:
+    """상태를 두지 않는 이중 LLM 런타임의 세션 종료 계약을 수용합니다."""
+
+    # 운영 CBT 상태의 영속 원본은 Spring JSONB이며 이중 LLM 경로는 서버
+    # 메모리를 유지하지 않습니다. 따라서 종료 시 FastAPI에서 지울 상태가 없습니다.
+    del session_id
+    return Response(status_code=204)
+
+
 @app.post(
     "/internal/ai/reflections/agent/start",
     response_model=CbtTurnResponse,

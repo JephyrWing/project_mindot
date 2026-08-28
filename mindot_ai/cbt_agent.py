@@ -6,6 +6,12 @@ Structured Output 호출로 문장을 작성합니다. 세션 완료는 사용�
 처리합니다.
 """
 
+# NOTE:
+# The dual-LLM CBT implementation is retained and remains the FastAPI runtime
+# path because the backend integration contract depends on it.
+# cbt_session_agent.py is retained for Q2/Q4 Agent evaluation and comparison;
+# the runtime and evaluation paths are intentionally separate.
+
 from __future__ import annotations
 
 import json
@@ -978,42 +984,44 @@ distortion.
 
 WRITER_PROMPT = """
 <role>
-Write one natural Korean response from the supplied plan. Express the selected
-direction without changing, extending, or reclassifying it.
+Write one natural Korean response from the supplied plan. Do not re-plan,
+classify, diagnose, add evidence, or change questionPurpose or
+semanticRouteType.
 </role>
 
-<contract>
-selectedDirection is authoritative. Perform its userOperation, use an
-answerable target from its answerSource, and avoid all forbiddenTargets.
+<route>
+selectedRouteDefinition is authoritative. Express exactly its meaning using
+the grounded topic.
 
-questionGoal supplies the concrete topic only. If part of questionGoal
-conflicts with selectedDirection, discard the conflicting part instead of
-switching to another route.
-</contract>
+Do not turn CONTRADICTORY_FACT into another-possibility question or
+EMOTION_OR_TRIGGER into a third-party emotion question.
+
+For ALTERNATIVE_EXPLANATION, ask which possibility may fit, not what the third
+party's actual hidden reason was.
+</route>
 
 <subject>
-The respondent is always the user. Ask what the user observed, experienced,
-judged, can consider, can synthesize, or wants to choose.
-
-Never ask for a third party's actual emotion, thought, motive, intention, or
-cause. A possible explanation must remain a hypothesis, not hidden knowledge.
+questionSubject is USER. Ask what the user observed, experienced, inferred,
+judged, or can consider. Never ask for a third party's actual emotion,
+thought, motive, intention, or cause.
 </subject>
 
 <preface>
 If prefaceRequired is false, return preface=null. If true, fulfill
 prefaceGoal in one brief statement without adding a new topic.
 
-For an example request, give brief neutral possibilities and ask whether any
-seems plausible. Do not repeat an open-ended hidden-reason question.
+For REQUEST_EXAMPLE, give brief neutral possibilities and ask whether any of
+them seems plausible. Do not repeat the same open-ended request for another
+possibility.
 </preface>
 
 <question>
-Ask one simple, answerable question using natural Korean honorifics. Respect
-groundingAnswers, resolvedButIrrelevantTopics, avoidTopics,
+Ask only the single point in questionGoal. Respect groundingAnswers,
+blockedRoutes, blockedRouteFamilies, resolvedButIrrelevantTopics, avoidTopics,
 latestInteraction, and previousQuestions.
 
-Do not ask multiple questions, repeat a closed meaning, force optimism, or
-invent facts.
+Use natural Korean honorifics. Do not ask multiple questions, repeat a closed
+meaning, force optimism, or invent facts.
 </question>
 """.strip()
 
@@ -1209,6 +1217,30 @@ def _semantic_route_family(
     route_type: SemanticRouteType,
 ) -> SemanticRouteFamily:
     return SEMANTIC_ROUTE_FAMILY_BY_TYPE[route_type]
+
+
+def _semantic_route_definition_payload(
+    route_type: SemanticRouteType,
+) -> dict[str, Any]:
+    definition = SEMANTIC_ROUTE_DEFINITIONS[route_type]
+    return {
+        "semanticRouteType": route_type.value,
+        "semanticRouteFamily": _semantic_route_family(route_type).value,
+        "meaning": definition["meaning"],
+        "informationSource": definition["informationSource"],
+        "forbiddenDirections": list(definition["forbiddenDirections"]),
+        "allowedQuestionPurposes": sorted(
+            purpose.value
+            for purpose in ALLOWED_QUESTION_PURPOSES_BY_ROUTE[route_type]
+        ),
+    }
+
+
+def _semantic_route_definitions_payload() -> list[dict[str, Any]]:
+    return [
+        _semantic_route_definition_payload(route_type)
+        for route_type in SemanticRouteType
+    ]
 
 
 def _validate_question_plan_route(plan: CbtQuestionPlan) -> None:
@@ -1539,6 +1571,11 @@ def _is_clearly_non_current_user_safety_text(text: str | None) -> bool:
         rf"(?:만약|가령|예를\s*들|예시).{{0,45}}{harm}",
         normalized,
     )
+    hypothetical_report_question = re.search(
+        rf"{harm}.{{0,20}}(?:다고|라고)\s*말하면.{{0,30}}"
+        r"(?:어떻게|어떤|뭐)",
+        normalized,
+    )
     third_party = re.search(
         rf"(?:친구|가족|지인|동료|팀장|그\s*사람|상대|부모|형제|자매)"
         rf"(?:가|이|은|는).{{0,45}}{harm}.{{0,30}}"
@@ -1550,7 +1587,15 @@ def _is_clearly_non_current_user_safety_text(text: str | None) -> bool:
         normalized,
     )
     quoted_only = third_party is not None and self_harm_statement is None
-    return any((negated, historical_and_resolved, hypothetical, quoted_only))
+    return any(
+        (
+            negated,
+            historical_and_resolved,
+            hypothetical,
+            hypothetical_report_question,
+            quoted_only,
+        )
+    )
 
 
 SAFETY_MARKERS_BY_REASON = MappingProxyType(
@@ -1969,19 +2014,32 @@ def _build_writer_payload(
         "latestInteraction": latest_interaction,
         "groundingAnswers": grounding_answers,
         "previousQuestions": previous_questions,
+        "blockedRoutes": (
+            _blocked_routes_from_history(request.question_answers)
+            if isinstance(request, CbtTurnRequest)
+            else []
+        ),
+        "blockedRouteFamilies": sorted(
+            family.value
+            for family in _hard_blocked_route_families(
+                request.question_answers
+                if isinstance(request, CbtTurnRequest)
+                else []
+            )
+        ),
         "resolvedButIrrelevantTopics": _resolved_but_irrelevant_topics(
             request.question_answers
             if isinstance(request, CbtTurnRequest)
             else []
         ),
-        "selectedDirection": _direction_payload(
-            plan.semantic_route_type,
-            plan.question_purpose,
+        "selectedRouteDefinition": _semantic_route_definition_payload(
+            plan.semantic_route_type
         ),
+        "selectedRouteFamily": _semantic_route_family(
+            plan.semantic_route_type
+        ).value,
         "prefaceRequired": plan.preface_goal is not None,
-        "prefaceGoal": plan.preface_goal,
-        "questionGoal": plan.question_goal,
-        "avoidTopics": plan.avoid_topics,
+        "plan": plan.model_dump(by_alias=True, mode="json"),
     }
 
 
