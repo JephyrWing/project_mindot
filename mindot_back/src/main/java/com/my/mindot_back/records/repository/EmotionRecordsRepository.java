@@ -4,6 +4,7 @@ package com.my.mindot_back.records.repository;
 import com.my.mindot_back.records.entity.EmotionRecords;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,5 +20,13 @@ public interface EmotionRecordsRepository
     Optional<EmotionRecords> findByIdAndUser_Id(
             Long emotionRecordId,
             Long userId
+    );
+
+    // 선택한 기간에 발생한 로그인 사용자의 감정 기록을 오래된 순으로 조회
+    List<EmotionRecords>
+    findAllByUser_IdAndOccurredAtGreaterThanEqualAndOccurredAtLessThanOrderByOccurredAtAsc(
+            Long userId,
+            Instant periodStart,
+            Instant periodEndExclusive
     );
 }
