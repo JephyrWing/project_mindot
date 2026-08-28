@@ -6,7 +6,9 @@ import com.my.mindot_back.records.entity.ReflectionSessionStatus;
 import com.my.mindot_back.records.entity.ReflectionSessions;
 import com.my.mindot_back.records.repository.EmotionRecordsRepository;
 import com.my.mindot_back.records.repository.ReflectionSessionsRepository;
+import com.my.mindot_back.reports.dto.RepeatedEmotionPatternDto;
 import com.my.mindot_back.reports.dto.WeeklyReportResponseDto;
+import com.my.mindot_back.reports.entity.PatternLevel;
 import com.my.mindot_back.reports.entity.ReportType;
 import com.my.mindot_back.reports.entity.Reports;
 import com.my.mindot_back.reports.repository.ReportsRepository;
@@ -22,8 +24,10 @@ import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +44,231 @@ public class WeeklyReportsService {
 
     // 사용자 시간대와 사용자 존재 여부 확인
     private final UsersRepository usersRepository;
+
+    // 감정, 요일, 시간대 조합을 묶어 계산하기 위한 내부 키
+    private record EmotionPatternKey(
+            String emotionCode,
+            String weekday,
+            String timeBucket
+    ){
+    }
+
+    // 반복 패턴 판단에 필요한 집계값
+    private record PatternStatistics(
+            long occurrenceCount,
+            long distinctDateCount,
+            long observedWeekCount,
+            long consecutiveWeekCount,
+            long patternSpanWeekCount
+    ) {
+    }
+
+    // 하나의 패턴 그룹에서 날짜와 주 단위 반복 정도 계산
+    private PatternStatistics calculatePatternStatistics(
+            List<EmotionRecords> emotionRecords,
+            ZoneId zoneId
+            ){
+        List<LocalDate> distinctDates = emotionRecords.stream()
+                .map(emotionRecord -> emotionRecord.getOccurredAt()
+                        .atZone(zoneId)
+                        .toLocalDate()
+                )
+                .distinct()
+                .toList();
+
+        List<LocalDate> observedWeekStarts = distinctDates.stream()
+                .map(date -> date.with(DayOfWeek.MONDAY))
+                .distinct()
+                .sorted()
+                .toList();
+
+        long longestConsecutiveWeeks = 0;
+        long currentConsecutiveWeeks = 0;
+        LocalDate previousWeekStart = null;
+
+        for (LocalDate observedWeekStart : observedWeekStarts) {
+            if (previousWeekStart != null
+                    && observedWeekStart.equals(
+                    previousWeekStart.plusWeeks(1)
+            )) {
+                currentConsecutiveWeeks++;
+            } else {
+                currentConsecutiveWeeks = 1;
+            }
+
+            longestConsecutiveWeeks = Math.max(
+                    longestConsecutiveWeeks,
+                    currentConsecutiveWeeks
+            );
+            previousWeekStart = observedWeekStart;
+        }
+
+        long patternSpanWeekCount = observedWeekStarts.isEmpty()
+                ? 0
+                : ChronoUnit.WEEKS.between(
+                        observedWeekStarts.get(0),
+                        observedWeekStarts.get(observedWeekStarts.size() - 1)
+        ) + 1;
+
+        return new PatternStatistics(
+                emotionRecords.size(),
+                distinctDates.size(),
+                observedWeekStarts.size(),
+                longestConsecutiveWeeks,
+                patternSpanWeekCount
+        );
+    }
+
+    // 기록 기간과 반복 횟수를 기준으로 패턴 강도 결정
+    private PatternLevel determinePatternLevel(
+            PatternStatistics statistics
+    ) {
+        // 5~8주 범위에 3주 이상, 서로 다른 날짜 3일 이상 기록
+        if (statistics.patternSpanWeekCount() >= 5
+                && statistics.observedWeekCount() >= 3
+                && statistics.distinctDateCount() >= 3) {
+            return PatternLevel.LONG_TERM;
+        }
+
+        // 4주 중 3주 이상 기록
+        if (statistics.patternSpanWeekCount() == 4
+                && statistics.observedWeekCount() >= 3) {
+            return PatternLevel.SUSTAINED;
+        }
+
+        // 3주 중 2주 이상 기록
+        if (statistics.patternSpanWeekCount() == 3
+                && statistics.observedWeekCount() >= 2) {
+            return PatternLevel.SUSTAINED;
+        }
+
+        // 연속된 2주에 기록
+        if (statistics.consecutiveWeekCount() >= 2) {
+            return PatternLevel.REPEATED;
+        }
+
+        // 한 주 안에서 같은 감정·시간대가 3회 이상 기록
+        if (statistics.patternSpanWeekCount() == 1
+                && statistics.occurrenceCount() >= 3) {
+            return PatternLevel.RECENT;
+        }
+
+        return null;
+    }
+
+    // 최근 8주 기록에서 사용자에게 보여줄 반복 패턴 목록 생성
+    private List<RepeatedEmotionPatternDto> createRepeatedEmotionPatterns(
+            List<EmotionRecords> emotionRecords,
+            ZoneId zoneId
+    ) {
+        return groupEmotionRecordsByPattern(emotionRecords, zoneId)
+                .entrySet()
+                .stream()
+                .map(entry -> {
+                    EmotionPatternKey patternKey = entry.getKey();
+                    List<EmotionRecords> patternRecords = entry.getValue();
+
+                    PatternStatistics statistics = calculatePatternStatistics(
+                            patternRecords,
+                            zoneId
+                    );
+                    PatternLevel patternLevel = determinePatternLevel(statistics);
+
+                    // 반복 기준을 만족하지 않은 그룹은 응답에서 제외
+                    if (patternLevel == null) {
+                        return null;
+                    }
+
+                    long distinctWeekdayCount = patternRecords.stream()
+                            .map(emotionRecord -> emotionRecord.getOccurredAt()
+                                    .atZone(zoneId)
+                                    .getDayOfWeek()
+                            )
+                            .distinct()
+                            .count();
+
+                    // 특정 요일만 기록된 경우 시간대 중심 패턴은 중복되므로 제외
+                    if (patternKey.weekday() == null
+                            && distinctWeekdayCount == 1) {
+                        return null;
+                    }
+
+                    return new RepeatedEmotionPatternDto(
+                            patternKey.emotionCode(),
+                            patternKey.weekday(),
+                            patternKey.timeBucket(),
+                            statistics.occurrenceCount(),
+                            statistics.distinctDateCount(),
+                            statistics.observedWeekCount(),
+                            patternLevel
+                    );
+                })
+                .filter(Objects::nonNull)
+                .sorted(Comparator
+                        .comparing(RepeatedEmotionPatternDto::patternLevel)
+                        .reversed()
+                        .thenComparing(Comparator
+                                .comparingLong(
+                                        RepeatedEmotionPatternDto::observedWeekCount
+                                )
+                                .reversed()
+                        )
+                        .thenComparing(Comparator
+                                .comparingLong(
+                                        RepeatedEmotionPatternDto::occurrenceCount
+                                )
+                                .reversed()
+                        )
+                )
+                .toList();
+    }
+
+
+    // 확정된 기록을 감정, 시간대 및 감정, 요일, 시간대 패턴으로 묶음
+    private Map<EmotionPatternKey, List<EmotionRecords>>
+    groupEmotionRecordsByPattern(
+            List<EmotionRecords> emotionRecords,
+            ZoneId zoneId
+    ) {
+        return emotionRecords.stream()
+                .filter(emotionRecord ->
+                        emotionRecord.getPrimaryEmotionCode() != null
+                                && !emotionRecord.getPrimaryEmotionCode().isBlank()
+                )
+                .flatMap(emotionRecord -> {
+                    String emotionCode = emotionRecord.getPrimaryEmotionCode();
+                    String timeBucket = emotionRecord.getTimeBucket().name();
+                    String weekday = emotionRecord.getOccurredAt()
+                            .atZone(zoneId)
+                            .getDayOfWeek()
+                            .name();
+
+                    return Stream.of(
+                                    new EmotionPatternKey(
+                                            emotionCode,
+                                            null,
+                                            timeBucket
+                                    ),
+                                    new EmotionPatternKey(
+                                            emotionCode,
+                                            weekday,
+                                            timeBucket
+                                    )
+                            )
+                            .map(patternKey -> Map.entry(
+                                    patternKey,
+                                    emotionRecord
+                            ));
+                })
+                .collect(Collectors.groupingBy(
+                        Map.Entry::getKey,
+                        LinkedHashMap::new,
+                        Collectors.mapping(
+                                Map.Entry::getValue,
+                                Collectors.toList()
+                        )
+                ));
+    }
 
     // 주간 리포트 시작일은 항상 월요일인지 확인
     private void validateWeekStart(
@@ -88,43 +317,72 @@ public class WeeklyReportsService {
                 );
     }
 
+    // 선택한 주를 포함한 최근 8주의 감정 기록 조회
+    private List<EmotionRecords> findRecentEightWeeksEmotionRecords(
+            Long userId,
+            LocalDate weekStart
+    ) {
+        validateWeekStart(weekStart);
+
+        Users user = usersRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "사용자를 찾을 수 없습니다."
+                ));
+
+        ZoneId zoneId = ZoneId.of(user.getTimezone());
+        LocalDate patternStart = weekStart.minusWeeks(7);
+        Instant periodStart = patternStart.atStartOfDay(zoneId).toInstant();
+        Instant periodEndExclusive = weekStart.plusWeeks(1)
+                .atStartOfDay(zoneId)
+                .toInstant();
+
+        return emotionRecordsRepository
+                .findAllByUser_IdAndOccurredAtGreaterThanEqualAndOccurredAtLessThanOrderByOccurredAtAsc(
+                        userId,
+                        periodStart,
+                        periodEndExclusive
+                );
+    }
+
     // 사용자 시간대를 기준으로 선택한 주에 완료, 확정된 CBT 세션 조회
-private List<ReflectionSessions> findWeeklyCompletedReflectionSessions(
-        Long userId,
-        LocalDate weekStart
-) {
-    // 월요일이 시작일인지 검증
-    validateWeekStart(weekStart);
+    private List<ReflectionSessions> findWeeklyCompletedReflectionSessions(
+            Long userId,
+            LocalDate weekStart
+    ) {
+        // 월요일이 시작일인지 검증
+        validateWeekStart(weekStart);
 
-    // 사용자 시간대를 기준으로 기간 경계 계산
-    Users user = usersRepository.findById(userId)
-            .orElseThrow(() -> new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "사용자를 찾을 수 없습니다."
-            ));
+        // 사용자 시간대를 기준으로 기간 경계 계산
+        Users user = usersRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "사용자를 찾을 수 없습니다."
+                ));
 
-    ZoneId zoneId = ZoneId.of(user.getTimezone());
-    Instant periodStart = weekStart.atStartOfDay(zoneId).toInstant();
+        ZoneId zoneId = ZoneId.of(user.getTimezone());
+        Instant periodStart = weekStart.atStartOfDay(zoneId).toInstant();
 
-    Instant periodEndExclusive = weekStart
-            .plusDays(7)
-            .atStartOfDay(zoneId)
-            .toInstant();
+        Instant periodEndExclusive = weekStart
+                .plusDays(7)
+                .atStartOfDay(zoneId)
+                .toInstant();
 
-    // 완료, 사용자 확정 상태인 CBT만 조회
-    return reflectionSessionsRepository
-            .findAllByUser_IdAndStatusAndUserConfirmedTrueAndCompletedAtGreaterThanEqualAndCompletedAtLessThanOrderByCompletedAtAsc(
-                    userId,
-                    ReflectionSessionStatus.COMPLETED,
-                    periodStart,
-                    periodEndExclusive
-            );
-}
+        // 완료, 사용자 확정 상태인 CBT만 조회
+        return reflectionSessionsRepository
+                .findAllByUser_IdAndStatusAndUserConfirmedTrueAndCompletedAtGreaterThanEqualAndCompletedAtLessThanOrderByCompletedAtAsc(
+                        userId,
+                        ReflectionSessionStatus.COMPLETED,
+                        periodStart,
+                        periodEndExclusive
+                );
+    }
 
     // 주간 감정 기록을 감정·요일·시간대별 통계 Map으로 변환
     private Map<String, Object> createWeeklyContent(
             List<EmotionRecords> emotionRecords,
             List<ReflectionSessions> reflectionSessions,
+            List<RepeatedEmotionPatternDto> repeatedPatterns,
             ZoneId zoneId
     ) {
         // 감정 코드별 기록 수 집계
@@ -198,6 +456,7 @@ private List<ReflectionSessions> findWeeklyCompletedReflectionSessions(
         content.put("emotionCounts", emotionCounts);
         content.put("weekdayCounts", weekdayCounts);
         content.put("timeBucketCounts", timeBucketCounts);
+        content.put("repeatedPatterns", repeatedPatterns);
 
         return content;
     }
@@ -241,6 +500,7 @@ private List<ReflectionSessions> findWeeklyCompletedReflectionSessions(
                 averageIntensity,
                 completedCbtCount,
                 averageHelpfulnessScore,
+                toRepeatedEmotionPatterns(content.get("repeatedPatterns")),
                 toLongMap(content.get("emotionCounts")),
                 toLongMap(content.get("weekdayCounts")),
                 toLongMap(content.get("timeBucketCounts")),
@@ -264,6 +524,55 @@ private List<ReflectionSessions> findWeeklyCompletedReflectionSessions(
                 result.put(label, number.longValue());
             }
         });
+
+        return result;
+    }
+
+    // JSONB에 저장된 반복 패턴 목록을 응답 DTO로 변환
+    private List<RepeatedEmotionPatternDto> toRepeatedEmotionPatterns(
+            Object value
+    ) {
+        if (!(value instanceof List<?> rawPatterns)) {
+            return List.of();
+        }
+
+        List<RepeatedEmotionPatternDto> result = new ArrayList<>();
+
+        for (Object rawPattern : rawPatterns) {
+            if (rawPattern instanceof RepeatedEmotionPatternDto pattern) {
+                result.add(pattern);
+                continue;
+            }
+
+            // DB에서 다시 조회한 JSONB 값은 Map 형태이므로 변환
+            if (!(rawPattern instanceof Map<?, ?> rawMap)
+                    || !(rawMap.get("emotionCode") instanceof String emotionCode)
+                    || !(rawMap.get("timeBucket") instanceof String timeBucket)
+                    || !(rawMap.get("occurrenceCount") instanceof Number occurrenceCount)
+                    || !(rawMap.get("distinctDateCount") instanceof Number distinctDateCount)
+                    || !(rawMap.get("observedWeekCount") instanceof Number observedWeekCount)
+                    || !(rawMap.get("patternLevel") instanceof String patternLevelName)) {
+                continue;
+            }
+
+            String weekday = rawMap.get("weekday") instanceof String valueWeekday
+                    ? valueWeekday
+                    : null;
+
+            try {
+                result.add(new RepeatedEmotionPatternDto(
+                        emotionCode,
+                        weekday,
+                        timeBucket,
+                        occurrenceCount.longValue(),
+                        distinctDateCount.longValue(),
+                        observedWeekCount.longValue(),
+                        PatternLevel.valueOf(patternLevelName)
+                ));
+            } catch (IllegalArgumentException ignored) {
+                // 알 수 없는 패턴 강도 값은 응답에서 제외
+            }
+        }
 
         return result;
     }
@@ -307,11 +616,23 @@ private List<ReflectionSessions> findWeeklyCompletedReflectionSessions(
             );
         }
 
+        // 선택한 주를 포함한 최근 8주 감정 기록 조회
+        List<EmotionRecords> recentEightWeeksEmotionRecords =
+                findRecentEightWeeksEmotionRecords(userId, weekStart);
+
+        // 최근 8주 반복 감정 패턴 계산
+        List<RepeatedEmotionPatternDto> repeatedPatterns =
+                createRepeatedEmotionPatterns(
+                        recentEightWeeksEmotionRecords,
+                        zoneId
+                );
+
         // 감정·요일·시간대 통계 생성
         Map<String, Object> content =
                 createWeeklyContent(
                         emotionRecords,
                         reflectionSessions,
+                        repeatedPatterns,
                         zoneId
                 );
 
