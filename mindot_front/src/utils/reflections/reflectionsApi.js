@@ -20,8 +20,19 @@ export const createReflectionsApi = (client) => ({
 
     return data
   },
+
+  // 사용자가 검토한 CBT 성찰 결과를 최종 확정하는 처리.
+  confirmReflection: async (sessionId, confirmation) => {
+    await client.post(
+      `/api/reflections/${sessionId}/confirm`,
+      confirmation,
+    )
+  },
 })
 
 // 공통 인증 HTTP 클라이언트를 사용하는 CBT 성찰 API 함수 제공.
-export const { startReflection, submitReflectionAnswer } =
-  createReflectionsApi(httpClient)
+export const {
+  startReflection,
+  submitReflectionAnswer,
+  confirmReflection,
+} = createReflectionsApi(httpClient)
