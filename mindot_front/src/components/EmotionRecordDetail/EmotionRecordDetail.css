@@ -117,6 +117,111 @@
   line-height: 1.5;
 }
 
+/* 실제 감정 발생 시각을 수정하는 영역의 구분선과 여백 설정. */
+.emotion-detail-time-editor {
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 24px 0;
+}
+
+/* 감정 발생 시각 수정 제목의 본문 단계 크기 설정. */
+.emotion-detail-time-editor h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+/* 감정 발생 시각 수정 목적을 설명하는 보조 문구 설정. */
+.emotion-detail-time-editor > div > p {
+  margin: 8px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 날짜 및 시간 입력창과 수정 버튼의 가로 배치. */
+.emotion-detail-time-editor form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+/* 날짜 및 시간 입력 항목 이름의 세미 볼드 설정. */
+.emotion-detail-time-editor label > span {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* 감정 발생 날짜 및 시간 입력창의 크기와 단일 테두리 설정. */
+.emotion-detail-time-editor input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--mindot-border-strong);
+  border-radius: 8px;
+  padding: 0 12px;
+  color: var(--mindot-text);
+  font: inherit;
+  background: var(--mindot-surface);
+}
+
+/* 날짜 및 시간 입력창 위에 옅은 파란색 강조. */
+.emotion-detail-time-editor input:not(:disabled):hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+/* 잘못된 감정 발생 시각 입력의 경고 테두리 설정. */
+.emotion-detail-time-editor input[aria-invalid='true'] {
+  border-color: var(--mindot-danger);
+}
+
+/* 감정 발생 시각 수정 버튼의 핵심 파란색과 터치 영역 설정. */
+.emotion-detail-time-editor button {
+  min-height: 44px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  padding: 0 18px;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  background: var(--mindot-primary);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 활성화된 감정 발생 시각 수정 버튼 위의 진한 파란색 강조. */
+.emotion-detail-time-editor button:not(:disabled):hover {
+  border-color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-strong);
+}
+
+/* 감정 발생 시각 수정 중 버튼의 비활성 상태 설정. */
+.emotion-detail-time-editor button:disabled {
+  border-color: var(--mindot-border);
+  color: var(--mindot-disabled);
+  background: var(--mindot-surface-muted);
+  cursor: wait;
+}
+
+/* 감정 발생 시각 수정 결과 문구의 공통 여백과 크기 설정. */
+.emotion-detail-time-editor > p {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* 감정 발생 시각 수정 성공 문구의 녹색 강조. */
+.emotion-detail-time-editor > p.is-success {
+  color: var(--mindot-success);
+}
+
+/* 감정 발생 시각 수정 실패 문구의 경고 색상 강조. */
+.emotion-detail-time-editor > p.is-error {
+  color: var(--mindot-danger);
+}
+
 /* 사용자가 작성한 감정 원문 영역의 구분선과 여백 설정. */
 .emotion-detail-section {
   border-bottom: 1px solid var(--mindot-border);
@@ -220,6 +325,11 @@
   .emotion-detail-list > div {
     grid-template-columns: 1fr;
     gap: 6px;
+  }
+
+  .emotion-detail-time-editor form {
+    grid-template-columns: 1fr;
+    align-items: stretch;
   }
 
   .emotion-detail-state-actions {

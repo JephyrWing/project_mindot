@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Navbar from '../Navbar/Navbar.jsx'
-import { getEmotionRecordDetail } from '../../utils/records/recordsApi.js'
+import {
+  getEmotionRecordDetail,
+  updateEmotionRecordOccurredAt,
+} from '../../utils/records/recordsApi.js'
 import './EmotionRecordDetail.css'
 
 // 백엔드 감정 코드를 사용자에게 표시할 한국어 이름으로 변환하기 위한 목록 설정.
@@ -70,6 +73,22 @@ const formatDetailDate = (occurredAt) => new Intl.DateTimeFormat('ko-KR', {
   minute: '2-digit',
 }).format(new Date(occurredAt))
 
+// API의 UTC 시각을 사용자의 현재 지역 기준 날짜 및 시간 입력값으로 변환.
+const toDateTimeLocalValue = (occurredAt) => {
+  const occurredDate = new Date(occurredAt)
+
+  if (Number.isNaN(occurredDate.getTime())) return ''
+
+  const timezoneOffset = occurredDate.getTimezoneOffset() * 60 * 1000
+
+  return new Date(occurredDate.getTime() - timezoneOffset)
+    .toISOString()
+    .slice(0, 16)
+}
+
+// 미래 시각 선택 방지를 위한 현재 지역 기준 날짜 및 시간 최댓값 생성.
+const getCurrentDateTimeLocalValue = () => toDateTimeLocalValue(new Date())
+
 // 감정 기록 상세 API 오류 상태에 따른 사용자 안내 문구 반환.
 const getDetailErrorMessage = (error) => {
   if (!error.response) {
@@ -83,6 +102,24 @@ const getDetailErrorMessage = (error) => {
   }
 
   return '감정 기록 상세 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
+}
+
+// 감정 발생 시각 수정 API 오류 상태에 따른 사용자 안내 문구 반환.
+const getUpdateErrorMessage = (error) => {
+  if (!error.response) {
+    return '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
+  }
+  if (error.response.status === 400) {
+    return '선택한 날짜와 시간을 확인해 주세요.'
+  }
+  if (error.response.status === 401) {
+    return '로그인 정보가 만료되었습니다. 다시 로그인해 주세요.'
+  }
+  if (error.response.status === 404) {
+    return '수정할 감정 기록을 찾을 수 없습니다.'
+  }
+
+  return '감정 발생 시각을 수정하지 못했습니다. 잠시 후 다시 시도해 주세요.'
 }
 
 // 선택한 감정 기록 한 건을 API로 조회하고 상세 정보를 제공하는 화면 정의.
@@ -107,6 +144,14 @@ function EmotionRecordDetail({
   const [loadError, setLoadError] = useState('')
   // 사용자가 상세 재조회 버튼을 선택한 횟수 상태 설정.
   const [reloadCount, setReloadCount] = useState(0)
+  // 사용자가 수정할 감정 발생 날짜와 시간 입력값 상태 설정.
+  const [occurredAtInput, setOccurredAtInput] = useState('')
+  // 감정 발생 시각 수정 API 요청 진행 여부 상태 설정.
+  const [isUpdatingOccurredAt, setIsUpdatingOccurredAt] = useState(false)
+  // 감정 발생 시각 수정 결과 안내 문구 상태 설정.
+  const [occurredAtMessage, setOccurredAtMessage] = useState('')
+  // 감정 발생 시각 수정 실패 여부 상태 설정.
+  const [isOccurredAtError, setIsOccurredAtError] = useState(false)
 
   // 화면 진입과 재조회 시 선택한 감정 기록의 상세 정보 요청.
   useEffect(() => {
@@ -125,7 +170,12 @@ function EmotionRecordDetail({
       try {
         const detail = await getEmotionRecordDetail(emotionRecordId)
 
-        if (isActive) setRecord(detail)
+        if (isActive) {
+          setRecord(detail)
+          setOccurredAtInput(toDateTimeLocalValue(detail.occurredAt))
+          setOccurredAtMessage('')
+          setIsOccurredAtError(false)
+        }
       } catch (error) {
         if (isActive) {
           setRecord(null)
@@ -155,6 +205,45 @@ function EmotionRecordDetail({
         : `${label} ${intensity}/10`
     }).join(', ')
     : '분석 전'
+
+  // 입력한 지역 시각을 UTC 형식으로 변환하여 감정 발생 시각 수정 요청.
+  const handleOccurredAtUpdate = async (event) => {
+    event.preventDefault()
+
+    const selectedDate = new Date(occurredAtInput)
+
+    if (!occurredAtInput || Number.isNaN(selectedDate.getTime())) {
+      setOccurredAtMessage('수정할 날짜와 시간을 선택해 주세요.')
+      setIsOccurredAtError(true)
+      return
+    }
+
+    if (selectedDate.getTime() > Date.now()) {
+      setOccurredAtMessage('현재보다 이후의 시간은 선택할 수 없습니다.')
+      setIsOccurredAtError(true)
+      return
+    }
+
+    setIsUpdatingOccurredAt(true)
+    setOccurredAtMessage('')
+    setIsOccurredAtError(false)
+
+    try {
+      const updatedRecord = await updateEmotionRecordOccurredAt(
+        emotionRecordId,
+        selectedDate.toISOString(),
+      )
+
+      setRecord(updatedRecord)
+      setOccurredAtInput(toDateTimeLocalValue(updatedRecord.occurredAt))
+      setOccurredAtMessage('감정 발생 시각을 수정했습니다.')
+    } catch (error) {
+      setOccurredAtMessage(getUpdateErrorMessage(error))
+      setIsOccurredAtError(true)
+    } finally {
+      setIsUpdatingOccurredAt(false)
+    }
+  }
 
   // 공통 네비게이션과 상세 조회 상태 및 결과 화면 반환.
   return (
@@ -228,6 +317,51 @@ function EmotionRecordDetail({
                 {formatDetailDate(record.occurredAt)}
               </time>
             </div>
+
+            {/* 실제 감정이 발생한 날짜와 시간을 수정하는 입력 영역 배치. */}
+            <section
+              className="emotion-detail-time-editor"
+              aria-labelledby="emotion-detail-time-title"
+            >
+              <div>
+                <h2 id="emotion-detail-time-title">감정 발생 시각</h2>
+                <p>나중에 기록했다면 실제로 감정을 느낀 시각으로 변경해 주세요.</p>
+              </div>
+              <form onSubmit={handleOccurredAtUpdate}>
+                <label htmlFor="emotion-detail-occurred-at">
+                  <span>날짜와 시간</span>
+                  <input
+                    id="emotion-detail-occurred-at"
+                    type="datetime-local"
+                    value={occurredAtInput}
+                    max={getCurrentDateTimeLocalValue()}
+                    step="60"
+                    disabled={isUpdatingOccurredAt}
+                    aria-invalid={isOccurredAtError}
+                    aria-describedby={occurredAtMessage
+                      ? 'emotion-detail-time-message'
+                      : undefined}
+                    onChange={(event) => {
+                      setOccurredAtInput(event.target.value)
+                      setOccurredAtMessage('')
+                      setIsOccurredAtError(false)
+                    }}
+                  />
+                </label>
+                <button type="submit" disabled={isUpdatingOccurredAt}>
+                  {isUpdatingOccurredAt ? '수정 중' : '시각 수정하기'}
+                </button>
+              </form>
+              {occurredAtMessage && (
+                <p
+                  id="emotion-detail-time-message"
+                  className={isOccurredAtError ? 'is-error' : 'is-success'}
+                  role={isOccurredAtError ? 'alert' : 'status'}
+                >
+                  {occurredAtMessage}
+                </p>
+              )}
+            </section>
 
             <section className="emotion-detail-section" aria-labelledby="emotion-detail-raw-title">
               <h2 id="emotion-detail-raw-title">기록한 마음</h2>
