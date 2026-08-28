@@ -20,6 +20,15 @@ export const createRecordsApi = (client) => ({
 
     return data
   },
+  // AI 분석 결과에 사용자가 보완한 감정 기록 내용을 최종 반영하는 처리.
+  confirmEmotionRecord: async (emotionRecordId, record) => {
+    const { data } = await client.post(
+      `/api/records/${emotionRecordId}/confirm`,
+      record,
+    )
+
+    return data
+  },
   // 선택한 감정 기록의 실제 감정 발생 시각을 수정하는 처리.
   updateEmotionRecordOccurredAt: async (emotionRecordId, occurredAt) => {
     const { data } = await client.patch(`/api/records/${emotionRecordId}`, {
@@ -39,6 +48,7 @@ export const {
   createQuickRecord,
   getEmotionRecords,
   getEmotionRecordDetail,
+  confirmEmotionRecord,
   updateEmotionRecordOccurredAt,
   deleteEmotionRecord,
 } = createRecordsApi(httpClient)
