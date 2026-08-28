@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Navbar from '../Navbar/Navbar.jsx'
 import {
+  deleteEmotionRecord,
   getEmotionRecordDetail,
   updateEmotionRecordOccurredAt,
 } from '../../utils/records/recordsApi.js'
@@ -122,6 +123,21 @@ const getUpdateErrorMessage = (error) => {
   return '감정 발생 시각을 수정하지 못했습니다. 잠시 후 다시 시도해 주세요.'
 }
 
+// 감정 기록 삭제 API 오류 상태에 따른 사용자 안내 문구 반환.
+const getDeleteErrorMessage = (error) => {
+  if (!error.response) {
+    return '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
+  }
+  if (error.response.status === 401) {
+    return '로그인 정보가 만료되었습니다. 다시 로그인해 주세요.'
+  }
+  if (error.response.status === 404) {
+    return '삭제할 감정 기록을 찾을 수 없습니다.'
+  }
+
+  return '감정 기록을 삭제하지 못했습니다. 잠시 후 다시 시도해 주세요.'
+}
+
 // 선택한 감정 기록 한 건을 API로 조회하고 상세 정보를 제공하는 화면 정의.
 function EmotionRecordDetail({
   emotionRecordId,
@@ -152,6 +168,12 @@ function EmotionRecordDetail({
   const [occurredAtMessage, setOccurredAtMessage] = useState('')
   // 감정 발생 시각 수정 실패 여부 상태 설정.
   const [isOccurredAtError, setIsOccurredAtError] = useState(false)
+  // 사용자의 감정 기록 삭제 확인 영역 표시 여부 상태 설정.
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
+  // 감정 기록 삭제 API 요청 진행 여부 상태 설정.
+  const [isDeleting, setIsDeleting] = useState(false)
+  // 감정 기록 삭제 API 요청 실패 안내 문구 상태 설정.
+  const [deleteError, setDeleteError] = useState('')
 
   // 화면 진입과 재조회 시 선택한 감정 기록의 상세 정보 요청.
   useEffect(() => {
@@ -242,6 +264,22 @@ function EmotionRecordDetail({
       setIsOccurredAtError(true)
     } finally {
       setIsUpdatingOccurredAt(false)
+    }
+  }
+
+  // 사용자가 최종 확인한 감정 기록과 연결된 CBT 성찰 데이터 삭제 요청.
+  const handleEmotionRecordDelete = async () => {
+    if (isDeleting) return
+
+    setIsDeleting(true)
+    setDeleteError('')
+
+    try {
+      await deleteEmotionRecord(emotionRecordId)
+      onBack()
+    } catch (error) {
+      setDeleteError(getDeleteErrorMessage(error))
+      setIsDeleting(false)
     }
   }
 
@@ -336,7 +374,7 @@ function EmotionRecordDetail({
                     value={occurredAtInput}
                     max={getCurrentDateTimeLocalValue()}
                     step="60"
-                    disabled={isUpdatingOccurredAt}
+                    disabled={isUpdatingOccurredAt || isDeleting}
                     aria-invalid={isOccurredAtError}
                     aria-describedby={occurredAtMessage
                       ? 'emotion-detail-time-message'
@@ -348,7 +386,10 @@ function EmotionRecordDetail({
                     }}
                   />
                 </label>
-                <button type="submit" disabled={isUpdatingOccurredAt}>
+                <button
+                  type="submit"
+                  disabled={isUpdatingOccurredAt || isDeleting}
+                >
                   {isUpdatingOccurredAt ? '수정 중' : '시각 수정하기'}
                 </button>
               </form>
@@ -409,6 +450,65 @@ function EmotionRecordDetail({
                 <dd>{getDisplayValue(record.details?.behavior)}</dd>
               </div>
             </dl>
+
+            {/* 감정 기록과 연결된 CBT 성찰 데이터를 함께 삭제하는 위험 작업 영역 배치. */}
+            <section
+              className="emotion-detail-delete"
+              aria-labelledby="emotion-detail-delete-title"
+            >
+              <div>
+                <h2 id="emotion-detail-delete-title">감정 기록 삭제</h2>
+                <p>더 이상 보관하지 않을 감정 기록을 삭제할 수 있습니다.</p>
+              </div>
+
+              {!isDeleteConfirmOpen ? (
+                <button
+                  className="emotion-detail-delete-open"
+                  type="button"
+                  onClick={() => {
+                    setIsDeleteConfirmOpen(true)
+                    setDeleteError('')
+                  }}
+                >
+                  기록 삭제하기
+                </button>
+              ) : (
+                /* 연결된 데이터 삭제 범위를 알리고 최종 선택을 받는 확인 영역 표시. */
+                <div className="emotion-detail-delete-confirm" role="alert">
+                  <strong>정말 삭제하시겠습니까?</strong>
+                  <p>
+                    이 기록과 연결된 CBT 성찰 데이터도 함께 삭제되며,
+                    삭제한 내용은 복구할 수 없습니다.
+                  </p>
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsDeleteConfirmOpen(false)
+                        setDeleteError('')
+                      }}
+                      disabled={isDeleting}
+                    >
+                      취소
+                    </button>
+                    <button
+                      className="emotion-detail-delete-confirm-button"
+                      type="button"
+                      onClick={handleEmotionRecordDelete}
+                      disabled={isDeleting}
+                    >
+                      {isDeleting ? '삭제 중' : '삭제 확인'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {deleteError && (
+                <p className="emotion-detail-delete-error" role="alert">
+                  {deleteError}
+                </p>
+              )}
+            </section>
           </div>
         ) : null}
       </section>
