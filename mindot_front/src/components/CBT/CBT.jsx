@@ -2,6 +2,7 @@ import { useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Navbar from '../Navbar/Navbar.jsx'
 import {
+  cancelReflection,
   confirmReflection,
   startReflection,
   submitReflectionAnswer,
@@ -152,6 +153,10 @@ function CBT({
   const [isConfirmed, setIsConfirmed] = useState(false)
   // CBT 최종 결과 검증 또는 API 오류 안내 문구 상태 관리.
   const [confirmationError, setConfirmationError] = useState('')
+  // CBT 성찰 세션 취소 요청 진행 여부 상태 관리.
+  const [isCancelling, setIsCancelling] = useState(false)
+  // CBT 성찰 세션 이동 또는 취소 오류 안내 문구 상태 관리.
+  const [sessionActionError, setSessionActionError] = useState('')
 
   // AI의 최종 결과 초안과 인지왜곡 제안을 사용자 검토 입력값으로 변환하는 처리.
   const prepareConfirmationForm = (response) => {
@@ -372,10 +377,50 @@ function CBT({
     }
   }
 
+  // API 호출 없이 OPEN 세션을 유지한 채 감정 기록 목록으로 이동하는 처리.
+  const handleReflectionLater = () => {
+    if (!sessionId || isSending || isConfirming || isCancelling) return
+
+    setSessionActionError('')
+    onEmotionHistory()
+  }
+
+  // 사용자 확인 후 진행 중인 CBT 세션을 완전히 취소하고 목록으로 이동하는 처리.
+  const handleReflectionCancel = async () => {
+    if (!sessionId || isSending || isConfirming || isCancelling) return
+
+    const shouldCancel = window.confirm(
+      '성찰을 완전히 중단하면 다시 이어할 수 없습니다. 중단하시겠습니까?',
+    )
+
+    if (!shouldCancel) return
+
+    setIsCancelling(true)
+    setSessionActionError('')
+
+    try {
+      await cancelReflection(sessionId)
+      setReflectionStatus('CANCELLED')
+      onEmotionHistory()
+    } catch (error) {
+      setSessionActionError(getReflectionErrorMessage(
+        error,
+        'CBT 성찰을 중단하지 못했습니다. 잠시 후 다시 시도해 주세요.',
+      ))
+    } finally {
+      setIsCancelling(false)
+    }
+  }
+
   // 다음 질문 입력 가능 여부 설정.
   const canContinue = reflectionStatus === 'CONTINUE'
   // 명확한 인지왜곡이 없다는 AI 판정 여부 설정.
   const hasNoClearDistortion = assessmentType === 'NO_CLEAR_DISTORTION'
+  // 사용자가 중단하거나 나중에 이어할 수 있는 OPEN 세션 여부 설정.
+  const canManageOpenSession = sessionId && (
+    reflectionStatus === 'CONTINUE'
+    || reflectionStatus === 'CONFIRM_REQUIRED'
+  )
 
   // CBT 소개 화면과 간단한 AI 대화창을 포함한 화면 반환.
   return (
@@ -748,6 +793,38 @@ function CBT({
                   ? '안전을 위해 대화가 중단되었습니다.'
                   : '현재 CBT 대화가 마무리되었습니다.'}
               </p>
+            )}
+
+            {canManageOpenSession && (
+              /* OPEN 성찰 세션의 나중에 이어하기와 완전 중단 기능 배치. */
+              <div className="cbt-session-actions">
+                <p>
+                  잠시 멈추면 현재 진행 상태가 유지되며, 목록에서 나중에 이어할 수 있습니다.
+                </p>
+                {sessionActionError && (
+                  <p className="cbt-error" role="alert">
+                    {sessionActionError}
+                  </p>
+                )}
+                <div>
+                  <button
+                    className="cbt-later-button"
+                    type="button"
+                    onClick={handleReflectionLater}
+                    disabled={isSending || isConfirming || isCancelling}
+                  >
+                    나중에 이어하기
+                  </button>
+                  <button
+                    className="cbt-cancel-button"
+                    type="button"
+                    onClick={handleReflectionCancel}
+                    disabled={isSending || isConfirming || isCancelling}
+                  >
+                    {isCancelling ? '중단 중…' : '성찰 완전히 중단'}
+                  </button>
+                </div>
+              </div>
             )}
           </section>
         )}
