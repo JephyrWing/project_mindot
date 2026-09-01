@@ -134,4 +134,47 @@ public class AiJobs {
         this.startedAt = now;
         this.createdAt = now;
     }
+
+    // 새 AI 작업 이력 생성
+    public static AiJobs create(
+            Users user,
+            AiJobEntityType entityType,
+            Long entityId,
+            AiJobOperation operation,
+            String idempotencyKey
+    ) {
+        AiJobs aiJobs = new AiJobs();
+        aiJobs.user = user;
+        aiJobs.entityType = entityType;
+        aiJobs.entityId = entityId;
+        aiJobs.operation = operation;
+        aiJobs.idempotencyKey = idempotencyKey;
+
+        // 기본값: PENDING, attemptNo 1
+        return aiJobs;
+    }
+
+    // FastAPI 호출 직전에 처리 중 상태로 변경
+    public  void startProcessing() {
+        this.status = AiJobStatus.PROCESSING;
+    }
+
+    // FastAPI 호출과 DB 반영까지 성공한 경우 완료 처리
+    public void complete(
+            String modelName,
+            String promptVersion
+    ) {
+        this.status = AiJobStatus.COMPLETED;
+        this.modelName = modelName;
+        this.promptVersion = promptVersion;
+        this.errorCode = null;
+        this.completedAt = Instant.now();
+    }
+
+    // FastAPI 호출 또는 응답 검증 실패 시 실패 처리
+    public void fail (String  errorCode) {
+        this.status = AiJobStatus.FAILED;
+        this.errorCode = errorCode;
+        this.completedAt = Instant.now();
+    }
 }

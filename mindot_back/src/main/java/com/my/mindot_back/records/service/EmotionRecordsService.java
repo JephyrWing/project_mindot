@@ -2,6 +2,10 @@
 package com.my.mindot_back.records.service;
 
 import com.my.mindot_back.ai.entity.AiJobEntityType;
+import com.my.mindot_back.ai.entity.AiJobOperation;
+import com.my.mindot_back.ai.entity.AiJobs;
+
+import java.util.UUID;
 import com.my.mindot_back.ai.repository.AiJobsRepository;
 import com.my.mindot_back.common.rag.RagUtils;
 import com.my.mindot_back.records.client.FastApiPatternExplanationClient;
@@ -59,7 +63,7 @@ public class EmotionRecordsService {
      * 4. FastAPI 분석 결과를 Entity에 반영
      * 5. 트랜잭션 성공 시 PostgreSQL에 반영 후 React에 응답
      */
-    @Transactional
+    @Transactional(dontRollbackOn = ResponseStatusException.class)
     public EmotionRecordsQuickCreateResponseDto createQuickRecord(
             Long userId,
             EmotionRecordsQuickCreateRequestDto dto
@@ -86,12 +90,32 @@ public class EmotionRecordsService {
         EmotionRecords savedEmotionRecord =
                 emotionRecordsRepository.save(emotionRecord);
 
+        // 감정 기록 구조화 AI 작업 이력 생성
+        AiJobs aiJob = AiJobs.create(
+                user,
+                AiJobEntityType.EMOTION_RECORD,
+                savedEmotionRecord.getId(),
+                AiJobOperation.STRUCTURE,
+                UUID.randomUUID().toString()
+        );
+        aiJobsRepository.save(aiJob);
+
+        // FastAPI 호출 시작 상태로 변경
+        aiJob.startProcessing();
+
         // Spring > FastAPI: 원문을 보내고 AI 구조화 결과 수신
         // analysis: java record 객체 (record, risk, meta 들어있음)
-        FastApiRecordAnalysisResponseDto analysis =
-                fastApiRecordAnalysisClient.analyze(
-                        savedEmotionRecord.getRawText()
-                );
+        FastApiRecordAnalysisResponseDto analysis;
+        try {
+            // Spring → FastAPI: 원문을 보내고 AI 구조화 결과 수신
+            analysis = fastApiRecordAnalysisClient.analyze(
+                    savedEmotionRecord.getRawText()
+            );
+        } catch (ResponseStatusException exception) {
+            // FastAPI 통신 실패 시 원문은 남기고 AI 작업만 실패 처리
+            aiJob.fail("FAST_API_ANALYSIS_FAILED");
+            throw exception;
+        }
 
         /*
          * FastAPI > Spring 결과를 Entity에 반영
@@ -100,6 +124,12 @@ public class EmotionRecordsService {
          */
         // db에 직접 저장 X, entity 값만 바꿈
         savedEmotionRecord.applyAiAnalysis(analysis);
+
+        // AI 구조화·DB 반영까지 성공한 작업 완료 처리
+        aiJob.complete(
+                analysis.meta().model(),
+                analysis.meta().promptVersion()
+        );
 
         // 원문 저장 결과와 AI 분석 결과를 React 응답 DTO로 변환
         return EmotionRecordsQuickCreateResponseDto.from(
