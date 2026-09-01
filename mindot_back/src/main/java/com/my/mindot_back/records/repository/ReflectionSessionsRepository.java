@@ -121,5 +121,13 @@ public interface ReflectionSessionsRepository
             Instant periodStart,
             Instant periodEndExclusive
     );
+
+    // 선택한 감정 기록에 연결된 완료, 확정, CBT 세션 조회
+    List<ReflectionSessions>
+    findAllByUser_IdAndEmotionRecord_IdInAndStatusAndUserConfirmedTrueOrderByCompletedAtAsc(
+            Long userId,
+            List<Long> emotionRecordIds,
+            ReflectionSessionStatus status
+    );
 }
 
