@@ -87,6 +87,12 @@ const getResponseMessage = (response) => {
   if (response.proposalMessage) {
     return response.proposalMessage
   }
+  if (
+    response.status === 'CONFIRM_REQUIRED'
+    && response.assessmentType === 'NO_CLEAR_DISTORTION'
+  ) {
+    return '대화를 살펴본 결과, 현재 생각에서 명확한 인지왜곡은 확인되지 않았습니다.'
+  }
   if (response.status === 'CONFIRM_REQUIRED') {
     return '대화를 바탕으로 성찰 결과가 준비되었습니다.'
   }
@@ -132,6 +138,8 @@ function CBT({
   const [isAutomaticThoughtRequired, setIsAutomaticThoughtRequired] = useState(false)
   // CBT 대화 계속 여부를 판단하기 위한 백엔드 응답 상태 관리.
   const [reflectionStatus, setReflectionStatus] = useState('IDLE')
+  // CONFIRM_REQUIRED 결과의 인지왜곡 판정 유형 상태 관리.
+  const [assessmentType, setAssessmentType] = useState('')
   // AI가 제안한 CBT 최종 결과와 사용자의 수정값 상태 관리.
   const [confirmationForm, setConfirmationForm] = useState(initialConfirmationForm)
   // 성찰 전 AI 제안 인지왜곡의 사용자 검토 상태 관리.
@@ -147,10 +155,14 @@ function CBT({
 
   // AI의 최종 결과 초안과 인지왜곡 제안을 사용자 검토 입력값으로 변환하는 처리.
   const prepareConfirmationForm = (response) => {
-    if (response.status !== 'CONFIRM_REQUIRED') return
+    if (response.status !== 'CONFIRM_REQUIRED') {
+      setAssessmentType('')
+      return
+    }
 
     const outcomeDraft = response.outcomeDraft ?? {}
 
+    setAssessmentType(response.assessmentType ?? 'DISTORTION_PRESENT')
     setConfirmationForm({
       ...initialConfirmationForm,
       evidenceForText: outcomeDraft.evidenceForText ?? '',
@@ -362,6 +374,8 @@ function CBT({
 
   // 다음 질문 입력 가능 여부 설정.
   const canContinue = reflectionStatus === 'CONTINUE'
+  // 명확한 인지왜곡이 없다는 AI 판정 여부 설정.
+  const hasNoClearDistortion = assessmentType === 'NO_CLEAR_DISTORTION'
 
   // CBT 소개 화면과 간단한 AI 대화창을 포함한 화면 반환.
   return (
@@ -530,9 +544,28 @@ function CBT({
                 onSubmit={handleReflectionConfirm}
               >
                 <header>
-                  <h2>CBT 최종 결과 확인</h2>
-                  <p>AI가 정리한 내용을 확인하고 필요한 부분을 수정해 주세요.</p>
+                  <h2>
+                    {hasNoClearDistortion
+                      ? '명확한 인지왜곡 없음 확인'
+                      : 'CBT 최종 결과 확인'}
+                  </h2>
+                  <p>
+                    {hasNoClearDistortion
+                      ? '현재 생각을 인지왜곡으로 단정하지 않고, 대화를 통해 정리된 내용을 확인해 주세요.'
+                      : 'AI가 정리한 내용을 확인하고 필요한 부분을 수정해 주세요.'}
+                  </p>
                 </header>
+
+                {hasNoClearDistortion && (
+                  /* 명확한 인지왜곡이 없다는 판정과 확인 목적 안내 배치. */
+                  <div className="cbt-no-clear-distortion" role="status">
+                    <strong>명확한 인지왜곡이 확인되지 않았습니다.</strong>
+                    <p>
+                      생각이 틀렸다고 판단하는 대신, 현재 상황을 균형 있게
+                      바라볼 수 있도록 정리한 내용을 확인하는 단계입니다.
+                    </p>
+                  </div>
+                )}
 
                 <label htmlFor="cbt-evidence-for">
                   <span>처음 생각을 뒷받침하는 근거</span>
@@ -637,7 +670,8 @@ function CBT({
                   </label>
                 </div>
 
-                {(beforeDistortions.length > 0 || afterDistortions.length > 0) && (
+                {!hasNoClearDistortion
+                  && (beforeDistortions.length > 0 || afterDistortions.length > 0) && (
                   <fieldset className="cbt-distortion-reviews">
                     <legend>인지왜곡 검토</legend>
                     <p>AI가 제안한 항목이 내 생각과 맞는지 확인해 주세요.</p>
@@ -695,7 +729,11 @@ function CBT({
                 )}
 
                 <button type="submit" disabled={isConfirming}>
-                  {isConfirming ? '확정 중…' : '최종 결과 확정하기'}
+                  {isConfirming
+                    ? '확정 중…'
+                    : hasNoClearDistortion
+                      ? '확인하고 완료하기'
+                      : '최종 결과 확정하기'}
                 </button>
               </form>
             ) : isConfirmed || reflectionStatus === 'COMPLETED' ? (
