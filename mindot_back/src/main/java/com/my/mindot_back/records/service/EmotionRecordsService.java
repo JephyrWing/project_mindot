@@ -138,6 +138,60 @@ public class EmotionRecordsService {
         );
     }
 
+    // FastAPI 분석 실패로 QUICK 상태에 남은 감정 기록을 다시 구조화
+    @Transactional(dontRollbackOn = ResponseStatusException.class)
+    public EmotionRecordsDetailResponseDto reanalyzeEmotionRecord(
+            Long userId,
+            Long emotionRecordId
+    ) {
+        // 본인 소유의 감정 기록만 재분석 가능
+        EmotionRecords emotionRecord = emotionRecordsRepository
+                .findByIdAndUser_Id(emotionRecordId, userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "감정 기록을 찾을 수 없습니다."
+                ));
+
+        // AI 분석에 실패해 QUICK 상태인 기록만 재분석 가능
+        if (emotionRecord.getCompletionStatus() != CompletionStatus.QUICK) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "재분석할 수 있는 감정 기록 상태가 아닙니다."
+            );
+        }
+
+        // 재분석 실행 이력을 새로 생성
+        AiJobs aiJob = AiJobs.create(
+                emotionRecord.getUser(),
+                AiJobEntityType.EMOTION_RECORD,
+                emotionRecord.getId(),
+                AiJobOperation.STRUCTURE,
+                UUID.randomUUID().toString()
+        );
+        aiJobsRepository.save(aiJob);
+        aiJob.startProcessing();
+
+        FastApiRecordAnalysisResponseDto analysis;
+        try {
+            analysis = fastApiRecordAnalysisClient.analyze(
+                    emotionRecord.getRawText()
+            );
+        } catch (ResponseStatusException exception) {
+            // 재시도도 실패하면 실패 이력만 남김
+            aiJob.fail("FAST_API_ANALYSIS_FAILED");
+            throw exception;
+        }
+
+        // AI 구조화 결과 반영 후 작업 완료 처리
+        emotionRecord.applyAiAnalysis(analysis);
+        aiJob.complete(
+                analysis.meta().model(),
+                analysis.meta().promptVersion()
+        );
+
+        return EmotionRecordsDetailResponseDto.from(emotionRecord);
+    }
+
     // 로그인한 사용자의 감정 기록을 최신순으로 조회
     @Transactional
     public List<EmotionRecordsListItemResponseDto> getEmotionRecords(
