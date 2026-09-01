@@ -21,6 +21,11 @@ export const createReflectionsApi = (client) => ({
     return data
   },
 
+  // 진행 중인 CBT 성찰 세션을 취소하여 다시 재개할 수 없게 하는 처리.
+  cancelReflection: async (sessionId) => {
+    await client.post(`/api/reflections/${sessionId}/cancel`)
+  },
+
   // 사용자가 검토한 CBT 성찰 결과를 최종 확정하는 처리.
   confirmReflection: async (sessionId, confirmation) => {
     await client.post(
@@ -34,5 +39,6 @@ export const createReflectionsApi = (client) => ({
 export const {
   startReflection,
   submitReflectionAnswer,
+  cancelReflection,
   confirmReflection,
 } = createReflectionsApi(httpClient)
