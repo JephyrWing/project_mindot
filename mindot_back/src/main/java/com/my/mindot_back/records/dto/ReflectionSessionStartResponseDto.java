@@ -15,6 +15,9 @@ public record ReflectionSessionStartResponseDto (
 
         String status,
 
+        // FastAPI가 판단한 인지왜곡 존재 여부
+        String assessmentType,
+
         // status가 CONTINUE일 때 보여 줄 첫 질문
         FastApiCbtResponseDto.GeneratedQuestion nextQuestion,
 
@@ -47,6 +50,7 @@ public record ReflectionSessionStartResponseDto (
                 reflectionSession.getId(),
 
                 fastApiResponse.status(),
+                fastApiResponse.assessmentType(),
                 fastApiResponse.nextQuestion(),
                 fastApiResponse.beforeDistortions(),
                 fastApiResponse.outcomeDraft(),

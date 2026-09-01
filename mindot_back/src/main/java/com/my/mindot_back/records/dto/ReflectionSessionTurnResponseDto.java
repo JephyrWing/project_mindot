@@ -14,6 +14,9 @@ public record ReflectionSessionTurnResponseDto (
 
         String status,
 
+        // FastAPI가 판단한 인지왜곡 존재 여부
+        String assessmentType,
+
         FastApiCbtResponseDto.GeneratedQuestion nextQuestion,
 
         List<FastApiCbtResponseDto.DistortionProposal> beforeDistortions,
@@ -38,6 +41,7 @@ public record ReflectionSessionTurnResponseDto (
         return new ReflectionSessionTurnResponseDto(
                 reflectionSessions.getId(),
                 fastApiCbtResponse.status(),
+                fastApiCbtResponse.assessmentType(),
                 fastApiCbtResponse.nextQuestion(),
                 fastApiCbtResponse.beforeDistortions(),
                 fastApiCbtResponse.outcomeDraft(),
