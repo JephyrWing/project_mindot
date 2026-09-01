@@ -68,6 +68,18 @@ public class EmotionRecordsController {
         );
     }
 
+    // FastAPI 분석 실패로 QUICK 상태에 남은 감정 기록 재분석 API
+    @PostMapping("/{emotionRecordId}/reanalyze")
+    public EmotionRecordsDetailResponseDto reanalyzeEmotoinRecord(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long emotionRecordId
+    ){
+        return  emotionRecordsService.reanalyzeEmotionRecord(
+                userId,
+                emotionRecordId
+        );
+    }
+
     // AI 구조화 결과를 사용자가 수정, 확정하는 API
     @PostMapping("/{emotionRecordId}/confirm")
     public EmotionRecordsDetailResponseDto confirmEmotionRecord(
