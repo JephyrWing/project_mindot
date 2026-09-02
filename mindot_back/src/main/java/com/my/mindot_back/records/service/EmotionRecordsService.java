@@ -2,10 +2,7 @@
 package com.my.mindot_back.records.service;
 
 import com.my.mindot_back.ai.entity.AiJobEntityType;
-import com.my.mindot_back.ai.entity.AiJobOperation;
-import com.my.mindot_back.ai.entity.AiJobs;
 
-import java.util.UUID;
 import com.my.mindot_back.ai.repository.AiJobsRepository;
 import com.my.mindot_back.common.rag.RagUtils;
 import com.my.mindot_back.records.client.FastApiPatternExplanationClient;
@@ -18,7 +15,6 @@ import com.my.mindot_back.records.entity.*;
 import com.my.mindot_back.records.repository.EmotionRecordsRepository;
 import com.my.mindot_back.records.repository.ReflectionSessionsRepository;
 import com.my.mindot_back.records.repository.SessionDistortionsRepository;
-import com.my.mindot_back.users.entity.Users;
 import com.my.mindot_back.users.repository.UsersRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +36,9 @@ public class EmotionRecordsService {
 
     // Spring > FastAPI 감정 원문 구조화 API 호출
     private final FastApiRecordAnalysisClient  fastApiRecordAnalysisClient;
+
+    // 원문 저장·AI 결과 반영을 각각 독립 트랜잭션으로 처리
+    private final EmotionRecordAiTransactionService emotionRecordAiTransactionService;
 
     // 감정 기록, CBT 세션과 연결된 AI 작업 이력 삭제
     private final AiJobsRepository aiJobsRepository;
@@ -63,131 +62,77 @@ public class EmotionRecordsService {
      * 4. FastAPI 분석 결과를 Entity에 반영
      * 5. 트랜잭션 성공 시 PostgreSQL에 반영 후 React에 응답
      */
-    @Transactional(dontRollbackOn = ResponseStatusException.class)
+    // 원문 저장, FastAPI 호출, 결과 반영을 분리해 처리
     public EmotionRecordsQuickCreateResponseDto createQuickRecord(
             Long userId,
             EmotionRecordsQuickCreateRequestDto dto
     ) {
-        // JWT는 유효하지만, 사용자가 삭제된 예외 상황 대비 -> DB 에서 사용자 확인
-        Users user = usersRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "사용자를 찾을 수 없습니다."
-                ));
+        // 트랜잭션 A: 원문 감정 기록과 PROCESSING AI 작업 이력 저장 후 커밋
+        EmotionRecordAiJobContext context =
+                emotionRecordAiTransactionService
+                        .createQuickRecordAndStartAiJob(userId, dto);
 
-        // Entity의 정적 생성 메서드로, 아직 DB에 저장되지 않은 JPA 비관리 상태
-        // React 요청값으로 AI 분석 전 감정 기록 Entity 생성
-        // () : dto가 record이기 때문
-        EmotionRecords emotionRecord = EmotionRecords.createQuick(
-                user,
-                dto.rawText().trim(),
-                dto.inputType(),
-                dto.occurredAt()
-        );
-
-        // repo의 save 호출하면 jpa가 객체 관리
-        // 원문 감정 기록을 JPA 관리 상태로 저장
-        EmotionRecords savedEmotionRecord =
-                emotionRecordsRepository.save(emotionRecord);
-
-        // 감정 기록 구조화 AI 작업 이력 생성
-        AiJobs aiJob = AiJobs.create(
-                user,
-                AiJobEntityType.EMOTION_RECORD,
-                savedEmotionRecord.getId(),
-                AiJobOperation.STRUCTURE,
-                UUID.randomUUID().toString()
-        );
-        aiJobsRepository.save(aiJob);
-
-        // FastAPI 호출 시작 상태로 변경
-        aiJob.startProcessing();
-
-        // Spring > FastAPI: 원문을 보내고 AI 구조화 결과 수신
-        // analysis: java record 객체 (record, risk, meta 들어있음)
         FastApiRecordAnalysisResponseDto analysis;
         try {
-            // Spring → FastAPI: 원문을 보내고 AI 구조화 결과 수신
+            // 트랜잭션 밖에서 FastAPI 호출
             analysis = fastApiRecordAnalysisClient.analyze(
-                    savedEmotionRecord.getRawText()
+                    context.rawText()
             );
         } catch (ResponseStatusException exception) {
-            // FastAPI 통신 실패 시 원문은 남기고 AI 작업만 실패 처리
-            aiJob.fail("FAST_API_ANALYSIS_FAILED");
+            // 트랜잭션 B-실패: FAILED 작업 이력만 저장
+            emotionRecordAiTransactionService.failAiAnalysis(
+                    context.aiJobId()
+            );
             throw exception;
         }
 
-        /*
-         * FastAPI > Spring 결과를 Entity에 반영
-         * @Transactional의 JPA dirty checking(jpa가 값 바뀐거 감지)
-         * 메서드 종료 시 JPA가 변경된 필드를 UPDATE SQL 실행
-         */
-        // db에 직접 저장 X, entity 값만 바꿈
-        savedEmotionRecord.applyAiAnalysis(analysis);
+        // 트랜잭션 B-성공: 구조화 결과와 COMPLETED 상태 저장
+        EmotionRecords emotionRecord =
+                emotionRecordAiTransactionService.completeAiAnalysis(
+                        context.emotionRecordId(),
+                        context.aiJobId(),
+                        analysis
+                );
 
-        // AI 구조화·DB 반영까지 성공한 작업 완료 처리
-        aiJob.complete(
-                analysis.meta().model(),
-                analysis.meta().promptVersion()
-        );
-
-        // 원문 저장 결과와 AI 분석 결과를 React 응답 DTO로 변환
         return EmotionRecordsQuickCreateResponseDto.from(
-                savedEmotionRecord,
+                emotionRecord,
                 analysis
         );
     }
 
-    // FastAPI 분석 실패로 QUICK 상태에 남은 감정 기록을 다시 구조화
-    @Transactional(dontRollbackOn = ResponseStatusException.class)
+    // QUICK 상태 감정 기록을 다시 FastAPI에 구조화 요청
     public EmotionRecordsDetailResponseDto reanalyzeEmotionRecord(
             Long userId,
             Long emotionRecordId
     ) {
-        // 본인 소유의 감정 기록만 재분석 가능
-        EmotionRecords emotionRecord = emotionRecordsRepository
-                .findByIdAndUser_Id(emotionRecordId, userId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "감정 기록을 찾을 수 없습니다."
-                ));
-
-        // AI 분석에 실패해 QUICK 상태인 기록만 재분석 가능
-        if (emotionRecord.getCompletionStatus() != CompletionStatus.QUICK) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "재분석할 수 있는 감정 기록 상태가 아닙니다."
-            );
-        }
-
-        // 재분석 실행 이력을 새로 생성
-        AiJobs aiJob = AiJobs.create(
-                emotionRecord.getUser(),
-                AiJobEntityType.EMOTION_RECORD,
-                emotionRecord.getId(),
-                AiJobOperation.STRUCTURE,
-                UUID.randomUUID().toString()
-        );
-        aiJobsRepository.save(aiJob);
-        aiJob.startProcessing();
+        // 트랜잭션 A: 재처리 작업 이력 생성 후 커밋
+        EmotionRecordAiJobContext context =
+                emotionRecordAiTransactionService.startReanalysis(
+                        userId,
+                        emotionRecordId
+                );
 
         FastApiRecordAnalysisResponseDto analysis;
         try {
+            // 트랜잭션 밖에서 FastAPI 재분석 호출
             analysis = fastApiRecordAnalysisClient.analyze(
-                    emotionRecord.getRawText()
+                    context.rawText()
             );
         } catch (ResponseStatusException exception) {
-            // 재시도도 실패하면 실패 이력만 남김
-            aiJob.fail("FAST_API_ANALYSIS_FAILED");
+            // 트랜잭션 B-실패: FAILED 상태만 반영
+            emotionRecordAiTransactionService.failAiAnalysis(
+                    context.aiJobId()
+            );
             throw exception;
         }
 
-        // AI 구조화 결과 반영 후 작업 완료 처리
-        emotionRecord.applyAiAnalysis(analysis);
-        aiJob.complete(
-                analysis.meta().model(),
-                analysis.meta().promptVersion()
-        );
+        // 트랜잭션 B-성공: AI 구조화 결과·COMPLETED 상태 반영
+        EmotionRecords emotionRecord =
+                emotionRecordAiTransactionService.completeAiAnalysis(
+                        context.emotionRecordId(),
+                        context.aiJobId(),
+                        analysis
+                );
 
         return EmotionRecordsDetailResponseDto.from(emotionRecord);
     }
