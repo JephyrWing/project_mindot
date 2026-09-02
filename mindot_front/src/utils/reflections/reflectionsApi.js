@@ -26,6 +26,20 @@ export const createReflectionsApi = (client) => ({
     await client.post(`/api/reflections/${sessionId}/cancel`)
   },
 
+  // 로그인 사용자의 진행 중인 OPEN CBT 성찰 세션 목록 조회 처리.
+  getOpenReflectionSessions: async () => {
+    const { data } = await client.get('/api/reflections/open')
+
+    return data
+  },
+
+  // 사용자가 선택한 CBT 성찰 세션의 질문과 답변 이력 상세 조회 처리.
+  getReflectionSessionDetail: async (sessionId) => {
+    const { data } = await client.get(`/api/reflections/${sessionId}`)
+
+    return data
+  },
+
   // 사용자가 검토한 CBT 성찰 결과를 최종 확정하는 처리.
   confirmReflection: async (sessionId, confirmation) => {
     await client.post(
@@ -40,5 +54,7 @@ export const {
   startReflection,
   submitReflectionAnswer,
   cancelReflection,
+  getOpenReflectionSessions,
+  getReflectionSessionDetail,
   confirmReflection,
 } = createReflectionsApi(httpClient)
