@@ -15,6 +15,8 @@ import com.my.mindot_back.records.entity.SessionDistortions;
 import com.my.mindot_back.records.repository.EmotionRecordsRepository;
 import com.my.mindot_back.records.repository.ReflectionSessionsRepository;
 import com.my.mindot_back.records.repository.SessionDistortionsRepository;
+import com.my.mindot_back.safety.entity.SafetyActionCode;
+import com.my.mindot_back.safety.service.SafetyEventsService;
 import com.my.mindot_back.users.entity.Users;
 import com.my.mindot_back.users.repository.UsersRepository;
 import jakarta.transaction.Transactional;
@@ -36,6 +38,8 @@ public class ReflectionSessionStartTransactionService {
     private final AiJobsRepository aiJobsRepository;
     private final DistortionTypesRepository distortionTypesRepository;
     private final SessionDistortionsRepository sessionDistortionsRepository;
+    // FastAPI 위험 판단 결과를 안전 이벤트로 저장하고 CBT 중단 여부를 결정
+    private final SafetyEventsService safetyEventsService;
 
     // 트랜잭션 A: CBT 세션과 첫 질문 생성 AI 작업 이력을 저장
     @Transactional
@@ -122,14 +126,40 @@ public class ReflectionSessionStartTransactionService {
 
         reflectionSession.applyAiMeta(fastApiResponse.meta());
 
-        if ("CONTINUE".equals(fastApiResponse.status())) {
+        // REVIEW 또는 CRISIS 위험 신호가 있으면 안전 이벤트 이력 생성
+        SafetyActionCode actionCode =
+                safetyEventsService.recordIfRiskDetected(
+                        reflectionSession.getEmotionRecord(),
+                        aiJob,
+                        fastApiResponse.risk() != null
+                                    ? fastApiResponse.risk().level()
+                                    : null,
+                        fastApiResponse.risk() != null
+                                    ? fastApiResponse.risk().reasonCode()
+                                    : null
+                );
+
+        // FastAPI SAFETY STOP 또는 CRISIS 판단이면 CBT 질문을 더 진행하지 않음
+        boolean safetyStopped =
+                "SAFETY_STOP".equals(fastApiResponse.status())
+                                || actionCode == SafetyActionCode.SHOW_CRISIS_NOTICE;
+
+        if (safetyStopped) {
+            reflectionSession.stopForSafety();
+        }
+
+        if (!safetyStopped
+                && "CONTINUE".equals(fastApiResponse.status())) {
             reflectionSession.addQuestion(fastApiResponse.nextQuestion());
         }
 
         List<FastApiCbtResponseDto.DistortionProposal> proposals =
                 fastApiResponse.beforeDistortions();
 
-        if (proposals != null && !proposals.isEmpty()) {
+        if (!safetyStopped
+                && "CONTINUE".equals(fastApiResponse.status())
+                && proposals != null
+                && !proposals.isEmpty()) {
             List<SessionDistortions> sessionDistortions =
                     proposals.stream()
                             .map(proposal -> {

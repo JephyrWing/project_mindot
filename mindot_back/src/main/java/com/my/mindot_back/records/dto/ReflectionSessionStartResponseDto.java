@@ -6,6 +6,7 @@ package com.my.mindot_back.records.dto;
 
 import com.my.mindot_back.records.dto.ai.FastApiCbtResponseDto;
 import com.my.mindot_back.records.entity.ReflectionSessions;
+import com.my.mindot_back.safety.dto.SafetyNoticeResponseDto;
 
 import java.util.List;
 
@@ -38,12 +39,16 @@ public record ReflectionSessionStartResponseDto (
         String proposalMessage,
 
         // 안전 위험도와 사유
-        FastApiCbtResponseDto.RiskAssessment risk
+        FastApiCbtResponseDto.RiskAssessment risk,
+
+        // 위험 신호가 감지된 경우 프론트가 표시할 안전 안내 정보
+        SafetyNoticeResponseDto safetyNotice
 ){
     // DB 성찰 세션과 FastAPI 응답을 프론트용 응답 DTO로 합침
     public static ReflectionSessionStartResponseDto from(
             ReflectionSessions reflectionSession,
-            FastApiCbtResponseDto fastApiResponse
+            FastApiCbtResponseDto fastApiResponse,
+            SafetyNoticeResponseDto safetyNotice
     ) {
         return new ReflectionSessionStartResponseDto(
                 // Spring이 DB에 생성한 성찰 세션 ID
@@ -58,7 +63,8 @@ public record ReflectionSessionStartResponseDto (
                 fastApiResponse.acknowledgementEvidence(),
                 fastApiResponse.acknowledgementSourceQuestionCode(),
                 fastApiResponse.proposalMessage(),
-                fastApiResponse.risk()
+                fastApiResponse.risk(),
+                safetyNotice
         );
     }
 }

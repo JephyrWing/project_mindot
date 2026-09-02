@@ -3,6 +3,7 @@ package com.my.mindot_back.records.dto;
 
 import com.my.mindot_back.records.dto.ai.FastApiCbtResponseDto;
 import com.my.mindot_back.records.entity.ReflectionSessions;
+import com.my.mindot_back.safety.dto.SafetyNoticeResponseDto;
 
 import java.util.List;
 
@@ -31,12 +32,15 @@ public record ReflectionSessionTurnResponseDto (
 
         String proposalMessage,
 
-        FastApiCbtResponseDto.RiskAssessment risk
+        FastApiCbtResponseDto.RiskAssessment risk,
+
+        SafetyNoticeResponseDto safetyNotice
 ){
     // DB 성찰 세션과 FastAPI 응답을 프론트 응답 형식으로 변환
     public static ReflectionSessionTurnResponseDto from(
             ReflectionSessions reflectionSessions,
-            FastApiCbtResponseDto fastApiCbtResponse
+            FastApiCbtResponseDto fastApiCbtResponse,
+            SafetyNoticeResponseDto safetyNotice
     ) {
         return new ReflectionSessionTurnResponseDto(
                 reflectionSessions.getId(),
@@ -49,7 +53,8 @@ public record ReflectionSessionTurnResponseDto (
                 fastApiCbtResponse.acknowledgementEvidence(),
                 fastApiCbtResponse.acknowledgementSourceQuestionCode(),
                 fastApiCbtResponse.proposalMessage(),
-                fastApiCbtResponse.risk()
+                fastApiCbtResponse.risk(),
+                safetyNotice
         );
     }
 }

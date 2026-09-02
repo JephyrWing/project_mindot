@@ -9,6 +9,7 @@ import com.my.mindot_back.records.dto.ai.FastApiRecordAnalysisResponseDto;
 import com.my.mindot_back.records.entity.CompletionStatus;
 import com.my.mindot_back.records.entity.EmotionRecords;
 import com.my.mindot_back.records.repository.EmotionRecordsRepository;
+import com.my.mindot_back.safety.service.SafetyEventsService;
 import com.my.mindot_back.users.entity.Users;
 import com.my.mindot_back.users.repository.UsersRepository;
 import jakarta.transaction.Transactional;
@@ -26,6 +27,8 @@ public class EmotionRecordAiTransactionService {
     private final EmotionRecordsRepository emotionRecordsRepository;
     private final UsersRepository usersRepository;
     private final AiJobsRepository aiJobsRepository;
+    // FastAPI 위험 판단 결과를 safety_events 이력으로 저장
+    private final SafetyEventsService safetyEventsService;
 
     // 트랜잭션 A: 원문 기록과 AI 작업 이력을 먼저 확실히 저장
     @Transactional
@@ -128,6 +131,18 @@ public class EmotionRecordAiTransactionService {
         aiJob.complete(
                 analysis.meta().model(),
                 analysis.meta().promptVersion()
+        );
+
+        // REVIEW 또는 CRISIS 위험 신호가 있으면 안전 이벤트 이력 생성
+        safetyEventsService.recordIfRiskDetected(
+                emotionRecord,
+                aiJob,
+                analysis.risk() != null
+                            ? analysis.risk().level()
+                            : null,
+                analysis.risk() != null
+                            ? analysis.risk().reason()
+                            : null
         );
 
         return emotionRecord;

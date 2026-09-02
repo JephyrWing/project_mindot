@@ -7,6 +7,7 @@ import com.my.mindot_back.records.dto.*;
 import com.my.mindot_back.records.dto.ai.FastApiCbtResponseDto;
 import com.my.mindot_back.records.entity.*;
 import com.my.mindot_back.records.repository.ReflectionSessionsRepository;
+import com.my.mindot_back.safety.service.SafetyEventsService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -39,6 +40,9 @@ public class ReflectionSessionsService {
     // CBT 최종 확정과 임베딩 결과를 독립 트랜잭션으로 처리
     private final ReflectionSessionEmbeddingTransactionService
             reflectionSessionEmbeddingTransactionService;
+
+    // CBT 세션의 원본 감정 기록에 연결된 최신 안전 안내를 조회
+    private final SafetyEventsService safetyEventsService;
 
     // CBT 세션 저장, 첫 질문 FastAPI 호출, 결과 저장을 분리해 처리
     public ReflectionSessionStartResponseDto startSession(
@@ -87,7 +91,10 @@ public class ReflectionSessionsService {
 
         return ReflectionSessionStartResponseDto.from(
                 reflectionSession,
-                fastApiResponse
+                fastApiResponse,
+                safetyEventsService.getLatestSafetyNotice(
+                        reflectionSession.getEmotionRecord().getId()
+                )
         );
     }
 
@@ -133,7 +140,10 @@ public class ReflectionSessionsService {
 
         return ReflectionSessionStartResponseDto.from(
                 reflectionSession,
-                fastApiResponse
+                fastApiResponse,
+                safetyEventsService.getLatestSafetyNotice(
+                        reflectionSession.getEmotionRecord().getId()
+                )
         );
     }
 
@@ -185,7 +195,10 @@ public class ReflectionSessionsService {
 
         return ReflectionSessionTurnResponseDto.from(
                 reflectionSession,
-                fastApiResponse
+                fastApiResponse,
+                safetyEventsService.getLatestSafetyNotice(
+                        reflectionSession.getEmotionRecord().getId()
+                )
         );
     }
 
@@ -231,7 +244,10 @@ public class ReflectionSessionsService {
 
         return ReflectionSessionTurnResponseDto.from(
                 reflectionSession,
-                fastApiResponse
+                fastApiResponse,
+                safetyEventsService.getLatestSafetyNotice(
+                        reflectionSession.getEmotionRecord().getId()
+                )
         );
     }
 
