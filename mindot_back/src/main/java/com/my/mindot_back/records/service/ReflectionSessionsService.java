@@ -2,19 +2,13 @@
 package com.my.mindot_back.records.service;
 
 import com.my.mindot_back.common.rag.RagUtils;
-import com.my.mindot_back.distortions.entity.DistortionTypes;
 import com.my.mindot_back.distortions.repository.DistortionTypesRepository;
 import com.my.mindot_back.records.client.FastApiCbtClient;
 import com.my.mindot_back.records.dto.*;
 import com.my.mindot_back.records.dto.ai.FastApiCbtResponseDto;
-import com.my.mindot_back.records.dto.ai.FastApiCbtStartRequestDto;
-import com.my.mindot_back.records.dto.ai.FastApiCbtTurnRequestDto;
 import com.my.mindot_back.records.entity.*;
-import com.my.mindot_back.records.repository.EmotionRecordsRepository;
 import com.my.mindot_back.records.repository.ReflectionSessionsRepository;
 import com.my.mindot_back.records.repository.SessionDistortionsRepository;
-import com.my.mindot_back.users.entity.Users;
-import com.my.mindot_back.users.repository.UsersRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -30,14 +24,12 @@ public class ReflectionSessionsService {
     // 성찰 세션 저장, 조회
     private final ReflectionSessionsRepository reflectionSessionsRepository;
 
-    // 원본 감정 기록 조회
-    private final EmotionRecordsRepository emotionRecordsRepository;
-
-    // JWT 사용자 ID로 로그인 사용자 확인
-    private final UsersRepository usersRepository;
-
     // FastAPI CBT 첫 질문 생성 API 호출
     private final FastApiCbtClient fastApiCbtClient;
+
+    // CBT 세션 저장과 AI 결과 반영을 독립 트랜잭션으로 처리
+    private final ReflectionSessionStartTransactionService
+            reflectionSessionStartTransactionService;
 
     // 최종 확정된 CBT 성찰 세션의 RAG 검색용 임베딩 생성
     private final RagUtils ragUtils;
@@ -48,126 +40,54 @@ public class ReflectionSessionsService {
     // AI가 제안한 인지왜곡을 session_distortions 테이블에 저장
     private final SessionDistortionsRepository sessionDistortionsRepository;
 
-    // 로그인 사용자의 감정 기록으로 빈 CBT 성찰 세션 생성
-    // DB 저장까지만
-    @Transactional
-    public ReflectionSessions createSession(
-            // JWT에서 꺼낸 로그인 사용자 ID
-            Long userId,
+    // CBT 답변 저장과 다음 질문 결과 반영을 독립 트랜잭션으로 처리
+    private final ReflectionSessionTurnTransactionService
+            reflectionSessionTurnTransactionService;
 
-            // 성찰을 시작할 원본 감정 기록 ID
-            Long emotionRecordId
-    ) {
-        // JWT가 유효해도 예외 상황 대비해 DB에서 확인 (탈퇴 등)
-        Users user = usersRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "사용자를 찾을 수 없습니다."
-                ));
-
-        // 성찰의 기반이 되는 원본 감정 기록 조회
-        EmotionRecords emotionRecord = emotionRecordsRepository.findById(emotionRecordId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "감정 기록을 찾을 수 없습니다."
-                ));
-
-
-        // FastAPI CBT 시작 요청에서는 자동 사고 필수값
-        if (emotionRecord.getAutomaticThought() == null
-                     || emotionRecord.getAutomaticThought().isBlank()) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "자동사고가 있는 감정 기록만 성찰을 시작할 수 있습니다."
-            );
-        }
-
-        // 다른 사용자의 감정 기록에 접근하거나 성찰 세션을 만들 수 없음 -> 404 처리
-        if (!emotionRecord.getUser().getId().equals(userId)) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "감정 기록을 찾을 수 없습니다."
-            );
-        }
-
-        // 감정 기록 하나에는 성찰 세션 하나만 허용
-        if (reflectionSessionsRepository.existsByEmotionRecord_Id(emotionRecordId)) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "이미 성찰 세션이 생성된 감정 기록입니다."
-            );
-        }
-
-        // OPEN 상태의 새 성찰 세션 Entity 생성
-        ReflectionSessions reflectionSession =
-                ReflectionSessions.create(user, emotionRecord);
-
-        // reflection_sessions 테이블에 INSERT 하고 저장된 Entity 반환
-        return reflectionSessionsRepository.save(reflectionSession);
-    }
-
-    // 성찰 세션 생성하고 FastAPI에 첫 CBT 질문 생성 요청
-    @Transactional
+    // CBT 세션 저장, 첫 질문 FastAPI 호출, 결과 저장을 분리해 처리
     public ReflectionSessionStartResponseDto startSession(
             Long userId,
             Long emotionRecordId
-    ){
-        // 1. 사용자, 감정 기록 검증 후 OPEN 성찰 세션을 DB에 저장
-        ReflectionSessions reflectionSession =
-                createSession(userId, emotionRecordId);
+    ) {
+        // 트랜잭션 A: CBT 세션과 PROCESSING AI 작업 이력 저장 후 커밋
+        ReflectionSessionStartAiContext context =
+                reflectionSessionStartTransactionService
+                        .createSessionAndStartQuestionJob(
+                                userId,
+                                emotionRecordId
+                        );
 
-        // 2. 저장된 세션과 원본 감정 기록을 FastAPI 요청 JSON으로 변환
-        FastApiCbtStartRequestDto request =
-                FastApiCbtStartRequestDto.from(reflectionSession);
-
-        // 3. FastAPI에 첫 질문 생성 요청
-        FastApiCbtResponseDto fastApiResponse =
-                fastApiCbtClient.start(request);
-
-        // 4. 어떤 AI 모델, 프롬프트가 질문을 생성했는지 ai_meta JSONB에 저장
-        reflectionSession.applyAiMeta(fastApiResponse.meta());
-
-        // CONTINUE일 때만 실제 질문을 question_answers JSONB에 저장
-        // SAFETY_STOP이면 nextQuestion이 없을 수 있으므로 질문 저장 X
-        if("CONTINUE".equals((fastApiResponse.status()))){
-            reflectionSession.addQuestion(
-                    fastApiResponse.nextQuestion()
+        FastApiCbtResponseDto fastApiResponse;
+        try {
+            // 트랜잭션 밖에서 첫 CBT 질문 생성 요청
+            fastApiResponse = fastApiCbtClient.start(
+                    context.request()
             );
+        } catch (ResponseStatusException exception) {
+            // 트랜잭션 B-실패: AI 작업 FAILED 상태 저장
+            reflectionSessionStartTransactionService.failFirstQuestion(
+                    context.aiJobId()
+            );
+            throw exception;
         }
 
-        // FastAPI가 제안한 성찰 전 인지왜곡을 session_distortions에 저장
-        List<FastApiCbtResponseDto.DistortionProposal> proposals =
-                fastApiResponse.beforeDistortions();
-
-        if (proposals != null && !proposals.isEmpty()) {
-            List<SessionDistortions> sessionDistortions =
-                    proposals.stream()
-                            .map(proposal -> {
-                                DistortionTypes distortionTypes =
-                                        distortionTypesRepository
-                                                .findByCode(proposal.code())
-                                                .orElseThrow(() ->
-                                                        new ResponseStatusException(
-                                                                HttpStatus.BAD_GATEWAY,
-                                                                "AI가 알 수 없는 인지왜곡 코드를 반환했습니다."
-                                                        )
-                                                );
-                                // AI 제안 인지왜곡 Entity 생성
-                                return SessionDistortions.createAiProposal(
-                                        reflectionSession,
-                                        distortionTypes,
-                                        proposal.classifierConfidence()
-                                );
-                            })
-                            .toList();
-            // session_distortions 테이블에 AI 제안 라벨 일괄 저장
-            sessionDistortionsRepository.saveAll(sessionDistortions);
+        ReflectionSessions reflectionSession;
+        try {
+            // 트랜잭션 B-성공: 첫 질문과 AI 메타 저장
+            reflectionSession =
+                    reflectionSessionStartTransactionService
+                            .completeFirstQuestion(
+                                    context.sessionId(),
+                                    context.aiJobId(),
+                                    fastApiResponse
+                            );
+        } catch (RuntimeException exception) {
+            // FastAPI 응답값이 비정상이면 작업 이력을 실패로 전환
+            reflectionSessionStartTransactionService.failFirstQuestion(
+                    context.aiJobId()
+            );
+            throw exception;
         }
-
-        // reflectionSession은 현재 JPA 관리 상태
-        /* addQuestion, applyAiMeta로 변경한 값은
-         *트랜잭션 종료 시 JPA Dirty Checking으로 UPDATE
-         */
 
         return ReflectionSessionStartResponseDto.from(
                 reflectionSession,
@@ -175,109 +95,144 @@ public class ReflectionSessionsService {
         );
     }
 
-    // 사용자의 현재 답변을 저장하고 FastAPI에 다음 CBT 질문 생성을 요청
-    @Transactional
+    // FastAPI 첫 질문 생성 실패 후, 질문이 없는 OPEN 세션을 다시 요청
+    public ReflectionSessionStartResponseDto retryFirstQuestion(
+            Long userId,
+            Long sessionId
+    ) {
+        // 트랜잭션 A: 재시도 QUESTION 작업 이력 저장 후 커밋
+        ReflectionSessionStartAiContext context =
+                reflectionSessionStartTransactionService
+                        .retryFirstQuestion(userId, sessionId);
+
+        FastApiCbtResponseDto fastApiResponse;
+        try {
+            // 트랜잭션 밖에서 첫 질문 생성 재시도
+            fastApiResponse = fastApiCbtClient.start(
+                    context.request()
+            );
+        } catch (ResponseStatusException exception) {
+            reflectionSessionStartTransactionService.failFirstQuestion(
+                    context.aiJobId()
+            );
+            throw exception;
+        }
+
+        ReflectionSessions reflectionSession;
+        try {
+            // 트랜잭션 B-성공: 첫 질문과 AI 메타 저장
+            reflectionSession =
+                    reflectionSessionStartTransactionService
+                            .completeFirstQuestion(
+                                    context.sessionId(),
+                                    context.aiJobId(),
+                                    fastApiResponse
+                            );
+        } catch (RuntimeException exception) {
+            reflectionSessionStartTransactionService.failFirstQuestion(
+                    context.aiJobId()
+            );
+            throw exception;
+        }
+
+        return ReflectionSessionStartResponseDto.from(
+                reflectionSession,
+                fastApiResponse
+        );
+    }
+
+    // 사용자 답변 저장, FastAPI 다음 질문 생성, 결과 저장을 분리해 처리
     public ReflectionSessionTurnResponseDto answerAndContinue(
             Long userId,
             Long sessionId,
             String answer
-    ){
-        // 답변을 저장할 성찰 세션 조회
-        ReflectionSessions reflectionSession =
-                reflectionSessionsRepository.findById(sessionId)
-                        .orElseThrow(() -> new ResponseStatusException(
-                                HttpStatus.NOT_FOUND,
-                                "성찰 세션을 찾을 수 없습니다."
-                        ));
+    ) {
+        // 트랜잭션 A: 사용자 답변과 PROCESSING AI 작업 이력 저장 후 커밋
+        ReflectionSessionTurnAiContext context =
+                reflectionSessionTurnTransactionService
+                        .saveAnswerAndStartQuestionJob(
+                                userId,
+                                sessionId,
+                                answer
+                        );
 
-        // 다른사용자의 성찰 세션 접근 막음 -> 404
-        if(!reflectionSession.getUser().getId().equals(userId)) {
-            throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "성찰 세션을 찾을 수 없습니다."
+        FastApiCbtResponseDto fastApiResponse;
+        try {
+            // 트랜잭션 밖에서 FastAPI 다음 질문 생성 요청
+            fastApiResponse = fastApiCbtClient.turn(
+                    context.request()
             );
-        }
-
-        // 완료, 취소된 세션에는 새 답변이나 질문을 추가할 수 없음
-        if (reflectionSession.getStatus() != ReflectionSessionStatus.OPEN) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "진행 중인 성찰 세션이 아닙니다."
+        } catch (ResponseStatusException exception) {
+            // 트랜잭션 B-실패: AI 작업 FAILED 상태 저장
+            reflectionSessionTurnTransactionService.failNextQuestion(
+                    context.aiJobId()
             );
+            throw exception;
         }
 
-        // 현재 질문의 answer, answeredAt을 question_answers JSONB에 먼저 저장
-        reflectionSession.answerCurrentQuestion(answer);
-
-        // 성찰 전 단계의 인지왜곡 제안, 검토 정보를 조회
-        List<SessionDistortions> beforeDistortions =
-                sessionDistortionsRepository.findAllBySession_IdAndPhase(
-                        sessionId,
-                        DistortionPhase.BEFORE
-                );
-
-        // 원본 기록, 전체 질문답변 이력, 인지왜곡 상태를 FastAPI 요청 DTO로 변환
-        FastApiCbtTurnRequestDto request =
-                FastApiCbtTurnRequestDto.from(
-                        reflectionSession,
-                        beforeDistortions
-                );
-
-        // FastAPI가 다음 질문, 확인 요청, 안전 상태 중 하나를 생성
-        FastApiCbtResponseDto fastApiResponse =
-                fastApiCbtClient.turn(request);
-
-        // 이번 AI 응답의 모델명, 프롬프트 버전을 최신값으로 저장
-        reflectionSession.applyAiMeta(fastApiResponse.meta());
-
-        // FastAPI가 질문 단계를 마치고 성찰 결과 초안을 반환한 경우
-        if ("CONFIRM_REQUIRED".equals((fastApiResponse.status()))) {
-            // 근거, 대안적 사고 초안을 reflection_sessions에 저장
-            // 사용자는 다음 화면에서 이 값 확인 or 수정한 뒤 최종 확정
-            reflectionSession.applyOutcomeDraft(
-                    fastApiResponse.outcomeDraft()
+        ReflectionSessions reflectionSession;
+        try {
+            // 트랜잭션 B-성공: 다음 질문 또는 성찰 결과 초안 저장
+            reflectionSession =
+                    reflectionSessionTurnTransactionService
+                            .completeNextQuestion(
+                                    context.sessionId(),
+                                    context.aiJobId(),
+                                    fastApiResponse
+                            );
+        } catch (RuntimeException exception) {
+            reflectionSessionTurnTransactionService.failNextQuestion(
+                    context.aiJobId()
             );
-
-            // FastAPI 가 제안한 성찰 후 인지왜곡 목록
-            List<FastApiCbtResponseDto.DistortionProposal> afterProposals =
-                    fastApiResponse.outcomeDraft().afterDistortions();
-
-            // AI가 AFTER 인지왜곡을 제안한 경우에만 저장
-            if (afterProposals != null && !afterProposals.isEmpty()) {
-                List<SessionDistortions> afterDistortions =
-                        afterProposals.stream()
-                                .map(proposal -> {
-                                    // FastAPI가 보낸 code로 기준 인지왜곡 유형 조회
-                                    DistortionTypes distortionTypes =
-                                            distortionTypesRepository
-                                                    .findByCode(proposal.code())
-                                                    .orElseThrow(() ->
-                                                            new ResponseStatusException(
-                                                                    HttpStatus.BAD_GATEWAY,
-                                                                    "AI가 알 수 없는 인지왜곡 코드를 반환했습니다."
-                                                            )
-                                                    );
-                                    // 성찰 후 단계의 AI 제안 라벨 Entity 생성
-                                    return SessionDistortions.createAfterAiProposal(
-                                            reflectionSession,
-                                            distortionTypes,
-                                            proposal.classifierConfidence()
-                                    );
-                                })
-                                .toList();
-
-                // DB 저장
-                sessionDistortionsRepository.saveAll(afterDistortions);
-            }
+            throw exception;
         }
 
-        // 다음 질문 생성 상태일 때만 question_answers JSONB에 새 질문 추가
-        if("CONTINUE".equals((fastApiResponse.status()))){
-            reflectionSession.addQuestion(fastApiResponse.nextQuestion());
+        return ReflectionSessionTurnResponseDto.from(
+                reflectionSession,
+                fastApiResponse
+        );
+    }
+
+    // FastAPI 다음 질문 생성 실패 후, 저장된 답변 기준으로 재시도
+    public ReflectionSessionTurnResponseDto retryNextQuestion(
+            Long userId,
+            Long sessionId
+    ) {
+        // 트랜잭션 A: 재시도 QUESTION 작업 이력 저장 후 커밋
+        ReflectionSessionTurnAiContext context =
+                reflectionSessionTurnTransactionService
+                        .retryNextQuestion(userId, sessionId);
+
+        FastApiCbtResponseDto fastApiResponse;
+        try {
+            // 트랜잭션 밖에서 다음 질문 생성 재시도
+            fastApiResponse = fastApiCbtClient.turn(
+                    context.request()
+            );
+        } catch (ResponseStatusException exception) {
+            reflectionSessionTurnTransactionService.failNextQuestion(
+                    context.aiJobId()
+            );
+            throw exception;
         }
 
-        // 트랜잭션 종료시 JPA Dirty Checking으로 답변, AI 메타, 다음 질문이 DB에 반영됨
-        // 새 AFTER 인지왜곡 라벨은 saveAll()로 저장 대상에 등록됨
+        ReflectionSessions reflectionSession;
+        try {
+            // 트랜잭션 B-성공: 다음 질문 또는 결과 초안 저장
+            reflectionSession =
+                    reflectionSessionTurnTransactionService
+                            .completeNextQuestion(
+                                    context.sessionId(),
+                                    context.aiJobId(),
+                                    fastApiResponse
+                            );
+        } catch (RuntimeException exception) {
+            reflectionSessionTurnTransactionService.failNextQuestion(
+                    context.aiJobId()
+            );
+            throw exception;
+        }
+
         return ReflectionSessionTurnResponseDto.from(
                 reflectionSession,
                 fastApiResponse
