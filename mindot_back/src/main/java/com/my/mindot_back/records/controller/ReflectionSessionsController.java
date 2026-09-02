@@ -57,6 +57,18 @@ public class ReflectionSessionsController {
         );
     }
 
+    // 다음 CBT 질문 생성 실패 후, 이미 저장된 답변으로 재시도
+    @PostMapping("/{sessionId}/retry-next-question")
+    public ReflectionSessionTurnResponseDto retryNextQuestion(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long sessionId
+    ) {
+        return reflectionSessionsService.retryNextQuestion(
+                userId,
+                sessionId
+        );
+    }
+
     // POST /api/reflections/1/confirm
     // 사용자가 성찰 결과와 인지왜곡 검토 결과를 최종 확정
     @PostMapping("/{sessionId}/confirm")
@@ -75,6 +87,18 @@ public class ReflectionSessionsController {
                 userId,
                 sessionId,
                 request
+        );
+    }
+
+    // 첫 CBT 질문 생성 실패 후, 질문이 없는 OPEN 세션의 재시도 API
+    @PostMapping("/{sessionId}/retry-first-question")
+    public ReflectionSessionStartResponseDto retryFirstQuestion(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long sessionId
+    ) {
+        return reflectionSessionsService.retryFirstQuestion(
+                userId,
+                sessionId
         );
     }
 
