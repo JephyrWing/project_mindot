@@ -12,7 +12,6 @@ import hashlib
 import json
 import logging
 import os
-import re
 from dataclasses import dataclass, field
 from enum import Enum
 from time import monotonic
@@ -22,6 +21,7 @@ from uuid import UUID
 from langchain_core.exceptions import OutputParserException
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.tools import StructuredTool
+from openai import APIConnectionError, APITimeoutError, RateLimitError
 from pydantic import Field, ValidationError, model_validator
 
 from cbt_agent import (
@@ -86,7 +86,7 @@ from cbt_agent import (
 )
 
 
-CBT_AGENT_PROMPT_VERSION = "cbt-session-agent-quality-q6"
+CBT_AGENT_PROMPT_VERSION = "cbt-session-agent-quality-q9"
 CBT_AGENT_SESSION_TTL_SECONDS = int(
     os.getenv("CBT_AGENT_SESSION_TTL_SECONDS", "600")
 )
@@ -149,6 +149,62 @@ class ExplorationCoverage(ApiModel):
             item.status != ExplorationStatus.NOT_EXPLORED
             for item in self.dimensions()
         )
+
+
+class CoverageReviewDimension(ApiModel):
+    status: ExplorationStatus
+    source_question_code: str | None = Field(
+        alias="sourceQuestionCode",
+        max_length=200,
+    )
+    rejection_reason: str | None = Field(
+        alias="rejectionReason",
+        max_length=500,
+    )
+
+    @model_validator(mode="after")
+    def validate_review_shape(self) -> "CoverageReviewDimension":
+        if self.status == ExplorationStatus.NOT_EXPLORED:
+            if self.source_question_code is not None:
+                raise ValueError("NOT_EXPLORED must not have sourceQuestionCode")
+        elif not self.source_question_code:
+            raise ValueError(f"{self.status.value} requires sourceQuestionCode")
+        return self
+
+
+class CoverageReview(ApiModel):
+    evidence_for: CoverageReviewDimension = Field(alias="evidenceFor")
+    evidence_against: CoverageReviewDimension = Field(alias="evidenceAgainst")
+    alternative_views: CoverageReviewDimension = Field(alias="alternativeViews")
+    acknowledgement: CoverageReviewDimension
+
+
+class FactBoundary(ApiModel):
+    observed_fact: str = Field(alias="observedFact", min_length=1, max_length=1_000)
+    automatic_thought_excerpt: str = Field(
+        alias="automaticThoughtExcerpt",
+        min_length=1,
+        max_length=1_000,
+    )
+    unsupported_extension: str | None = Field(
+        alias="unsupportedExtension",
+        max_length=1_000,
+    )
+    matched_distortion_code: DistortionCode | None = Field(
+        alias="matchedDistortionCode"
+    )
+    grounding_question_codes: list[str] = Field(
+        alias="groundingQuestionCodes",
+        min_length=1,
+        max_length=8,
+    )
+
+    @model_validator(mode="after")
+    def unique_grounding_codes(self) -> "FactBoundary":
+        self.grounding_question_codes = list(
+            dict.fromkeys(self.grounding_question_codes)
+        )
+        return self
 
 
 ROUTE_SEMANTIC_SIGNATURES: dict[SemanticRouteType, dict[str, str]] = {
@@ -400,17 +456,30 @@ class AgentQuestionPlan(ApiModel):
         return self
 
 
+class UnansweredQuestionAttempt(ApiModel):
+    """외부 DTO에 노출하지 않는 닫힌 정보 요청의 의미 서명입니다."""
+
+    source_question_code: str = Field(alias="sourceQuestionCode")
+    question_purpose: QuestionPurpose = Field(alias="questionPurpose")
+    semantic_route_type: SemanticRouteType = Field(alias="semanticRouteType")
+    answer_target: str = Field(alias="answerTarget")
+    answer_source: str = Field(alias="answerSource")
+    semantic_signature: dict[str, str] = Field(alias="semanticSignature")
+    answer_disposition: AnswerDisposition = Field(alias="answerDisposition")
+
+
 class AskQuestionAction(ApiModel):
     """다음 CBT 질문의 의미를 직접 계획하는 Agent tool action입니다."""
 
-    state: CbtSessionState
+    coverage_review: CoverageReview = Field(alias="coverageReview")
     question_plan: AgentQuestionPlan = Field(alias="questionPlan")
 
 
 class RequestConfirmationAction(ApiModel):
     """사용자에게 인지 왜곡 제안 확인을 요청할 때 선택하는 tool입니다."""
 
-    state: CbtSessionState
+    coverage_review: CoverageReview = Field(alias="coverageReview")
+    fact_boundary: FactBoundary = Field(alias="factBoundary")
     confirmation: CbtConfirmationDraft
 
 
@@ -441,7 +510,8 @@ class ConsideredDistortionCandidate(ApiModel):
 
 
 class RequestNoClearDistortionConfirmationAction(ApiModel):
-    state: CbtSessionState
+    coverage_review: CoverageReview = Field(alias="coverageReview")
+    fact_boundary: FactBoundary = Field(alias="factBoundary")
     assessment_type: Literal[CbtAssessmentType.NO_CLEAR_DISTORTION] = Field(
         alias="assessmentType"
     )
@@ -463,14 +533,13 @@ class RequestNoClearDistortionConfirmationAction(ApiModel):
     )
     considered_distortion_candidates: list[ConsideredDistortionCandidate] = Field(
         alias="consideredDistortionCandidates",
-        max_length=5,
+        max_length=3,
     )
 
 
 class SafetyStopAction(ApiModel):
     """CBT 흐름을 중단하고 별도 안전 처리를 요청할 때 선택하는 tool입니다."""
 
-    state: CbtSessionState
     suspected_reason: RiskReasonCode = Field(alias="suspectedReason")
     evidence: str = Field(min_length=1, max_length=300)
 
@@ -535,111 +604,46 @@ ACTION_SCHEMAS: dict[str, type[ApiModel]] = {
 
 
 AGENT_SYSTEM_PROMPT = """
-<role>
-Manage one Korean CBT reflection turn and call exactly one available tool.
-Update grounded state, assess exploration, then choose safety, one completion,
-or one question plan. Never write the final user-facing wording, diagnose,
-invent facts, or try to prove automaticThought false.
-</role>
+You plan one Korean CBT reflection turn and call exactly one available tool. The Writer only renders an ordinary question and never replans. Do not diagnose, invent facts, or assume the automaticThought is false.
 
-<input>
-The reflection subject is USER; mentioned people are third parties. START is
-empty, CONTINUE preserves valid state, and
-REHYDRATE rebuilds from fullHistory.
+AUTHORITY AND ORDER
+Saved user answers, sourceQuestionCodes, priorVerifiedCoverage, domainCandidates, blocked semantic signatures, rejected distortion codes, supplied definitions, and current-user safetyCandidates are authoritative.
+1. If a supplied current-user safety candidate applies, call safety_stop.
+2. Review all four domains, then choose the action that should follow if the server validates and merges your review.
+3. Complete when all domains can be verified; otherwise ask about one unresolved domain.
+Tool availability and completionCandidates are permission or review hints, not proof.
 
-Available tools and semanticRouteDefinitions already reflect server
-eligibility. safetyCandidates, completionAssessmentAllowed,
-explorationCoverage, directSupportClosed, blocked semantic dimensions, and
-exclusions are authoritative. Select only a supplied route and never create
-OTHER_SPECIFIC. Safety always wins over completion.
-</input>
+STATE
+priorVerifiedCoverage is server-verified state before this call. coverageReview is your proposed delta. normalizedExplorationCoverage is produced later by the server after validating saved answers. Choose from the expected merge of prior coverage and your review. Never echo CbtSessionState or downgrade prior coverage.
+For evidenceFor, evidenceAgainst, alternativeViews and acknowledgement choose:
+- EVIDENCE_FOUND only with a sourceQuestionCode whose saved answer directly fits the domain;
+- EXPLICITLY_NONE only with an allowed explicit-none answer;
+- NOT_EXPLORED when unresolved. If a candidate exists but is rejected, give a concrete rejectionReason.
+Never create excerpts or sources. NO_DIRECT_EVIDENCE closes only evidenceFor as EXPLICITLY_NONE. UNCLEAR, SKIPPED, silence, feedback and example requests fill no domain.
 
-<state>
-Interpret the latest answer by meaning and answerDisposition, not by the prior
-questionPurpose. Store exact excerpts only. evidenceFor supports the core
-claim; evidenceAgainst lowers its certainty; alternativeViews holds another
-plausible view; acknowledgement separates fact from inference or calibrates
-certainty.
+QUESTION
+If any domain should remain unresolved after that merge, ask exactly one answerable item that can change readiness or assessment. Ask what the user observed, experienced, judged, inferred or can consider; never require a third party's hidden state as fact.
+Do not paraphrase a blocked route, target/source pair, semantic signature, resolved topic, rejected premise or unanswered request. After two closed or UNCLEAR/SKIPPED attempts on the same meaning, use USER_SELECTED_DIRECTION. Purpose, route, goal, target/source, preface and question must seek the same information.
+For REQUEST_EXAMPLE return exactly two short, neutral, situation-specific options and no final wording.
 
-For each exploration domain use EVIDENCE_FOUND only with actual evidence,
-EXPLICITLY_NONE only when the USER explicitly completed that exploration with
-an exact saved closure, and NOT_EXPLORED otherwise. Never create evidence from
-a closure. DIALOGUE_CONTROL, UNCLEAR, SKIPPED, relevance feedback, and
-repetition feedback fill no domain. NO_DIRECT_EVIDENCE closes direct support
-as EXPLICITLY_NONE and is never evidenceFor.
+COMPLETION
+Complete only when all four domains are verified. Evaluate the original automaticThought, not only a later balanced thought. Return factBoundary with observedFact, an exact automaticThoughtExcerpt, unsupportedExtension or null, one allowed non-rejected matchedDistortionCode or null, and valid groundingQuestionCodes.
+Choose request_confirmation only when the thought adds a clearly unsupported scope, certainty, prediction, causation, hidden-state inference, global label, emotional proof, discounting, magnification or rigid rule matching the selected definition. A true negative fact may still contain such an extension.
+Choose request_no_clear_distortion_confirmation only when the thought stays within observed facts and no definition is positively grounded. Negative facts, proportionate emotion and uncertainty-aware concern alone are not distortions. No-clear is tentative, not proof that the thought is true.
+If boundary or grounding is insufficient, ask one missing-domain question. Never re-propose a rejected code. Preserve true facts in any calibrated thought.
 
-Preserve exclusions. Do not reuse a blocked target, comparison, cause,
-evidence source, assumed causal link, or information request through another
-route.
-</state>
-
-<decision>
-Use safety_stop only with one exact matching safetyCandidate. Safety has
-priority.
-
-When completion tools are available, distinguish these outcomes from saved
-answers and supplied definitions:
-- request_confirmation: a specific distortion definition is concretely
-  grounded by an inference, expansion, prediction, label, emotional proof,
-  discounted positive, or personalization. A partly true thought may still
-  contain distortion. Keep tentative language and a calibrated thought.
-- request_no_clear_distortion_confirmation: every exploration domain is
-  complete, but no specific definition is clearly grounded. Negative facts or
-  strong emotion alone are not distortion. This does not declare the thought
-  objectively true. Record only genuinely considered candidates and why each
-  lacks support.
-
-If information is insufficient or any domain is NOT_EXPLORED, the assessment
-is UNCERTAIN: use ask_question, not a completion tool. Ask one unresolved item
-that could change the assessment.
-
-For a question, separate observed fact, core claim, and their inference. Ask
-what the USER observed, experienced, judged, or can consider; never require a
-third party's actual hidden state.
-
-After directSupportClosed, choose contradiction, lower certainty, certainty
-reassessment, an alternative view, or generalization review. For
-REQUEST_EXAMPLE, supply exactly two short neutral exampleOptions; the server
-will render them. Otherwise exampleOptions must be empty.
-</decision>
-
-<plan>
-questionPurpose, semanticRouteType, selected route definition, and
-questionGoal express one meaning. questionGoal is a Korean plan. answerTarget
-names exactly one piece of information the USER can
-provide. answerSource must match that target. Do not use a vague instruction
-such as thinking more deeply. groundingQuestionCodes use only substantive
-saved answers; avoidTopics includes answered, irrelevant, repeated, and
-blocked material. Completion actions must ground every code and excerpt in
-saved USER answers. Call one available tool and never return COMPLETE.
-</plan>
+SAFETY AND OUTPUT
+Safety requires a supplied current-user candidate. Negated, historical, hypothetical, third-party and non-current language is not automatically current risk. Ground safety_stop in its exact candidate.
+Call exactly one available tool. Do not write final question wording, return COMPLETE, invent evidence, or ask when the expected merged coverage is complete.
 """.strip()
 
 
 Q5_WRITER_PROMPT = """
-<role>
-Write one natural Korean response from the supplied plan. Do not re-plan,
-classify, diagnose, add evidence, or change the selected direction.
-</role>
+Write one natural Korean response from the supplied question plan. Do not re-plan, classify, assess distortion, change the route, or add evidence. The Agent's purpose, route, goal, target/source, polarity and grounding are authoritative.
 
-<rules>
-evidencePolarity, answerTarget, and answerSource are authoritative. Ask for
-exactly the one piece of USER-provided information in answerTarget. Never
-require a third party's actual hidden
-emotion, thought, motive, intention, or cause.
+Ask for exactly one piece of information the user can provide. Never require a third party's hidden thought, emotion, motive or cause as fact. Respect latestInteraction, saved grounding, blocked semantic signatures and unanswered attempts. Do not paraphrase a resolved, rejected, skipped, unclear or repeated request. If polarity lowers certainty, ask only for information that lowers certainty.
 
-Respect groundingAnswers, latestInteraction, previousQuestions, and all
-blocked semantic dimensions. Do not repeat a closed meaning, invent facts,
-force optimism, or add a second question. If evidencePolarity is
-CONTRADICTS_OR_LOWERS_CERTAINTY, ask only for a fact or experience that lowers
-certainty; never reverse it into support for the core claim.
-
-If prefaceRequired is false, return preface=null. Otherwise fulfill
-prefaceGoal briefly without a question mark. REQUEST_EXAMPLE is rendered by
-the server and is not a Writer task. The question must be one line, end with
-exactly one question mark, and contain no other question mark. Use simple
-natural Korean honorifics.
-</rules>
+Do not invent facts, force optimism, or add a second question. If prefaceRequired is false, return preface=null; otherwise satisfy prefaceGoal briefly without a question mark. REQUEST_EXAMPLE is server-rendered and never sent here. Return one-line Korean honorific wording ending with exactly one question mark and containing no other question mark.
 """.strip()
 
 
@@ -657,7 +661,11 @@ class AgentSessionRuntime:
     state: CbtSessionState
     history: list[QuestionAnswer] = field(default_factory=list)
     pending_question: GeneratedQuestion | None = None
+    pending_plan: AgentQuestionPlan | None = None
     pending_assessment: PendingAssessment | None = None
+    unanswered_question_attempts: list[UnansweredQuestionAttempt] = field(
+        default_factory=list
+    )
     expires_at: float = 0.0
     last_request_id: UUID | None = None
     last_request_fingerprint: str | None = None
@@ -784,7 +792,7 @@ class CbtAgentSessionRegistry:
 
 
 _registry = CbtAgentSessionRegistry(CBT_AGENT_SESSION_TTL_SECONDS)
-_agent_models: dict[tuple[bool, bool], Any] = {}
+_agent_models: dict[tuple[bool, bool, bool], Any] = {}
 _q5_writer_model: Any | None = None
 
 
@@ -873,20 +881,30 @@ def _empty_session_state() -> CbtSessionState:
 def _get_agent_model(
     safety_allowed: bool,
     completion_assessment_allowed: bool,
+    ask_allowed: bool = True,
 ) -> Any:
-    eligibility = (safety_allowed, completion_assessment_allowed)
+    eligibility = (
+        safety_allowed,
+        completion_assessment_allowed,
+        ask_allowed,
+    )
     model = _agent_models.get(eligibility)
     if model is None:
-        tools = [ASK_QUESTION_TOOL]
+        tools = []
         if safety_allowed:
             tools.append(SAFETY_STOP_TOOL)
-        if completion_assessment_allowed:
+        else:
+            if ask_allowed:
+                tools.append(ASK_QUESTION_TOOL)
+        if completion_assessment_allowed and not safety_allowed:
             tools.extend(
                 [
                     REQUEST_CONFIRMATION_TOOL,
                     REQUEST_NO_CLEAR_DISTORTION_CONFIRMATION_TOOL,
                 ]
             )
+        if not tools:
+            raise RuntimeError("No CBT Agent tool is available")
         model = _get_llm().bind_tools(
             tools,
             tool_choice="required",
@@ -895,6 +913,33 @@ def _get_agent_model(
         )
         _agent_models[eligibility] = model
     return model
+
+
+def _session_answer_disposition(item: QuestionAnswer) -> AnswerDisposition:
+    """Q6 공통 분류를 보존하며 명시적 임시 모름의 문장형 표현만 보정합니다."""
+
+    disposition = _classify_answer_disposition(item)
+    if disposition != AnswerDisposition.SUBSTANTIVE:
+        return disposition
+    normalized = " ".join((item.answer or "").lower().split()).rstrip(
+        " .,!?'\"~…ㅠㅜㅋㅎ"
+    )
+    if normalized.endswith(
+        (
+            "잘 모르겠어",
+            "잘 모르겠어요",
+            "잘 모르겠네요",
+            "잘 모르겠는데",
+            "잘 모르겠는데요",
+            "모르겠어",
+            "모르겠어요",
+            "모르겠네요",
+            "모르겠는데",
+            "모르겠는데요",
+        )
+    ):
+        return AnswerDisposition.UNCLEAR
+    return disposition
 
 
 def _question_dump(item: QuestionAnswer) -> dict[str, Any]:
@@ -908,19 +953,22 @@ def _question_dump(item: QuestionAnswer) -> dict[str, Any]:
         ),
         "question": item.question,
         "answer": item.answer,
-        "answerDisposition": _classify_answer_disposition(item).value,
+        "answerDisposition": _session_answer_disposition(item).value,
     }
 
 
-def _exploration_domain(item: QuestionAnswer) -> str | None:
+def _exploration_domain_for(
+    purpose: QuestionPurpose,
+    route_type: SemanticRouteType | None,
+) -> str | None:
     if (
-        item.question_purpose == QuestionPurpose.EVIDENCE_FOR
-        or item.semantic_route_type == SemanticRouteType.DIRECT_WORD_OR_ACTION
+        purpose == QuestionPurpose.EVIDENCE_FOR
+        or route_type == SemanticRouteType.DIRECT_WORD_OR_ACTION
     ):
         return "evidence_for"
     if (
-        item.question_purpose == QuestionPurpose.EVIDENCE_AGAINST
-        or item.semantic_route_type
+        purpose == QuestionPurpose.EVIDENCE_AGAINST
+        or route_type
         in {
             SemanticRouteType.EXPECTED_SIGNAL_ABSENCE,
             SemanticRouteType.CONTRADICTORY_FACT,
@@ -928,13 +976,13 @@ def _exploration_domain(item: QuestionAnswer) -> str | None:
     ):
         return "evidence_against"
     if (
-        item.question_purpose == QuestionPurpose.ALTERNATIVE_VIEW
-        or item.semantic_route_type == SemanticRouteType.ALTERNATIVE_EXPLANATION
+        purpose == QuestionPurpose.ALTERNATIVE_VIEW
+        or route_type == SemanticRouteType.ALTERNATIVE_EXPLANATION
     ):
         return "alternative_views"
     if (
-        item.question_purpose == QuestionPurpose.BALANCED_THOUGHT
-        or item.semantic_route_type
+        purpose == QuestionPurpose.BALANCED_THOUGHT
+        or route_type
         in {
             SemanticRouteType.CERTAINTY_REASSESSMENT,
             SemanticRouteType.BALANCED_CONCLUSION,
@@ -944,118 +992,114 @@ def _exploration_domain(item: QuestionAnswer) -> str | None:
     return None
 
 
-def _is_explicit_none_exploration(item: QuestionAnswer) -> bool:
-    disposition = _classify_answer_disposition(item)
-    if disposition in {
-        AnswerDisposition.DIALOGUE_CONTROL,
-        AnswerDisposition.UNCLEAR,
-        AnswerDisposition.SKIPPED,
-    }:
-        return False
-    if item.semantic_route_type == SemanticRouteType.EXPECTED_SIGNAL_ABSENCE:
-        # 이 route에서 "없었다"는 답은 탐색 실패가 아니라, 예상 신호가
-        # 관찰되지 않았다는 실제 counter-evidence일 수 있습니다.
-        return False
-    if disposition == AnswerDisposition.NO_DIRECT_EVIDENCE:
-        return True
-    normalized = " ".join((item.answer or "").lower().split())
-    if any(
-        re.search(pattern, normalized)
-        for pattern in (
-            r"없(?:는|었던)?\s*(?:건|것은)\s*아니",
-            r"없지(?:는|\s*)\s*않",
-            r"없진\s*않",
-        )
-    ):
-        return False
-    return bool(
-        re.search(
-            r"(?:딱히|전혀|추가로)?\s*(?:그런\s*)?"
-            r"(?:(?:건|것은|근거는|가능성은)\s*)?"
-            r"(?:없어|없어요|없다|없었어|없었어요|없습니다|없네요|없음)"
-            r"|떠오르지\s*않|생각나지\s*않|찾지\s*못",
-            normalized,
-        )
+def _exploration_domain(item: QuestionAnswer) -> str | None:
+    return _exploration_domain_for(
+        item.question_purpose,
+        item.semantic_route_type,
     )
 
 
-def _history_exploration_candidates(
+def _question_plan_exploration_domain(
+    plan: AgentQuestionPlan,
+) -> str | None:
+    return _exploration_domain_for(
+        plan.question_purpose,
+        plan.semantic_route_type,
+    )
+
+
+def _incomplete_coverage_domains(
+    coverage: ExplorationCoverage,
+) -> list[str]:
+    return [
+        domain
+        for domain, dimension in {
+            "evidence_for": coverage.evidence_for,
+            "evidence_against": coverage.evidence_against,
+            "alternative_views": coverage.alternative_views,
+            "acknowledgement": coverage.acknowledgement,
+        }.items()
+        if dimension.status == ExplorationStatus.NOT_EXPLORED
+    ]
+
+
+def _coverage_from_state_and_history(
+    proposed: ExplorationCoverage,
+    previous: ExplorationCoverage,
     history: list[QuestionAnswer],
-) -> tuple[dict[str, list[SavedAnswerEvidence]], dict[str, SavedAnswerEvidence]]:
-    found: dict[str, list[SavedAnswerEvidence]] = {
-        "evidence_for": [],
-        "evidence_against": [],
-        "alternative_views": [],
-        "acknowledgement": [],
-    }
-    closures: dict[str, SavedAnswerEvidence] = {}
-    for item in history:
-        domain = _exploration_domain(item)
-        if domain is None or item.answer is None:
-            continue
-        disposition = _classify_answer_disposition(item)
+) -> ExplorationCoverage:
+    answers_by_code = {item.question_code: item for item in history}
+
+    def dimension(
+        domain: str,
+        candidate: ExplorationDimension,
+        prior: ExplorationDimension,
+    ) -> ExplorationDimension:
+        if candidate.status == ExplorationStatus.NOT_EXPLORED:
+            return (
+                prior
+                if prior.status != ExplorationStatus.NOT_EXPLORED
+                else candidate
+            )
+        assert candidate.grounding is not None
+        source = answers_by_code.get(candidate.grounding.source_question_code)
+        if (
+            source is None
+            or source.answer is None
+            or candidate.grounding.excerpt not in source.answer
+        ):
+            raise CbtDraftValidationError(
+                f"{domain} coverage grounding must be an exact saved USER excerpt"
+            )
+        disposition = _session_answer_disposition(source)
         if disposition in {
             AnswerDisposition.DIALOGUE_CONTROL,
             AnswerDisposition.UNCLEAR,
             AnswerDisposition.SKIPPED,
         }:
-            continue
-        evidence = SavedAnswerEvidence(
-            source_question_code=item.question_code,
-            excerpt=item.answer[:300],
-        )
-        if _is_explicit_none_exploration(item):
-            closures[domain] = evidence
-        else:
-            found[domain].append(evidence)
-    return found, closures
-
-
-def _coverage_from_state_and_history(
-    state: CbtSessionState,
-    history: list[QuestionAnswer],
-) -> ExplorationCoverage:
-    found, closures = _history_exploration_candidates(history)
-
-    def dimension(
-        domain: str,
-        evidence: SavedAnswerEvidence | None,
-    ) -> ExplorationDimension:
-        if evidence is not None:
-            return ExplorationDimension(
-                status=ExplorationStatus.EVIDENCE_FOUND,
-                grounding=evidence,
+            raise CbtDraftValidationError(
+                f"{domain} cannot be grounded by {disposition.value}"
             )
-        if found[domain]:
-            return ExplorationDimension(
-                status=ExplorationStatus.EVIDENCE_FOUND,
-                grounding=found[domain][-1],
+        if (
+            candidate.status == ExplorationStatus.EVIDENCE_FOUND
+            and disposition == AnswerDisposition.NO_DIRECT_EVIDENCE
+        ):
+            raise CbtDraftValidationError(
+                "NO_DIRECT_EVIDENCE can only close evidenceFor as EXPLICITLY_NONE"
             )
-        closure = closures.get(domain)
-        if closure is not None:
-            return ExplorationDimension(
-                status=ExplorationStatus.EXPLICITLY_NONE,
-                grounding=closure,
+        if (
+            disposition == AnswerDisposition.NO_DIRECT_EVIDENCE
+            and (
+                domain != "evidenceFor"
+                or candidate.status != ExplorationStatus.EXPLICITLY_NONE
             )
-        return ExplorationDimension(
-            status=ExplorationStatus.NOT_EXPLORED,
-            grounding=None,
-        )
+        ):
+            raise CbtDraftValidationError(
+                "NO_DIRECT_EVIDENCE is only valid for evidenceFor EXPLICITLY_NONE"
+            )
+        return candidate
 
     return ExplorationCoverage(
         evidence_for=dimension(
-            "evidence_for",
-            state.evidence_for[-1] if state.evidence_for else None,
+            "evidenceFor",
+            proposed.evidence_for,
+            previous.evidence_for,
         ),
         evidence_against=dimension(
-            "evidence_against",
-            state.evidence_against[-1] if state.evidence_against else None,
+            "evidenceAgainst",
+            proposed.evidence_against,
+            previous.evidence_against,
         ),
         alternative_views=dimension(
-            "alternative_views",
-            state.alternative_views[-1] if state.alternative_views else None,
+            "alternativeViews",
+            proposed.alternative_views,
+            previous.alternative_views,
         ),
-        acknowledgement=dimension("acknowledgement", state.acknowledgement),
+        acknowledgement=dimension(
+            "acknowledgement",
+            proposed.acknowledgement,
+            previous.acknowledgement,
+        ),
     )
 
 
@@ -1071,20 +1115,141 @@ def _completion_assessment_allowed(
     runtime: AgentSessionRuntime,
 ) -> bool:
     history = _history_for(request)
-    if not history or _safety_candidates(request) or runtime.pending_assessment:
+    if (
+        not isinstance(request, CbtTurnRequest)
+        or not history
+        or _safety_candidates(request)
+        or runtime.pending_assessment
+    ):
         return False
-    if _classify_answer_disposition(history[-1]) in {
-        AnswerDisposition.DIALOGUE_CONTROL,
-        AnswerDisposition.UNCLEAR,
-        AnswerDisposition.SKIPPED,
+    substantive = {
+        AnswerDisposition.SUBSTANTIVE,
+        AnswerDisposition.NO_DIRECT_EVIDENCE,
+    }
+    if _session_answer_disposition(history[-1]) not in substantive:
+        return False
+    coverage = _assessment_eligible_state(
+        request,
+        runtime,
+    ).exploration_coverage
+    if coverage.is_complete():
+        return True
+    incomplete = {
+        domain
+        for domain, dimension in {
+            "evidence_for": coverage.evidence_for,
+            "evidence_against": coverage.evidence_against,
+            "alternative_views": coverage.alternative_views,
+            "acknowledgement": coverage.acknowledgement,
+        }.items()
+        if dimension.status == ExplorationStatus.NOT_EXPLORED
+    }
+    attempted = {
+        domain
+        for item in history
+        if _session_answer_disposition(item) in substantive
+        if (domain := _exploration_domain(item)) is not None
+    }
+    return bool(incomplete) and incomplete <= attempted
+
+
+def _closes_information_request(item: QuestionAnswer) -> bool:
+    intent = _classify_explicit_user_intent(item.answer)
+    if intent in {
+        LatestUserIntent.REQUEST_EXAMPLE,
+        LatestUserIntent.REQUEST_EXPLANATION,
     }:
         return False
-    return _assessment_eligible_state(request, runtime).exploration_coverage.is_complete()
+    return (
+        _session_answer_disposition(item)
+        in {
+            AnswerDisposition.UNCLEAR,
+            AnswerDisposition.SKIPPED,
+        }
+        or intent in CONVERSATION_FEEDBACK_INTENTS
+    )
+
+
+def _unanswered_attempt(
+    item: QuestionAnswer,
+    plan: AgentQuestionPlan | None = None,
+) -> UnansweredQuestionAttempt | None:
+    route_type = item.semantic_route_type
+    if route_type is None or not _closes_information_request(item):
+        return None
+    signature = dict(ROUTE_SEMANTIC_SIGNATURES[route_type])
+    compatible_plan = (
+        plan
+        if plan is not None and plan.semantic_route_type == route_type
+        else None
+    )
+    return UnansweredQuestionAttempt(
+        source_question_code=item.question_code,
+        question_purpose=item.question_purpose,
+        semantic_route_type=route_type,
+        answer_target=(
+            compatible_plan.answer_target
+            if compatible_plan is not None
+            else signature["targetType"]
+        ),
+        answer_source=(
+            compatible_plan.answer_source.value
+            if compatible_plan is not None
+            else signature["evidenceSourceType"]
+        ),
+        semantic_signature=signature,
+        answer_disposition=_session_answer_disposition(item),
+    )
+
+
+def _refresh_unanswered_question_attempts(
+    request: CbtRequest,
+    runtime: AgentSessionRuntime,
+    mode: str,
+) -> None:
+    history = _history_for(request)
+    if mode == "START":
+        runtime.unanswered_question_attempts = []
+        return
+    if mode == "REHYDRATE":
+        candidates = [
+            attempt
+            for item in history
+            if (attempt := _unanswered_attempt(item)) is not None
+        ]
+    else:
+        candidates = list(runtime.unanswered_question_attempts)
+        if history:
+            latest = history[-1]
+            pending_plan = (
+                runtime.pending_plan
+                if runtime.pending_question is not None
+                and runtime.pending_question.question_code == latest.question_code
+                else None
+            )
+            attempt = _unanswered_attempt(latest, pending_plan)
+            if attempt is not None:
+                candidates.append(attempt)
+    unique = {
+        item.source_question_code: item
+        for item in candidates
+    }
+    runtime.unanswered_question_attempts = list(unique.values())[-24:]
+
+
+def _unanswered_attempts_from_history(
+    history: list[QuestionAnswer],
+) -> list[UnansweredQuestionAttempt]:
+    return [
+        attempt
+        for item in history
+        if (attempt := _unanswered_attempt(item)) is not None
+    ]
 
 
 def _history_direct_support_closed(history: list[QuestionAnswer]) -> bool:
     return any(
-        _classify_answer_disposition(item)
+        _session_answer_disposition(item)
         == AnswerDisposition.NO_DIRECT_EVIDENCE
         and _exploration_domain(item) == "evidence_for"
         for item in history
@@ -1102,17 +1267,36 @@ def _effective_direct_support_closed(
 
 def _blocked_semantic_dimensions(
     history: list[QuestionAnswer],
+    unanswered_attempts: list[UnansweredQuestionAttempt] | None = None,
 ) -> dict[str, list[str]]:
     blocked: dict[str, list[str]] = {}
-    for item in history:
-        route_type = item.semantic_route_type
-        if (
-            route_type is None
-            or _classify_explicit_user_intent(item.answer)
-            not in CONVERSATION_FEEDBACK_INTENTS
+    attempts = (
+        unanswered_attempts
+        if unanswered_attempts is not None
+        else _unanswered_attempts_from_history(history)
+    )
+    repeated_attempts: list[UnansweredQuestionAttempt] = []
+    for previous, current in zip(attempts, attempts[1:]):
+        previous_dimensions = BLOCKED_SIGNATURE_DIMENSIONS[
+            previous.semantic_route_type
+        ]
+        current_dimensions = BLOCKED_SIGNATURE_DIMENSIONS[
+            current.semantic_route_type
+        ]
+        shared_dimensions = tuple(
+            dimension
+            for dimension in previous_dimensions
+            if dimension in current_dimensions
+        )
+        if shared_dimensions and all(
+            previous.semantic_signature.get(dimension)
+            == current.semantic_signature.get(dimension)
+            for dimension in shared_dimensions
         ):
-            continue
-        signature = ROUTE_SEMANTIC_SIGNATURES[route_type]
+            repeated_attempts.append(current)
+    for attempt in repeated_attempts:
+        route_type = attempt.semantic_route_type
+        signature = attempt.semantic_signature
         for dimension in BLOCKED_SIGNATURE_DIMENSIONS[route_type]:
             value = signature[dimension]
             blocked.setdefault(dimension, [])
@@ -1155,9 +1339,39 @@ def _route_uses_blocked_semantics(
     blocked_dimensions: dict[str, list[str]],
 ) -> bool:
     signature = ROUTE_SEMANTIC_SIGNATURES[route_type]
-    return any(
-        signature.get(dimension) in values
-        for dimension, values in blocked_dimensions.items()
+    relevant = BLOCKED_SIGNATURE_DIMENSIONS[route_type]
+    supplied = [
+        dimension
+        for dimension in relevant
+        if dimension in blocked_dimensions
+    ]
+    return bool(supplied) and all(
+        signature.get(dimension) in blocked_dimensions[dimension]
+        for dimension in supplied
+    )
+
+
+def _requires_user_selected_direction(
+    attempts: list[UnansweredQuestionAttempt],
+) -> bool:
+    if len(attempts) < 2:
+        return False
+    previous, current = attempts[-2:]
+    previous_dimensions = BLOCKED_SIGNATURE_DIMENSIONS[
+        previous.semantic_route_type
+    ]
+    current_dimensions = BLOCKED_SIGNATURE_DIMENSIONS[
+        current.semantic_route_type
+    ]
+    shared_dimensions = tuple(
+        dimension
+        for dimension in previous_dimensions
+        if dimension in current_dimensions
+    )
+    return bool(shared_dimensions) and all(
+        previous.semantic_signature.get(dimension)
+        == current.semantic_signature.get(dimension)
+        for dimension in shared_dimensions
     )
 
 
@@ -1166,7 +1380,10 @@ def _available_route_definitions(
     runtime: AgentSessionRuntime,
 ) -> list[dict[str, Any]]:
     history = _history_for(request)
-    blocked_dimensions = _blocked_semantic_dimensions(history)
+    blocked_dimensions = _blocked_semantic_dimensions(
+        history,
+        runtime.unanswered_question_attempts,
+    )
     blocked_routes = {
         item.semantic_route_type
         for item in history
@@ -1178,10 +1395,15 @@ def _available_route_definitions(
         family.value for family in _hard_blocked_route_families(history)
     }
     direct_support_closed = _effective_direct_support_closed(request, runtime)
+    force_user_choice = _requires_user_selected_direction(
+        runtime.unanswered_question_attempts
+    )
     definitions: list[dict[str, Any]] = []
     for definition in _semantic_route_definitions_payload():
         route_type = SemanticRouteType(definition["semanticRouteType"])
         if route_type == SemanticRouteType.OTHER_SPECIFIC:
+            continue
+        if force_user_choice and route_type != SemanticRouteType.USER_SELECTED_DIRECTION:
             continue
         if route_type in blocked_routes:
             continue
@@ -1266,6 +1488,97 @@ ANSWER_SOURCES_BY_ROUTE: dict[
 }
 
 
+ROUTES_BY_EXPLORATION_DOMAIN: dict[str, frozenset[SemanticRouteType]] = {
+    "evidence_for": frozenset(
+        {
+            SemanticRouteType.DIRECT_WORD_OR_ACTION,
+            SemanticRouteType.OTHER_PEOPLE_COMPARISON,
+        }
+    ),
+    "evidence_against": frozenset(
+        {
+            SemanticRouteType.EXPECTED_SIGNAL_ABSENCE,
+            SemanticRouteType.CONTRADICTORY_FACT,
+            SemanticRouteType.OTHER_PEOPLE_COMPARISON,
+        }
+    ),
+    "alternative_views": frozenset(
+        {SemanticRouteType.ALTERNATIVE_EXPLANATION}
+    ),
+    "acknowledgement": frozenset(
+        {
+            SemanticRouteType.CERTAINTY_REASSESSMENT,
+            SemanticRouteType.BALANCED_CONCLUSION,
+        }
+    ),
+}
+
+
+COVERAGE_DOMAIN_ALIASES: dict[str, str] = {
+    "evidence_for": "evidenceFor",
+    "evidence_against": "evidenceAgainst",
+    "alternative_views": "alternativeViews",
+    "acknowledgement": "acknowledgement",
+}
+
+
+def _domain_candidates(
+    history: list[QuestionAnswer],
+) -> dict[str, list[dict[str, Any]]]:
+    candidates: dict[str, list[dict[str, Any]]] = {
+        "evidenceFor": [],
+        "evidenceAgainst": [],
+        "alternativeViews": [],
+        "acknowledgement": [],
+    }
+    excluded = {
+        AnswerDisposition.DIALOGUE_CONTROL,
+        AnswerDisposition.UNCLEAR,
+        AnswerDisposition.SKIPPED,
+    }
+    for item in history:
+        if item.answer is None or not item.answer.strip():
+            continue
+        disposition = _session_answer_disposition(item)
+        if disposition in excluded:
+            continue
+        candidate = _question_dump(item)
+        domain = _exploration_domain(item)
+        if disposition == AnswerDisposition.NO_DIRECT_EVIDENCE:
+            if domain == "evidence_for":
+                candidates["evidenceFor"].append(candidate)
+            continue
+        if domain is not None:
+            candidates[COVERAGE_DOMAIN_ALIASES[domain]].append(candidate)
+    return {domain: items[-6:] for domain, items in candidates.items()}
+
+
+def _is_explicit_none_answer(answer: str) -> bool:
+    normalized = " ".join(answer.lower().split())
+    double_negations = (
+        "없는 건 아니",
+        "없는 것은 아니",
+        "없지는 않",
+        "없진 않",
+    )
+    if any(marker in normalized for marker in double_negations):
+        return False
+    return any(
+        marker in normalized
+        for marker in (
+            "딱히 없",
+            "전혀 없",
+            "더는 없",
+            "추가로 없",
+            "아무것도 없",
+            "떠오르는 게 없",
+            "떠오르는 것은 없",
+            "nothing else",
+            "none that i can",
+        )
+    )
+
+
 def _build_agent_payload(
     request: CbtRequest,
     runtime: AgentSessionRuntime,
@@ -1286,31 +1599,47 @@ def _build_agent_payload(
     )
     blocked_history = history if mode == "REHYDRATE" else history[-1:]
     blocked_routes = _q5_blocked_routes(blocked_history)
-    blocked_semantic_dimensions = _blocked_semantic_dimensions(history)
+    blocked_semantic_dimensions = _blocked_semantic_dimensions(
+        history,
+        runtime.unanswered_question_attempts,
+    )
     direct_support_closed = _effective_direct_support_closed(request, runtime)
     recent_questions = (
         []
         if mode == "REHYDRATE"
         else history[max(0, len(history) - RECENT_QUESTION_WINDOW - 1):-1]
     )
-    completion_candidates, completion_coverage = _completion_candidates(history)
+    domain_candidates = _domain_candidates(history)
+    safety_candidates = _safety_candidates(request)
+    incomplete_coverage_domains = _incomplete_coverage_domains(
+        assessment_state.exploration_coverage
+    )
+    coverage_review_required = bool(
+        not safety_candidates
+        and runtime.pending_assessment is None
+    )
     return {
         "mode": mode,
         # confirmationAllowed is retained as a temporary internal compatibility
         # hint. completionAssessmentAllowed is the authoritative Q6 gate.
         "confirmationAllowed": completion_assessment_allowed,
         "completionAssessmentAllowed": completion_assessment_allowed,
-        "explorationCoverage": assessment_state.exploration_coverage.model_dump(
+        "priorVerifiedCoverage": assessment_state.exploration_coverage.model_dump(
             by_alias=True,
             mode="json",
         ),
+        "coverageReviewRequired": coverage_review_required,
+        "incompleteCoverageDomains": [
+            COVERAGE_DOMAIN_ALIASES[domain]
+            for domain in incomplete_coverage_domains
+        ],
         "pendingAssessment": (
             runtime.pending_assessment.model_dump(by_alias=True, mode="json")
             if runtime.pending_assessment is not None
             else None
         ),
         "questionSubject": "USER",
-        "safetyCandidates": _safety_candidates(request),
+        "safetyCandidates": safety_candidates,
         "latestUserIntentHint": (
             detected_feedback.value if detected_feedback is not None else None
         ),
@@ -1319,6 +1648,10 @@ def _build_agent_payload(
         "directSupportClosed": direct_support_closed,
         "blockedRoutes": blocked_routes,
         "blockedSemanticDimensions": blocked_semantic_dimensions,
+        "unansweredQuestionAttempts": [
+            item.model_dump(by_alias=True, mode="json")
+            for item in runtime.unanswered_question_attempts
+        ],
         "blockedRouteFamilies": sorted(
             family.value
             for family in _hard_blocked_route_families(history)
@@ -1330,28 +1663,18 @@ def _build_agent_payload(
             request,
             runtime,
         ),
-        "completionCandidates": completion_candidates,
-        "completionCandidateCoverage": completion_coverage,
+        "domainCandidates": domain_candidates,
         "record": request.record.model_dump(by_alias=True, mode="json"),
-        "currentState": (
-            None
-            if mode == "REHYDRATE"
-            else runtime.state.model_dump(by_alias=True, mode="json")
-        ),
         "latestInteraction": _question_dump(history[-1]) if history else None,
         "recentQuestions": [
             _question_dump(item)
             for item in recent_questions
         ],
-        "fullHistory": (
-            [_question_dump(item) for item in history]
-            if mode == "REHYDRATE"
-            else []
-        ),
-        "beforeDistortions": (
+        "rejectedDistortionCodes": (
             [
-                item.model_dump(by_alias=True, mode="json")
+                item.code.value
                 for item in request.before_distortions
+                if item.review_status.value == "REJECTED"
             ]
             if isinstance(request, CbtTurnRequest)
             else []
@@ -1428,8 +1751,13 @@ def _build_q5_writer_payload(
                 runtime,
             ),
             "blockedSemanticDimensions": _blocked_semantic_dimensions(
-                _history_for(request)
+                _history_for(request),
+                runtime.unanswered_question_attempts,
             ),
+            "unansweredQuestionAttempts": [
+                item.model_dump(by_alias=True, mode="json")
+                for item in runtime.unanswered_question_attempts
+            ],
         }
     )
     payload["selectedRouteDefinition"] = {
@@ -1553,6 +1881,123 @@ def _render_example_question(
     return QuestionWordingDraft(preface=preface, question=question)
 
 
+EXAMPLE_OPTIONS_BY_ROUTE: dict[SemanticRouteType, tuple[str, str]] = {
+    SemanticRouteType.OBSERVABLE_EVENT_DETAIL: (
+        "그때 실제로 들은 말이나 본 행동",
+        "시간이나 장소처럼 확인 가능한 상황",
+    ),
+    SemanticRouteType.DIRECT_WORD_OR_ACTION: (
+        "상대가 직접 한 말",
+        "상대가 실제로 한 행동",
+    ),
+    SemanticRouteType.EXPECTED_SIGNAL_ABSENCE: (
+        "평소와 달리 없었던 반응",
+        "기대했지만 나타나지 않은 행동",
+    ),
+    SemanticRouteType.CONTRADICTORY_FACT: (
+        "그 생각과 맞지 않았던 실제 경험",
+        "확신을 조금 낮추는 확인된 사실",
+    ),
+    SemanticRouteType.OTHER_PEOPLE_COMPARISON: (
+        "다른 사람에게도 비슷했던 반응",
+        "나에게만 달랐다고 본 구체적 장면",
+    ),
+    SemanticRouteType.CERTAINTY_REASSESSMENT: (
+        "확실히 아는 부분",
+        "아직 추측으로 남은 부분",
+    ),
+    SemanticRouteType.ALTERNATIVE_EXPLANATION: (
+        "상황 자체에서 가능한 다른 이유",
+        "내 탓이 아니어도 가능한 설명",
+    ),
+    SemanticRouteType.BALANCED_CONCLUSION: (
+        "확인된 사실만 담은 표현",
+        "불확실성을 남겨 둔 표현",
+    ),
+    SemanticRouteType.EMOTION_OR_TRIGGER: (
+        "가장 먼저 올라온 감정",
+        "그 감정을 크게 만든 순간",
+    ),
+    SemanticRouteType.USER_SELECTED_DIRECTION: (
+        "확인된 사실부터 살펴보기",
+        "다른 가능한 설명부터 살펴보기",
+    ),
+    SemanticRouteType.OTHER_SPECIFIC: (
+        "확인 가능한 사실",
+        "다르게 볼 수 있는 가능성",
+    ),
+}
+
+
+def _build_request_example_fallback(
+    request: CbtRequest,
+    runtime: AgentSessionRuntime,
+    state: CbtSessionState,
+    diagnostics: Q5TurnDiagnostics,
+) -> tuple[CbtAnalysisDraft, QuestionWordingDraft, AgentQuestionPlan]:
+    history = _history_for(request)
+    latest = history[-1] if history else None
+    pending = runtime.pending_plan
+    if pending is not None:
+        route = pending.semantic_route_type
+        purpose = pending.question_purpose
+        answer_target = pending.answer_target
+        answer_source = pending.answer_source
+        grounding_codes = pending.grounding_question_codes
+        avoid_topics = pending.avoid_topics
+    elif latest is not None and latest.semantic_route_type is not None:
+        route = latest.semantic_route_type
+        purpose = latest.question_purpose
+        answer_target = latest.question
+        answer_source = sorted(
+            ANSWER_SOURCES_BY_ROUTE[route],
+            key=lambda item: item.value,
+        )[0]
+        grounding_codes = []
+        avoid_topics = [latest.question]
+    else:
+        route = SemanticRouteType.USER_SELECTED_DIRECTION
+        purpose = QuestionPurpose.ALTERNATIVE_VIEW
+        answer_target = "지금 더 살펴보기 편한 방향"
+        answer_source = Q5AnswerSource.USER_JUDGMENT
+        grounding_codes = []
+        avoid_topics = []
+    options = list(EXAMPLE_OPTIONS_BY_ROUTE[route])
+    plan = AgentQuestionPlan(
+        question_purpose=purpose,
+        semantic_route_type=route,
+        latest_user_intent=LatestUserIntent.REQUEST_EXAMPLE,
+        question_goal=f"두 예시 중 {answer_target}에 가까운 방향을 고르도록 돕기",
+        answer_target=answer_target,
+        answer_source=answer_source,
+        preface_goal="두 선택지가 단지 예시임을 짧게 알리기",
+        grounding_question_codes=grounding_codes,
+        avoid_topics=avoid_topics,
+        example_options=options,
+    )
+
+    def representative(
+        items: list[SavedAnswerEvidence],
+    ) -> SavedAnswerEvidence | None:
+        return items[-1] if items else None
+
+    draft = CbtAnalysisDraft(
+        result_type=CbtResultType.QUESTION,
+        semantic_progress=CbtSemanticProgress(
+            evidence_for=representative(state.evidence_for),
+            evidence_against=representative(state.evidence_against),
+            alternative_view=representative(state.alternative_views),
+            acknowledgement=state.acknowledgement,
+        ),
+        question_plan=_to_shared_question_plan(plan),
+        confirmation=None,
+        risk=RiskAssessment(level=RiskLevel.NONE, reason_code=None),
+        safety_evidence=None,
+    )
+    wording = _render_example_question(plan, diagnostics)
+    return draft, wording, plan
+
+
 def _render_evidence_against_after_no_direct(
     diagnostics: Q5TurnDiagnostics,
 ) -> QuestionWordingDraft:
@@ -1632,17 +2077,15 @@ def _normalize_agent_state(
     state: CbtSessionState,
     request: CbtRequest,
     runtime: AgentSessionRuntime,
+    *,
+    previous_state: CbtSessionState | None = None,
 ) -> CbtSessionState:
     """서버가 확정할 수 있는 상태를 이력 기준으로 병합·정규화합니다."""
 
     history = _history_for(request)
     answers_by_code = {item.question_code: item for item in history}
 
-    def valid_evidence(
-        evidence: SavedAnswerEvidence,
-        *,
-        evidence_for: bool = False,
-    ) -> bool:
+    def valid_evidence(evidence: SavedAnswerEvidence) -> bool:
         source = answers_by_code.get(evidence.source_question_code)
         if (
             source is None
@@ -1650,47 +2093,68 @@ def _normalize_agent_state(
             or evidence.excerpt not in source.answer
         ):
             return False
-        disposition = _classify_answer_disposition(source)
+        disposition = _session_answer_disposition(source)
         if disposition in {
             AnswerDisposition.DIALOGUE_CONTROL,
             AnswerDisposition.UNCLEAR,
             AnswerDisposition.SKIPPED,
         }:
             return False
-        if _is_explicit_none_exploration(source):
-            return False
-        if evidence_for and disposition == AnswerDisposition.NO_DIRECT_EVIDENCE:
+        if disposition == AnswerDisposition.NO_DIRECT_EVIDENCE:
             return False
         return True
 
-    previous = runtime.state
+    previous = previous_state or runtime.state
+    coverage = _coverage_from_state_and_history(
+        state.exploration_coverage,
+        previous.exploration_coverage,
+        history,
+    )
+
+    def positive_grounding(
+        dimension: ExplorationDimension,
+    ) -> list[SavedAnswerEvidence]:
+        if dimension.status != ExplorationStatus.EVIDENCE_FOUND:
+            return []
+        assert dimension.grounding is not None
+        return [dimension.grounding]
+
     evidence_for = [
         item
         for item in _unique_evidence(
-            [*previous.evidence_for, *state.evidence_for]
+            [
+                *previous.evidence_for,
+                *positive_grounding(coverage.evidence_for),
+            ]
         )
-        if valid_evidence(item, evidence_for=True)
+        if valid_evidence(item)
     ][:12]
     evidence_against = [
         item
         for item in _unique_evidence(
-            [*previous.evidence_against, *state.evidence_against]
+            [
+                *previous.evidence_against,
+                *positive_grounding(coverage.evidence_against),
+            ]
         )
         if valid_evidence(item)
     ][:12]
     alternative_views = [
         item
         for item in _unique_evidence(
-            [*previous.alternative_views, *state.alternative_views]
+            [
+                *previous.alternative_views,
+                *positive_grounding(coverage.alternative_views),
+            ]
         )
         if valid_evidence(item)
     ][:12]
 
-    acknowledgement = state.acknowledgement
-    if acknowledgement is None or not valid_evidence(acknowledgement):
-        acknowledgement = previous.acknowledgement
-    if acknowledgement is not None and not valid_evidence(acknowledgement):
-        acknowledgement = None
+    acknowledgement = (
+        coverage.acknowledgement.grounding
+        if coverage.acknowledgement.status == ExplorationStatus.EVIDENCE_FOUND
+        else None
+    )
 
     feedback_routes = [
         item.semantic_route_type
@@ -1718,7 +2182,7 @@ def _normalize_agent_state(
         or _history_direct_support_closed(history)
     )
 
-    normalized = state.model_copy(
+    return state.model_copy(
         update={
             "situation_summary": (
                 state.situation_summary or previous.situation_summary
@@ -1735,15 +2199,115 @@ def _normalize_agent_state(
             "blocked_routes": list(dict.fromkeys(blocked_routes))[-16:],
             "acknowledgement": acknowledgement,
             "direct_support_closed": direct_support_closed,
+            "exploration_coverage": coverage,
         }
     )
-    return normalized.model_copy(
-        update={
-            "exploration_coverage": _coverage_from_state_and_history(
-                normalized,
-                history,
-            )
+
+
+def _merge_coverage_review(
+    review: CoverageReview,
+    request: CbtRequest,
+    runtime: AgentSessionRuntime,
+    verified_state_floor: CbtSessionState,
+) -> CbtSessionState:
+    """Agent delta를 저장 답과 대조해 retry-local floor에 단조 병합합니다."""
+
+    history = _history_for(request)
+    answers_by_code = {item.question_code: item for item in history}
+    candidates = _domain_candidates(history)
+
+    def merge_dimension(
+        domain: str,
+        candidate: CoverageReviewDimension,
+        prior: ExplorationDimension,
+    ) -> ExplorationDimension:
+        if prior.status != ExplorationStatus.NOT_EXPLORED:
+            return prior
+        available_codes = {
+            item["questionCode"] for item in candidates[domain]
         }
+        if candidate.status == ExplorationStatus.NOT_EXPLORED:
+            if available_codes and not candidate.rejection_reason:
+                raise CbtDraftValidationError(
+                    f"{domain} candidate rejection requires rejectionReason"
+                )
+            return prior
+
+        assert candidate.source_question_code is not None
+        source = answers_by_code.get(candidate.source_question_code)
+        if source is None or source.answer is None or not source.answer.strip():
+            raise CbtDraftValidationError(
+                f"{domain} sourceQuestionCode must identify a saved USER answer"
+            )
+        disposition = _session_answer_disposition(source)
+        if disposition in {
+            AnswerDisposition.DIALOGUE_CONTROL,
+            AnswerDisposition.UNCLEAR,
+            AnswerDisposition.SKIPPED,
+        }:
+            raise CbtDraftValidationError(
+                f"{domain} cannot be grounded by {disposition.value}"
+            )
+        if candidate.source_question_code not in available_codes:
+            raise CbtDraftValidationError(
+                f"{domain} source is not a supplied domainCandidate"
+            )
+        if disposition == AnswerDisposition.NO_DIRECT_EVIDENCE:
+            if not (
+                domain == "evidenceFor"
+                and candidate.status == ExplorationStatus.EXPLICITLY_NONE
+            ):
+                raise CbtDraftValidationError(
+                    "NO_DIRECT_EVIDENCE closes only evidenceFor as EXPLICITLY_NONE"
+                )
+        elif candidate.status == ExplorationStatus.EXPLICITLY_NONE:
+            if not _is_explicit_none_answer(source.answer):
+                raise CbtDraftValidationError(
+                    f"{domain} EXPLICITLY_NONE requires an explicit-none answer"
+                )
+        elif candidate.status != ExplorationStatus.EVIDENCE_FOUND:
+            raise CbtDraftValidationError(
+                f"Unsupported coverage status for {domain}"
+            )
+        return ExplorationDimension(
+            status=candidate.status,
+            grounding=SavedAnswerEvidence(
+                source_question_code=source.question_code,
+                excerpt=source.answer[:300],
+            ),
+        )
+
+    previous_coverage = verified_state_floor.exploration_coverage
+    coverage = ExplorationCoverage(
+        evidence_for=merge_dimension(
+            "evidenceFor",
+            review.evidence_for,
+            previous_coverage.evidence_for,
+        ),
+        evidence_against=merge_dimension(
+            "evidenceAgainst",
+            review.evidence_against,
+            previous_coverage.evidence_against,
+        ),
+        alternative_views=merge_dimension(
+            "alternativeViews",
+            review.alternative_views,
+            previous_coverage.alternative_views,
+        ),
+        acknowledgement=merge_dimension(
+            "acknowledgement",
+            review.acknowledgement,
+            previous_coverage.acknowledgement,
+        ),
+    )
+    proposed = verified_state_floor.model_copy(
+        update={"exploration_coverage": coverage}
+    )
+    return _normalize_agent_state(
+        proposed,
+        request,
+        runtime,
+        previous_state=verified_state_floor,
     )
 
 
@@ -1761,10 +2325,10 @@ def _validate_safety_action(
 def _render_confirmation(
     action: RequestConfirmationAction,
     request: CbtTurnRequest,
+    coverage: ExplorationCoverage,
 ) -> CbtConfirmationDraft:
     """구조화 근거를 외부 기존 confirmation 필드에 결정론적으로 매핑합니다."""
 
-    coverage = action.state.exploration_coverage
     if not coverage.is_complete():
         raise CbtDraftValidationError(
             "Distortion confirmation requires complete exploration coverage"
@@ -1777,6 +2341,15 @@ def _render_confirmation(
     assert evidence_against is not None
     assert alternative is not None
     assert acknowledgement is not None
+    for dimension in coverage.dimensions():
+        assert dimension.grounding is not None
+        _validate_grounding(
+            dimension.grounding,
+            request,
+            allow_no_direct_evidence=(
+                dimension.status == ExplorationStatus.EXPLICITLY_NONE
+            ),
+        )
 
     rejected_codes = {
         item.code
@@ -1798,16 +2371,12 @@ def _render_confirmation(
     definition = DISTORTION_DEFINITIONS[primary_distortion]
     balanced_thought = action.confirmation.outcome_draft.alternative_thought_text
 
-    def display(item: SavedAnswerEvidence) -> str:
-        excerpt = item.excerpt[:120]
-        return f"[{item.source_question_code}] {excerpt}"
-
     proposal_message = "\n".join(
         (
-            f"처음 생각을 지지한 근거: {display(evidence_for)}",
-            f"확신을 낮추는 근거: {display(evidence_against)}",
-            f"가능한 다른 관점: {display(alternative)}",
-            f"사실과 추론·확신을 나눈 내용: {display(acknowledgement)}",
+            _coverage_line("처음 생각을 지지하는 방향", coverage.evidence_for),
+            _coverage_line("확신을 낮추는 방향", coverage.evidence_against),
+            _coverage_line("가능한 다른 관점", coverage.alternative_views),
+            _coverage_line("사실과 추론·확신을 나눈 내용", coverage.acknowledgement),
             (
                 "잠정적으로 살펴볼 인지 왜곡: "
                 f"{definition['nameKo']} ({primary_distortion.value})"
@@ -1817,8 +2386,18 @@ def _render_confirmation(
     )
     outcome = action.confirmation.outcome_draft.model_copy(
         update={
-            "evidence_for_text": evidence_for.excerpt,
-            "evidence_against_text": evidence_against.excerpt,
+            "evidence_for_text": (
+                evidence_for.excerpt
+                if coverage.evidence_for.status
+                == ExplorationStatus.EVIDENCE_FOUND
+                else None
+            ),
+            "evidence_against_text": (
+                evidence_against.excerpt
+                if coverage.evidence_against.status
+                == ExplorationStatus.EVIDENCE_FOUND
+                else None
+            ),
             "alternative_thought_text": balanced_thought,
         }
     )
@@ -1834,7 +2413,7 @@ def _validate_grounding(
     evidence: SavedAnswerEvidence,
     request: CbtTurnRequest,
     *,
-    allow_explicit_none: bool = True,
+    allow_no_direct_evidence: bool = True,
 ) -> QuestionAnswer:
     source = next(
         (
@@ -1852,7 +2431,7 @@ def _validate_grounding(
         raise CbtDraftValidationError(
             "Every completion grounding must be an exact saved USER answer excerpt"
         )
-    if _classify_answer_disposition(source) in {
+    if _session_answer_disposition(source) in {
         AnswerDisposition.DIALOGUE_CONTROL,
         AnswerDisposition.UNCLEAR,
         AnswerDisposition.SKIPPED,
@@ -1860,9 +2439,13 @@ def _validate_grounding(
         raise CbtDraftValidationError(
             "Dialogue-control, unclear, or skipped text cannot ground completion"
         )
-    if not allow_explicit_none and _is_explicit_none_exploration(source):
+    if (
+        not allow_no_direct_evidence
+        and _session_answer_disposition(source)
+        == AnswerDisposition.NO_DIRECT_EVIDENCE
+    ):
         raise CbtDraftValidationError(
-            "An explicit exploration closure cannot be used as positive evidence"
+            "NO_DIRECT_EVIDENCE cannot be used as positive evidence"
         )
     return source
 
@@ -1870,30 +2453,25 @@ def _validate_grounding(
 def _validate_no_clear_distortion_action(
     action: RequestNoClearDistortionConfirmationAction,
     request: CbtTurnRequest,
+    coverage: ExplorationCoverage,
 ) -> None:
     if _safety_candidates(request):
         raise CbtDraftValidationError(
             "Current safety candidates forbid NO_CLEAR_DISTORTION"
         )
-    coverage = action.state.exploration_coverage
     if not coverage.is_complete():
         raise CbtDraftValidationError(
             "NO_CLEAR_DISTORTION requires complete exploration coverage"
         )
     for dimension in coverage.dimensions():
         assert dimension.grounding is not None
-        source = _validate_grounding(dimension.grounding, request)
-        explicit_none = _is_explicit_none_exploration(source)
-        if (
-            dimension.status == ExplorationStatus.EXPLICITLY_NONE
-            and not explicit_none
-        ) or (
-            dimension.status == ExplorationStatus.EVIDENCE_FOUND
-            and explicit_none
-        ):
-            raise CbtDraftValidationError(
-                "Exploration status must match its saved grounding meaning"
-            )
+        _validate_grounding(
+            dimension.grounding,
+            request,
+            allow_no_direct_evidence=(
+                dimension.status == ExplorationStatus.EXPLICITLY_NONE
+            ),
+        )
 
     rejected_codes = {
         item.code
@@ -1915,7 +2493,7 @@ def _validate_no_clear_distortion_action(
                 item for item in request.question_answers
                 if item.question_code == code
             )
-            if _classify_answer_disposition(source) in {
+            if _session_answer_disposition(source) in {
                 AnswerDisposition.DIALOGUE_CONTROL,
                 AnswerDisposition.UNCLEAR,
                 AnswerDisposition.SKIPPED,
@@ -1942,14 +2520,22 @@ def _coverage_line(
     )
 
 
+def _positive_coverage_grounding(
+    dimension: ExplorationDimension,
+) -> SavedAnswerEvidence | None:
+    if dimension.status != ExplorationStatus.EVIDENCE_FOUND:
+        return None
+    return dimension.grounding
+
+
 def _render_no_clear_distortion_response(
     action: RequestNoClearDistortionConfirmationAction,
     request: CbtTurnRequest,
     diagnostics: Q5TurnDiagnostics,
+    coverage: ExplorationCoverage,
 ) -> CbtTurnResponse:
     """Writer 없이 저장된 근거와 보정 생각을 Q6 확인 응답으로 매핑합니다."""
 
-    coverage = action.state.exploration_coverage
     acknowledgement = coverage.acknowledgement.grounding
     assert acknowledgement is not None
     renderer_input = {
@@ -1982,8 +2568,18 @@ def _render_no_clear_distortion_response(
         )
     )[:4_000]
     outcome = ReflectionOutcomeDraft(
-        evidence_for_text=coverage.evidence_for.grounding.excerpt,
-        evidence_against_text=coverage.evidence_against.grounding.excerpt,
+        evidence_for_text=(
+            coverage.evidence_for.grounding.excerpt
+            if coverage.evidence_for.status
+            == ExplorationStatus.EVIDENCE_FOUND
+            else None
+        ),
+        evidence_against_text=(
+            coverage.evidence_against.grounding.excerpt
+            if coverage.evidence_against.status
+            == ExplorationStatus.EVIDENCE_FOUND
+            else None
+        ),
         alternative_thought_text=action.calibrated_thought,
         after_distortions=[],
     )
@@ -2014,38 +2610,108 @@ def _render_no_clear_distortion_response(
     return response
 
 
+def _validate_fact_boundary(
+    fact_boundary: FactBoundary,
+    request: CbtTurnRequest,
+    *,
+    distortion_required: bool,
+    proposed_codes: set[DistortionCode],
+) -> None:
+    thought = request.record.automatic_thought
+    if fact_boundary.automatic_thought_excerpt not in thought:
+        raise CbtDraftValidationError(
+            "factBoundary.automaticThoughtExcerpt must be an exact substring "
+            "of the original automaticThought"
+        )
+    history_by_code = {
+        item.question_code: item for item in request.question_answers
+    }
+    for code in fact_boundary.grounding_question_codes:
+        source = history_by_code.get(code)
+        if source is None or source.answer is None:
+            raise CbtDraftValidationError(
+                "factBoundary groundingQuestionCodes must exist in saved history"
+            )
+        if _session_answer_disposition(source) in {
+            AnswerDisposition.DIALOGUE_CONTROL,
+            AnswerDisposition.UNCLEAR,
+            AnswerDisposition.SKIPPED,
+        }:
+            raise CbtDraftValidationError(
+                "factBoundary cannot use non-substantive saved answers"
+            )
+
+    rejected_codes = {
+        item.code
+        for item in request.before_distortions
+        if item.review_status.value == "REJECTED"
+    }
+    matched_code = fact_boundary.matched_distortion_code
+    extension = fact_boundary.unsupported_extension
+    if distortion_required:
+        if extension is None or not extension.strip():
+            raise CbtDraftValidationError(
+                "Distortion factBoundary requires unsupportedExtension"
+            )
+        if matched_code is None:
+            raise CbtDraftValidationError(
+                "Distortion factBoundary requires matchedDistortionCode"
+            )
+        if matched_code in rejected_codes or matched_code not in proposed_codes:
+            raise CbtDraftValidationError(
+                "factBoundary matchedDistortionCode must be proposed and non-rejected"
+            )
+    elif extension is not None or matched_code is not None:
+        raise CbtDraftValidationError(
+            "NO_CLEAR_DISTORTION factBoundary requires null extension and code"
+        )
+
+
 def _validate_agent_action(
     action: AgentAction,
     request: CbtRequest,
+    normalized_state: CbtSessionState,
     *,
     available_routes: set[SemanticRouteType],
     completion_assessment_allowed: bool,
 ) -> CbtAnalysisDraft | None:
+    safety_candidates = _safety_candidates(request)
+    if safety_candidates and not isinstance(action, SafetyStopAction):
+        raise CbtDraftValidationError(
+            "A matching current-user safetyCandidate requires safety_stop"
+        )
+
     def representative(
         items: list[SavedAnswerEvidence],
     ) -> SavedAnswerEvidence | None:
         return items[-1] if items else None
 
     progress = CbtSemanticProgress(
-        evidence_for=representative(action.state.evidence_for),
-        evidence_against=representative(action.state.evidence_against),
-        alternative_view=representative(action.state.alternative_views),
-        acknowledgement=action.state.acknowledgement,
+        evidence_for=representative(normalized_state.evidence_for),
+        evidence_against=representative(normalized_state.evidence_against),
+        alternative_view=representative(normalized_state.alternative_views),
+        acknowledgement=normalized_state.acknowledgement,
     )
 
     none_risk = RiskAssessment(level=RiskLevel.NONE, reason_code=None)
     if isinstance(action, AskQuestionAction):
+        coverage = normalized_state.exploration_coverage
+        incomplete_domains = set(_incomplete_coverage_domains(coverage))
+        if not incomplete_domains:
+            raise CbtDraftValidationError(
+                "ask_question is invalid when normalized proposed coverage is complete"
+            )
         route_type = action.question_plan.semantic_route_type
         if route_type not in available_routes:
             raise CbtDraftValidationError(
                 "Agent questionPlan.semanticRouteType is unavailable for this turn"
             )
-        if action.question_plan.semantic_route_type in action.state.blocked_routes:
+        if action.question_plan.semantic_route_type in normalized_state.blocked_routes:
             raise CbtDraftValidationError(
                 "Agent questionPlan.semanticRouteType reuses a blocked state route"
             )
         if (
-            action.state.direct_support_closed
+            normalized_state.direct_support_closed
             and route_type
             in {
                 SemanticRouteType.DIRECT_WORD_OR_ACTION,
@@ -2061,6 +2727,27 @@ def _validate_agent_action(
             raise CbtDraftValidationError(
                 "answerSource is incompatible with semanticRouteType"
             )
+        target_domain = _question_plan_exploration_domain(
+            action.question_plan
+        )
+        if target_domain is not None and target_domain not in incomplete_domains:
+            raise CbtDraftValidationError(
+                "Agent questionPlan reopens a coverage domain that is already complete"
+            )
+        if completion_assessment_allowed and target_domain not in incomplete_domains:
+            dialogue_control = (
+                action.question_plan.latest_user_intent
+                in DIALOGUE_CONTROL_INTENTS
+            )
+            missing_domain_route_available = any(
+                available_routes & ROUTES_BY_EXPLORATION_DOMAIN[domain]
+                for domain in incomplete_domains
+            )
+            if not dialogue_control and missing_domain_route_available:
+                raise CbtDraftValidationError(
+                    "Completion review questions must target an actual "
+                    "NOT_EXPLORED coverage domain"
+                )
         draft = CbtAnalysisDraft(
             result_type=CbtResultType.QUESTION,
             semantic_progress=progress,
@@ -2078,18 +2765,39 @@ def _validate_agent_action(
             raise CbtDraftValidationError(
                 "Agent confirmation requires saved user answers"
             )
-        coverage = action.state.exploration_coverage
-        if not coverage.is_complete():
+        coverage = normalized_state.exploration_coverage
+        if _incomplete_coverage_domains(coverage):
             raise CbtDraftValidationError(
                 "Distortion confirmation requires complete exploration coverage"
             )
         progress = CbtSemanticProgress(
-            evidence_for=coverage.evidence_for.grounding,
-            evidence_against=coverage.evidence_against.grounding,
-            alternative_view=coverage.alternative_views.grounding,
-            acknowledgement=coverage.acknowledgement.grounding,
+            evidence_for=_positive_coverage_grounding(
+                coverage.evidence_for
+            ),
+            evidence_against=_positive_coverage_grounding(
+                coverage.evidence_against
+            ),
+            alternative_view=_positive_coverage_grounding(
+                coverage.alternative_views
+            ),
+            acknowledgement=_positive_coverage_grounding(
+                coverage.acknowledgement
+            ),
         )
-        action.confirmation = _render_confirmation(action, request)
+        proposed_codes = {
+            item.code for item in action.confirmation.before_distortions
+        }
+        proposed_codes.update(
+            item.code
+            for item in action.confirmation.outcome_draft.after_distortions
+        )
+        _validate_fact_boundary(
+            action.fact_boundary,
+            request,
+            distortion_required=True,
+            proposed_codes=proposed_codes,
+        )
+        action.confirmation = _render_confirmation(action, request, coverage)
         draft = CbtAnalysisDraft(
             result_type=CbtResultType.CONFIRMATION_REQUIRED,
             semantic_progress=progress,
@@ -2098,6 +2806,7 @@ def _validate_agent_action(
             risk=none_risk,
             safety_evidence=None,
         )
+        return draft
     elif isinstance(action, RequestNoClearDistortionConfirmationAction):
         if not completion_assessment_allowed:
             raise CbtDraftValidationError(
@@ -2107,7 +2816,14 @@ def _validate_agent_action(
             raise CbtDraftValidationError(
                 "NO_CLEAR_DISTORTION requires saved user answers"
             )
-        _validate_no_clear_distortion_action(action, request)
+        coverage = normalized_state.exploration_coverage
+        _validate_fact_boundary(
+            action.fact_boundary,
+            request,
+            distortion_required=False,
+            proposed_codes=set(),
+        )
+        _validate_no_clear_distortion_action(action, request, coverage)
         return None
     else:
         _validate_safety_action(action, request)
@@ -2138,9 +2854,9 @@ async def _select_agent_action(
     *,
     agent_model: Any | None = None,
     diagnostics: Q5TurnDiagnostics,
-) -> tuple[AgentAction, CbtAnalysisDraft | None]:
+) -> tuple[AgentAction, CbtAnalysisDraft | None, CbtSessionState]:
     payload = _build_agent_payload(request, runtime, mode)
-    completion_assessment_allowed = bool(
+    initial_completion_allowed = bool(
         payload["completionAssessmentAllowed"]
     )
     safety_allowed = bool(payload["safetyCandidates"])
@@ -2148,26 +2864,67 @@ async def _select_agent_action(
         SemanticRouteType(item["semanticRouteType"])
         for item in payload["semanticRouteDefinitions"]
     }
-    diagnostics.available_tools = [ASK_QUESTION_TOOL.name]
-    if safety_allowed:
-        diagnostics.available_tools.append(SAFETY_STOP_TOOL.name)
-    if completion_assessment_allowed:
-        diagnostics.available_tools.extend(
-            [
-                REQUEST_CONFIRMATION_TOOL.name,
-                REQUEST_NO_CLEAR_DISTORTION_CONFIRMATION_TOOL.name,
-            ]
-        )
-    diagnostics.completion_assessment_allowed = completion_assessment_allowed
-    diagnostics.exploration_coverage = dict(payload["explorationCoverage"])
+    diagnostics.available_tools = []
+    diagnostics.completion_assessment_allowed = initial_completion_allowed
+    diagnostics.exploration_coverage = dict(payload["priorVerifiedCoverage"])
     diagnostics.available_routes = sorted(route.value for route in available_routes)
-    model = agent_model or _get_agent_model(
-        safety_allowed,
-        completion_assessment_allowed,
+    verified_state_floor = _normalize_agent_state(
+        runtime.state,
+        request,
+        runtime,
     )
     feedbacks: list[str] = []
 
     for attempt in range(CBT_AGENT_MODEL_OUTPUT_ATTEMPTS):
+        floor_complete = verified_state_floor.exploration_coverage.is_complete()
+        completion_assessment_allowed = (
+            initial_completion_allowed or floor_complete
+        )
+        ask_allowed = not safety_allowed and not floor_complete
+        available_tools = (
+            [SAFETY_STOP_TOOL.name]
+            if safety_allowed
+            else (
+                [ASK_QUESTION_TOOL.name] if ask_allowed else []
+            )
+        )
+        if completion_assessment_allowed and not safety_allowed:
+            available_tools.extend(
+                [
+                    REQUEST_CONFIRMATION_TOOL.name,
+                    REQUEST_NO_CLEAR_DISTORTION_CONFIRMATION_TOOL.name,
+                ]
+            )
+        diagnostics.available_tools = list(
+            dict.fromkeys([*diagnostics.available_tools, *available_tools])
+        )
+        diagnostics.completion_assessment_allowed = completion_assessment_allowed
+        diagnostics.exploration_coverage = verified_state_floor.exploration_coverage.model_dump(
+            by_alias=True,
+            mode="json",
+        )
+        payload["priorVerifiedCoverage"] = diagnostics.exploration_coverage
+        payload["completionAssessmentAllowed"] = completion_assessment_allowed
+        payload["confirmationAllowed"] = completion_assessment_allowed
+        payload["distortionDefinitions"] = (
+            [
+                {"code": code.value, **DISTORTION_DEFINITIONS[code]}
+                for code in DistortionCode
+            ]
+            if completion_assessment_allowed
+            else []
+        )
+        payload["incompleteCoverageDomains"] = [
+            COVERAGE_DOMAIN_ALIASES[domain]
+            for domain in _incomplete_coverage_domains(
+                verified_state_floor.exploration_coverage
+            )
+        ]
+        model = agent_model or _get_agent_model(
+            safety_allowed,
+            completion_assessment_allowed,
+            ask_allowed,
+        )
         diagnostics.agent_attempt_count = attempt + 1
         messages = [SystemMessage(content=AGENT_SYSTEM_PROMPT)]
         if feedbacks:
@@ -2187,14 +2944,22 @@ async def _select_agent_action(
         try:
             message = await model.ainvoke(messages)
             action = _parse_agent_action(message)
-            action.state = _normalize_agent_state(
-                action.state,
-                request,
-                runtime,
-            )
             if safety_allowed and not isinstance(action, SafetyStopAction):
                 raise CbtDraftValidationError(
                     "A matching current-user safetyCandidate requires safety_stop"
+                )
+            if not isinstance(action, SafetyStopAction):
+                verified_state_floor = _merge_coverage_review(
+                    action.coverage_review,
+                    request,
+                    runtime,
+                    verified_state_floor,
+                )
+                floor_complete = (
+                    verified_state_floor.exploration_coverage.is_complete()
+                )
+                completion_assessment_allowed = (
+                    initial_completion_allowed or floor_complete
                 )
             if (
                 isinstance(
@@ -2240,6 +3005,7 @@ async def _select_agent_action(
             draft = _validate_agent_action(
                 action,
                 request,
+                verified_state_floor,
                 available_routes=available_routes,
                 completion_assessment_allowed=completion_assessment_allowed,
             )
@@ -2278,7 +3044,7 @@ async def _select_agent_action(
                     type(action).__name__,
                     action.model_dump_json(by_alias=True),
                 )
-            return action, draft
+            return action, draft, verified_state_floor
 
         feedbacks.append(feedback)
         diagnostics.agent_validation_failures.append(feedback)
@@ -2294,7 +3060,9 @@ async def _select_agent_action(
                 feedback,
             )
 
-    raise CbtModelOutputExhaustedError("agent action", feedbacks) from None
+    exhausted = CbtModelOutputExhaustedError("agent action", feedbacks)
+    exhausted.verified_state_floor = verified_state_floor
+    raise exhausted from None
 
 
 def _with_agent_meta(response: CbtTurnResponse) -> CbtTurnResponse:
@@ -2338,20 +3106,25 @@ async def _run_agent_turn(
     writer_model: Any | None = None,
     registry: CbtAgentSessionRegistry = _registry,
 ) -> CbtTurnResponse:
+    _refresh_unanswered_question_attempts(request, runtime, mode)
     diagnostics = Q5TurnDiagnostics(mode=mode)
     runtime.last_diagnostics = diagnostics
     wording: QuestionWordingDraft | None = None
     agent_plan: AgentQuestionPlan | None = None
     no_clear_response: CbtTurnResponse | None = None
     try:
-        action, draft = await _select_agent_action(
+        action, draft, state_for_runtime = await _select_agent_action(
             request,
             runtime,
             mode,
             agent_model=agent_model,
             diagnostics=diagnostics,
         )
-    except CbtModelOutputExhaustedError as exc:
+    except (APITimeoutError, APIConnectionError, RateLimitError, TimeoutError) as exc:
+        safety_candidates = _safety_candidates(request)
+        if not safety_candidates:
+            raise
+        candidate = safety_candidates[0]
         state_for_runtime = _normalize_agent_state(
             runtime.state,
             request,
@@ -2363,36 +3136,95 @@ async def _run_agent_turn(
         ) -> SavedAnswerEvidence | None:
             return items[-1] if items else None
 
-        progress = CbtSemanticProgress(
-            evidence_for=representative(state_for_runtime.evidence_for),
-            evidence_against=representative(state_for_runtime.evidence_against),
-            alternative_view=representative(state_for_runtime.alternative_views),
-            acknowledgement=state_for_runtime.acknowledgement,
+        draft = CbtAnalysisDraft(
+            result_type=CbtResultType.SAFETY_STOP,
+            semantic_progress=CbtSemanticProgress(
+                evidence_for=representative(state_for_runtime.evidence_for),
+                evidence_against=representative(state_for_runtime.evidence_against),
+                alternative_view=representative(state_for_runtime.alternative_views),
+                acknowledgement=state_for_runtime.acknowledgement,
+            ),
+            question_plan=None,
+            confirmation=None,
+            risk=RiskAssessment(
+                level=(
+                    RiskLevel.CRISIS
+                    if candidate["reason"] == RiskReasonCode.IMMEDIATE_DANGER.value
+                    else RiskLevel.REVIEW
+                ),
+                reason_code=RiskReasonCode(candidate["reason"]),
+            ),
+            safety_evidence=candidate["evidence"],
         )
-        draft, wording = _build_deterministic_fallback(
-            request,
-            semantic_progress=progress,
-        )
-        draft, wording = _constrain_agent_fallback(
-            request,
-            runtime,
-            draft,
-            wording,
-        )
+        _validate_analysis_draft(draft, request)
         diagnostics.fallback_used = True
-        diagnostics.fallback_reason = f"{exc.stage}: {'; '.join(exc.feedbacks)}"
-        diagnostics.render_source = "DETERMINISTIC_AGENT_FALLBACK"
-        if wording is not None:
-            diagnostics.deterministic_preface = wording.preface
-            diagnostics.deterministic_question = wording.question
-        _log_fallback_usage(
-            request,
-            architecture="agent",
-            failed_stage=exc.stage,
-            draft=draft,
-        )
+        diagnostics.fallback_reason = f"safety transport: {type(exc).__name__}"
+        diagnostics.render_source = "DETERMINISTIC_SAFETY_TRANSPORT_FALLBACK"
+    except CbtModelOutputExhaustedError as exc:
+        state_for_runtime = getattr(exc, "verified_state_floor", None)
+        if state_for_runtime is None:
+            state_for_runtime = _normalize_agent_state(
+                runtime.state,
+                request,
+                runtime,
+            )
+
+        if _explicit_feedback_intent(request) == LatestUserIntent.REQUEST_EXAMPLE:
+            draft, wording, agent_plan = _build_request_example_fallback(
+                request,
+                runtime,
+                state_for_runtime,
+                diagnostics,
+            )
+            diagnostics.fallback_used = True
+            diagnostics.fallback_reason = (
+                f"{exc.stage}: {'; '.join(exc.feedbacks)}"
+            )
+            diagnostics.render_source = "DETERMINISTIC_EXAMPLE_FALLBACK"
+            _log_fallback_usage(
+                request,
+                architecture="agent",
+                failed_stage=exc.stage,
+                draft=draft,
+            )
+        else:
+
+            def representative(
+                items: list[SavedAnswerEvidence],
+            ) -> SavedAnswerEvidence | None:
+                return items[-1] if items else None
+
+            progress = CbtSemanticProgress(
+                evidence_for=representative(state_for_runtime.evidence_for),
+                evidence_against=representative(state_for_runtime.evidence_against),
+                alternative_view=representative(state_for_runtime.alternative_views),
+                acknowledgement=state_for_runtime.acknowledgement,
+            )
+            draft, wording = _build_deterministic_fallback(
+                request,
+                semantic_progress=progress,
+            )
+            draft, wording = _constrain_agent_fallback(
+                request,
+                runtime,
+                draft,
+                wording,
+            )
+            diagnostics.fallback_used = True
+            diagnostics.fallback_reason = (
+                f"{exc.stage}: {'; '.join(exc.feedbacks)}"
+            )
+            diagnostics.render_source = "DETERMINISTIC_AGENT_FALLBACK"
+            if wording is not None:
+                diagnostics.deterministic_preface = wording.preface
+                diagnostics.deterministic_question = wording.question
+            _log_fallback_usage(
+                request,
+                architecture="agent",
+                failed_stage=exc.stage,
+                draft=draft,
+            )
     else:
-        state_for_runtime = action.state
         if isinstance(action, AskQuestionAction):
             agent_plan = action.question_plan
             diagnostics.answer_target = agent_plan.answer_target
@@ -2413,6 +3245,7 @@ async def _run_agent_turn(
                 action,
                 request,
                 diagnostics,
+                state_for_runtime.exploration_coverage,
             )
         else:
             diagnostics.render_source = "SAFETY_STOP"
@@ -2543,6 +3376,7 @@ async def _run_agent_turn(
         runtime.state = state_for_runtime
         runtime.history = list(_history_for(request))
         runtime.pending_question = response.next_question
+        runtime.pending_plan = agent_plan
         runtime.pending_assessment = None
     else:
         # 마지막 요청의 HTTP 재시도에도 동일 응답을 돌려줄 수 있도록 TTL까지
@@ -2550,6 +3384,7 @@ async def _run_agent_turn(
         runtime.state = state_for_runtime
         runtime.history = list(_history_for(request))
         runtime.pending_question = None
+        runtime.pending_plan = None
         if response.status == CbtApiStatus.CONFIRM_REQUIRED:
             assert response.assessment_type is not None
             assert response.outcome_draft is not None
@@ -2588,7 +3423,9 @@ async def generate_agent_cbt_start(
         runtime.state = _empty_session_state()
         runtime.history = []
         runtime.pending_question = None
+        runtime.pending_plan = None
         runtime.pending_assessment = None
+        runtime.unanswered_question_attempts = []
         response = await _run_agent_turn(
             request,
             runtime,
@@ -2623,7 +3460,9 @@ async def generate_agent_cbt_turn(
             runtime.state = _empty_session_state()
             runtime.history = []
             runtime.pending_question = None
+            runtime.pending_plan = None
             runtime.pending_assessment = None
+            runtime.unanswered_question_attempts = []
             mode = "REHYDRATE"
         response = await _run_agent_turn(
             request,
