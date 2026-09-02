@@ -124,6 +124,7 @@ function EmotionHistory({
   onEmotionRecord,
   onCenter,
   onDailyCare,
+  onReflectionResume,
   onHome,
 }) {
   // 사용자가 선택한 감정 기록 조회 기간을 보관하는 상태 설정.
@@ -334,7 +335,7 @@ function EmotionHistory({
         </div>
 
         {/* 진행 중인 CBT 성찰 목록과 선택한 질문·답변 상세 조회 영역 배치. */}
-        <OpenReflections />
+        <OpenReflections onResume={onReflectionResume} />
 
         {/* 감정 기록의 조회 기간과 표시 순서를 선택하는 탐색 영역 배치. */}
         <div className="emotion-history-controls">

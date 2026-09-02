@@ -33,6 +33,8 @@ function App() {
   const [isLoginRequiredOpen, setIsLoginRequiredOpen] = useState(false)
   // CBT 성찰을 시작할 저장 완료 감정 기록 식별자 상태 관리.
   const [cbtEmotionRecordId, setCbtEmotionRecordId] = useState(null)
+  // 감정 기록 목록에서 이어서 진행할 OPEN CBT 세션 상세 상태 관리.
+  const [cbtResumeSession, setCbtResumeSession] = useState(null)
   // 감정 기록 목록에서 선택한 상세 조회 대상 식별자 상태 관리.
   const [selectedEmotionRecordId, setSelectedEmotionRecordId] = useState(null)
   // 각 화면의 로고 선택 시 새로고침 없이 메인페이지로 이동하는 처리.
@@ -76,6 +78,13 @@ function App() {
   // 저장된 감정 기록 식별자를 보관하고 CBT 화면으로 이동하는 처리.
   const handleCbtOpen = (emotionRecordId) => {
     setCbtEmotionRecordId(emotionRecordId)
+    setCbtResumeSession(null)
+    setCurrentPage('cbt')
+  }
+  // 선택한 OPEN 성찰의 기존 대화 이력을 보관하고 CBT 화면으로 이동하는 처리.
+  const handleReflectionResume = (reflectionSession) => {
+    setCbtEmotionRecordId(reflectionSession.emotionRecordId ?? null)
+    setCbtResumeSession(reflectionSession)
     setCurrentPage('cbt')
   }
   // 목록에서 선택한 감정 기록 식별자를 보관하고 상세 화면으로 이동하는 처리.
@@ -134,6 +143,7 @@ function App() {
         onEmotionRecord={() => setCurrentPage('emotion-record')}
         onCenter={() => setCurrentPage('center')}
         onDailyCare={() => moveToProtectedPage('daily-care')}
+        onReflectionResume={handleReflectionResume}
         onHome={moveToMain}
       />
     )
@@ -159,6 +169,7 @@ function App() {
     currentPageContent = (
       <CBT
         emotionRecordId={cbtEmotionRecordId}
+        resumeSession={cbtResumeSession}
         isAuthenticated={isAuthenticated}
         isLoggingOut={isLoggingOut}
         onLogin={() => setCurrentPage('login')}
@@ -214,7 +225,10 @@ function App() {
         onCenter={() => setCurrentPage('center')}
         onDailyCare={() => moveToProtectedPage('daily-care')}
         onHome={moveToMain}
-        onCBT={() => setCurrentPage('cbt')}
+        onCBT={() => {
+          setCbtResumeSession(null)
+          setCurrentPage('cbt')
+        }}
       />
     )
   } else {
