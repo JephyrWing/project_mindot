@@ -11,7 +11,7 @@
   display: flex;
   min-height: calc(100vh - 72px);
   min-height: calc(100dvh - 72px - env(safe-area-inset-top, 0px));
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding:
     20px
@@ -23,7 +23,7 @@
 /* 주간 리포트 정보를 담는 단일 테두리 카드 설정. */
 .weekly-report-card {
   width: 100%;
-  max-width: 620px;
+  max-width: 820px;
   margin: auto 0;
   border: 1px solid var(--mindot-border);
   border-radius: 14px;
@@ -125,7 +125,7 @@
 /* 세 가지 주간 요약 정보를 동일한 너비로 배치하는 격자 설정. */
 .weekly-report-summary-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 16px;
   margin-top: 16px;
 }
@@ -172,6 +172,230 @@
   line-height: 1.6;
 }
 
+/* 주간 리포트 조회·빈 상태·오류 안내의 가로 구분선 배치. */
+.weekly-report-state {
+  margin-top: 28px;
+  border-top: 1px solid var(--mindot-border);
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 24px 0;
+  text-align: center;
+}
+
+/* 주간 리포트 상태의 상세 안내 문구 설정. */
+.weekly-report-state p {
+  margin: 8px 0 0;
+  color: var(--mindot-text-muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* 주간 리포트 오류 상태 제목과 문구의 경고 색상 설정. */
+.weekly-report-state--error strong,
+.weekly-report-state--error p,
+.weekly-report-error {
+  color: var(--mindot-danger);
+}
+
+/* 주간 리포트 재조회 버튼의 충분한 터치 영역과 브랜드 색상 설정. */
+.weekly-report-state button {
+  min-height: 44px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  margin-top: 16px;
+  padding: 0 18px;
+  color: var(--mindot-primary-strong);
+  font: inherit;
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+/* 최신 집계와 PDF 내보내기 동작의 동일한 너비 배치. */
+.weekly-report-data-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+/* 주간 리포트 보조 동작 버튼의 흰색 배경과 브랜드 테두리 설정. */
+.weekly-report-data-actions button {
+  min-height: 46px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  color: var(--mindot-primary-strong);
+  font: inherit;
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 주간 리포트 보조 동작 버튼에 마우스를 올렸을 때 옅은 파란색 배경 적용. */
+.weekly-report-data-actions button:not(:disabled):hover,
+.weekly-report-state button:hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+/* 처리 중인 주간 리포트 동작 버튼의 비활성화 표시 설정. */
+.weekly-report-data-actions button:disabled {
+  border-color: var(--mindot-border);
+  color: var(--mindot-disabled);
+  background: var(--mindot-surface-muted);
+  cursor: not-allowed;
+}
+
+/* PDF 내보내기 오류 문구의 간격과 가독성 설정. */
+.weekly-report-error {
+  margin: 12px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 분포·반복 패턴·근거 목록 영역의 상단 구분과 여백 설정. */
+.weekly-report-distributions,
+.weekly-report-patterns,
+.weekly-report-evidence {
+  margin-top: 30px;
+  border-top: 1px solid var(--mindot-border);
+  padding-top: 24px;
+}
+
+/* 실제 리포트 상세 영역 제목의 동일한 크기 단계 설정. */
+.weekly-report-distributions h2,
+.weekly-report-patterns h2,
+.weekly-report-evidence h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+/* 감정·요일·시간대 분포를 세 열로 나누는 영역 설정. */
+.weekly-report-distributions > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: 18px;
+}
+
+/* 각 분포 제목의 세미 볼드 강조 설정. */
+.weekly-report-distributions h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+/* 리포트 통계와 패턴 목록의 기본 목록 표시 제거. */
+.weekly-report-distributions ul,
+.weekly-report-patterns ul {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* 분포 항목 이름과 횟수의 양쪽 정렬 설정. */
+.weekly-report-distributions li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 10px 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+}
+
+/* 분포가 없는 경우의 보조 안내 색상 설정. */
+.weekly-report-distributions p,
+.weekly-report-patterns > p,
+.weekly-report-evidence > p {
+  margin: 14px 0 0;
+  color: var(--mindot-text-muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* 반복 패턴 한 건을 중첩 카드 없이 구분선으로 분리. */
+.weekly-report-patterns li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 14px 0;
+}
+
+/* 반복 패턴의 기준 정보를 보조 글자색으로 설정. */
+.weekly-report-patterns li span {
+  color: var(--mindot-text-muted);
+  font-size: 13px;
+  text-align: right;
+}
+
+/* 근거 감정 기록과 완료 CBT 목록의 세로 배치 설정. */
+.weekly-report-evidence > div {
+  margin-top: 12px;
+}
+
+/* 근거 한 건을 카드 중첩 없이 가로 구분선으로 분리. */
+.weekly-report-evidence article {
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 16px 0;
+}
+
+/* 근거 감정과 시각 또는 도움 점수의 양쪽 정렬 설정. */
+.weekly-report-evidence article header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* 근거 기록의 날짜와 도움 점수를 보조 정보로 설정. */
+.weekly-report-evidence time,
+.weekly-report-evidence article header span {
+  color: var(--mindot-text-muted);
+  font-size: 12px;
+  text-align: right;
+}
+
+/* 근거 기록 본문의 충분한 대비와 줄 간격 설정. */
+.weekly-report-evidence article p {
+  margin: 10px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+/* 근거 감정 기록의 상세 화면 이동 버튼 설정. */
+.weekly-report-evidence article button {
+  min-height: 42px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  margin-top: 12px;
+  padding: 0 14px;
+  color: var(--mindot-primary-strong);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+/* 근거 상세 이동 버튼에 마우스를 올렸을 때 옅은 파란색 배경 적용. */
+.weekly-report-evidence article button:hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+/* 리포트 데이터의 마지막 집계 시각을 우측에 보조 정보로 표시. */
+.weekly-report-snapshot {
+  margin: 20px 0 0;
+  color: var(--mindot-text-muted);
+  font-size: 12px;
+  text-align: right;
+}
+
 /* 메인페이지로 돌아가는 주요 버튼 설정. */
 .weekly-report-back-button {
   width: 100%;
@@ -212,6 +436,24 @@
   }
 
   .weekly-report-period strong {
+    text-align: left;
+  }
+
+  .weekly-report-data-actions,
+  .weekly-report-distributions > div {
+    grid-template-columns: 1fr;
+  }
+
+  .weekly-report-patterns li,
+  .weekly-report-evidence article header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .weekly-report-patterns li span,
+  .weekly-report-evidence time,
+  .weekly-report-evidence article header span {
     text-align: left;
   }
 }
