@@ -90,6 +90,16 @@ public class ReflectionSessionsController {
         );
     }
 
+    // OpenAI 임베딩 생성 실패 후, 완료된 CBT 결과의 벡터 생성만 재시도
+    @PostMapping("/{sessionId}/retry-embedding")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void retryEmbedding(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long sessionId
+    ) {
+        reflectionSessionsService.retryEmbedding(userId, sessionId);
+    }
+
     // 첫 CBT 질문 생성 실패 후, 질문이 없는 OPEN 세션의 재시도 API
     @PostMapping("/{sessionId}/retry-first-question")
     public ReflectionSessionStartResponseDto retryFirstQuestion(
