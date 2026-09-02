@@ -1,4 +1,4 @@
-// 선택한 주의 감정 기록 통계를 React에 반환하는 DTO
+// 선택한 주의 감정·CBT 통계와 통계 근거 목록을 프론트에 반환하는 DTO
 package com.my.mindot_back.reports.dto;
 
 import java.time.Instant;
@@ -15,6 +15,8 @@ public record WeeklyReportResponseDto (
         Double averageIntensity,
         int completedCbtCount,
         Double averageHelpfulnessScore,
+        List<WeeklyReportEmotionEvidenceDto> emotionRecordEvidences,
+        List<WeeklyReportCbtEvidenceDto> completedCbtEvidences,
         List<RepeatedEmotionPatternDto> repeatedPatterns,
         Map<String, Long> emotionCounts,
         Map<String, Long> weekdayCounts,

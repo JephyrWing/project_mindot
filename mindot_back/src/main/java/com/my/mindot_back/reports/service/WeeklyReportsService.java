@@ -7,6 +7,8 @@ import com.my.mindot_back.records.entity.ReflectionSessions;
 import com.my.mindot_back.records.repository.EmotionRecordsRepository;
 import com.my.mindot_back.records.repository.ReflectionSessionsRepository;
 import com.my.mindot_back.reports.dto.RepeatedEmotionPatternDto;
+import com.my.mindot_back.reports.dto.WeeklyReportCbtEvidenceDto;
+import com.my.mindot_back.reports.dto.WeeklyReportEmotionEvidenceDto;
 import com.my.mindot_back.reports.dto.WeeklyReportResponseDto;
 import com.my.mindot_back.reports.entity.PatternLevel;
 import com.my.mindot_back.reports.entity.ReportType;
@@ -446,6 +448,18 @@ public class WeeklyReportsService {
                 ? helpfulnessAverage.getAsDouble()
                 : null;
 
+        // 감정 통계의 근거가 된 감정 기록을 리포트에 함께 저장
+        List<WeeklyReportEmotionEvidenceDto> emotionRecordEvidences =
+                emotionRecords.stream()
+                        .map(WeeklyReportEmotionEvidenceDto::from)
+                        .toList();
+
+        // 완료 CBT 통계의 근거가 된 성찰 요약을 리포트에 함께 저장
+        List<WeeklyReportCbtEvidenceDto> completedCbtEvidences =
+                reflectionSessions.stream()
+                        .map(WeeklyReportCbtEvidenceDto::from)
+                        .toList();
+
         // reports.content JSONB에 저장할 통계 구조 생성
         Map<String, Object> content = new LinkedHashMap<>();
         content.put("recordCount", emotionRecords.size());
@@ -457,6 +471,8 @@ public class WeeklyReportsService {
         content.put("weekdayCounts", weekdayCounts);
         content.put("timeBucketCounts", timeBucketCounts);
         content.put("repeatedPatterns", repeatedPatterns);
+        content.put("emotionRecordEvidences", emotionRecordEvidences);
+        content.put("completedCbtEvidences", completedCbtEvidences);
 
         return content;
     }
@@ -500,6 +516,12 @@ public class WeeklyReportsService {
                 averageIntensity,
                 completedCbtCount,
                 averageHelpfulnessScore,
+                toEmotionRecordEvidences(
+                        content.get("emotionRecordEvidences")
+                ),
+                toCompletedCbtEvidences(
+                        content.get("completedCbtEvidences")
+                ),
                 toRepeatedEmotionPatterns(content.get("repeatedPatterns")),
                 toLongMap(content.get("emotionCounts")),
                 toLongMap(content.get("weekdayCounts")),
@@ -526,6 +548,130 @@ public class WeeklyReportsService {
         });
 
         return result;
+    }
+
+    // JSONB에 저장된 감정 기록 근거 목록을 응답 DTO로 변환
+    private List<WeeklyReportEmotionEvidenceDto>
+    toEmotionRecordEvidences(
+            Object value
+    ) {
+        if (!(value instanceof List<?> rawEvidences)) {
+            return List.of();
+        }
+
+        List<WeeklyReportEmotionEvidenceDto> evidences =
+                new ArrayList<>();
+
+        for (Object rawEvidence : rawEvidences) {
+            // 리포트를 방금 생성한 경우에는 DTO 객체 형태로 들어올 수 있음
+            if (rawEvidence instanceof WeeklyReportEmotionEvidenceDto evidence){
+                evidences.add(evidence);
+                continue;
+            }
+
+            // DB에서 다시 조회한 JSONB 값은 Map 형태이므로 DTO로 변환
+            if (!(rawEvidence instanceof Map<?,?> rawMap)
+                    || !(rawMap.get("emotionRecordId")
+                    instanceof Number emotionRecordId)) {
+                continue;
+            }
+
+            Instant occurredAt = null;
+
+            if (rawMap.get("occurredAt")
+                    instanceof String occurredAtText) {
+                try {
+                    occurredAt = Instant.parse(occurredAtText);
+                } catch (RuntimeException ignored) {
+                    // 날짜 형식이 올바르지 않은 근거 데이터는 null로 변환
+                }
+            }
+
+            Short primaryIntensity =
+                    rawMap.get("primaryIntensity")
+                                instanceof Number intensity
+                                ? intensity.shortValue()
+                                : null;
+
+            String primaryEmotionCode =
+                    rawMap.get("primaryEmotionCode")
+                            instanceof String emotionCode
+                            ? emotionCode
+                            : null;
+
+            String situationText =
+                    rawMap.get("situationText")
+                            instanceof String situation
+                            ? situation
+                            : null;
+
+            String automaticThought =
+                    rawMap.get("automaticThought")
+                            instanceof String thought
+                            ? thought
+                            : null;
+
+            evidences.add(new WeeklyReportEmotionEvidenceDto(
+                    emotionRecordId.longValue(),
+                    occurredAt,
+                    primaryEmotionCode,
+                    primaryIntensity,
+                    situationText,
+                    automaticThought
+            ));
+        }
+        return evidences;
+    }
+
+    // JSONB에 저장된 완료 CBT 근거 목록을 응답 DTO로 변환
+    private List<WeeklyReportCbtEvidenceDto>
+    toCompletedCbtEvidences(
+            Object value
+    ) {
+        if (!(value instanceof List<?> rawEvidences)) {
+            return List.of();
+        }
+
+        List<WeeklyReportCbtEvidenceDto> evidences =
+                new ArrayList<>();
+
+        for (Object rawEvidence : rawEvidences) {
+            // 리포트를 방금 생성한 경우에는 DTO 객체 형태로 들어올 수 있음
+            if (rawEvidence instanceof WeeklyReportCbtEvidenceDto evidence) {
+                evidences.add(evidence);
+                continue;
+            }
+
+            // DB에서 다시 조회한 JSONB 값은 Map 형태이므로 DTO로 변환
+            if (!(rawEvidence instanceof Map<?, ?> rawMap)
+                    || !(rawMap.get("sessionId")
+                    instanceof Number sessionId)
+                    || !(rawMap.get("emotionRecordId")
+                    instanceof Number emotionRecordId)) {
+                continue;
+            }
+
+            String alternativeThoughtText =
+                    rawMap.get("alternativeThoughtText")
+                            instanceof String alternativeThought
+                            ? alternativeThought
+                            : null;
+
+            Short helpfulnessScore =
+                    rawMap.get("helpfulnessScore")
+                            instanceof Number helpfulness
+                            ? helpfulness.shortValue()
+                            : null;
+
+            evidences.add(new WeeklyReportCbtEvidenceDto(
+                    sessionId.longValue(),
+                    emotionRecordId.longValue(),
+                    alternativeThoughtText,
+                    helpfulnessScore
+            ));
+        }
+
+        return evidences;
     }
 
     // JSONB에 저장된 반복 패턴 목록을 응답 DTO로 변환
