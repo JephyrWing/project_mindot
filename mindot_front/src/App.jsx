@@ -191,6 +191,7 @@ function App() {
         onLogout={handleLogout}
         onSignUp={() => setCurrentPage('signup')}
         onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onRecordDetail={handleEmotionRecordDetailOpen}
         onCenter={() => setCurrentPage('center')}
         onDailyCare={() => moveToProtectedPage('daily-care')}
         onBack={moveToMain}
