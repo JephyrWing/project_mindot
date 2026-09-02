@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Navbar from '../Navbar/Navbar.jsx'
+import OpenReflections from '../OpenReflections/OpenReflections.jsx'
 import { getEmotionRecords } from '../../utils/records/recordsApi.js'
 import './EmotionHistory.css'
 
@@ -331,6 +332,9 @@ function EmotionHistory({
                 : `${selectedPeriodLabel} ${displayedRecords.length}개`}
           </span>
         </div>
+
+        {/* 진행 중인 CBT 성찰 목록과 선택한 질문·답변 상세 조회 영역 배치. */}
+        <OpenReflections />
 
         {/* 감정 기록의 조회 기간과 표시 순서를 선택하는 탐색 영역 배치. */}
         <div className="emotion-history-controls">
