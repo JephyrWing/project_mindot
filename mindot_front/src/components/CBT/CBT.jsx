@@ -104,9 +104,31 @@ const getResponseMessage = (response) => {
   return 'CBT 성찰 대화가 마무리되었습니다.'
 }
 
+// 저장된 질문과 답변 배열을 CBT 대화창에서 사용할 순서형 메시지 목록으로 변환.
+const createResumedChatMessages = (resumeSession) => (
+  (resumeSession?.questionAnswers ?? []).flatMap((questionAnswer, index) => {
+    const messages = [{
+      id: `ai-${resumeSession.sessionId}-history-${index}`,
+      sender: 'ai',
+      text: questionAnswer.question || '질문 내용이 없습니다.',
+    }]
+
+    if (questionAnswer.answer?.trim()) {
+      messages.push({
+        id: `user-${resumeSession.sessionId}-history-${index}`,
+        sender: 'user',
+        text: questionAnswer.answer,
+      })
+    }
+
+    return messages
+  })
+)
+
 // 감정 기록을 바탕으로 생각을 돌아보는 기본 CBT 성찰 화면 컴포넌트 정의.
 function CBT({
   emotionRecordId,
+  resumeSession,
   isAuthenticated,
   isLoggingOut,
   onLogin,
@@ -118,13 +140,19 @@ function CBT({
   onHome,
 }) {
   // CBT AI 대화창 시작 여부 상태 관리.
-  const [isChatStarted, setIsChatStarted] = useState(false)
+  const [isChatStarted, setIsChatStarted] = useState(
+    () => Boolean(resumeSession?.sessionId),
+  )
   // 사용자가 작성 중인 답변 내용 상태 관리.
   const [message, setMessage] = useState('')
   // API에서 주고받은 AI 질문과 사용자 답변 목록 상태 관리.
-  const [chatMessages, setChatMessages] = useState([])
+  const [chatMessages, setChatMessages] = useState(
+    () => createResumedChatMessages(resumeSession),
+  )
   // 백엔드가 생성한 CBT 성찰 세션 식별자 상태 관리.
-  const [sessionId, setSessionId] = useState(null)
+  const [sessionId, setSessionId] = useState(
+    () => resumeSession?.sessionId ?? null,
+  )
   // CBT 세션 시작 요청 진행 여부 상태 관리.
   const [isStarting, setIsStarting] = useState(false)
   // CBT 답변 전송 요청 진행 여부 상태 관리.
@@ -138,7 +166,9 @@ function CBT({
   // 자동 사고 보완 입력 영역 표시 여부 상태 관리.
   const [isAutomaticThoughtRequired, setIsAutomaticThoughtRequired] = useState(false)
   // CBT 대화 계속 여부를 판단하기 위한 백엔드 응답 상태 관리.
-  const [reflectionStatus, setReflectionStatus] = useState('IDLE')
+  const [reflectionStatus, setReflectionStatus] = useState(
+    () => (resumeSession?.sessionId ? 'CONTINUE' : 'IDLE'),
+  )
   // CONFIRM_REQUIRED 결과의 인지왜곡 판정 유형 상태 관리.
   const [assessmentType, setAssessmentType] = useState('')
   // AI가 제안한 CBT 최종 결과와 사용자의 수정값 상태 관리.
