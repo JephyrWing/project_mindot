@@ -15,6 +15,8 @@ import com.my.mindot_back.records.entity.*;
 import com.my.mindot_back.records.repository.EmotionRecordsRepository;
 import com.my.mindot_back.records.repository.ReflectionSessionsRepository;
 import com.my.mindot_back.records.repository.SessionDistortionsRepository;
+import com.my.mindot_back.safety.dto.SafetyNoticeResponseDto;
+import com.my.mindot_back.safety.service.SafetyEventsService;
 import com.my.mindot_back.users.repository.UsersRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -55,6 +57,9 @@ public class EmotionRecordsService {
     // 유사 CBT 사례를 바탕으로 FastAPI에 패턴 설명 생성 요청
     private final FastApiPatternExplanationClient fastApiPatternExplanationClient;
 
+    // 감정 기록에 연결된 최신 안전 안내를 조회
+    private final SafetyEventsService  safetyEventsService;
+
     /*
      * 1. 로그인 사용자 확인
      * 2. 원문 감정 기록 생성
@@ -94,9 +99,16 @@ public class EmotionRecordsService {
                         analysis
                 );
 
+        // 위험 신호가 감지됐다면 프론트에 표시할 안전 안내 정보 조회
+        SafetyNoticeResponseDto safetyNotice =
+                safetyEventsService.getLatestSafetyNotice(
+                        emotionRecord.getId()
+                );
+
         return EmotionRecordsQuickCreateResponseDto.from(
                 emotionRecord,
-                analysis
+                analysis,
+                safetyNotice
         );
     }
 

@@ -57,8 +57,9 @@ public class SafetyEvents {
     private String reasonCode;
 
     // 실행한 고정 안전 조치 코드
+    @Enumerated(EnumType.STRING)
     @Column(name = "action_code", nullable = false, length = 50)
-    private String actionCode;
+    private SafetyActionCode actionCode;
 
     // 사용자에게 표시한 위기 안내 문구 버전
     @Column(name = "notice_version", nullable = false, length = 30)
@@ -73,6 +74,36 @@ public class SafetyEvents {
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
+
+    // FastAPI가 감지한 위험 신호를 안전 이벤트 이력으로 생성
+    public static SafetyEvents create(
+            EmotionRecords emotionRecord,
+            AiJobs aiJob,
+            RiskLevel riskLevel,
+            String reasonCode,
+            SafetyActionCode actionCode
+    ) {
+        SafetyEvents safetyEvent = new SafetyEvents();
+
+        safetyEvent.emotionRecords = emotionRecord;
+        safetyEvent.aiJobs = aiJob;
+        safetyEvent.riskLevel = riskLevel;
+        safetyEvent.reasonCode = reasonCode;
+        safetyEvent.actionCode = actionCode;
+
+        // 안전 안내 문구가 바뀌어도 당시 버전을 추적할 수 있도록 저장
+        safetyEvent.noticeVersion = "safety-notice-v1";
+
+        return safetyEvent;
+    }
+
+    // 프론트가 안전 안내를 실제로 화면에 표시한 최초 시각 기록
+    public void markNoticeShown(){
+        // 중복 API 호출이 와도 최초 표시 시각은 유지
+        if (this.noticeShownAt == null){
+            this.noticeShownAt = Instant.now();
+        }
+    }
 
     // DB 저장 전 생성 시각을 현재 시각으로 설정
     @PrePersist

@@ -10,5 +10,8 @@ public enum ReflectionSessionStatus {
     COMPLETED,
 
     // 사용자가 취소한 상태
-    CANCELLED
+    CANCELLED,
+
+    // 위험 신호가 감지되어 시스템이 중단한 상태, 재개 불가
+    SAFETY_STOPPED
 }

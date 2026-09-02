@@ -14,6 +14,8 @@ import com.my.mindot_back.records.entity.ReflectionSessions;
 import com.my.mindot_back.records.entity.SessionDistortions;
 import com.my.mindot_back.records.repository.ReflectionSessionsRepository;
 import com.my.mindot_back.records.repository.SessionDistortionsRepository;
+import com.my.mindot_back.safety.entity.SafetyActionCode;
+import com.my.mindot_back.safety.service.SafetyEventsService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -32,6 +34,8 @@ public class ReflectionSessionTurnTransactionService {
     private final SessionDistortionsRepository sessionDistortionsRepository;
     private final AiJobsRepository aiJobsRepository;
     private final DistortionTypesRepository distortionTypesRepository;
+    // FastAPI 위험 판단 결과를 안전 이벤트로 저장하고 CBT 중단 여부를 결정
+    private final SafetyEventsService safetyEventsService;
 
     // 트랜잭션 A: 사용자 답변과 다음 질문 생성 AI 작업 이력 저장
     @Transactional
@@ -112,7 +116,30 @@ public class ReflectionSessionTurnTransactionService {
 
         reflectionSession.applyAiMeta(fastApiResponse.meta());
 
-        if ("CONFIRM_REQUIRED".equals(fastApiResponse.status())) {
+        // REVIEW 또는 CRISIS 위험 신호가 있으면 안전 이벤트 이력 생성
+        SafetyActionCode actionCode =
+                safetyEventsService.recordIfRiskDetected(
+                        reflectionSession.getEmotionRecord(),
+                        aiJob,
+                        fastApiResponse.risk() != null
+                                ? fastApiResponse.risk().level()
+                                : null,
+                        fastApiResponse.risk() != null
+                                ? fastApiResponse.risk().reasonCode()
+                                : null
+                );
+
+        // FastAPI SAFETY_STOP 또는 CRISIS 판단이면 CBT 질문·결과 초안을 더 진행하지 않음
+        boolean safetyStopped =
+                "SAFETY_STOP".equals(fastApiResponse.status())
+                        || actionCode == SafetyActionCode.SHOW_CRISIS_NOTICE;
+
+        if (safetyStopped) {
+            reflectionSession.stopForSafety();
+        }
+
+        if (!safetyStopped
+                && "CONFIRM_REQUIRED".equals(fastApiResponse.status())) {
             reflectionSession.applyOutcomeDraft(
                     fastApiResponse.outcomeDraft()
             );
@@ -147,7 +174,8 @@ public class ReflectionSessionTurnTransactionService {
             }
         }
 
-        if ("CONTINUE".equals(fastApiResponse.status())) {
+        if (!safetyStopped
+                && "CONTINUE".equals(fastApiResponse.status())) {
             reflectionSession.addQuestion(
                     fastApiResponse.nextQuestion()
             );
