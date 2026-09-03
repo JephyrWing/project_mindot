@@ -29,6 +29,22 @@ export const createRecordsApi = (client) => ({
 
     return data
   },
+  // AI 분석에 실패하여 간편 기록 상태로 남은 감정 기록의 재분석을 요청하는 처리.
+  reanalyzeEmotionRecord: async (emotionRecordId) => {
+    const { data } = await client.post(
+      `/api/records/${emotionRecordId}/reanalyze`,
+    )
+
+    return data
+  },
+  // 확정된 감정 기록과 유사한 과거 CBT 사례를 기반으로 패턴 설명을 요청하는 처리.
+  getEmotionRecordPatternExplanation: async (emotionRecordId) => {
+    const { data } = await client.post(
+      `/api/records/${emotionRecordId}/pattern-explanation`,
+    )
+
+    return data
+  },
   // 선택한 감정 기록의 실제 감정 발생 시각을 수정하는 처리.
   updateEmotionRecordOccurredAt: async (emotionRecordId, occurredAt) => {
     const { data } = await client.patch(`/api/records/${emotionRecordId}`, {
@@ -49,6 +65,8 @@ export const {
   getEmotionRecords,
   getEmotionRecordDetail,
   confirmEmotionRecord,
+  reanalyzeEmotionRecord,
+  getEmotionRecordPatternExplanation,
   updateEmotionRecordOccurredAt,
   deleteEmotionRecord,
 } = createRecordsApi(httpClient)
