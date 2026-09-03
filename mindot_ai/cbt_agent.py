@@ -185,6 +185,13 @@ class CbtApiStatus(str, Enum):
     SAFETY_STOP = "SAFETY_STOP"
 
 
+class CbtAssessmentType(str, Enum):
+    """CONFIRM_REQUIRED가 의미하는 성찰 판정 유형입니다."""
+
+    DISTORTION_PRESENT = "DISTORTION_PRESENT"
+    NO_CLEAR_DISTORTION = "NO_CLEAR_DISTORTION"
+
+
 class QuestionPurpose(str, Enum):
     SITUATION_REFLECTION = "SITUATION_REFLECTION"
     EMOTION_REFLECTION = "EMOTION_REFLECTION"
@@ -936,6 +943,10 @@ class CbtTurnResponse(ApiModel):
 
     request_id: UUID = Field(alias="requestId")
     status: CbtApiStatus
+    assessment_type: CbtAssessmentType | None = Field(
+        alias="assessmentType",
+        default=None,
+    )
     next_question: GeneratedQuestion | None = Field(alias="nextQuestion")
     before_distortions: list[DistortionProposal] = Field(alias="beforeDistortions")
     outcome_draft: ReflectionOutcomeDraft | None = Field(alias="outcomeDraft")
@@ -2435,6 +2446,11 @@ def _to_response(
     return CbtTurnResponse(
         request_id=request.request_id,
         status=status_by_result[draft.result_type],
+        assessment_type=(
+            CbtAssessmentType.DISTORTION_PRESENT
+            if draft.result_type == CbtResultType.CONFIRMATION_REQUIRED
+            else None
+        ),
         next_question=next_question,
         before_distortions=(
             confirmation.before_distortions if confirmation is not None else []

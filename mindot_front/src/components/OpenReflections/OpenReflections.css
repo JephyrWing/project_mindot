@@ -1,0 +1,217 @@
+/* 진행 중 CBT 성찰 목록을 감정 기록 필터와 구분하는 영역 설정. */
+.open-reflections {
+  margin-top: 28px;
+  border-top: 1px solid var(--mindot-border);
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 24px 0;
+}
+
+/* 진행 중 성찰 제목과 개수 정보의 양쪽 배치. */
+.open-reflections-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+/* 진행 중 성찰 목록 제목의 본문 단계 크기 설정. */
+.open-reflections-heading h2 {
+  margin: 0;
+  font-size: 1.5625rem;
+}
+
+/* 진행 중 성찰 목록의 목적 안내 문구 설정. */
+.open-reflections-heading p {
+  margin: 8px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* 진행 중 성찰 개수의 옅은 파란색 정보 표시 설정. */
+.open-reflections-heading > span {
+  flex: 0 0 auto;
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--mindot-primary-strong);
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--mindot-primary-soft);
+}
+
+/* 진행 중 성찰 조회 상태 문구의 기본 간격과 대비 설정. */
+.open-reflections-status {
+  margin: 18px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* 진행 중 성찰 재조회 버튼의 터치 영역과 브랜드 색상 설정. */
+.open-reflections-status button {
+  min-height: 42px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  margin-top: 12px;
+  padding: 0 16px;
+  color: var(--mindot-primary-strong);
+  font: inherit;
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+/* 진행 중 성찰 카드 목록의 세로 배치. */
+.open-reflections-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+/* 진행 중 성찰 한 건의 원문과 진행 정보를 표시하는 버튼 설정. */
+.open-reflections-list > button {
+  width: 100%;
+  border: 1px solid var(--mindot-border);
+  border-radius: 10px;
+  padding: 16px;
+  color: var(--mindot-text);
+  font: inherit;
+  text-align: left;
+  background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 진행 중 성찰 버튼 위의 옅은 파란색 강조. */
+.open-reflections-list > button:hover,
+.open-reflections-list > button.is-selected {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+/* 진행 단계와 시작 시각의 양쪽 배치. */
+.open-reflections-list > button > span:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* 진행 중 성찰 단계의 브랜드 색상 강조. */
+.open-reflections-list strong {
+  color: var(--mindot-primary-strong);
+  font-size: 14px;
+}
+
+/* 진행 중 성찰 시작 시각의 보조 정보 설정. */
+.open-reflections-list time {
+  color: var(--mindot-text-muted);
+  font-size: 12px;
+}
+
+/* 진행 중 성찰 원문의 충분한 대비와 줄 간격 설정. */
+.open-reflections-list > button > span:last-child {
+  display: block;
+  margin-top: 10px;
+  color: var(--mindot-text-secondary);
+  line-height: 1.7;
+}
+
+/* 선택한 성찰의 질문과 답변 상세를 목록 아래 구분선으로 배치. */
+.open-reflection-detail {
+  margin-top: 22px;
+  border-top: 1px solid var(--mindot-border);
+  padding-top: 20px;
+}
+
+/* 성찰 상세 제목의 본문 단계 크기 설정. */
+.open-reflection-detail h3 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+/* 선택한 성찰의 현재 진행 단계 양쪽 배치. */
+.open-reflection-current-step {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 16px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+}
+
+/* 상세 질문과 답변 이력의 세로 배치. */
+.open-reflection-questions {
+  margin-top: 8px;
+}
+
+/* 질문과 답변 한 묶음을 구분선으로 분리. */
+.open-reflection-questions section {
+  border-top: 1px solid var(--mindot-border);
+  padding: 16px 0;
+}
+
+/* 질문 번호와 내 답변 이름의 단계별 강조. */
+.open-reflection-questions section > strong,
+.open-reflection-questions section > span {
+  color: var(--mindot-primary-strong);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* CBT 질문과 사용자 답변 본문의 간격 및 대비 설정. */
+.open-reflection-questions p {
+  margin: 6px 0 14px;
+  color: var(--mindot-text-secondary);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+/* 상세 조회 실패 문구의 경고 색상 설정. */
+.open-reflections-error {
+  color: var(--mindot-danger);
+  font-size: 14px;
+}
+
+/* 선택한 OPEN 세션을 기존 대화와 함께 이어가는 주 동작 버튼 설정. */
+.open-reflection-resume-button {
+  width: 100%;
+  min-height: 48px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0 18px;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  background: var(--mindot-primary);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 성찰 최종 확인 단계가 답변 이어하기 대상이 아님을 알리는 안내 설정. */
+.open-reflection-confirm-notice {
+  margin: 4px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* 이어하기 버튼에 마우스를 올렸을 때 브랜드 진한 색상 적용. */
+.open-reflection-resume-button:hover {
+  background: var(--mindot-primary-strong);
+}
+
+/* 작은 화면에서 진행 중 성찰 정보를 세로로 배치. */
+@media (max-width: 480px) {
+  .open-reflections-heading,
+  .open-reflections-list > button > span:first-child,
+  .open-reflection-current-step {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .open-reflections-list > button {
+    min-height: 48px;
+  }
+}

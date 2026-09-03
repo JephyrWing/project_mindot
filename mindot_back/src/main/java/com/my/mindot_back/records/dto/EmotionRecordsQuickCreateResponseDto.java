@@ -3,6 +3,7 @@ package com.my.mindot_back.records.dto;
 
 import com.my.mindot_back.records.dto.ai.FastApiRecordAnalysisResponseDto;
 import com.my.mindot_back.records.entity.EmotionRecords;
+import com.my.mindot_back.safety.dto.SafetyNoticeResponseDto;
 
 import java.time.Instant;
 
@@ -34,12 +35,15 @@ public record EmotionRecordsQuickCreateResponseDto(
     FastApiRecordAnalysisResponseDto.RiskAssessment risk,
 
     // AI 모델명과 프롬프트 버전
-    FastApiRecordAnalysisResponseDto.AnalysisMeta meta
+    FastApiRecordAnalysisResponseDto.AnalysisMeta meta,
+
+    SafetyNoticeResponseDto safetyNotice
 ){
     // DB에 저장된 EmotionRecords Entity를 프론트 응답용 DTO로 변환
     public static EmotionRecordsQuickCreateResponseDto from(
             EmotionRecords emotionRecords,
-            FastApiRecordAnalysisResponseDto analysis
+            FastApiRecordAnalysisResponseDto analysis,
+            SafetyNoticeResponseDto safetyNotice
     ){
         return new EmotionRecordsQuickCreateResponseDto(
                 emotionRecords.getId(),
@@ -51,7 +55,8 @@ public record EmotionRecordsQuickCreateResponseDto(
                 emotionRecords.getCompletionStatus().name(),
                 analysis.record(),
                 analysis.risk(),
-                analysis.meta()
+                analysis.meta(),
+                safetyNotice
         );
     }
 }

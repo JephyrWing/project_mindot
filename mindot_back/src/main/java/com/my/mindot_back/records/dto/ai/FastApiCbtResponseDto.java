@@ -20,6 +20,13 @@ public record FastApiCbtResponseDto(
          */
         String status,
 
+        /*
+         * DISTORTION_PRESENT: 인지왜곡이 확인됨
+         * NO_CLEAR_DISTORTION: 명확한 인지왜곡이 확인되지 않음
+         * FastAPI가 아직 보내지 않는 경우 null 가능
+         */
+        String assessmentType,
+
         // status가 CONTINUE일 때 생성되는 다음 질문
         GeneratedQuestion nextQuestion,
 

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Navbar from '../Navbar/Navbar.jsx'
 import {
+  cancelReflection,
   confirmReflection,
   startReflection,
   submitReflectionAnswer,
@@ -87,6 +88,12 @@ const getResponseMessage = (response) => {
   if (response.proposalMessage) {
     return response.proposalMessage
   }
+  if (
+    response.status === 'CONFIRM_REQUIRED'
+    && response.assessmentType === 'NO_CLEAR_DISTORTION'
+  ) {
+    return '대화를 살펴본 결과, 현재 생각에서 명확한 인지왜곡은 확인되지 않았습니다.'
+  }
   if (response.status === 'CONFIRM_REQUIRED') {
     return '대화를 바탕으로 성찰 결과가 준비되었습니다.'
   }
@@ -97,9 +104,31 @@ const getResponseMessage = (response) => {
   return 'CBT 성찰 대화가 마무리되었습니다.'
 }
 
+// 저장된 질문과 답변 배열을 CBT 대화창에서 사용할 순서형 메시지 목록으로 변환.
+const createResumedChatMessages = (resumeSession) => (
+  (resumeSession?.questionAnswers ?? []).flatMap((questionAnswer, index) => {
+    const messages = [{
+      id: `ai-${resumeSession.sessionId}-history-${index}`,
+      sender: 'ai',
+      text: questionAnswer.question || '질문 내용이 없습니다.',
+    }]
+
+    if (questionAnswer.answer?.trim()) {
+      messages.push({
+        id: `user-${resumeSession.sessionId}-history-${index}`,
+        sender: 'user',
+        text: questionAnswer.answer,
+      })
+    }
+
+    return messages
+  })
+)
+
 // 감정 기록을 바탕으로 생각을 돌아보는 기본 CBT 성찰 화면 컴포넌트 정의.
 function CBT({
   emotionRecordId,
+  resumeSession,
   isAuthenticated,
   isLoggingOut,
   onLogin,
@@ -111,13 +140,19 @@ function CBT({
   onHome,
 }) {
   // CBT AI 대화창 시작 여부 상태 관리.
-  const [isChatStarted, setIsChatStarted] = useState(false)
+  const [isChatStarted, setIsChatStarted] = useState(
+    () => Boolean(resumeSession?.sessionId),
+  )
   // 사용자가 작성 중인 답변 내용 상태 관리.
   const [message, setMessage] = useState('')
   // API에서 주고받은 AI 질문과 사용자 답변 목록 상태 관리.
-  const [chatMessages, setChatMessages] = useState([])
+  const [chatMessages, setChatMessages] = useState(
+    () => createResumedChatMessages(resumeSession),
+  )
   // 백엔드가 생성한 CBT 성찰 세션 식별자 상태 관리.
-  const [sessionId, setSessionId] = useState(null)
+  const [sessionId, setSessionId] = useState(
+    () => resumeSession?.sessionId ?? null,
+  )
   // CBT 세션 시작 요청 진행 여부 상태 관리.
   const [isStarting, setIsStarting] = useState(false)
   // CBT 답변 전송 요청 진행 여부 상태 관리.
@@ -131,7 +166,11 @@ function CBT({
   // 자동 사고 보완 입력 영역 표시 여부 상태 관리.
   const [isAutomaticThoughtRequired, setIsAutomaticThoughtRequired] = useState(false)
   // CBT 대화 계속 여부를 판단하기 위한 백엔드 응답 상태 관리.
-  const [reflectionStatus, setReflectionStatus] = useState('IDLE')
+  const [reflectionStatus, setReflectionStatus] = useState(
+    () => (resumeSession?.sessionId ? 'CONTINUE' : 'IDLE'),
+  )
+  // CONFIRM_REQUIRED 결과의 인지왜곡 판정 유형 상태 관리.
+  const [assessmentType, setAssessmentType] = useState('')
   // AI가 제안한 CBT 최종 결과와 사용자의 수정값 상태 관리.
   const [confirmationForm, setConfirmationForm] = useState(initialConfirmationForm)
   // 성찰 전 AI 제안 인지왜곡의 사용자 검토 상태 관리.
@@ -144,13 +183,21 @@ function CBT({
   const [isConfirmed, setIsConfirmed] = useState(false)
   // CBT 최종 결과 검증 또는 API 오류 안내 문구 상태 관리.
   const [confirmationError, setConfirmationError] = useState('')
+  // CBT 성찰 세션 취소 요청 진행 여부 상태 관리.
+  const [isCancelling, setIsCancelling] = useState(false)
+  // CBT 성찰 세션 이동 또는 취소 오류 안내 문구 상태 관리.
+  const [sessionActionError, setSessionActionError] = useState('')
 
   // AI의 최종 결과 초안과 인지왜곡 제안을 사용자 검토 입력값으로 변환하는 처리.
   const prepareConfirmationForm = (response) => {
-    if (response.status !== 'CONFIRM_REQUIRED') return
+    if (response.status !== 'CONFIRM_REQUIRED') {
+      setAssessmentType('')
+      return
+    }
 
     const outcomeDraft = response.outcomeDraft ?? {}
 
+    setAssessmentType(response.assessmentType ?? 'DISTORTION_PRESENT')
     setConfirmationForm({
       ...initialConfirmationForm,
       evidenceForText: outcomeDraft.evidenceForText ?? '',
@@ -360,8 +407,50 @@ function CBT({
     }
   }
 
+  // API 호출 없이 OPEN 세션을 유지한 채 감정 기록 목록으로 이동하는 처리.
+  const handleReflectionLater = () => {
+    if (!sessionId || isSending || isConfirming || isCancelling) return
+
+    setSessionActionError('')
+    onEmotionHistory()
+  }
+
+  // 사용자 확인 후 진행 중인 CBT 세션을 완전히 취소하고 목록으로 이동하는 처리.
+  const handleReflectionCancel = async () => {
+    if (!sessionId || isSending || isConfirming || isCancelling) return
+
+    const shouldCancel = window.confirm(
+      '성찰을 완전히 중단하면 다시 이어할 수 없습니다. 중단하시겠습니까?',
+    )
+
+    if (!shouldCancel) return
+
+    setIsCancelling(true)
+    setSessionActionError('')
+
+    try {
+      await cancelReflection(sessionId)
+      setReflectionStatus('CANCELLED')
+      onEmotionHistory()
+    } catch (error) {
+      setSessionActionError(getReflectionErrorMessage(
+        error,
+        'CBT 성찰을 중단하지 못했습니다. 잠시 후 다시 시도해 주세요.',
+      ))
+    } finally {
+      setIsCancelling(false)
+    }
+  }
+
   // 다음 질문 입력 가능 여부 설정.
   const canContinue = reflectionStatus === 'CONTINUE'
+  // 명확한 인지왜곡이 없다는 AI 판정 여부 설정.
+  const hasNoClearDistortion = assessmentType === 'NO_CLEAR_DISTORTION'
+  // 사용자가 중단하거나 나중에 이어할 수 있는 OPEN 세션 여부 설정.
+  const canManageOpenSession = sessionId && (
+    reflectionStatus === 'CONTINUE'
+    || reflectionStatus === 'CONFIRM_REQUIRED'
+  )
 
   // CBT 소개 화면과 간단한 AI 대화창을 포함한 화면 반환.
   return (
@@ -530,9 +619,28 @@ function CBT({
                 onSubmit={handleReflectionConfirm}
               >
                 <header>
-                  <h2>CBT 최종 결과 확인</h2>
-                  <p>AI가 정리한 내용을 확인하고 필요한 부분을 수정해 주세요.</p>
+                  <h2>
+                    {hasNoClearDistortion
+                      ? '명확한 인지왜곡 없음 확인'
+                      : 'CBT 최종 결과 확인'}
+                  </h2>
+                  <p>
+                    {hasNoClearDistortion
+                      ? '현재 생각을 인지왜곡으로 단정하지 않고, 대화를 통해 정리된 내용을 확인해 주세요.'
+                      : 'AI가 정리한 내용을 확인하고 필요한 부분을 수정해 주세요.'}
+                  </p>
                 </header>
+
+                {hasNoClearDistortion && (
+                  /* 명확한 인지왜곡이 없다는 판정과 확인 목적 안내 배치. */
+                  <div className="cbt-no-clear-distortion" role="status">
+                    <strong>명확한 인지왜곡이 확인되지 않았습니다.</strong>
+                    <p>
+                      생각이 틀렸다고 판단하는 대신, 현재 상황을 균형 있게
+                      바라볼 수 있도록 정리한 내용을 확인하는 단계입니다.
+                    </p>
+                  </div>
+                )}
 
                 <label htmlFor="cbt-evidence-for">
                   <span>처음 생각을 뒷받침하는 근거</span>
@@ -637,7 +745,8 @@ function CBT({
                   </label>
                 </div>
 
-                {(beforeDistortions.length > 0 || afterDistortions.length > 0) && (
+                {!hasNoClearDistortion
+                  && (beforeDistortions.length > 0 || afterDistortions.length > 0) && (
                   <fieldset className="cbt-distortion-reviews">
                     <legend>인지왜곡 검토</legend>
                     <p>AI가 제안한 항목이 내 생각과 맞는지 확인해 주세요.</p>
@@ -695,7 +804,11 @@ function CBT({
                 )}
 
                 <button type="submit" disabled={isConfirming}>
-                  {isConfirming ? '확정 중…' : '최종 결과 확정하기'}
+                  {isConfirming
+                    ? '확정 중…'
+                    : hasNoClearDistortion
+                      ? '확인하고 완료하기'
+                      : '최종 결과 확정하기'}
                 </button>
               </form>
             ) : isConfirmed || reflectionStatus === 'COMPLETED' ? (
@@ -710,6 +823,38 @@ function CBT({
                   ? '안전을 위해 대화가 중단되었습니다.'
                   : '현재 CBT 대화가 마무리되었습니다.'}
               </p>
+            )}
+
+            {canManageOpenSession && (
+              /* OPEN 성찰 세션의 나중에 이어하기와 완전 중단 기능 배치. */
+              <div className="cbt-session-actions">
+                <p>
+                  잠시 멈추면 현재 진행 상태가 유지되며, 목록에서 나중에 이어할 수 있습니다.
+                </p>
+                {sessionActionError && (
+                  <p className="cbt-error" role="alert">
+                    {sessionActionError}
+                  </p>
+                )}
+                <div>
+                  <button
+                    className="cbt-later-button"
+                    type="button"
+                    onClick={handleReflectionLater}
+                    disabled={isSending || isConfirming || isCancelling}
+                  >
+                    나중에 이어하기
+                  </button>
+                  <button
+                    className="cbt-cancel-button"
+                    type="button"
+                    onClick={handleReflectionCancel}
+                    disabled={isSending || isConfirming || isCancelling}
+                  >
+                    {isCancelling ? '중단 중…' : '성찰 완전히 중단'}
+                  </button>
+                </div>
+              </div>
             )}
           </section>
         )}

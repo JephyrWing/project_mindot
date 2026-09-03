@@ -347,6 +347,20 @@ public class ReflectionSessions {
         this.currentStep = "CANCELLED";
     }
 
+    // FastAPI 위험 신호로 CBT 진행을 즉시 중단
+    public void stopForSafety() {
+        // 완료된 CBT는 이미 진행이 끝났으므로 안전 중단 대상이 아님
+        if (this.status == ReflectionSessionStatus.COMPLETED) {
+            throw new IllegalStateException(
+                    "완료된 CBT 성찰 세션은 안전 중단할 수 없습니다."
+            );
+        }
+
+        // 사용자의 자발적 중단과 구분되는 시스템 안전 중단 상태로 변경
+        this.status = ReflectionSessionStatus.SAFETY_STOPPED;
+        this.currentStep = "SAFETY_STOPPED";
+    }
+
     // OpenAI가 생성한 두 임베딩 벡터를 성찰 세션에 반영
     /*
      * contextEmbedding:
