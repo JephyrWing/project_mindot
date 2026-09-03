@@ -3,6 +3,7 @@ package com.my.mindot_back.admin.service;
 
 import com.my.mindot_back.admin.dto.AdminSafetyEventDetailResponseDto;
 import com.my.mindot_back.admin.dto.AdminSafetyEventListResponseDto;
+import com.my.mindot_back.safety.entity.RiskLevel;
 import com.my.mindot_back.safety.repository.SafetyEventsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
@@ -34,16 +35,19 @@ public class AdminSafetyEventsService {
                 .toList();
     }
 
-    // 관리자만 안전 신호에 연결된 감정 기록 원문 상세 조회
+    // CRISIS 안전 신호에 연결된 감정 기록 원문 상세 조회
     @Transactional(readOnly = true)
     public AdminSafetyEventDetailResponseDto getSafetyEvent(
             Long safetyEventId
     ) {
         return safetyEventsRepository.findById(safetyEventId)
+                .filter(safetyEvent ->
+                        safetyEvent.getRiskLevel() == RiskLevel.CRISIS
+                )
                 .map(AdminSafetyEventDetailResponseDto::from)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "안전 신호 이벤트를 찾을 수 없습니다."
+                        "위기 수준 안전 신호 이벤트를 찾을 수 없습니다."
                 ));
     }
 }
