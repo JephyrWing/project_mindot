@@ -217,6 +217,9 @@ const getReanalysisErrorMessage = (error) => {
   if (error.response.status === 409) {
     return '현재 상태에서는 재분석을 요청할 수 없습니다.'
   }
+  if (error.response.status === 502 || error.response.status === 503) {
+    return 'AI 분석 서버가 일시적으로 응답하지 않습니다. 잠시 후 다시 분석해 주세요.'
+  }
 
   return 'AI 재분석에 실패했습니다. 잠시 후 다시 시도해 주세요.'
 }
@@ -728,7 +731,7 @@ function EmotionRecordDetail({
                     onClick={handleReanalysis}
                     disabled={isReanalyzing || isDeleting}
                   >
-                    {isReanalyzing ? '재분석 중' : 'AI 재분석하기'}
+                    {isReanalyzing ? '다시 분석하는 중' : '다시 분석하기'}
                   </button>
                 </div>
               )}
