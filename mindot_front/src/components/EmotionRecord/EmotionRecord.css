@@ -241,6 +241,19 @@
   background: #d9e7f8;
 }
 
+/* 위기 신호 감지 시 CBT보다 안전 확인이 우선임을 알리는 안내 설정. */
+.emotion-record-safety-guidance {
+  margin: 0;
+  border-top: 1px solid var(--mindot-danger);
+  border-bottom: 1px solid var(--mindot-danger);
+  padding: 16px 0;
+  color: var(--mindot-danger);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.7;
+  word-break: keep-all;
+}
+
 /* 작은 화면에서 카드 내부 여백과 입력 요소 크기를 조정. */
 @media (max-width: 480px) {
   .emotion-record-content {

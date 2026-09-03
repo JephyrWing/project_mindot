@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Navbar from '../Navbar/Navbar.jsx'
+import SafetyNoticeModal from '../SafetyNoticeModal/SafetyNoticeModal.jsx'
 import { createQuickRecord } from '../../utils/records/recordsApi.js'
 import './EmotionRecord.css'
 
@@ -61,6 +62,8 @@ function EmotionRecord({
   const [savedRecord, setSavedRecord] = useState(null)
   // 감정 기록 API 요청 실패 문구 상태 관리.
   const [saveError, setSaveError] = useState('')
+  // 감정 기록 응답에서 반환된 안전 안내 모달 정보 상태 관리.
+  const [safetyNotice, setSafetyNotice] = useState(null)
 
   // 감정 원문 변경에 따른 작성 상태 반영.
   const handleContentChange = (event) => {
@@ -91,6 +94,7 @@ function EmotionRecord({
 
     setSaveStatus('saving')
     setSaveError('')
+    setSafetyNotice(null)
 
     try {
       const record = await createQuickRecord({
@@ -101,6 +105,7 @@ function EmotionRecord({
 
       setSavedRecord(record)
       setSaveStatus('saved')
+      setSafetyNotice(record.safetyNotice ?? null)
     } catch (error) {
       setSavedRecord(null)
       setSaveError(getSaveErrorMessage(error))
@@ -115,7 +120,12 @@ function EmotionRecord({
     setSaveError('')
     setSavedRecord(null)
     setSaveStatus('idle')
+    setSafetyNotice(null)
   }
+
+  // 즉시 안전 안내가 필요한 저장 결과의 CBT 이동 제한 여부 설정.
+  const isCrisisNotice = savedRecord?.safetyNotice?.actionCode
+    === 'SHOW_CRISIS_NOTICE'
 
   // 현재 작성 및 저장 상태에 따른 사용자 표시 문구 설정.
   const statusText = {
@@ -220,7 +230,7 @@ function EmotionRecord({
           )}
 
           {/* 감정 기록 저장 완료 후에만 CBT 성찰 화면 이동 버튼 표시. */}
-          {saveStatus === 'saved' && (
+          {saveStatus === 'saved' && !isCrisisNotice && (
             <button
               className="emotion-record-cbt-button"
               type="button"
@@ -228,6 +238,14 @@ function EmotionRecord({
             >
               CBT 검사 하기
             </button>
+          )}
+
+          {/* 위기 안전 신호가 확인된 기록의 CBT 이동 대신 안전 우선 안내 표시. */}
+          {saveStatus === 'saved' && isCrisisNotice && (
+            <p className="emotion-record-safety-guidance" role="status">
+              현재는 CBT 성찰보다 즉시 안전을 확인하고 주변 또는 전문기관에
+              도움을 요청하는 일이 우선입니다.
+            </p>
           )}
 
           {/* 감정 기록 저장 완료 후에만 주간 리포트 화면 이동 버튼 표시. */}
@@ -254,6 +272,14 @@ function EmotionRecord({
           </form>
         </section>
       </div>
+
+      {/* 간편 감정 기록 응답에 안전 신호가 있을 때 공통 안전 안내 모달 표시. */}
+      {safetyNotice && (
+        <SafetyNoticeModal
+          notice={safetyNotice}
+          onClose={() => setSafetyNotice(null)}
+        />
+      )}
     </main>
   )
 }

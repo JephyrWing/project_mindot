@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Navbar from '../Navbar/Navbar.jsx'
+import SafetyNoticeModal from '../SafetyNoticeModal/SafetyNoticeModal.jsx'
 import {
   cancelReflection,
   confirmReflection,
@@ -82,6 +83,9 @@ const getConfirmationErrorMessage = (error) => {
 
 // CBT API 응답 상태에 맞는 AI 안내 문구 반환.
 const getResponseMessage = (response) => {
+  if (response.safetyNotice?.actionCode === 'SHOW_CRISIS_NOTICE') {
+    return '안전을 위해 CBT 답변 입력을 중단했습니다. 안전 안내의 연락 수단을 먼저 확인해 주세요.'
+  }
   if (response.nextQuestion?.question) {
     return response.nextQuestion.question
   }
@@ -187,6 +191,25 @@ function CBT({
   const [isCancelling, setIsCancelling] = useState(false)
   // CBT 성찰 세션 이동 또는 취소 오류 안내 문구 상태 관리.
   const [sessionActionError, setSessionActionError] = useState('')
+  // CBT 시작 또는 답변 응답에서 반환된 안전 안내 모달 정보 상태 관리.
+  const [safetyNotice, setSafetyNotice] = useState(null)
+  // 위기 안전 안내 이후 CBT 답변 입력을 계속 차단하기 위한 상태 관리.
+  const [isCrisisBlocked, setIsCrisisBlocked] = useState(false)
+
+  // CBT 응답의 안전 안내를 반영하고 위기 입력 차단 필요 여부 반환.
+  const applySafetyNotice = (response) => {
+    const responseSafetyNotice = response.safetyNotice
+
+    if (!responseSafetyNotice) return false
+
+    const shouldBlockCbt = responseSafetyNotice.actionCode
+      === 'SHOW_CRISIS_NOTICE'
+
+    setSafetyNotice(responseSafetyNotice)
+    if (shouldBlockCbt) setIsCrisisBlocked(true)
+
+    return shouldBlockCbt
+  }
 
   // AI의 최종 결과 초안과 인지왜곡 제안을 사용자 검토 입력값으로 변환하는 처리.
   const prepareConfirmationForm = (response) => {
@@ -218,9 +241,15 @@ function CBT({
 
   // CBT 세션 시작 응답을 현재 대화 화면 상태에 반영하는 처리.
   const applyReflectionStartResponse = (response) => {
+    const shouldBlockCbt = applySafetyNotice(response)
+
     setSessionId(response.sessionId)
-    setReflectionStatus(response.status)
-    prepareConfirmationForm(response)
+    setReflectionStatus(shouldBlockCbt ? 'SAFETY_STOP' : response.status)
+    if (shouldBlockCbt) {
+      setAssessmentType('')
+    } else {
+      prepareConfirmationForm(response)
+    }
     setChatMessages([{
       id: `ai-${response.sessionId}-start`,
       sender: 'ai',
@@ -302,29 +331,41 @@ function CBT({
     event.preventDefault()
 
     const trimmedMessage = message.trim()
-    if (!trimmedMessage || !sessionId || isSending) return
+    if (!trimmedMessage || !sessionId || isSending || isCrisisBlocked) return
 
     setIsSending(true)
     setApiError('')
 
     try {
       const response = await submitReflectionAnswer(sessionId, trimmedMessage)
+      const shouldBlockCbt = applySafetyNotice(response)
 
-      setChatMessages((currentMessages) => [
-        ...currentMessages,
-        {
-          id: `user-${sessionId}-${currentMessages.length}`,
-          sender: 'user',
-          text: trimmedMessage,
-        },
-        {
-          id: `ai-${sessionId}-${currentMessages.length + 1}`,
+      if (shouldBlockCbt) {
+        // 위기 신호 감지 시 기존 대화 대신 안전 안내 메시지만 유지하는 처리.
+        setChatMessages([{
+          id: `ai-${sessionId}-safety`,
           sender: 'ai',
           text: getResponseMessage(response),
-        },
-      ])
-      setReflectionStatus(response.status)
-      prepareConfirmationForm(response)
+        }])
+        setReflectionStatus('SAFETY_STOP')
+        setAssessmentType('')
+      } else {
+        setChatMessages((currentMessages) => [
+          ...currentMessages,
+          {
+            id: `user-${sessionId}-${currentMessages.length}`,
+            sender: 'user',
+            text: trimmedMessage,
+          },
+          {
+            id: `ai-${sessionId}-${currentMessages.length + 1}`,
+            sender: 'ai',
+            text: getResponseMessage(response),
+          },
+        ])
+        setReflectionStatus(response.status)
+        prepareConfirmationForm(response)
+      }
       setMessage('')
     } catch (error) {
       setApiError(getReflectionErrorMessage(
@@ -443,11 +484,11 @@ function CBT({
   }
 
   // 다음 질문 입력 가능 여부 설정.
-  const canContinue = reflectionStatus === 'CONTINUE'
+  const canContinue = reflectionStatus === 'CONTINUE' && !isCrisisBlocked
   // 명확한 인지왜곡이 없다는 AI 판정 여부 설정.
   const hasNoClearDistortion = assessmentType === 'NO_CLEAR_DISTORTION'
   // 사용자가 중단하거나 나중에 이어할 수 있는 OPEN 세션 여부 설정.
-  const canManageOpenSession = sessionId && (
+  const canManageOpenSession = !isCrisisBlocked && sessionId && (
     reflectionStatus === 'CONTINUE'
     || reflectionStatus === 'CONFIRM_REQUIRED'
   )
@@ -860,6 +901,14 @@ function CBT({
         )}
         </section>
       </div>
+
+      {/* CBT 시작 또는 답변 응답에 안전 신호가 있을 때 공통 안전 안내 모달 표시. */}
+      {safetyNotice && (
+        <SafetyNoticeModal
+          notice={safetyNotice}
+          onClose={() => setSafetyNotice(null)}
+        />
+      )}
     </main>
   )
 }
