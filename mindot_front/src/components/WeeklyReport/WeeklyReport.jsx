@@ -131,6 +131,24 @@ const getReportErrorMessage = (error) => {
     || '주간 리포트를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
 }
 
+// PDF 내보내기 API 오류를 날짜 및 인증 상태에 맞는 안내 문구로 변환.
+const getPdfExportErrorMessage = (error) => {
+  if (!error.response) {
+    return '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
+  }
+  if (error.response.status === 400) {
+    return '선택한 날짜와 PDF 포함 범위를 확인해 주세요.'
+  }
+  if (error.response.status === 401) {
+    return '로그인 정보가 만료되었습니다. 다시 로그인해 주세요.'
+  }
+  if (error.response.status === 404) {
+    return 'PDF를 생성할 사용자 정보를 찾을 수 없습니다.'
+  }
+
+  return 'PDF 파일을 만들지 못했습니다. 잠시 후 다시 시도해 주세요.'
+}
+
 // 공통 네비게이션과 실제 주간 리포트 API 결과를 제공하는 화면 컴포넌트 정의.
 function WeeklyReport({
   isAuthenticated,
@@ -163,9 +181,31 @@ function WeeklyReport({
   const [isExporting, setIsExporting] = useState(false)
   // 상담용 PDF 내보내기 실패 안내 상태 관리.
   const [exportError, setExportError] = useState('')
+  // PDF 내보내기 날짜 선택 방식 상태 관리.
+  const [pdfSelectionMode, setPdfSelectionMode] = useState('range')
+  // 기간 선택 방식의 PDF 시작일 상태 관리.
+  const [pdfStartDate, setPdfStartDate] = useState(
+    () => getWeekRange(0).weekStart,
+  )
+  // 기간 선택 방식의 PDF 종료일 상태 관리.
+  const [pdfEndDate, setPdfEndDate] = useState(
+    () => getWeekRange(0).weekEnd,
+  )
+  // 여러 날짜 직접 선택 방식의 현재 날짜 입력값 상태 관리.
+  const [pdfDateInput, setPdfDateInput] = useState('')
+  // 여러 날짜 직접 선택 방식에서 추가한 날짜 목록 상태 관리.
+  const [pdfSelectedDates, setPdfSelectedDates] = useState([])
+  // PDF에 포함할 감정 기록과 CBT 결과 범위 상태 관리.
+  const [pdfContentType, setPdfContentType] = useState('BOTH')
+  // 완료 CBT의 전체 질문과 답변 포함 여부 상태 관리.
+  const [includeFullCbtConversation, setIncludeFullCbtConversation] = useState(false)
+  // PDF 내보내기 완료 안내 문구 상태 관리.
+  const [exportMessage, setExportMessage] = useState('')
 
   // 선택한 주의 월요일 요청값과 화면 표시 기간 생성.
   const selectedWeek = getWeekRange(weekOffset)
+  // PDF 날짜 입력에서 미래 날짜 선택을 막기 위한 오늘 날짜 생성.
+  const todayDate = toLocalDateValue(new Date())
 
   // 선택한 주의 저장 리포트를 조회하고 미생성 상태이면 최신 기록으로 자동 생성 요청.
   useEffect(() => {
@@ -239,29 +279,90 @@ function WeeklyReport({
     }
   }
 
-  // 선택 주의 감정 기록과 완료 CBT 결과를 PDF로 내려받는 처리.
+  // 여러 날짜 직접 선택 방식에서 중복을 제외한 날짜 추가 처리.
+  const handlePdfDateAdd = () => {
+    if (!pdfDateInput) {
+      setExportError('추가할 날짜를 먼저 선택해 주세요.')
+      setExportMessage('')
+      return
+    }
+
+    if (pdfSelectedDates.includes(pdfDateInput)) {
+      setExportError('이미 추가한 날짜입니다.')
+      setExportMessage('')
+      return
+    }
+
+    setPdfSelectedDates((currentDates) => (
+      [...currentDates, pdfDateInput].sort()
+    ))
+    setPdfDateInput('')
+    setExportError('')
+    setExportMessage('')
+  }
+
+  // 여러 날짜 직접 선택 방식에서 선택한 날짜 한 건 제거 처리.
+  const handlePdfDateRemove = (dateToRemove) => {
+    setPdfSelectedDates((currentDates) => (
+      currentDates.filter((selectedDate) => selectedDate !== dateToRemove)
+    ))
+    setExportError('')
+    setExportMessage('')
+  }
+
+  // 사용자가 지정한 날짜와 포함 범위를 사용한 상담용 PDF 내려받기 처리.
   const handlePdfExport = async () => {
-    if (!report || isExporting) return
+    if (isExporting) return
+
+    if (pdfSelectionMode === 'range'
+      && (!pdfStartDate || !pdfEndDate)) {
+      setExportError('시작일과 종료일을 모두 선택해 주세요.')
+      setExportMessage('')
+      return
+    }
+
+    if (pdfSelectionMode === 'range' && pdfEndDate < pdfStartDate) {
+      setExportError('종료일은 시작일보다 빠를 수 없습니다.')
+      setExportMessage('')
+      return
+    }
+
+    if (pdfSelectionMode === 'dates' && pdfSelectedDates.length === 0) {
+      setExportError('PDF에 포함할 날짜를 하나 이상 추가해 주세요.')
+      setExportMessage('')
+      return
+    }
 
     setIsExporting(true)
     setExportError('')
+    setExportMessage('')
 
     try {
       const pdfBlob = await exportWeeklyReportPdf({
-        startDate: report.periodStart,
-        endDate: report.periodEnd,
+        startDate: pdfSelectionMode === 'range' ? pdfStartDate : null,
+        endDate: pdfSelectionMode === 'range' ? pdfEndDate : null,
+        selectedDates: pdfSelectionMode === 'dates' ? pdfSelectedDates : null,
+        contentType: pdfContentType,
+        includeFullCbtConversation: pdfContentType !== 'EMOTION_RECORDS'
+          && includeFullCbtConversation,
       })
       const downloadUrl = window.URL.createObjectURL(pdfBlob)
       const downloadLink = document.createElement('a')
+      const fileDateLabel = pdfSelectionMode === 'range'
+        ? `${pdfStartDate}-${pdfEndDate}`
+        : pdfSelectedDates.length === 1
+          ? pdfSelectedDates[0]
+          : `${pdfSelectedDates[0]}-외-${pdfSelectedDates.length - 1}일`
 
       downloadLink.href = downloadUrl
-      downloadLink.download = `mindot-weekly-report-${report.periodStart}.pdf`
+      downloadLink.download = `mindot-report-${fileDateLabel}.pdf`
       document.body.appendChild(downloadLink)
       downloadLink.click()
       downloadLink.remove()
       window.URL.revokeObjectURL(downloadUrl)
+      setExportMessage('선택한 조건의 PDF 파일 다운로드를 시작했습니다.')
     } catch (error) {
-      setExportError(getReportErrorMessage(error))
+      setExportError(getPdfExportErrorMessage(error))
     } finally {
       setIsExporting(false)
     }
@@ -349,6 +450,197 @@ function WeeklyReport({
             </button>
           </div>
 
+          {/* 날짜와 포함 내용을 직접 정하는 상담용 PDF 내보내기 설정 영역 배치. */}
+          <section
+            className="weekly-report-export"
+            aria-labelledby="weekly-report-export-title"
+          >
+            <div className="weekly-report-export-heading">
+              <h2 id="weekly-report-export-title">PDF 내보내기</h2>
+              <p>상담 시 확인할 날짜와 포함할 기록을 선택해 주세요.</p>
+            </div>
+
+            <fieldset className="weekly-report-export-mode">
+              <legend>날짜 선택 방법</legend>
+              <div>
+                <label>
+                  <input
+                    type="radio"
+                    name="pdf-selection-mode"
+                    value="range"
+                    checked={pdfSelectionMode === 'range'}
+                    disabled={isExporting}
+                    onChange={(event) => {
+                      setPdfSelectionMode(event.target.value)
+                      setExportError('')
+                      setExportMessage('')
+                    }}
+                  />
+                  <span>기간으로 선택</span>
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="pdf-selection-mode"
+                    value="dates"
+                    checked={pdfSelectionMode === 'dates'}
+                    disabled={isExporting}
+                    onChange={(event) => {
+                      setPdfSelectionMode(event.target.value)
+                      setExportError('')
+                      setExportMessage('')
+                    }}
+                  />
+                  <span>날짜 직접 선택</span>
+                </label>
+              </div>
+            </fieldset>
+
+            {pdfSelectionMode === 'range' ? (
+              /* 시작일부터 종료일까지 연속된 날짜 범위 입력 영역 표시. */
+              <div className="weekly-report-export-range">
+                <label>
+                  <span>시작일</span>
+                  <input
+                    type="date"
+                    value={pdfStartDate}
+                    max={todayDate}
+                    disabled={isExporting}
+                    onChange={(event) => {
+                      setPdfStartDate(event.target.value)
+                      setExportError('')
+                      setExportMessage('')
+                    }}
+                  />
+                </label>
+                <label>
+                  <span>종료일</span>
+                  <input
+                    type="date"
+                    value={pdfEndDate}
+                    min={pdfStartDate || undefined}
+                    max={todayDate}
+                    disabled={isExporting}
+                    onChange={(event) => {
+                      setPdfEndDate(event.target.value)
+                      setExportError('')
+                      setExportMessage('')
+                    }}
+                  />
+                </label>
+              </div>
+            ) : (
+              /* 서로 떨어진 여러 날짜를 하나씩 추가하는 직접 선택 영역 표시. */
+              <div className="weekly-report-export-dates">
+                <label htmlFor="weekly-report-pdf-date">
+                  <span>추가할 날짜</span>
+                  <div>
+                    <input
+                      id="weekly-report-pdf-date"
+                      type="date"
+                      value={pdfDateInput}
+                      max={todayDate}
+                      disabled={isExporting}
+                      onChange={(event) => {
+                        setPdfDateInput(event.target.value)
+                        setExportError('')
+                        setExportMessage('')
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handlePdfDateAdd}
+                      disabled={isExporting}
+                    >
+                      날짜 추가
+                    </button>
+                  </div>
+                </label>
+
+                {pdfSelectedDates.length > 0 ? (
+                  <ul aria-label="PDF에 포함할 선택 날짜">
+                    {pdfSelectedDates.map((selectedDate) => (
+                      <li key={selectedDate}>
+                        <time dateTime={selectedDate}>{selectedDate}</time>
+                        <button
+                          type="button"
+                          aria-label={`${selectedDate} 삭제`}
+                          disabled={isExporting}
+                          onClick={() => handlePdfDateRemove(selectedDate)}
+                        >
+                          삭제
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="weekly-report-export-empty-date">
+                    아직 추가한 날짜가 없습니다.
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div className="weekly-report-export-options">
+              <label>
+                <span>PDF 포함 내용</span>
+                <select
+                  value={pdfContentType}
+                  disabled={isExporting}
+                  onChange={(event) => {
+                    const selectedContentType = event.target.value
+
+                    setPdfContentType(selectedContentType)
+                    if (selectedContentType === 'EMOTION_RECORDS') {
+                      setIncludeFullCbtConversation(false)
+                    }
+                    setExportError('')
+                    setExportMessage('')
+                  }}
+                >
+                  <option value="EMOTION_RECORDS">감정 기록만</option>
+                  <option value="CBT_RESULTS">완료 CBT만</option>
+                  <option value="BOTH">감정 기록과 완료 CBT 모두</option>
+                </select>
+              </label>
+
+              <label className="weekly-report-export-checkbox">
+                <input
+                  type="checkbox"
+                  checked={includeFullCbtConversation}
+                  disabled={isExporting || pdfContentType === 'EMOTION_RECORDS'}
+                  onChange={(event) => {
+                    setIncludeFullCbtConversation(event.target.checked)
+                    setExportError('')
+                    setExportMessage('')
+                  }}
+                />
+                <span>
+                  <strong>CBT 전체 대화 포함</strong>
+                  <small>체크하면 완료한 CBT의 질문과 답변 전체를 포함합니다.</small>
+                </span>
+              </label>
+            </div>
+
+            <button
+              className="weekly-report-export-button"
+              type="button"
+              onClick={handlePdfExport}
+              disabled={isExporting}
+            >
+              {isExporting ? 'PDF 준비 중…' : '선택한 내용 PDF로 저장'}
+            </button>
+
+            {exportError && (
+              <p className="weekly-report-error" role="alert">{exportError}</p>
+            )}
+            {exportMessage && (
+              <p className="weekly-report-export-success" role="status">
+                {exportMessage}
+              </p>
+            )}
+          </section>
+
           {isLoading ? (
             <div className="weekly-report-state" role="status" aria-live="polite">
               <strong>주간 리포트를 불러오는 중입니다.</strong>
@@ -371,22 +663,11 @@ function WeeklyReport({
                 <button
                   type="button"
                   onClick={handleReportRefresh}
-                  disabled={isRefreshing || isExporting}
+                  disabled={isRefreshing}
                 >
                   {isRefreshing ? '최신화 중…' : '최신 기록으로 다시 만들기'}
                 </button>
-                <button
-                  type="button"
-                  onClick={handlePdfExport}
-                  disabled={isExporting || isRefreshing}
-                >
-                  {isExporting ? 'PDF 준비 중…' : '상담용 PDF 저장'}
-                </button>
               </div>
-
-              {exportError && (
-                <p className="weekly-report-error" role="alert">{exportError}</p>
-              )}
 
               <section
                 className="weekly-report-summary"

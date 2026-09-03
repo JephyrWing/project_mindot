@@ -20,14 +20,20 @@ export const createReportsApi = (client) => ({
     return data
   },
 
-  // 선택 주의 감정 기록과 CBT 결과를 상담용 PDF 파일로 생성하는 처리.
-  exportWeeklyReportPdf: async ({ startDate, endDate }) => {
+  // 선택 기간 또는 개별 날짜의 지정 내용을 상담용 PDF 파일로 생성하는 처리.
+  exportWeeklyReportPdf: async ({
+    startDate,
+    endDate,
+    selectedDates,
+    contentType,
+    includeFullCbtConversation,
+  }) => {
     const { data } = await client.post('/api/reports/export/pdf', {
       startDate,
       endDate,
-      selectedDates: null,
-      contentType: 'BOTH',
-      includeFullCbtConversation: false,
+      selectedDates,
+      contentType,
+      includeFullCbtConversation,
     }, {
       responseType: 'blob',
     })

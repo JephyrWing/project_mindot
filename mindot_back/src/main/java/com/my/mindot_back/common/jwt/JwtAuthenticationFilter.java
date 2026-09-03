@@ -1,16 +1,9 @@
-// 모든 HTTP 요청에서 Authorization 헤더의 JWT 를 확인하는 필터
+// 모든 HTTP 요청에서 JWT와 현재 사용자 계정 상태·권한을 확인하는 필터
 package com.my.mindot_back.common.jwt;
 
-
-/*
-*요청 흐름:
-* 클라이언트 요청
-* -> JwtAuthenticationFilter
-* -> JWT 검증
-* -> 정상 토큰이면 SecurityContext에 로그인 사용자 ID 등록
-* -> Controller
- */
-
+import com.my.mindot_back.users.entity.AccountStatus;
+import com.my.mindot_back.users.entity.Users;
+import com.my.mindot_back.users.repository.UsersRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,13 +20,14 @@ import java.util.List;
 
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-// 상속 이유: 같은 요청에서 JWT 인증 로직이 중복 실행되지 않도록 함
 
     // JWT 생성, 검증, 사용자 ID 추출을 담당하는 공통 클래스
     private final JwtTokenProvider jwtTokenProvider;
 
-    // 요청마다 한번만 실행되는 필터 메서드
+    // JWT 사용자 ID로 현재 계정 상태와 실제 역할을 조회
+    private final UsersRepository usersRepository;
 
+    // Authorization Bearer Token을 검증하고 SecurityContext에 인증 정보를 저장
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
@@ -52,27 +46,34 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // JWT subject 에 저장해둔 사용자 DB ID 를 가져옴
                 Long userId = jwtTokenProvider.getUserId(accessToken);
 
-                // Spring Security가 알아볼 수 있는 인증 완료 객체 만듦
-                /*
-                *principal : 현재 로그인 사용자 식별값 -> userId
-                * credentials : 비밀번호 다시 보관할 필요 X -> null
-                * authorities : 현재는 모든 로그인 사용자에게 ROLE_USER 권한 부여
-                */
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                userId,
-                                null,
-//                                List.of()
-                                 List.of(new SimpleGrantedAuthority("ROLE_USER"))
-                        );
-
-                // 현재 요청의 SecurityContext에 인증 정보 저장 -> controller에서 현재 로그인한 id 신뢰 가능
-                SecurityContextHolder.getContext()
-                        .setAuthentication(authentication);
+                // 탈퇴·정지·삭제된 계정은 기존 JWT가 남아 있어도 인증하지 않음
+                usersRepository.findById(userId)
+                        .filter(user ->
+                                user.getStatus() == AccountStatus.ACTIVE
+                        )
+                        .ifPresent(user -> authenticate(user));
             }
         }
-        // JWT 가 없거나 유효하지 않아도 다음 필터로 요청 넘김
-        // SecurityConfig의 authenticated()가 보호 API 접근 가능 여부 최종 판단
+
+        // 인증 실패 또는 토큰이 없는 요청은 다음 필터로 넘기며,
+        // 보호 API는 SecurityConfig에서 401로 차단
         filterChain.doFilter(request, response);
+    }
+
+    // DB에 저장된 사용자 역할을 Spring Security 권한으로 등록
+    private void authenticate(Users user) {
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        user.getId(),
+                        null,
+                        List.of(
+                                new SimpleGrantedAuthority(
+                                        user.getUserRole().name()
+                                )
+                        )
+                );
+
+        SecurityContextHolder.getContext()
+                .setAuthentication(authentication);
     }
 }
