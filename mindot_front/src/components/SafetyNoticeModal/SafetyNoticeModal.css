@@ -1,0 +1,194 @@
+/* 안전 안내를 다른 화면보다 위에 고정하는 배경 영역 설정. */
+.safety-notice-backdrop {
+  position: fixed;
+  z-index: 1600;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  padding:
+    calc(20px + env(safe-area-inset-top, 0px))
+    calc(20px + env(safe-area-inset-right, 0px))
+    calc(20px + env(safe-area-inset-bottom, 0px))
+    calc(20px + env(safe-area-inset-left, 0px));
+  background: rgba(20, 32, 51, 0.64);
+}
+
+/* 안전 안내 내용과 연락 수단을 담는 단일 모달 설정. */
+.safety-notice-modal {
+  width: min(100%, 500px);
+  max-height: 100%;
+  overflow-y: auto;
+  border: 0;
+  border-radius: 14px;
+  padding: 36px;
+  color: var(--mindot-text);
+  background: var(--mindot-surface);
+  box-shadow: 0 12px 28px rgba(20, 32, 51, 0.24);
+}
+
+/* 안전 안내 수준을 짧게 구분하는 상단 문구 설정. */
+.safety-notice-level {
+  margin: 0;
+  color: var(--mindot-primary-strong);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* 즉시 대응이 필요한 위기 안내 수준의 경고 색상 설정. */
+.safety-notice-modal.is-crisis .safety-notice-level {
+  color: var(--mindot-danger);
+}
+
+/* 안전 안내 제목의 크기와 읽기 쉬운 줄 간격 설정. */
+.safety-notice-modal h2 {
+  margin: 12px 0 0;
+  font-size: 1.75rem;
+  line-height: 1.35;
+  word-break: keep-all;
+}
+
+/* 안전 신호 사유와 행동 안내의 본문 대비 설정. */
+.safety-notice-modal #safety-notice-description {
+  margin-top: 18px;
+  color: var(--mindot-text-secondary);
+  line-height: 1.75;
+  word-break: keep-all;
+}
+
+/* 안전 안내 본문 문단 사이의 간격 설정. */
+.safety-notice-modal #safety-notice-description p {
+  margin: 0;
+}
+
+.safety-notice-modal #safety-notice-description p + p {
+  margin-top: 10px;
+}
+
+/* 긴급 신고와 전문 상담 연락 수단의 세 열 배치. */
+.safety-notice-contacts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 24px;
+}
+
+/* 전화 앱으로 연결되는 연락처 버튼의 단일 테두리 설정. */
+.safety-notice-contacts a {
+  display: flex;
+  min-height: 78px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  padding: 10px 8px;
+  color: var(--mindot-primary-strong);
+  background: var(--mindot-surface);
+  text-align: center;
+  text-decoration: none;
+  touch-action: manipulation;
+}
+
+/* 위기 안내 연락처의 경고 색상 구분 설정. */
+.safety-notice-modal.is-crisis .safety-notice-contacts a {
+  border-color: #efb4b9;
+  color: #9f1f2a;
+}
+
+/* 연락처 버튼 위의 옅은 배경 강조. */
+.safety-notice-contacts a:hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+.safety-notice-modal.is-crisis .safety-notice-contacts a:hover {
+  border-color: var(--mindot-danger);
+  background: #fff2f2;
+}
+
+/* 전화번호의 핵심 정보 강조 설정. */
+.safety-notice-contacts strong {
+  font-size: 1.25rem;
+}
+
+/* 연락처 용도의 보조 설명 문구 설정. */
+.safety-notice-contacts span {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* 서비스의 의료적 이용 범위를 구분하는 안내 설정. */
+.safety-notice-disclaimer {
+  margin: 22px 0 0;
+  border-top: 1px solid var(--mindot-border);
+  padding-top: 16px;
+  color: var(--mindot-text-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* 안전 안내 표시 이력 전송 실패의 보조 상태 문구 설정. */
+.safety-notice-tracking {
+  margin: 10px 0 0;
+  color: var(--mindot-text-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* 안전 안내를 읽은 뒤 닫는 버튼의 충분한 터치 영역 설정. */
+.safety-notice-close {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  margin-top: 22px;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  background: var(--mindot-primary);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 위기 안내 확인 버튼의 경고 색상 설정. */
+.safety-notice-modal.is-crisis .safety-notice-close {
+  border-color: var(--mindot-danger);
+  background: var(--mindot-danger);
+}
+
+/* 안전 안내 확인 버튼 위의 진한 색상 강조. */
+.safety-notice-close:hover {
+  border-color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-strong);
+}
+
+.safety-notice-modal.is-crisis .safety-notice-close:hover {
+  border-color: #9f1f2a;
+  background: #9f1f2a;
+}
+
+/* 작은 화면에서 안전 모달과 연락 수단을 세로로 조정. */
+@media (max-width: 480px) {
+  .safety-notice-backdrop {
+    align-items: flex-start;
+    padding-right: calc(14px + env(safe-area-inset-right, 0px));
+    padding-left: calc(14px + env(safe-area-inset-left, 0px));
+  }
+
+  .safety-notice-modal {
+    border-radius: 12px;
+    padding: 28px 20px;
+  }
+
+  .safety-notice-contacts {
+    grid-template-columns: 1fr;
+  }
+
+  .safety-notice-contacts a,
+  .safety-notice-close {
+    font-size: 16px;
+  }
+}
