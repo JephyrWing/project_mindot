@@ -23,4 +23,10 @@ public interface SessionDistortionsRepository
             DistortionPhase phase,
             DistortionReviewStatus reviewStatus
     );
+
+    // 여러 완료 CBT 세션의 사용자 확정 인지왜곡 라벨을 한 번에 조회
+    List<SessionDistortions> findAllBySession_IdInAndReviewStatus(
+            List<Long> sessionIds,
+            DistortionReviewStatus reviewStatus
+    );
 }

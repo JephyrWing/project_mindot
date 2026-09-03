@@ -17,8 +17,11 @@ public record WeeklyReportResponseDto (
         Double averageHelpfulnessScore,
         List<WeeklyReportEmotionEvidenceDto> emotionRecordEvidences,
         List<WeeklyReportCbtEvidenceDto> completedCbtEvidences,
+        Map<String, Map<String, Long>> distortionChangeCounts,
         List<RepeatedEmotionPatternDto> repeatedPatterns,
         Map<String, Long> emotionCounts,
+        Map<String, Long> contextCategoryCounts,
+        Map<String, Map<String, Long>> positiveEmotionContextCounts,
         Map<String, Long> weekdayCounts,
         Map<String, Long> timeBucketCounts,
         Instant sourceSnapshotAt
