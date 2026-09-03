@@ -4,6 +4,7 @@ package com.my.mindot_back.common.config;
 
 import com.my.mindot_back.common.jwt.JwtAuthenticationFilter;
 import com.my.mindot_back.common.jwt.JwtTokenProvider;
+import com.my.mindot_back.users.repository.UsersRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -28,6 +29,7 @@ public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthWebProperties authWebProperties;
+    private final UsersRepository usersRepository;
 
     // HTTP 요청이 Controller에 도달하기 전에 어떤 요청을 허용, 차단할지 결정하는 필터 묶음
     @Bean
@@ -62,10 +64,12 @@ public class SecurityConfig {
                                         )
                         )
                 )
-                // JWT 필터 먼저 실행
-                // JwtAuthenticationFilter는 Bearer Token을 검증 -> 정상이면 SecurityContext에 userId 등록
+                // JWT와 DB의 현재 계정 상태·역할을 검증한 뒤 SecurityContext에 등록
                 .addFilterBefore(
-                        new JwtAuthenticationFilter(jwtTokenProvider),
+                        new JwtAuthenticationFilter(
+                                jwtTokenProvider,
+                                usersRepository
+                        ),
                         UsernamePasswordAuthenticationFilter.class
                 )
 
@@ -82,15 +86,13 @@ public class SecurityConfig {
                                 "/api/auth/logout"
                         ).permitAll()
 
-                        /*
-                         * 정상 JWT를 가진 USER만 접근 가능
-                         * JwtAuthenticationFilter에서 ROLE_USER를 넣어 주므로 통과함
-                         */
+                        // DB의 실제 ROLE_USER 또는 ROLE_ADMIN을 가진 로그인 사용자만 접근 가능
                         .requestMatchers(
                                 "/api/records/**",
                                 "/api/reflections/**",
                                 "/api/reports/**"
                         ).hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                         // 나머지 API는 정상 Access Token이 있어야 접근 가능
                         .anyRequest().authenticated()
