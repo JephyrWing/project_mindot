@@ -158,6 +158,7 @@ function WeeklyReport({
   onSignUp,
   onEmotionHistory,
   onRecordDetail,
+  onCompletedReflection,
   onCenter,
   onDailyCare,
   onBack,
@@ -794,6 +795,15 @@ function WeeklyReport({
                           </span>
                         </header>
                         <p>{evidence.alternativeThoughtText || '정리된 대안적 사고가 없습니다.'}</p>
+                        {onCompletedReflection && (
+                          /* 완료된 CBT 세션 식별자를 결과 상세 화면으로 전달하는 버튼 배치. */
+                          <button
+                            type="button"
+                            onClick={() => onCompletedReflection(evidence.sessionId)}
+                          >
+                            완료된 CBT 결과 보기
+                          </button>
+                        )}
                       </article>
                     ))}
                   </div>

@@ -8,6 +8,7 @@ import EmotionHistory from './components/EmotionHistory/EmotionHistory.jsx'
 import EmotionRecordDetail from './components/EmotionRecordDetail/EmotionRecordDetail.jsx'
 import CBT from './components/CBT/CBT.jsx'
 import WeeklyReport from './components/WeeklyReport/WeeklyReport.jsx'
+import CompletedReflection from './components/CompletedReflection/CompletedReflection.jsx'
 import AppIntroModal from './components/AppIntroModal/AppIntroModal.jsx'
 import Center from './components/Center/Center.jsx'
 import DailyCare from './components/DailyCare/DailyCare.jsx'
@@ -37,6 +38,8 @@ function App() {
   const [cbtResumeSession, setCbtResumeSession] = useState(null)
   // 감정 기록 목록에서 선택한 상세 조회 대상 식별자 상태 관리.
   const [selectedEmotionRecordId, setSelectedEmotionRecordId] = useState(null)
+  // 주간 리포트에서 선택한 완료 CBT 성찰 세션 식별자 상태 관리.
+  const [selectedReflectionSessionId, setSelectedReflectionSessionId] = useState(null)
   // 각 화면의 로고 선택 시 새로고침 없이 메인페이지로 이동하는 처리.
   const moveToMain = () => setCurrentPage('main')
   // 로그인 성공 후 인증 상태 반영과 메인페이지 이동 처리.
@@ -91,6 +94,11 @@ function App() {
   const handleEmotionRecordDetailOpen = (emotionRecordId) => {
     setSelectedEmotionRecordId(emotionRecordId)
     setCurrentPage('emotion-record-detail')
+  }
+  // 완료된 CBT 성찰 식별자를 보관하고 결과 상세 화면으로 이동하는 처리.
+  const handleCompletedReflectionOpen = (sessionId) => {
+    setSelectedReflectionSessionId(sessionId)
+    setCurrentPage('completed-reflection')
   }
   // 현재 화면 상태에 따라 렌더링할 페이지 컴포넌트 보관.
   let currentPageContent
@@ -192,9 +200,27 @@ function App() {
         onSignUp={() => setCurrentPage('signup')}
         onEmotionHistory={() => moveToProtectedPage('emotion-history')}
         onRecordDetail={handleEmotionRecordDetailOpen}
+        onCompletedReflection={handleCompletedReflectionOpen}
         onCenter={() => setCurrentPage('center')}
         onDailyCare={() => moveToProtectedPage('daily-care')}
         onBack={moveToMain}
+        onHome={moveToMain}
+      />
+    )
+  } else if (currentPage === 'completed-reflection') {
+    // 주간 리포트에서 선택한 완료 CBT 성찰 결과 상세 화면 렌더링.
+    currentPageContent = (
+      <CompletedReflection
+        sessionId={selectedReflectionSessionId}
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={() => setCurrentPage('login')}
+        onLogout={handleLogout}
+        onSignUp={() => setCurrentPage('signup')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onCenter={() => setCurrentPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
+        onBack={() => setCurrentPage('weekly-report')}
         onHome={moveToMain}
       />
     )
