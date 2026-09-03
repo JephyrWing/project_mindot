@@ -2,8 +2,11 @@ import { useEffect, useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Navbar from '../Navbar/Navbar.jsx'
 import {
+  confirmEmotionRecord,
   deleteEmotionRecord,
   getEmotionRecordDetail,
+  getEmotionRecordPatternExplanation,
+  reanalyzeEmotionRecord,
   updateEmotionRecordOccurredAt,
 } from '../../utils/records/recordsApi.js'
 import './EmotionRecordDetail.css'
@@ -58,6 +61,47 @@ const completionStatusLabels = {
   PARTIAL: '분석 확인 필요',
   COMPLETE: '기록 완료',
 }
+
+// 관계 유형 코드를 사용자에게 표시할 한국어 이름으로 변환하기 위한 목록 설정.
+const relatedPersonTypeLabels = {
+  COLLEAGUE: '직장 동료',
+  FRIEND: '친구',
+  FAMILY: '가족',
+  OTHER: '기타',
+}
+
+// 패턴 설명에서 반환된 인지왜곡 코드를 한국어 이름으로 변환하기 위한 목록 설정.
+const distortionCodeLabels = {
+  ALL_OR_NOTHING_THINKING: '흑백논리',
+  CATASTROPHIZING_FORTUNE_TELLING: '파국화·미래예측',
+  DISQUALIFYING_DISCOUNTING_POSITIVE: '긍정적인 면 무시',
+  EMOTIONAL_REASONING: '감정적 추론',
+  LABELING: '낙인찍기',
+  MAGNIFICATION_MINIMIZATION: '과장·축소',
+  MENTAL_FILTER_SELECTIVE_ABSTRACTION: '정신적 여과',
+  MIND_READING: '독심술',
+  OVERGENERALIZATION: '과잉일반화',
+  PERSONALIZATION: '개인화',
+  SHOULD_MUST_STATEMENTS: '당위적 사고',
+  TUNNEL_VISION: '터널 시야',
+}
+
+// 상세 응답을 사용자가 수정할 수 있는 분석 확인 입력값으로 변환.
+const createAnalysisForm = (record) => ({
+  situationText: record?.situationText ?? '',
+  automaticThought: record?.automaticThought ?? '',
+  primaryEmotionCode: record?.primaryEmotionCode ?? '',
+  primaryIntensity: record?.primaryIntensity ?? '',
+  secondaryEmotions: (record?.secondaryEmotions ?? []).map((emotion) => ({
+    code: emotion.code ?? emotion.emotionCode ?? emotion.name ?? '',
+    intensity: emotion.intensity ?? emotion.score ?? '',
+  })),
+  contextCategory: record?.contextCategory ?? '',
+  relatedPersonType: record?.relatedPersonType ?? '',
+  interpretation: record?.details?.interpretation ?? '',
+  bodyReaction: record?.details?.bodyReaction ?? '',
+  behavior: record?.details?.behavior ?? '',
+})
 
 // 비어 있는 상세 항목에 공통으로 표시할 안내 문구 반환.
 const getDisplayValue = (value, fallback = '분석 전') => (
@@ -138,6 +182,63 @@ const getDeleteErrorMessage = (error) => {
   return '감정 기록을 삭제하지 못했습니다. 잠시 후 다시 시도해 주세요.'
 }
 
+// 분석 결과 확정 API 오류 상태에 따른 사용자 안내 문구 반환.
+const getConfirmErrorMessage = (error) => {
+  if (!error.response) {
+    return '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
+  }
+  if (error.response.status === 400) {
+    return '입력한 분석 결과를 확인해 주세요.'
+  }
+  if (error.response.status === 401) {
+    return '로그인 정보가 만료되었습니다. 다시 로그인해 주세요.'
+  }
+  if (error.response.status === 404) {
+    return '확정할 감정 기록을 찾을 수 없습니다.'
+  }
+  if (error.response.status === 409) {
+    return '현재 상태에서는 분석 결과를 확정할 수 없습니다.'
+  }
+
+  return '분석 결과를 확정하지 못했습니다. 잠시 후 다시 시도해 주세요.'
+}
+
+// 감정 기록 재분석 API 오류 상태에 따른 사용자 안내 문구 반환.
+const getReanalysisErrorMessage = (error) => {
+  if (!error.response) {
+    return '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
+  }
+  if (error.response.status === 401) {
+    return '로그인 정보가 만료되었습니다. 다시 로그인해 주세요.'
+  }
+  if (error.response.status === 404) {
+    return '재분석할 감정 기록을 찾을 수 없습니다.'
+  }
+  if (error.response.status === 409) {
+    return '현재 상태에서는 재분석을 요청할 수 없습니다.'
+  }
+
+  return 'AI 재분석에 실패했습니다. 잠시 후 다시 시도해 주세요.'
+}
+
+// 패턴 설명 API 오류 상태에 따른 사용자 안내 문구 반환.
+const getPatternErrorMessage = (error) => {
+  if (!error.response) {
+    return '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
+  }
+  if (error.response.status === 401) {
+    return '로그인 정보가 만료되었습니다. 다시 로그인해 주세요.'
+  }
+  if (error.response.status === 404) {
+    return '패턴을 확인할 감정 기록을 찾을 수 없습니다.'
+  }
+  if (error.response.status === 409) {
+    return '패턴 설명에 필요한 완료된 CBT 기록이 아직 충분하지 않습니다.'
+  }
+
+  return '패턴 설명을 만들지 못했습니다. 잠시 후 다시 시도해 주세요.'
+}
+
 // 선택한 감정 기록 한 건을 API로 조회하고 상세 정보를 제공하는 화면 정의.
 function EmotionRecordDetail({
   emotionRecordId,
@@ -174,6 +275,24 @@ function EmotionRecordDetail({
   const [isDeleting, setIsDeleting] = useState(false)
   // 감정 기록 삭제 API 요청 실패 안내 문구 상태 설정.
   const [deleteError, setDeleteError] = useState('')
+  // AI가 제안한 구조화 결과를 사용자가 수정할 입력값 상태 설정.
+  const [analysisForm, setAnalysisForm] = useState(() => createAnalysisForm())
+  // 분석 결과 확정 API 요청 진행 여부 상태 설정.
+  const [isConfirmingAnalysis, setIsConfirmingAnalysis] = useState(false)
+  // 분석 결과 확정 성공 또는 실패 안내 상태 설정.
+  const [analysisMessage, setAnalysisMessage] = useState('')
+  // 분석 결과 확정 실패 여부 상태 설정.
+  const [isAnalysisError, setIsAnalysisError] = useState(false)
+  // AI 재분석 API 요청 진행 여부 상태 설정.
+  const [isReanalyzing, setIsReanalyzing] = useState(false)
+  // AI 재분석 결과 안내 문구 상태 설정.
+  const [reanalysisMessage, setReanalysisMessage] = useState('')
+  // 유사 CBT 사례 기반 패턴 설명 응답 상태 설정.
+  const [patternExplanation, setPatternExplanation] = useState(null)
+  // 패턴 설명 API 요청 진행 여부 상태 설정.
+  const [isLoadingPattern, setIsLoadingPattern] = useState(false)
+  // 패턴 설명 API 요청 실패 안내 문구 상태 설정.
+  const [patternError, setPatternError] = useState('')
 
   // 화면 진입과 재조회 시 선택한 감정 기록의 상세 정보 요청.
   useEffect(() => {
@@ -194,9 +313,15 @@ function EmotionRecordDetail({
 
         if (isActive) {
           setRecord(detail)
+          setAnalysisForm(createAnalysisForm(detail))
           setOccurredAtInput(toDateTimeLocalValue(detail.occurredAt))
           setOccurredAtMessage('')
           setIsOccurredAtError(false)
+          setAnalysisMessage('')
+          setIsAnalysisError(false)
+          setReanalysisMessage('')
+          setPatternExplanation(null)
+          setPatternError('')
         }
       } catch (error) {
         if (isActive) {
@@ -227,6 +352,169 @@ function EmotionRecordDetail({
         : `${label} ${intensity}/10`
     }).join(', ')
     : '분석 전'
+
+  // 분석 확인 입력 항목의 변경값을 해당 필드에 반영.
+  const handleAnalysisFieldChange = (event) => {
+    const { name, value } = event.target
+
+    setAnalysisForm((currentForm) => ({
+      ...currentForm,
+      [name]: value,
+    }))
+    setAnalysisMessage('')
+    setIsAnalysisError(false)
+  }
+
+  // 선택한 보조 감정 입력 항목의 코드 또는 강도 변경값 반영.
+  const handleSecondaryEmotionChange = (index, field, value) => {
+    setAnalysisForm((currentForm) => ({
+      ...currentForm,
+      secondaryEmotions: currentForm.secondaryEmotions.map((emotion, emotionIndex) => (
+        emotionIndex === index ? { ...emotion, [field]: value } : emotion
+      )),
+    }))
+    setAnalysisMessage('')
+    setIsAnalysisError(false)
+  }
+
+  // 사용자가 직접 확인할 새로운 보조 감정 입력 행 추가.
+  const handleSecondaryEmotionAdd = () => {
+    setAnalysisForm((currentForm) => ({
+      ...currentForm,
+      secondaryEmotions: [
+        ...currentForm.secondaryEmotions,
+        { code: '', intensity: '' },
+      ],
+    }))
+  }
+
+  // 사용자가 선택한 보조 감정 입력 행 제거.
+  const handleSecondaryEmotionRemove = (index) => {
+    setAnalysisForm((currentForm) => ({
+      ...currentForm,
+      secondaryEmotions: currentForm.secondaryEmotions.filter(
+        (_, emotionIndex) => emotionIndex !== index,
+      ),
+    }))
+  }
+
+  // 사용자가 수정한 AI 분석 결과의 유효성을 확인하고 최종 확정 요청.
+  const handleAnalysisConfirm = async (event) => {
+    event.preventDefault()
+
+    const primaryIntensity = analysisForm.primaryIntensity === ''
+      ? null
+      : Number(analysisForm.primaryIntensity)
+
+    if (!analysisForm.primaryEmotionCode) {
+      setAnalysisMessage('대표 감정을 선택해 주세요.')
+      setIsAnalysisError(true)
+      return
+    }
+
+    if (primaryIntensity !== null
+      && (!Number.isInteger(primaryIntensity)
+        || primaryIntensity < 0
+        || primaryIntensity > 10)) {
+      setAnalysisMessage('대표 감정 강도는 0부터 10 사이의 정수로 입력해 주세요.')
+      setIsAnalysisError(true)
+      return
+    }
+
+    const secondaryEmotions = analysisForm.secondaryEmotions
+      .filter((emotion) => emotion.code)
+      .map((emotion) => ({
+        code: emotion.code,
+        intensity: emotion.intensity === '' ? null : Number(emotion.intensity),
+      }))
+
+    const hasInvalidSecondaryIntensity = secondaryEmotions.some((emotion) => (
+      emotion.intensity !== null
+      && (!Number.isInteger(emotion.intensity)
+        || emotion.intensity < 0
+        || emotion.intensity > 10)
+    ))
+
+    if (hasInvalidSecondaryIntensity) {
+      setAnalysisMessage('보조 감정 강도는 0부터 10 사이의 정수로 입력해 주세요.')
+      setIsAnalysisError(true)
+      return
+    }
+
+    setIsConfirmingAnalysis(true)
+    setAnalysisMessage('')
+    setIsAnalysisError(false)
+
+    try {
+      const confirmedRecord = await confirmEmotionRecord(emotionRecordId, {
+        situationText: analysisForm.situationText.trim() || null,
+        automaticThought: analysisForm.automaticThought.trim() || null,
+        primaryEmotionCode: analysisForm.primaryEmotionCode,
+        primaryIntensity,
+        secondaryEmotions,
+        contextCategory: analysisForm.situationText.trim()
+          ? analysisForm.contextCategory || 'OTHER'
+          : null,
+        relatedPersonType: analysisForm.relatedPersonType || null,
+        details: {
+          ...(record.details ?? {}),
+          interpretation: analysisForm.interpretation.trim() || null,
+          bodyReaction: analysisForm.bodyReaction.trim() || null,
+          behavior: analysisForm.behavior.trim() || null,
+        },
+      })
+
+      setRecord(confirmedRecord)
+      setAnalysisForm(createAnalysisForm(confirmedRecord))
+      setAnalysisMessage('수정한 분석 결과를 최종 확정했습니다.')
+    } catch (error) {
+      setAnalysisMessage(getConfirmErrorMessage(error))
+      setIsAnalysisError(true)
+    } finally {
+      setIsConfirmingAnalysis(false)
+    }
+  }
+
+  // AI 분석 실패로 간편 기록 상태에 남은 기록의 재분석 요청.
+  const handleReanalysis = async () => {
+    if (isReanalyzing) return
+
+    setIsReanalyzing(true)
+    setReanalysisMessage('')
+    setAnalysisMessage('')
+    setIsAnalysisError(false)
+
+    try {
+      const reanalyzedRecord = await reanalyzeEmotionRecord(emotionRecordId)
+
+      setRecord(reanalyzedRecord)
+      setAnalysisForm(createAnalysisForm(reanalyzedRecord))
+      setReanalysisMessage('AI 재분석을 완료했습니다. 제안된 내용을 확인해 주세요.')
+    } catch (error) {
+      setReanalysisMessage(getReanalysisErrorMessage(error))
+    } finally {
+      setIsReanalyzing(false)
+    }
+  }
+
+  // 확정된 기록과 과거 CBT 사례를 기반으로 한 패턴 설명 요청.
+  const handlePatternExplanation = async () => {
+    if (isLoadingPattern) return
+
+    setIsLoadingPattern(true)
+    setPatternError('')
+
+    try {
+      const explanation = await getEmotionRecordPatternExplanation(emotionRecordId)
+
+      setPatternExplanation(explanation)
+    } catch (error) {
+      setPatternExplanation(null)
+      setPatternError(getPatternErrorMessage(error))
+    } finally {
+      setIsLoadingPattern(false)
+    }
+  }
 
   // 입력한 지역 시각을 UTC 형식으로 변환하여 감정 발생 시각 수정 요청.
   const handleOccurredAtUpdate = async (event) => {
@@ -409,6 +697,250 @@ function EmotionRecordDetail({
               <p>{getDisplayValue(record.rawText, '작성한 내용이 없습니다.')}</p>
             </section>
 
+            {/* AI 제안과 사용자가 확정한 분석 결과를 상태별로 구분하는 확인 영역 배치. */}
+            <section
+              className="emotion-detail-analysis"
+              aria-labelledby="emotion-detail-analysis-title"
+            >
+              <div className="emotion-detail-analysis-heading">
+                <div>
+                  <h2 id="emotion-detail-analysis-title">감정 분석 결과</h2>
+                  <p>
+                    {record.completionStatus === 'COMPLETE'
+                      ? '사용자가 확인하고 확정한 최종 분석 결과입니다.'
+                      : 'AI가 원문을 바탕으로 제안한 결과를 확인해 주세요.'}
+                  </p>
+                </div>
+                <strong className={`emotion-detail-analysis-source is-${record.completionStatus?.toLowerCase()}`}>
+                  {record.completionStatus === 'COMPLETE' ? '사용자 확정값' : 'AI 제안'}
+                </strong>
+              </div>
+
+              {record.completionStatus === 'QUICK' && (
+                /* AI 분석에 실패한 기록에만 재분석 기능 표시. */
+                <div className="emotion-detail-reanalysis">
+                  <p>
+                    아직 확인할 AI 분석 결과가 없습니다. 서버의 AI 분석이 가능할 때
+                    다시 요청해 주세요.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleReanalysis}
+                    disabled={isReanalyzing || isDeleting}
+                  >
+                    {isReanalyzing ? '재분석 중' : 'AI 재분석하기'}
+                  </button>
+                </div>
+              )}
+
+              {reanalysisMessage && (
+                <p
+                  className={record.completionStatus === 'QUICK'
+                    ? 'emotion-detail-analysis-message is-error'
+                    : 'emotion-detail-analysis-message is-success'}
+                  role={record.completionStatus === 'QUICK' ? 'alert' : 'status'}
+                >
+                  {reanalysisMessage}
+                </p>
+              )}
+
+              {record.completionStatus === 'PARTIAL' && (
+                /* AI 제안을 사용자가 직접 수정하고 확정하는 입력 양식 표시. */
+                <form
+                  className="emotion-detail-analysis-form"
+                  onSubmit={handleAnalysisConfirm}
+                >
+                  <label className="emotion-detail-analysis-wide">
+                    <span>상황</span>
+                    <textarea
+                      name="situationText"
+                      rows="3"
+                      value={analysisForm.situationText}
+                      disabled={isConfirmingAnalysis || isDeleting}
+                      onChange={handleAnalysisFieldChange}
+                    />
+                  </label>
+
+                  <label className="emotion-detail-analysis-wide">
+                    <span>자동으로 떠오른 생각</span>
+                    <textarea
+                      name="automaticThought"
+                      rows="3"
+                      value={analysisForm.automaticThought}
+                      disabled={isConfirmingAnalysis || isDeleting}
+                      onChange={handleAnalysisFieldChange}
+                    />
+                  </label>
+
+                  <label>
+                    <span>대표 감정</span>
+                    <select
+                      name="primaryEmotionCode"
+                      value={analysisForm.primaryEmotionCode}
+                      required
+                      disabled={isConfirmingAnalysis || isDeleting}
+                      onChange={handleAnalysisFieldChange}
+                    >
+                      <option value="">감정 선택</option>
+                      {Object.entries(emotionCodeLabels).map(([code, label]) => (
+                        <option key={code} value={code}>{label}</option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label>
+                    <span>대표 감정 강도</span>
+                    <input
+                      name="primaryIntensity"
+                      type="number"
+                      min="0"
+                      max="10"
+                      step="1"
+                      value={analysisForm.primaryIntensity}
+                      placeholder="0~10"
+                      disabled={isConfirmingAnalysis || isDeleting}
+                      onChange={handleAnalysisFieldChange}
+                    />
+                  </label>
+
+                  <label>
+                    <span>상황 범주</span>
+                    <select
+                      name="contextCategory"
+                      value={analysisForm.contextCategory}
+                      disabled={isConfirmingAnalysis || isDeleting || !analysisForm.situationText.trim()}
+                      onChange={handleAnalysisFieldChange}
+                    >
+                      <option value="">범주 선택</option>
+                      {Object.entries(contextCategoryLabels).map(([code, label]) => (
+                        <option key={code} value={code}>{label}</option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label>
+                    <span>관련된 사람</span>
+                    <select
+                      name="relatedPersonType"
+                      value={analysisForm.relatedPersonType}
+                      disabled={isConfirmingAnalysis || isDeleting}
+                      onChange={handleAnalysisFieldChange}
+                    >
+                      <option value="">해당 없음</option>
+                      {Object.entries(relatedPersonTypeLabels).map(([code, label]) => (
+                        <option key={code} value={code}>{label}</option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <fieldset className="emotion-detail-secondary-emotions">
+                    <legend>함께 느낀 감정</legend>
+                    {analysisForm.secondaryEmotions.length === 0 ? (
+                      <p>AI가 제안한 보조 감정이 없습니다.</p>
+                    ) : analysisForm.secondaryEmotions.map((emotion, index) => (
+                      <div key={`${index}-${emotion.code}`}>
+                        <select
+                          aria-label={`보조 감정 ${index + 1}`}
+                          value={emotion.code}
+                          disabled={isConfirmingAnalysis || isDeleting}
+                          onChange={(event) => handleSecondaryEmotionChange(
+                            index,
+                            'code',
+                            event.target.value,
+                          )}
+                        >
+                          <option value="">감정 선택</option>
+                          {Object.entries(emotionCodeLabels).map(([code, label]) => (
+                            <option key={code} value={code}>{label}</option>
+                          ))}
+                        </select>
+                        <input
+                          aria-label={`보조 감정 ${index + 1} 강도`}
+                          type="number"
+                          min="0"
+                          max="10"
+                          step="1"
+                          value={emotion.intensity}
+                          placeholder="강도 0~10"
+                          disabled={isConfirmingAnalysis || isDeleting}
+                          onChange={(event) => handleSecondaryEmotionChange(
+                            index,
+                            'intensity',
+                            event.target.value,
+                          )}
+                        />
+                        <button
+                          type="button"
+                          disabled={isConfirmingAnalysis || isDeleting}
+                          onClick={() => handleSecondaryEmotionRemove(index)}
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      className="emotion-detail-secondary-add"
+                      type="button"
+                      disabled={isConfirmingAnalysis || isDeleting}
+                      onClick={handleSecondaryEmotionAdd}
+                    >
+                      보조 감정 추가
+                    </button>
+                  </fieldset>
+
+                  <label className="emotion-detail-analysis-wide">
+                    <span>해석</span>
+                    <textarea
+                      name="interpretation"
+                      rows="2"
+                      value={analysisForm.interpretation}
+                      disabled={isConfirmingAnalysis || isDeleting}
+                      onChange={handleAnalysisFieldChange}
+                    />
+                  </label>
+
+                  <label>
+                    <span>신체 반응</span>
+                    <textarea
+                      name="bodyReaction"
+                      rows="3"
+                      value={analysisForm.bodyReaction}
+                      disabled={isConfirmingAnalysis || isDeleting}
+                      onChange={handleAnalysisFieldChange}
+                    />
+                  </label>
+
+                  <label>
+                    <span>행동</span>
+                    <textarea
+                      name="behavior"
+                      rows="3"
+                      value={analysisForm.behavior}
+                      disabled={isConfirmingAnalysis || isDeleting}
+                      onChange={handleAnalysisFieldChange}
+                    />
+                  </label>
+
+                  <button
+                    className="emotion-detail-analysis-confirm"
+                    type="submit"
+                    disabled={isConfirmingAnalysis || isDeleting}
+                  >
+                    {isConfirmingAnalysis ? '확정 중' : '수정한 결과 확정하기'}
+                  </button>
+                </form>
+              )}
+
+              {analysisMessage && (
+                <p
+                  className={`emotion-detail-analysis-message ${isAnalysisError ? 'is-error' : 'is-success'}`}
+                  role={isAnalysisError ? 'alert' : 'status'}
+                >
+                  {analysisMessage}
+                </p>
+              )}
+            </section>
+
             <dl className="emotion-detail-list">
               <div>
                 <dt>기록 상태</dt>
@@ -450,6 +982,68 @@ function EmotionRecordDetail({
                 <dd>{getDisplayValue(record.details?.behavior)}</dd>
               </div>
             </dl>
+
+            {/* 확정된 기록에 유사 CBT 사례 기반 패턴 설명 요청 및 결과 표시. */}
+            {record.completionStatus === 'COMPLETE' && (
+              <section
+                className="emotion-detail-pattern"
+                aria-labelledby="emotion-detail-pattern-title"
+              >
+                <div className="emotion-detail-pattern-heading">
+                  <div>
+                    <h2 id="emotion-detail-pattern-title">반복 패턴 설명</h2>
+                    <p>완료한 과거 CBT 사례와 현재 기록의 유사한 흐름을 확인합니다.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handlePatternExplanation}
+                    disabled={isLoadingPattern || isDeleting}
+                  >
+                    {isLoadingPattern
+                      ? '설명 생성 중'
+                      : patternExplanation ? '다시 설명하기' : '패턴 설명 요청'}
+                  </button>
+                </div>
+
+                {patternError && (
+                  <p className="emotion-detail-pattern-error" role="alert">
+                    {patternError}
+                  </p>
+                )}
+
+                {patternExplanation && (
+                  <div className="emotion-detail-pattern-result" role="status">
+                    <p className="emotion-detail-pattern-count">
+                      유사한 완료 사례 {patternExplanation.similarCaseCount}건을 참고했습니다.
+                    </p>
+                    <dl>
+                      <div>
+                        <dt>반복되는 흐름</dt>
+                        <dd>{getDisplayValue(patternExplanation.patternSummary, '설명 없음')}</dd>
+                      </div>
+                      <div>
+                        <dt>반복된 생각 패턴</dt>
+                        <dd className="emotion-detail-pattern-codes">
+                          {patternExplanation.repeatedDistortionCodes?.length
+                            ? patternExplanation.repeatedDistortionCodes.map((code) => (
+                              <span key={code}>{distortionCodeLabels[code] ?? code}</span>
+                            ))
+                            : '확인된 패턴 없음'}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>도움이 된 대안적 생각</dt>
+                        <dd>{getDisplayValue(patternExplanation.helpfulAlternativeThought, '설명 없음')}</dd>
+                      </div>
+                      <div>
+                        <dt>추천</dt>
+                        <dd>{getDisplayValue(patternExplanation.recommendation, '설명 없음')}</dd>
+                      </div>
+                    </dl>
+                  </div>
+                )}
+              </section>
+            )}
 
             {/* 감정 기록과 연결된 CBT 성찰 데이터를 함께 삭제하는 위험 작업 영역 배치. */}
             <section
