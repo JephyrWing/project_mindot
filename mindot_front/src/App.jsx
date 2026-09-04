@@ -367,10 +367,9 @@ function App() {
         onCenter={() => moveToPage('center')}
         onDailyCare={() => moveToProtectedPage('daily-care')}
         onHome={moveToMain}
-        onCBT={() => {
-          setCbtResumeSession(null)
-          moveToPage('cbt')
-        }}
+        onEmotionRecord={() => moveToPage('emotion-record')}
+        onCBT={handleCbtOpen}
+        onReflectionResume={handleReflectionResume}
       />
     )
   } else {
