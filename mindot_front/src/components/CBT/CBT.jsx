@@ -6,6 +6,7 @@ import {
   cancelReflection,
   confirmReflection,
   getOpenReflectionSessions,
+  retryReflectionEmbedding,
   retryFirstReflectionQuestion,
   retryNextReflectionQuestion,
   startReflection,
@@ -124,6 +125,26 @@ const getConfirmationErrorMessage = (error) => {
   return error.response.data?.message
     || error.response.data?.detail
     || 'CBT 성찰 결과를 확정하지 못했습니다. 잠시 후 다시 시도해 주세요.'
+}
+
+// CBT 임베딩 재시도 API 오류 상태에 따른 사용자 안내 문구 반환.
+const getEmbeddingRetryErrorMessage = (error) => {
+  if (!error.response) {
+    return '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
+  }
+  if (error.response.status === 401) {
+    return '로그인 정보가 만료되었습니다. 다시 로그인해 주세요.'
+  }
+  if (error.response.status === 404) {
+    return '임베딩을 다시 만들 CBT 성찰을 찾을 수 없습니다.'
+  }
+  if (error.response.status === 409) {
+    return '이미 임베딩이 생성되었거나 재시도할 수 없는 CBT 성찰입니다.'
+  }
+
+  return error.response.data?.message
+    || error.response.data?.detail
+    || '임베딩을 다시 만들지 못했습니다. 잠시 후 다시 시도해 주세요.'
 }
 
 // CBT API 응답 상태에 맞는 AI 안내 문구 반환.
@@ -257,6 +278,14 @@ function CBT({
   const [isConfirmed, setIsConfirmed] = useState(false)
   // CBT 최종 결과 검증 또는 API 오류 안내 문구 상태 관리.
   const [confirmationError, setConfirmationError] = useState('')
+  // CBT 최종 확정 후 임베딩 재시도 필요 여부 상태 관리.
+  const [isEmbeddingRetryRequired, setIsEmbeddingRetryRequired] = useState(false)
+  // CBT 임베딩 재시도 요청 진행 여부 상태 관리.
+  const [isRetryingEmbedding, setIsRetryingEmbedding] = useState(false)
+  // CBT 임베딩 재시도 실패 안내 문구 상태 관리.
+  const [embeddingRetryError, setEmbeddingRetryError] = useState('')
+  // CBT 임베딩 재시도 완료 안내 문구 상태 관리.
+  const [embeddingRetrySuccess, setEmbeddingRetrySuccess] = useState('')
   // CBT 성찰 세션 취소 요청 진행 여부 상태 관리.
   const [isCancelling, setIsCancelling] = useState(false)
   // CBT 성찰 세션 이동 또는 취소 오류 안내 문구 상태 관리.
@@ -620,10 +649,43 @@ function CBT({
 
       setIsConfirmed(true)
       setReflectionStatus('COMPLETED')
+      setIsEmbeddingRetryRequired(false)
+      setEmbeddingRetryError('')
+      setEmbeddingRetrySuccess('')
     } catch (error) {
-      setConfirmationError(getConfirmationErrorMessage(error))
+      if (error.response?.status === 502) {
+        // 최종 결과 저장 후 별도 임베딩 생성만 실패한 백엔드 처리 순서 반영.
+        setIsConfirmed(true)
+        setReflectionStatus('COMPLETED')
+        setIsEmbeddingRetryRequired(true)
+        setEmbeddingRetryError(
+          'CBT 결과는 저장됐지만 AI 분석 데이터 생성에 실패했습니다.',
+        )
+        setConfirmationError('')
+      } else {
+        setConfirmationError(getConfirmationErrorMessage(error))
+      }
     } finally {
       setIsConfirming(false)
+    }
+  }
+
+  // 완료된 CBT 성찰의 실패한 임베딩 생성 재요청 처리.
+  const handleEmbeddingRetry = async () => {
+    if (!sessionId || isRetryingEmbedding) return
+
+    setIsRetryingEmbedding(true)
+    setEmbeddingRetryError('')
+    setEmbeddingRetrySuccess('')
+
+    try {
+      await retryReflectionEmbedding(sessionId)
+      setIsEmbeddingRetryRequired(false)
+      setEmbeddingRetrySuccess('AI 분석 데이터 생성을 완료했습니다.')
+    } catch (error) {
+      setEmbeddingRetryError(getEmbeddingRetryErrorMessage(error))
+    } finally {
+      setIsRetryingEmbedding(false)
     }
   }
 
@@ -1078,6 +1140,29 @@ function CBT({
               <div className="cbt-confirmed" role="status">
                 <strong>CBT 성찰 결과를 확정했습니다.</strong>
                 <p>확정한 내용은 이후 마음 패턴을 살펴보는 데 활용됩니다.</p>
+                {embeddingRetryError && (
+                  <p className="cbt-embedding-retry-error" role="alert">
+                    {embeddingRetryError}
+                  </p>
+                )}
+                {embeddingRetrySuccess && (
+                  <p className="cbt-embedding-retry-success">
+                    {embeddingRetrySuccess}
+                  </p>
+                )}
+                {isEmbeddingRetryRequired && (
+                  /* 최종 결과 저장 후 임베딩 생성만 실패한 경우의 재시도 버튼 배치. */
+                  <button
+                    className="cbt-embedding-retry-button"
+                    type="button"
+                    onClick={handleEmbeddingRetry}
+                    disabled={isRetryingEmbedding}
+                  >
+                    {isRetryingEmbedding
+                      ? '임베딩 다시 만드는 중…'
+                      : '임베딩 다시 만들기'}
+                  </button>
+                )}
               </div>
             ) : (
               <p className="cbt-finished" role="status">

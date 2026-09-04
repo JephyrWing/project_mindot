@@ -565,6 +565,46 @@
   line-height: 1.7;
 }
 
+/* 임베딩 재시도 실패 안내의 경고 색상 설정. */
+.cbt-confirmed .cbt-embedding-retry-error {
+  color: var(--mindot-danger);
+}
+
+/* 임베딩 재시도 완료 안내의 성공 색상 설정. */
+.cbt-confirmed .cbt-embedding-retry-success {
+  color: var(--mindot-success);
+  font-weight: 600;
+}
+
+/* 완료 결과 아래 임베딩 재시도 버튼의 터치 영역과 브랜드 색상 설정. */
+.cbt-embedding-retry-button {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  margin-top: 16px;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  background: var(--mindot-primary);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 활성화된 임베딩 재시도 버튼 위의 진한 브랜드 색상 적용. */
+.cbt-embedding-retry-button:not(:disabled):hover {
+  border-color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-strong);
+}
+
+/* 임베딩 재시도 처리 중 버튼의 비활성 상태 설정. */
+.cbt-embedding-retry-button:disabled {
+  border-color: var(--mindot-border);
+  color: var(--mindot-disabled);
+  background: var(--mindot-surface-muted);
+  cursor: wait;
+}
+
 /* 진행 중인 CBT 성찰의 이동과 중단 기능을 구분선 아래에 배치. */
 .cbt-session-actions {
   margin-top: 24px;
