@@ -302,6 +302,59 @@
   line-height: 1.6;
 }
 
+/* AI 질문 생성 실패 안내와 재시도 기능을 구분선 안에 배치. */
+.cbt-question-retry {
+  margin-top: 14px;
+  border-top: 1px solid var(--mindot-border);
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 18px 0;
+}
+
+/* 재시도 대상 질문을 알려주는 제목의 세미 볼드체 설정. */
+.cbt-question-retry strong {
+  display: block;
+  color: var(--mindot-text);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* 저장 데이터 유지 여부를 설명하는 재시도 안내 문구 설정. */
+.cbt-question-retry p {
+  margin: 7px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+/* 첫 질문과 다음 질문 재시도 버튼의 파란색 주요 동작 설정. */
+.cbt-question-retry button {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  margin-top: 14px;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  background: var(--mindot-primary);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 질문 재시도 버튼 위에 진한 브랜드 색상 적용. */
+.cbt-question-retry button:not(:disabled):hover {
+  border-color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-strong);
+}
+
+/* 질문 생성 재시도 중 버튼의 비활성 상태 설정. */
+.cbt-question-retry button:disabled {
+  border-color: var(--mindot-border);
+  color: var(--mindot-disabled);
+  background: var(--mindot-surface-muted);
+  cursor: wait;
+}
+
 /* CBT 대화 완료 또는 안전 중단 상태 안내 영역 설정. */
 .cbt-finished {
   margin: 16px 0 0;
