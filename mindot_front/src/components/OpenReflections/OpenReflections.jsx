@@ -116,7 +116,7 @@ function OpenReflections({ onResume }) {
 
   // 선택한 OPEN 성찰의 목록 정보와 상세 이력을 CBT 화면 이동 데이터로 전달.
   const handleReflectionResume = () => {
-    if (!sessionDetail || sessionDetail.currentStep === 'CONFIRM_REQUIRED') return
+    if (!sessionDetail) return
 
     const selectedSession = openSessions.find(
       (session) => session.sessionId === selectedSessionId,
@@ -218,19 +218,16 @@ function OpenReflections({ onResume }) {
                   </section>
                 ))}
               </div>
-              {sessionDetail.currentStep === 'CONFIRM_REQUIRED' ? (
-                <p className="open-reflection-confirm-notice">
-                  이 성찰은 최종 결과 확인 단계입니다. 대화 답변 이어하기 대상이 아닙니다.
-                </p>
-              ) : (
-                <button
-                  className="open-reflection-resume-button"
-                  type="button"
-                  onClick={handleReflectionResume}
-                >
-                  CBT 성찰 이어하기
-                </button>
-              )}
+              {/* 현재 단계에 맞는 CBT 재진입 버튼 문구 설정. */}
+              <button
+                className="open-reflection-resume-button"
+                type="button"
+                onClick={handleReflectionResume}
+              >
+                {sessionDetail.currentStep === 'CONFIRM_REQUIRED'
+                  ? '최종 결과 확인 이어하기'
+                  : 'CBT 성찰 이어하기'}
+              </button>
             </>
           ) : null}
         </section>

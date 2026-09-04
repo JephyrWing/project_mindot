@@ -189,14 +189,6 @@
   touch-action: manipulation;
 }
 
-/* 성찰 최종 확인 단계가 답변 이어하기 대상이 아님을 알리는 안내 설정. */
-.open-reflection-confirm-notice {
-  margin: 4px 0 0;
-  color: var(--mindot-text-secondary);
-  font-size: 14px;
-  line-height: 1.7;
-}
-
 /* 이어하기 버튼에 마우스를 올렸을 때 브랜드 진한 색상 적용. */
 .open-reflection-resume-button:hover {
   background: var(--mindot-primary-strong);

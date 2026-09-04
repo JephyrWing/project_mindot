@@ -47,6 +47,32 @@ const initialConfirmationForm = {
   helpfulnessScore: '',
 }
 
+// 상세 조회 응답의 저장된 최종 결과 초안을 사용자 확인 입력값으로 변환.
+const createResumedConfirmationForm = (resumeSession) => {
+  const savedOutcome = resumeSession?.outcomeDraft ?? resumeSession?.outcome ?? {}
+
+  return {
+    ...initialConfirmationForm,
+    evidenceForText: savedOutcome.evidenceForText ?? '',
+    evidenceAgainstText: savedOutcome.evidenceAgainstText ?? '',
+    alternativeThoughtText: savedOutcome.alternativeThoughtText ?? '',
+    beforeBeliefStrength: savedOutcome.beforeBeliefStrength ?? '',
+    afterBeliefStrength: savedOutcome.afterBeliefStrength ?? '',
+    finalEmotionIntensity: savedOutcome.finalEmotionIntensity ?? '',
+    helpfulnessScore: savedOutcome.helpfulnessScore ?? '',
+  }
+}
+
+// 상세 조회 응답의 인지왜곡 제안을 사용자 검토 상태 목록으로 변환.
+const createResumedDistortions = (distortions = []) => (
+  distortions.map((distortion) => ({
+    code: distortion.code,
+    reviewStatus: ['CONFIRMED', 'REJECTED'].includes(distortion.reviewStatus)
+      ? distortion.reviewStatus
+      : '',
+  }))
+)
+
 // AI 질문 생성 실패 후 호출할 재시도 API 유형 설정.
 const questionRetryTypes = {
   FIRST: 'FIRST',
@@ -200,16 +226,31 @@ function CBT({
   const [isAutomaticThoughtRequired, setIsAutomaticThoughtRequired] = useState(false)
   // CBT 대화 계속 여부를 판단하기 위한 백엔드 응답 상태 관리.
   const [reflectionStatus, setReflectionStatus] = useState(
-    () => (resumeSession?.sessionId ? 'CONTINUE' : 'IDLE'),
+    () => (
+      resumeSession?.sessionId
+        ? resumeSession.currentStep ?? 'CONTINUE'
+        : 'IDLE'
+    ),
   )
   // CONFIRM_REQUIRED 결과의 인지왜곡 판정 유형 상태 관리.
-  const [assessmentType, setAssessmentType] = useState('')
+  const [assessmentType, setAssessmentType] = useState(
+    () => resumeSession?.assessmentType ?? '',
+  )
   // AI가 제안한 CBT 최종 결과와 사용자의 수정값 상태 관리.
-  const [confirmationForm, setConfirmationForm] = useState(initialConfirmationForm)
+  const [confirmationForm, setConfirmationForm] = useState(
+    () => createResumedConfirmationForm(resumeSession),
+  )
   // 성찰 전 AI 제안 인지왜곡의 사용자 검토 상태 관리.
-  const [beforeDistortions, setBeforeDistortions] = useState([])
+  const [beforeDistortions, setBeforeDistortions] = useState(
+    () => createResumedDistortions(resumeSession?.beforeDistortions),
+  )
   // 성찰 후 AI 제안 인지왜곡의 사용자 검토 상태 관리.
-  const [afterDistortions, setAfterDistortions] = useState([])
+  const [afterDistortions, setAfterDistortions] = useState(
+    () => createResumedDistortions(
+      resumeSession?.outcomeDraft?.afterDistortions
+        ?? resumeSession?.afterDistortions,
+    ),
+  )
   // CBT 최종 결과 확정 요청 진행 여부 상태 관리.
   const [isConfirming, setIsConfirming] = useState(false)
   // CBT 최종 결과 확정 완료 여부 상태 관리.
