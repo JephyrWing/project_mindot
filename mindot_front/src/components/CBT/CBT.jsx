@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Navbar from '../Navbar/Navbar.jsx'
 import SafetyNoticeModal from '../SafetyNoticeModal/SafetyNoticeModal.jsx'
 import {
   cancelReflection,
   confirmReflection,
+  getReflectionSessionDetail,
   getOpenReflectionSessions,
   retryReflectionEmbedding,
   retryFirstReflectionQuestion,
@@ -199,6 +200,8 @@ const createResumedChatMessages = (resumeSession) => (
 function CBT({
   emotionRecordId,
   resumeSession,
+  resumeSessionId,
+  onSessionStarted,
   isAuthenticated,
   isLoggingOut,
   onLogin,
@@ -294,6 +297,68 @@ function CBT({
   const [safetyNotice, setSafetyNotice] = useState(null)
   // 위기 안전 안내 이후 CBT 답변 입력을 계속 차단하기 위한 상태 관리.
   const [isCrisisBlocked, setIsCrisisBlocked] = useState(false)
+  // URL로 직접 진입한 CBT 세션 상세 조회 진행 여부 상태 관리.
+  const [isResumeLoading, setIsResumeLoading] = useState(
+    () => Boolean(resumeSessionId && !resumeSession),
+  )
+  // URL로 직접 진입한 CBT 세션 상세 조회 실패 안내 상태 관리.
+  const [resumeLoadError, setResumeLoadError] = useState('')
+  // URL CBT 세션 상세 재조회 요청 횟수 상태 관리.
+  const [resumeReloadCount, setResumeReloadCount] = useState(0)
+
+  // CBT 재개 URL을 새로고침한 경우 세션 상세와 기존 대화 상태 복원.
+  useEffect(() => {
+    if (!resumeSessionId || resumeSession?.sessionId === resumeSessionId) {
+      return undefined
+    }
+
+    let isActive = true
+
+    const loadResumeSession = async () => {
+      setIsResumeLoading(true)
+      setResumeLoadError('')
+
+      try {
+        const detail = await getReflectionSessionDetail(resumeSessionId)
+
+        if (!isActive) return
+
+        const resumedStatus = detail.currentStep
+          ?? (detail.status === 'COMPLETED' ? 'COMPLETED' : 'CONTINUE')
+
+        setSessionId(detail.sessionId)
+        setReflectionStatus(resumedStatus)
+        setChatMessages(createResumedChatMessages(detail))
+        setAssessmentType(detail.assessmentType ?? '')
+        setConfirmationForm(createResumedConfirmationForm(detail))
+        setBeforeDistortions(createResumedDistortions(detail.beforeDistortions))
+        setAfterDistortions(createResumedDistortions(
+          detail.outcomeDraft?.afterDistortions ?? detail.afterDistortions,
+        ))
+        setQuestionRetryType(
+          detail.sessionId && !detail.currentStep ? questionRetryTypes.FIRST : '',
+        )
+        setIsConfirmed(detail.status === 'COMPLETED')
+        setIsChatStarted(Boolean(detail.currentStep) || detail.status === 'COMPLETED')
+        setApiError('')
+      } catch (error) {
+        if (isActive) {
+          setResumeLoadError(getReflectionErrorMessage(
+            error,
+            '이어갈 CBT 성찰을 불러오지 못했습니다.',
+          ))
+        }
+      } finally {
+        if (isActive) setIsResumeLoading(false)
+      }
+    }
+
+    loadResumeSession()
+
+    return () => {
+      isActive = false
+    }
+  }, [resumeReloadCount, resumeSession, resumeSessionId])
 
   // CBT 응답의 안전 안내를 반영하고 위기 입력 차단 필요 여부 반환.
   const applySafetyNotice = (response) => {
@@ -343,6 +408,7 @@ function CBT({
     const shouldBlockCbt = applySafetyNotice(response)
 
     setSessionId(response.sessionId)
+    onSessionStarted?.(response.sessionId)
     setReflectionStatus(shouldBlockCbt ? 'SAFETY_STOP' : response.status)
     if (shouldBlockCbt) {
       setAssessmentType('')
@@ -404,6 +470,7 @@ function CBT({
 
     if (responseSessionId) {
       setSessionId(responseSessionId)
+      onSessionStarted?.(responseSessionId)
       setQuestionRetryType(questionRetryTypes.FIRST)
       return true
     }
@@ -418,6 +485,7 @@ function CBT({
       if (!failedSession) return false
 
       setSessionId(failedSession.sessionId)
+      onSessionStarted?.(failedSession.sessionId)
       setQuestionRetryType(questionRetryTypes.FIRST)
       return true
     } catch {
@@ -766,11 +834,35 @@ function CBT({
       <div className="cbt-content">
         <section
           className="cbt-card"
-          aria-labelledby={isChatStarted ? 'cbt-chat-title' : 'cbt-title'}
+          aria-labelledby={
+            isResumeLoading || resumeLoadError
+              ? 'cbt-route-state-title'
+              : isChatStarted
+                ? 'cbt-chat-title'
+                : 'cbt-title'
+          }
         >
           <BrandLogo className="cbt-logo" onClick={onHome} />
 
-        {!isChatStarted ? (
+        {isResumeLoading ? (
+          /* URL로 직접 진입한 CBT 세션을 불러오는 상태 표시. */
+          <div className="cbt-route-state" role="status">
+            <strong id="cbt-route-state-title">
+              진행 중인 CBT 성찰을 불러오는 중입니다.
+            </strong>
+          </div>
+        ) : resumeLoadError ? (
+          /* URL CBT 세션 상세 조회 실패 안내와 재조회 기능 표시. */
+          <div className="cbt-route-state" role="alert">
+            <strong id="cbt-route-state-title">{resumeLoadError}</strong>
+            <button
+              type="button"
+              onClick={() => setResumeReloadCount((count) => count + 1)}
+            >
+              다시 불러오기
+            </button>
+          </div>
+        ) : !isChatStarted ? (
           <>
             <h1 id="cbt-title">CBT 성찰</h1>
             <p className="cbt-description">

@@ -576,6 +576,42 @@
   font-weight: 600;
 }
 
+/* URL 직접 진입 시 CBT 세션 조회 상태를 구분선 안에 중앙 배치. */
+.cbt-route-state {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  margin-top: 34px;
+  border-top: 1px solid var(--mindot-border);
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 42px 16px;
+  text-align: center;
+}
+
+/* CBT URL 조회 상태 안내의 읽기 쉬운 행간 설정. */
+.cbt-route-state strong {
+  line-height: 1.7;
+}
+
+/* CBT URL 조회 실패 후 재조회 버튼의 터치 영역 설정. */
+.cbt-route-state button {
+  min-height: 46px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  padding: 0 20px;
+  color: var(--mindot-primary-strong);
+  font: inherit;
+  font-weight: 700;
+  background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* CBT URL 재조회 버튼 위의 옅은 파란색 배경 적용. */
+.cbt-route-state button:hover {
+  background: var(--mindot-primary-soft);
+}
+
 /* 완료 결과 아래 임베딩 재시도 버튼의 터치 영역과 브랜드 색상 설정. */
 .cbt-embedding-retry-button {
   width: 100%;
