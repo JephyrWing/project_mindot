@@ -65,6 +65,11 @@ export const createReflectionsApi = (client) => ({
       confirmation,
     )
   },
+
+  // 완료된 CBT 성찰의 임베딩 생성 실패 작업 재시도 처리.
+  retryReflectionEmbedding: async (sessionId) => {
+    await client.post(`/api/reflections/${sessionId}/retry-embedding`)
+  },
 })
 
 // 공통 인증 HTTP 클라이언트를 사용하는 CBT 성찰 API 함수 제공.
@@ -77,4 +82,5 @@ export const {
   getOpenReflectionSessions,
   getReflectionSessionDetail,
   confirmReflection,
+  retryReflectionEmbedding,
 } = createReflectionsApi(httpClient)
