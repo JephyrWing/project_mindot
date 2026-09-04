@@ -6,18 +6,18 @@
   background: var(--mindot-page);
 }
 
-/* 주요 콘텐츠의 모바일 안전 영역과 최대 너비 설정. */
+/* 주요 콘텐츠의 모바일 안전 영역과 읽기 편한 최대 너비 설정. */
 .daily-care-main {
-  width: min(100%, 720px);
+  width: min(100%, 760px);
   margin: 0 auto;
   padding:
-    56px
+    48px
     max(24px, env(safe-area-inset-right, 0px))
     calc(48px + env(safe-area-inset-bottom, 0px))
     max(24px, env(safe-area-inset-left, 0px));
 }
 
-/* 화면 제목과 설명의 기본 간격 설정. */
+/* 화면 제목과 최근 기록 안내의 기본 간격 설정. */
 .daily-care-intro h1 {
   margin: 0;
   font-size: 2rem;
@@ -30,23 +30,63 @@
   font-size: 1rem;
 }
 
-/* 추천 근거 항목의 단순 가로 정보 배치 설정. */
+/* 최근 칠 일 기록과 대표 감정 정보를 한눈에 확인하는 영역 설정. */
 .daily-care-basis {
-  display: flex;
-  gap: 12px;
-  margin: 24px 0 0;
-  color: var(--mindot-text-secondary);
-  font-size: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin: 28px 0 0;
+  border: 1px solid var(--mindot-border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--mindot-border);
+}
+
+.daily-care-basis div {
+  padding: 16px;
+  text-align: center;
+  background: var(--mindot-surface);
 }
 
 .daily-care-basis dt {
-  font-weight: 600;
+  color: var(--mindot-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .daily-care-basis dd {
-  margin: 0;
+  margin: 6px 0 0;
   color: var(--mindot-primary-strong);
+  font-weight: 700;
+}
+
+/* 일부 기초 데이터 조회 실패 상태와 재시도 버튼 배치 설정. */
+.daily-care-load-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 20px;
+  border: 1px solid #e3b7bd;
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: var(--mindot-danger);
+  background: var(--mindot-surface);
+}
+
+.daily-care-load-error p {
+  margin: 0;
+}
+
+.daily-care-load-error button {
+  min-height: 40px;
+  border: 1px solid #d48792;
+  border-radius: 8px;
+  padding: 0 14px;
+  color: var(--mindot-danger);
   font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
 }
 
 /* 오늘의 핵심 제안을 구분선으로 분리한 영역 설정. */
@@ -58,22 +98,103 @@
 }
 
 .daily-care-suggestion h2,
+.daily-care-pattern h2,
+.daily-care-tool h2,
 .daily-care-feedback h2 {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 700;
 }
 
-.daily-care-suggestion p {
-  margin: 8px 0 0;
+.daily-care-suggestion strong {
+  display: block;
+  margin-top: 14px;
+  color: var(--mindot-primary-strong);
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+
+.daily-care-suggestion p,
+.daily-care-section-heading p,
+.daily-care-feedback > p {
+  margin: 7px 0 0;
   color: var(--mindot-text-secondary);
+}
+
+/* 최신 기록과 완료 CBT 사례를 요청하는 패턴 설명 영역 설정. */
+.daily-care-pattern {
+  margin-top: 32px;
+}
+
+.daily-care-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.daily-care-section-heading button,
+.daily-care-tool button,
+.daily-care-record-button {
+  min-height: 44px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  padding: 0 18px;
+  color: var(--mindot-primary-strong);
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+.daily-care-section-heading button:hover,
+.daily-care-tool button:hover,
+.daily-care-record-button:hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+.daily-care-section-heading button:disabled,
+.daily-care-action button:disabled {
+  border-color: var(--mindot-border);
+  color: var(--mindot-disabled);
+  background: var(--mindot-surface-muted);
+  cursor: not-allowed;
+}
+
+/* AI 패턴 설명 결과를 중첩 카드 없이 구분선으로 표시하는 영역 설정. */
+.daily-care-pattern-result {
+  margin-top: 22px;
+  border-top: 1px solid var(--mindot-border);
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 20px 0;
+}
+
+.daily-care-pattern-result h3 {
+  margin: 18px 0 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.daily-care-pattern-result h3:first-child {
+  margin-top: 0;
+}
+
+.daily-care-pattern-result p {
+  margin: 6px 0 0;
+  color: var(--mindot-text-secondary);
+}
+
+.daily-care-pattern-result small {
+  display: block;
+  margin-top: 16px;
+  color: var(--mindot-text-muted);
 }
 
 /* 세 가지 활동을 한 단계 구조로 나열하는 영역 설정. */
 .daily-care-actions {
   display: grid;
   gap: 14px;
-  margin-top: 28px;
+  margin-top: 32px;
 }
 
 /* 개별 활동의 단일 테두리와 일정한 내부 간격 설정. */
@@ -86,6 +207,11 @@
   border-radius: 14px;
   padding: 22px;
   background: var(--mindot-surface);
+}
+
+/* 현재 기록에 가장 적합한 활동의 선 색상 강조 설정. */
+.daily-care-action.is-recommended {
+  border-color: var(--mindot-primary);
 }
 
 .daily-care-action h2 {
@@ -133,6 +259,64 @@
   background: var(--mindot-primary-strong);
 }
 
+/* 선택한 호흡 또는 명상 활동을 구분선 안에서 실행하는 영역 설정. */
+.daily-care-tool {
+  margin-top: 28px;
+  border-top: 1px solid var(--mindot-border);
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 26px 0;
+}
+
+.daily-care-timer {
+  display: block;
+  margin-top: 18px;
+  color: var(--mindot-primary-strong);
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.daily-care-tool > p {
+  margin: 8px 0 0;
+  color: var(--mindot-text-secondary);
+}
+
+.daily-care-tool-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.daily-care-meditation-steps {
+  margin: 18px 0 0;
+  padding-left: 24px;
+  color: var(--mindot-text-secondary);
+}
+
+.daily-care-meditation-steps li + li {
+  margin-top: 8px;
+}
+
+.daily-care-tool .daily-care-tool-wide-button,
+.daily-care-record-button {
+  width: 100%;
+  margin-top: 20px;
+}
+
+/* API와 브라우저 기능의 상태 안내 문구 설정. */
+.daily-care-message {
+  margin: 14px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+}
+
+.daily-care-message.is-error {
+  color: var(--mindot-danger);
+}
+
+.daily-care-message.is-success {
+  color: var(--mindot-success);
+}
+
 /* 추천 만족도 문구와 선택 버튼의 하단 영역 설정. */
 .daily-care-feedback {
   margin-top: 36px;
@@ -148,6 +332,12 @@
   margin-top: 18px;
 }
 
+.daily-care-feedback-actions button.is-selected {
+  border-color: var(--mindot-primary);
+  color: var(--mindot-surface);
+  background: var(--mindot-primary);
+}
+
 /* 작은 화면에서 콘텐츠 간격과 활동 버튼의 세로 배치 설정. */
 @media (max-width: 600px) {
   .daily-care-main {
@@ -158,20 +348,34 @@
     font-size: 1.75rem;
   }
 
+  .daily-care-basis {
+    grid-template-columns: 1fr;
+  }
+
+  .daily-care-section-heading,
+  .daily-care-load-error {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .daily-care-action {
     grid-template-columns: 1fr;
     gap: 16px;
     padding: 20px;
   }
 
-  .daily-care-action button {
+  .daily-care-action button,
+  .daily-care-section-heading button,
+  .daily-care-load-error button {
     width: 100%;
   }
 }
 
-/* 매우 좁은 화면에서 만족도 버튼의 세로 배치 설정. */
+/* 매우 좁은 화면에서 만족도와 실행 버튼의 세로 배치 설정. */
 @media (max-width: 420px) {
-  .daily-care-feedback-actions {
+  .daily-care-feedback-actions,
+  .daily-care-tool-actions {
+    display: grid;
     grid-template-columns: 1fr;
   }
 }
