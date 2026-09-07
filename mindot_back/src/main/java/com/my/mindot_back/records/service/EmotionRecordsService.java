@@ -15,6 +15,7 @@ import com.my.mindot_back.records.entity.*;
 import com.my.mindot_back.records.repository.EmotionRecordsRepository;
 import com.my.mindot_back.records.repository.ReflectionSessionsRepository;
 import com.my.mindot_back.records.repository.SessionDistortionsRepository;
+import com.my.mindot_back.reports.repository.ReportsRepository;
 import com.my.mindot_back.safety.dto.SafetyNoticeResponseDto;
 import com.my.mindot_back.safety.service.SafetyEventsService;
 import com.my.mindot_back.users.repository.UsersRepository;
@@ -47,6 +48,9 @@ public class EmotionRecordsService {
 
     // 감정 기록에 연결된 CBT 성찰 세션 조회
     private final ReflectionSessionsRepository reflectionSessionsRepository;
+
+    // 감정 기록 변경 시 사용자 리포트 캐시 전체를 무효화
+    private final ReportsRepository reportsRepository;
 
     // 완료된 CBT 임베딩을 기반으로 유사사례 검색
     private final RagUtils ragUtils;
@@ -265,6 +269,9 @@ public class EmotionRecordsService {
                 AiJobEntityType.EMOTION_RECORD,
                 emotionRecord.getId()
         );
+
+        // 감정 기록 삭제 후 통계·반복 패턴이 오래되지 않도록 리포트 캐시 전체 무효화
+        reportsRepository.deleteByUser_Id(userId);
 
         // DB cascade로 CBT 세션, 인지왜곡 라벨, 안전 이벤트 모두 삭제
         emotionRecordsRepository.delete(emotionRecord);

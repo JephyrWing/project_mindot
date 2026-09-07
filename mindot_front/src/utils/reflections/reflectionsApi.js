@@ -21,6 +21,24 @@ export const createReflectionsApi = (client) => ({
     return data
   },
 
+  // 첫 CBT 질문 생성에 실패한 OPEN 세션의 첫 질문 재생성 요청 처리.
+  retryFirstReflectionQuestion: async (sessionId) => {
+    const { data } = await client.post(
+      `/api/reflections/${sessionId}/retry-first-question`,
+    )
+
+    return data
+  },
+
+  // 저장된 답변 이후 다음 CBT 질문 생성에 실패한 세션의 재생성 요청 처리.
+  retryNextReflectionQuestion: async (sessionId) => {
+    const { data } = await client.post(
+      `/api/reflections/${sessionId}/retry-next-question`,
+    )
+
+    return data
+  },
+
   // 진행 중인 CBT 성찰 세션을 취소하여 다시 재개할 수 없게 하는 처리.
   cancelReflection: async (sessionId) => {
     await client.post(`/api/reflections/${sessionId}/cancel`)
@@ -47,14 +65,22 @@ export const createReflectionsApi = (client) => ({
       confirmation,
     )
   },
+
+  // 완료된 CBT 성찰의 임베딩 생성 실패 작업 재시도 처리.
+  retryReflectionEmbedding: async (sessionId) => {
+    await client.post(`/api/reflections/${sessionId}/retry-embedding`)
+  },
 })
 
 // 공통 인증 HTTP 클라이언트를 사용하는 CBT 성찰 API 함수 제공.
 export const {
   startReflection,
   submitReflectionAnswer,
+  retryFirstReflectionQuestion,
+  retryNextReflectionQuestion,
   cancelReflection,
   getOpenReflectionSessions,
   getReflectionSessionDetail,
   confirmReflection,
+  retryReflectionEmbedding,
 } = createReflectionsApi(httpClient)

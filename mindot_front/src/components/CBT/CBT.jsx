@@ -1,9 +1,15 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Navbar from '../Navbar/Navbar.jsx'
+import SafetyNoticeModal from '../SafetyNoticeModal/SafetyNoticeModal.jsx'
 import {
   cancelReflection,
   confirmReflection,
+  getReflectionSessionDetail,
+  getOpenReflectionSessions,
+  retryReflectionEmbedding,
+  retryFirstReflectionQuestion,
+  retryNextReflectionQuestion,
   startReflection,
   submitReflectionAnswer,
 } from '../../utils/reflections/reflectionsApi.js'
@@ -43,6 +49,45 @@ const initialConfirmationForm = {
   helpfulnessScore: '',
 }
 
+// 상세 조회 응답의 저장된 최종 결과 초안을 사용자 확인 입력값으로 변환.
+const createResumedConfirmationForm = (resumeSession) => {
+  const savedOutcome = resumeSession?.outcomeDraft ?? resumeSession?.outcome ?? {}
+
+  return {
+    ...initialConfirmationForm,
+    evidenceForText: savedOutcome.evidenceForText ?? '',
+    evidenceAgainstText: savedOutcome.evidenceAgainstText ?? '',
+    alternativeThoughtText: savedOutcome.alternativeThoughtText ?? '',
+    beforeBeliefStrength: savedOutcome.beforeBeliefStrength ?? '',
+    afterBeliefStrength: savedOutcome.afterBeliefStrength ?? '',
+    finalEmotionIntensity: savedOutcome.finalEmotionIntensity ?? '',
+    helpfulnessScore: savedOutcome.helpfulnessScore ?? '',
+  }
+}
+
+// 상세 조회 응답의 인지왜곡 제안을 사용자 검토 상태 목록으로 변환.
+const createResumedDistortions = (distortions = []) => (
+  distortions.map((distortion) => ({
+    code: distortion.code,
+    reviewStatus: ['CONFIRMED', 'REJECTED'].includes(distortion.reviewStatus)
+      ? distortion.reviewStatus
+      : '',
+  }))
+)
+
+// AI 질문 생성 실패 후 호출할 재시도 API 유형 설정.
+const questionRetryTypes = {
+  FIRST: 'FIRST',
+  NEXT: 'NEXT',
+}
+
+// CBT API 오류가 AI 질문 생성 재처리가 가능한 서버 오류인지 확인.
+const isQuestionGenerationError = (error) => {
+  const status = error.response?.status
+
+  return Number.isInteger(status) && status >= 500
+}
+
 // CBT API 오류 응답을 사용자가 이해할 수 있는 문구로 변환.
 const getReflectionErrorMessage = (error, fallbackMessage) => {
   if (!error.response) {
@@ -50,6 +95,9 @@ const getReflectionErrorMessage = (error, fallbackMessage) => {
   }
   if (error.response.status === 401) {
     return '로그인 정보가 만료되었습니다. 다시 로그인해 주세요.'
+  }
+  if (error.response.status >= 500) {
+    return fallbackMessage
   }
 
   return error.response.data?.message
@@ -80,8 +128,31 @@ const getConfirmationErrorMessage = (error) => {
     || 'CBT 성찰 결과를 확정하지 못했습니다. 잠시 후 다시 시도해 주세요.'
 }
 
+// CBT 임베딩 재시도 API 오류 상태에 따른 사용자 안내 문구 반환.
+const getEmbeddingRetryErrorMessage = (error) => {
+  if (!error.response) {
+    return '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
+  }
+  if (error.response.status === 401) {
+    return '로그인 정보가 만료되었습니다. 다시 로그인해 주세요.'
+  }
+  if (error.response.status === 404) {
+    return '임베딩을 다시 만들 CBT 성찰을 찾을 수 없습니다.'
+  }
+  if (error.response.status === 409) {
+    return '이미 임베딩이 생성되었거나 재시도할 수 없는 CBT 성찰입니다.'
+  }
+
+  return error.response.data?.message
+    || error.response.data?.detail
+    || '임베딩을 다시 만들지 못했습니다. 잠시 후 다시 시도해 주세요.'
+}
+
 // CBT API 응답 상태에 맞는 AI 안내 문구 반환.
 const getResponseMessage = (response) => {
+  if (response.safetyNotice?.actionCode === 'SHOW_CRISIS_NOTICE') {
+    return '안전을 위해 CBT 답변 입력을 중단했습니다. 안전 안내의 연락 수단을 먼저 확인해 주세요.'
+  }
   if (response.nextQuestion?.question) {
     return response.nextQuestion.question
   }
@@ -129,6 +200,8 @@ const createResumedChatMessages = (resumeSession) => (
 function CBT({
   emotionRecordId,
   resumeSession,
+  resumeSessionId,
+  onSessionStarted,
   isAuthenticated,
   isLoggingOut,
   onLogin,
@@ -141,7 +214,7 @@ function CBT({
 }) {
   // CBT AI 대화창 시작 여부 상태 관리.
   const [isChatStarted, setIsChatStarted] = useState(
-    () => Boolean(resumeSession?.sessionId),
+    () => Boolean(resumeSession?.sessionId && resumeSession?.currentStep),
   )
   // 사용자가 작성 중인 답변 내용 상태 관리.
   const [message, setMessage] = useState('')
@@ -157,6 +230,16 @@ function CBT({
   const [isStarting, setIsStarting] = useState(false)
   // CBT 답변 전송 요청 진행 여부 상태 관리.
   const [isSending, setIsSending] = useState(false)
+  // AI 질문 생성 재시도 요청 진행 여부 상태 관리.
+  const [isRetryingQuestion, setIsRetryingQuestion] = useState(false)
+  // 첫 질문 또는 다음 질문 재시도 유형 상태 관리.
+  const [questionRetryType, setQuestionRetryType] = useState(
+    () => (
+      resumeSession?.sessionId && !resumeSession?.currentStep
+        ? questionRetryTypes.FIRST
+        : ''
+    ),
+  )
   // CBT API 요청 실패 안내 문구 상태 관리.
   const [apiError, setApiError] = useState('')
   // CBT 시작 전 자동 사고 보완이 필요한 감정 기록 상세 정보 상태 관리.
@@ -167,26 +250,130 @@ function CBT({
   const [isAutomaticThoughtRequired, setIsAutomaticThoughtRequired] = useState(false)
   // CBT 대화 계속 여부를 판단하기 위한 백엔드 응답 상태 관리.
   const [reflectionStatus, setReflectionStatus] = useState(
-    () => (resumeSession?.sessionId ? 'CONTINUE' : 'IDLE'),
+    () => (
+      resumeSession?.sessionId
+        ? resumeSession.currentStep ?? 'CONTINUE'
+        : 'IDLE'
+    ),
   )
   // CONFIRM_REQUIRED 결과의 인지왜곡 판정 유형 상태 관리.
-  const [assessmentType, setAssessmentType] = useState('')
+  const [assessmentType, setAssessmentType] = useState(
+    () => resumeSession?.assessmentType ?? '',
+  )
   // AI가 제안한 CBT 최종 결과와 사용자의 수정값 상태 관리.
-  const [confirmationForm, setConfirmationForm] = useState(initialConfirmationForm)
+  const [confirmationForm, setConfirmationForm] = useState(
+    () => createResumedConfirmationForm(resumeSession),
+  )
   // 성찰 전 AI 제안 인지왜곡의 사용자 검토 상태 관리.
-  const [beforeDistortions, setBeforeDistortions] = useState([])
+  const [beforeDistortions, setBeforeDistortions] = useState(
+    () => createResumedDistortions(resumeSession?.beforeDistortions),
+  )
   // 성찰 후 AI 제안 인지왜곡의 사용자 검토 상태 관리.
-  const [afterDistortions, setAfterDistortions] = useState([])
+  const [afterDistortions, setAfterDistortions] = useState(
+    () => createResumedDistortions(
+      resumeSession?.outcomeDraft?.afterDistortions
+        ?? resumeSession?.afterDistortions,
+    ),
+  )
   // CBT 최종 결과 확정 요청 진행 여부 상태 관리.
   const [isConfirming, setIsConfirming] = useState(false)
   // CBT 최종 결과 확정 완료 여부 상태 관리.
   const [isConfirmed, setIsConfirmed] = useState(false)
   // CBT 최종 결과 검증 또는 API 오류 안내 문구 상태 관리.
   const [confirmationError, setConfirmationError] = useState('')
+  // CBT 최종 확정 후 임베딩 재시도 필요 여부 상태 관리.
+  const [isEmbeddingRetryRequired, setIsEmbeddingRetryRequired] = useState(false)
+  // CBT 임베딩 재시도 요청 진행 여부 상태 관리.
+  const [isRetryingEmbedding, setIsRetryingEmbedding] = useState(false)
+  // CBT 임베딩 재시도 실패 안내 문구 상태 관리.
+  const [embeddingRetryError, setEmbeddingRetryError] = useState('')
+  // CBT 임베딩 재시도 완료 안내 문구 상태 관리.
+  const [embeddingRetrySuccess, setEmbeddingRetrySuccess] = useState('')
   // CBT 성찰 세션 취소 요청 진행 여부 상태 관리.
   const [isCancelling, setIsCancelling] = useState(false)
   // CBT 성찰 세션 이동 또는 취소 오류 안내 문구 상태 관리.
   const [sessionActionError, setSessionActionError] = useState('')
+  // CBT 시작 또는 답변 응답에서 반환된 안전 안내 모달 정보 상태 관리.
+  const [safetyNotice, setSafetyNotice] = useState(null)
+  // 위기 안전 안내 이후 CBT 답변 입력을 계속 차단하기 위한 상태 관리.
+  const [isCrisisBlocked, setIsCrisisBlocked] = useState(false)
+  // URL로 직접 진입한 CBT 세션 상세 조회 진행 여부 상태 관리.
+  const [isResumeLoading, setIsResumeLoading] = useState(
+    () => Boolean(resumeSessionId && !resumeSession),
+  )
+  // URL로 직접 진입한 CBT 세션 상세 조회 실패 안내 상태 관리.
+  const [resumeLoadError, setResumeLoadError] = useState('')
+  // URL CBT 세션 상세 재조회 요청 횟수 상태 관리.
+  const [resumeReloadCount, setResumeReloadCount] = useState(0)
+
+  // CBT 재개 URL을 새로고침한 경우 세션 상세와 기존 대화 상태 복원.
+  useEffect(() => {
+    if (!resumeSessionId || resumeSession?.sessionId === resumeSessionId) {
+      return undefined
+    }
+
+    let isActive = true
+
+    const loadResumeSession = async () => {
+      setIsResumeLoading(true)
+      setResumeLoadError('')
+
+      try {
+        const detail = await getReflectionSessionDetail(resumeSessionId)
+
+        if (!isActive) return
+
+        const resumedStatus = detail.currentStep
+          ?? (detail.status === 'COMPLETED' ? 'COMPLETED' : 'CONTINUE')
+
+        setSessionId(detail.sessionId)
+        setReflectionStatus(resumedStatus)
+        setChatMessages(createResumedChatMessages(detail))
+        setAssessmentType(detail.assessmentType ?? '')
+        setConfirmationForm(createResumedConfirmationForm(detail))
+        setBeforeDistortions(createResumedDistortions(detail.beforeDistortions))
+        setAfterDistortions(createResumedDistortions(
+          detail.outcomeDraft?.afterDistortions ?? detail.afterDistortions,
+        ))
+        setQuestionRetryType(
+          detail.sessionId && !detail.currentStep ? questionRetryTypes.FIRST : '',
+        )
+        setIsConfirmed(detail.status === 'COMPLETED')
+        setIsChatStarted(Boolean(detail.currentStep) || detail.status === 'COMPLETED')
+        setApiError('')
+      } catch (error) {
+        if (isActive) {
+          setResumeLoadError(getReflectionErrorMessage(
+            error,
+            '이어갈 CBT 성찰을 불러오지 못했습니다.',
+          ))
+        }
+      } finally {
+        if (isActive) setIsResumeLoading(false)
+      }
+    }
+
+    loadResumeSession()
+
+    return () => {
+      isActive = false
+    }
+  }, [resumeReloadCount, resumeSession, resumeSessionId])
+
+  // CBT 응답의 안전 안내를 반영하고 위기 입력 차단 필요 여부 반환.
+  const applySafetyNotice = (response) => {
+    const responseSafetyNotice = response.safetyNotice
+
+    if (!responseSafetyNotice) return false
+
+    const shouldBlockCbt = responseSafetyNotice.actionCode
+      === 'SHOW_CRISIS_NOTICE'
+
+    setSafetyNotice(responseSafetyNotice)
+    if (shouldBlockCbt) setIsCrisisBlocked(true)
+
+    return shouldBlockCbt
+  }
 
   // AI의 최종 결과 초안과 인지왜곡 제안을 사용자 검토 입력값으로 변환하는 처리.
   const prepareConfirmationForm = (response) => {
@@ -218,9 +405,16 @@ function CBT({
 
   // CBT 세션 시작 응답을 현재 대화 화면 상태에 반영하는 처리.
   const applyReflectionStartResponse = (response) => {
+    const shouldBlockCbt = applySafetyNotice(response)
+
     setSessionId(response.sessionId)
-    setReflectionStatus(response.status)
-    prepareConfirmationForm(response)
+    onSessionStarted?.(response.sessionId)
+    setReflectionStatus(shouldBlockCbt ? 'SAFETY_STOP' : response.status)
+    if (shouldBlockCbt) {
+      setAssessmentType('')
+    } else {
+      prepareConfirmationForm(response)
+    }
     setChatMessages([{
       id: `ai-${response.sessionId}-start`,
       sender: 'ai',
@@ -228,14 +422,86 @@ function CBT({
     }])
     setIsChatStarted(true)
     setIsAutomaticThoughtRequired(false)
+    setQuestionRetryType('')
+    setApiError('')
+  }
+
+  // 다음 질문 생성 응답을 대화와 최종 결과 확인 상태에 반영하는 처리.
+  const applyReflectionTurnResponse = (response, answeredMessage = '') => {
+    const shouldBlockCbt = applySafetyNotice(response)
+
+    if (shouldBlockCbt) {
+      // 위기 신호 감지 시 기존 대화 대신 안전 안내 메시지만 유지하는 처리.
+      setChatMessages([{
+        id: `ai-${sessionId}-safety`,
+        sender: 'ai',
+        text: getResponseMessage(response),
+      }])
+      setReflectionStatus('SAFETY_STOP')
+      setAssessmentType('')
+    } else {
+      setChatMessages((currentMessages) => [
+        ...currentMessages,
+        ...(answeredMessage ? [{
+          id: `user-${sessionId}-${currentMessages.length}`,
+          sender: 'user',
+          text: answeredMessage,
+        }] : []),
+        {
+          id: `ai-${sessionId}-${currentMessages.length + (answeredMessage ? 1 : 0)}`,
+          sender: 'ai',
+          text: getResponseMessage(response),
+        },
+      ])
+      setReflectionStatus(response.status)
+      prepareConfirmationForm(response)
+    }
+
+    setMessage('')
+    setQuestionRetryType('')
+    setApiError('')
+  }
+
+  // 첫 질문 생성 실패 후 동일 감정 기록에 연결된 최신 OPEN 세션 식별자 복구.
+  const recoverFailedFirstQuestionSession = async (error) => {
+    if (!isQuestionGenerationError(error)) return false
+
+    const responseSessionId = error.response?.data?.sessionId
+
+    if (responseSessionId) {
+      setSessionId(responseSessionId)
+      onSessionStarted?.(responseSessionId)
+      setQuestionRetryType(questionRetryTypes.FIRST)
+      return true
+    }
+
+    try {
+      const openSessions = await getOpenReflectionSessions()
+      const failedSession = openSessions.find((openSession) => (
+        String(openSession.emotionRecordId) === String(emotionRecordId)
+        && !openSession.currentStep
+      ))
+
+      if (!failedSession) return false
+
+      setSessionId(failedSession.sessionId)
+      onSessionStarted?.(failedSession.sessionId)
+      setQuestionRetryType(questionRetryTypes.FIRST)
+      return true
+    } catch {
+      return false
+    }
   }
 
   // 저장된 감정 기록을 사용하여 첫 CBT 질문을 요청하는 처리.
   const handleChatStart = async () => {
-    if (!emotionRecordId || isStarting) return
+    if (!emotionRecordId || isStarting || isRetryingQuestion) return
 
     setIsStarting(true)
     setApiError('')
+    setQuestionRetryType('')
+
+    let didRequestFirstQuestion = false
 
     try {
       // CBT 시작에 필요한 자동 사고가 기록되어 있는지 상세 API로 사전 확인.
@@ -248,10 +514,14 @@ function CBT({
         return
       }
 
+      didRequestFirstQuestion = true
       const response = await startReflection(emotionRecordId)
 
       applyReflectionStartResponse(response)
     } catch (error) {
+      if (didRequestFirstQuestion) {
+        await recoverFailedFirstQuestionSession(error)
+      }
       setApiError(getReflectionErrorMessage(
         error,
         'CBT 대화를 시작하지 못했습니다. 잠시 후 다시 시도해 주세요.',
@@ -267,10 +537,18 @@ function CBT({
 
     const trimmedAutomaticThought = automaticThought.trim()
 
-    if (!trimmedAutomaticThought || !recordForCbt || isStarting) return
+    if (
+      !trimmedAutomaticThought
+      || !recordForCbt
+      || isStarting
+      || isRetryingQuestion
+    ) return
 
     setIsStarting(true)
     setApiError('')
+    setQuestionRetryType('')
+
+    let didRequestFirstQuestion = false
 
     try {
       await confirmEmotionRecord(emotionRecordId, {
@@ -284,10 +562,15 @@ function CBT({
         details: recordForCbt.details ?? {},
       })
 
+      setIsAutomaticThoughtRequired(false)
+      didRequestFirstQuestion = true
       const response = await startReflection(emotionRecordId)
 
       applyReflectionStartResponse(response)
     } catch (error) {
+      if (didRequestFirstQuestion) {
+        await recoverFailedFirstQuestionSession(error)
+      }
       setApiError(getReflectionErrorMessage(
         error,
         '자동 사고를 저장하거나 CBT 대화를 시작하지 못했습니다. 잠시 후 다시 시도해 주세요.',
@@ -302,37 +585,71 @@ function CBT({
     event.preventDefault()
 
     const trimmedMessage = message.trim()
-    if (!trimmedMessage || !sessionId || isSending) return
+    if (
+      !trimmedMessage
+      || !sessionId
+      || isSending
+      || isRetryingQuestion
+      || isCrisisBlocked
+    ) return
 
     setIsSending(true)
     setApiError('')
+    setQuestionRetryType('')
 
     try {
       const response = await submitReflectionAnswer(sessionId, trimmedMessage)
 
-      setChatMessages((currentMessages) => [
-        ...currentMessages,
-        {
-          id: `user-${sessionId}-${currentMessages.length}`,
-          sender: 'user',
-          text: trimmedMessage,
-        },
-        {
-          id: `ai-${sessionId}-${currentMessages.length + 1}`,
-          sender: 'ai',
-          text: getResponseMessage(response),
-        },
-      ])
-      setReflectionStatus(response.status)
-      prepareConfirmationForm(response)
-      setMessage('')
+      applyReflectionTurnResponse(response, trimmedMessage)
     } catch (error) {
+      if (isQuestionGenerationError(error)) {
+        // 백엔드에 이미 저장된 답변을 대화에 남기고 다음 질문 재시도 상태로 전환.
+        setChatMessages((currentMessages) => [
+          ...currentMessages,
+          {
+            id: `user-${sessionId}-${currentMessages.length}`,
+            sender: 'user',
+            text: trimmedMessage,
+          },
+        ])
+        setMessage('')
+        setQuestionRetryType(questionRetryTypes.NEXT)
+      }
       setApiError(getReflectionErrorMessage(
         error,
         '답변을 전송하지 못했습니다. 잠시 후 다시 시도해 주세요.',
       ))
     } finally {
       setIsSending(false)
+    }
+  }
+
+  // 실패 유형에 맞는 첫 질문 또는 다음 질문 재생성 API 요청.
+  const handleQuestionRetry = async () => {
+    if (!sessionId || !questionRetryType || isRetryingQuestion) return
+
+    setIsRetryingQuestion(true)
+    setApiError('')
+
+    try {
+      if (questionRetryType === questionRetryTypes.FIRST) {
+        const response = await retryFirstReflectionQuestion(sessionId)
+
+        applyReflectionStartResponse(response)
+      } else {
+        const response = await retryNextReflectionQuestion(sessionId)
+
+        applyReflectionTurnResponse(response)
+      }
+    } catch (error) {
+      setApiError(getReflectionErrorMessage(
+        error,
+        questionRetryType === questionRetryTypes.FIRST
+          ? '첫 질문을 다시 만들지 못했습니다. 잠시 후 다시 시도해 주세요.'
+          : '다음 질문을 다시 만들지 못했습니다. 잠시 후 다시 시도해 주세요.',
+      ))
+    } finally {
+      setIsRetryingQuestion(false)
     }
   }
 
@@ -400,16 +717,55 @@ function CBT({
 
       setIsConfirmed(true)
       setReflectionStatus('COMPLETED')
+      setIsEmbeddingRetryRequired(false)
+      setEmbeddingRetryError('')
+      setEmbeddingRetrySuccess('')
     } catch (error) {
-      setConfirmationError(getConfirmationErrorMessage(error))
+      if (error.response?.status === 502) {
+        // 최종 결과 저장 후 별도 임베딩 생성만 실패한 백엔드 처리 순서 반영.
+        setIsConfirmed(true)
+        setReflectionStatus('COMPLETED')
+        setIsEmbeddingRetryRequired(true)
+        setEmbeddingRetryError(
+          'CBT 결과는 저장됐지만 AI 분석 데이터 생성에 실패했습니다.',
+        )
+        setConfirmationError('')
+      } else {
+        setConfirmationError(getConfirmationErrorMessage(error))
+      }
     } finally {
       setIsConfirming(false)
     }
   }
 
+  // 완료된 CBT 성찰의 실패한 임베딩 생성 재요청 처리.
+  const handleEmbeddingRetry = async () => {
+    if (!sessionId || isRetryingEmbedding) return
+
+    setIsRetryingEmbedding(true)
+    setEmbeddingRetryError('')
+    setEmbeddingRetrySuccess('')
+
+    try {
+      await retryReflectionEmbedding(sessionId)
+      setIsEmbeddingRetryRequired(false)
+      setEmbeddingRetrySuccess('AI 분석 데이터 생성을 완료했습니다.')
+    } catch (error) {
+      setEmbeddingRetryError(getEmbeddingRetryErrorMessage(error))
+    } finally {
+      setIsRetryingEmbedding(false)
+    }
+  }
+
   // API 호출 없이 OPEN 세션을 유지한 채 감정 기록 목록으로 이동하는 처리.
   const handleReflectionLater = () => {
-    if (!sessionId || isSending || isConfirming || isCancelling) return
+    if (
+      !sessionId
+      || isSending
+      || isRetryingQuestion
+      || isConfirming
+      || isCancelling
+    ) return
 
     setSessionActionError('')
     onEmotionHistory()
@@ -417,7 +773,13 @@ function CBT({
 
   // 사용자 확인 후 진행 중인 CBT 세션을 완전히 취소하고 목록으로 이동하는 처리.
   const handleReflectionCancel = async () => {
-    if (!sessionId || isSending || isConfirming || isCancelling) return
+    if (
+      !sessionId
+      || isSending
+      || isRetryingQuestion
+      || isConfirming
+      || isCancelling
+    ) return
 
     const shouldCancel = window.confirm(
       '성찰을 완전히 중단하면 다시 이어할 수 없습니다. 중단하시겠습니까?',
@@ -443,11 +805,11 @@ function CBT({
   }
 
   // 다음 질문 입력 가능 여부 설정.
-  const canContinue = reflectionStatus === 'CONTINUE'
+  const canContinue = reflectionStatus === 'CONTINUE' && !isCrisisBlocked
   // 명확한 인지왜곡이 없다는 AI 판정 여부 설정.
   const hasNoClearDistortion = assessmentType === 'NO_CLEAR_DISTORTION'
   // 사용자가 중단하거나 나중에 이어할 수 있는 OPEN 세션 여부 설정.
-  const canManageOpenSession = sessionId && (
+  const canManageOpenSession = !isCrisisBlocked && sessionId && (
     reflectionStatus === 'CONTINUE'
     || reflectionStatus === 'CONFIRM_REQUIRED'
   )
@@ -472,11 +834,35 @@ function CBT({
       <div className="cbt-content">
         <section
           className="cbt-card"
-          aria-labelledby={isChatStarted ? 'cbt-chat-title' : 'cbt-title'}
+          aria-labelledby={
+            isResumeLoading || resumeLoadError
+              ? 'cbt-route-state-title'
+              : isChatStarted
+                ? 'cbt-chat-title'
+                : 'cbt-title'
+          }
         >
           <BrandLogo className="cbt-logo" onClick={onHome} />
 
-        {!isChatStarted ? (
+        {isResumeLoading ? (
+          /* URL로 직접 진입한 CBT 세션을 불러오는 상태 표시. */
+          <div className="cbt-route-state" role="status">
+            <strong id="cbt-route-state-title">
+              진행 중인 CBT 성찰을 불러오는 중입니다.
+            </strong>
+          </div>
+        ) : resumeLoadError ? (
+          /* URL CBT 세션 상세 조회 실패 안내와 재조회 기능 표시. */
+          <div className="cbt-route-state" role="alert">
+            <strong id="cbt-route-state-title">{resumeLoadError}</strong>
+            <button
+              type="button"
+              onClick={() => setResumeReloadCount((count) => count + 1)}
+            >
+              다시 불러오기
+            </button>
+          </div>
+        ) : !isChatStarted ? (
           <>
             <h1 id="cbt-title">CBT 성찰</h1>
             <p className="cbt-description">
@@ -494,12 +880,25 @@ function CBT({
 
             {/* CBT AI 대화창을 여는 기본 시작 버튼 배치. */}
             <div className="cbt-actions">
-              {!isAutomaticThoughtRequired ? (
+              {questionRetryType === questionRetryTypes.FIRST && sessionId ? (
+                /* 첫 질문 생성 실패 세션을 유지하고 재생성 API만 호출하는 영역 표시. */
+                <div className="cbt-question-retry" role="group" aria-label="첫 질문 다시 시도">
+                  <strong>첫 CBT 질문을 만들지 못했습니다.</strong>
+                  <p>작성한 감정 기록은 유지되어 있습니다. 같은 세션에서 다시 시도할 수 있습니다.</p>
+                  <button
+                    type="button"
+                    onClick={handleQuestionRetry}
+                    disabled={isRetryingQuestion}
+                  >
+                    {isRetryingQuestion ? '다시 만드는 중…' : '다시 시도'}
+                  </button>
+                </div>
+              ) : !isAutomaticThoughtRequired ? (
                 <button
                   className="cbt-start-button"
                   type="button"
                   onClick={handleChatStart}
-                  disabled={!emotionRecordId || isStarting}
+                  disabled={!emotionRecordId || isStarting || isRetryingQuestion}
                 >
                   {isStarting ? '기록 확인 중…' : 'CBT 검사 시작하기'}
                 </button>
@@ -536,7 +935,7 @@ function CBT({
                   </span>
                   <button
                     type="submit"
-                    disabled={!automaticThought.trim() || isStarting}
+                    disabled={!automaticThought.trim() || isStarting || isRetryingQuestion}
                   >
                     {isStarting ? '저장 후 준비 중…' : '저장하고 CBT 시작하기'}
                   </button>
@@ -598,7 +997,7 @@ function CBT({
                   placeholder="답변을 입력해 주세요."
                   rows="3"
                   maxLength={maxAnswerLength}
-                  disabled={isSending}
+                  disabled={isSending || isRetryingQuestion || Boolean(questionRetryType)}
                 />
                 <span className="cbt-message-count">
                   {message.length}/{maxAnswerLength}
@@ -608,7 +1007,24 @@ function CBT({
                     {apiError}
                   </p>
                 )}
-                <button type="submit" disabled={!message.trim() || isSending}>
+                {questionRetryType === questionRetryTypes.NEXT && (
+                  /* 저장된 답변을 다시 보내지 않고 다음 질문 생성만 재시도하는 영역 표시. */
+                  <div className="cbt-question-retry" role="group" aria-label="다음 질문 다시 시도">
+                    <strong>다음 CBT 질문을 만들지 못했습니다.</strong>
+                    <p>방금 작성한 답변은 저장되어 있습니다. 질문 생성만 다시 시도합니다.</p>
+                    <button
+                      type="button"
+                      onClick={handleQuestionRetry}
+                      disabled={isRetryingQuestion}
+                    >
+                      {isRetryingQuestion ? '다시 만드는 중…' : '다시 시도'}
+                    </button>
+                  </div>
+                )}
+                <button
+                  type="submit"
+                  disabled={!message.trim() || isSending || Boolean(questionRetryType)}
+                >
                   {isSending ? '전송 중…' : '보내기'}
                 </button>
               </form>
@@ -816,6 +1232,29 @@ function CBT({
               <div className="cbt-confirmed" role="status">
                 <strong>CBT 성찰 결과를 확정했습니다.</strong>
                 <p>확정한 내용은 이후 마음 패턴을 살펴보는 데 활용됩니다.</p>
+                {embeddingRetryError && (
+                  <p className="cbt-embedding-retry-error" role="alert">
+                    {embeddingRetryError}
+                  </p>
+                )}
+                {embeddingRetrySuccess && (
+                  <p className="cbt-embedding-retry-success">
+                    {embeddingRetrySuccess}
+                  </p>
+                )}
+                {isEmbeddingRetryRequired && (
+                  /* 최종 결과 저장 후 임베딩 생성만 실패한 경우의 재시도 버튼 배치. */
+                  <button
+                    className="cbt-embedding-retry-button"
+                    type="button"
+                    onClick={handleEmbeddingRetry}
+                    disabled={isRetryingEmbedding}
+                  >
+                    {isRetryingEmbedding
+                      ? '임베딩 다시 만드는 중…'
+                      : '임베딩 다시 만들기'}
+                  </button>
+                )}
               </div>
             ) : (
               <p className="cbt-finished" role="status">
@@ -841,7 +1280,7 @@ function CBT({
                     className="cbt-later-button"
                     type="button"
                     onClick={handleReflectionLater}
-                    disabled={isSending || isConfirming || isCancelling}
+                    disabled={isSending || isRetryingQuestion || isConfirming || isCancelling}
                   >
                     나중에 이어하기
                   </button>
@@ -849,7 +1288,7 @@ function CBT({
                     className="cbt-cancel-button"
                     type="button"
                     onClick={handleReflectionCancel}
-                    disabled={isSending || isConfirming || isCancelling}
+                    disabled={isSending || isRetryingQuestion || isConfirming || isCancelling}
                   >
                     {isCancelling ? '중단 중…' : '성찰 완전히 중단'}
                   </button>
@@ -860,6 +1299,14 @@ function CBT({
         )}
         </section>
       </div>
+
+      {/* CBT 시작 또는 답변 응답에 안전 신호가 있을 때 공통 안전 안내 모달 표시. */}
+      {safetyNotice && (
+        <SafetyNoticeModal
+          notice={safetyNotice}
+          onClose={() => setSafetyNotice(null)}
+        />
+      )}
     </main>
   )
 }

@@ -1,11 +1,10 @@
 // 선택한 주의 감정 기록을 집계해 주간 리포트를 생성·갱신하는 Service
 package com.my.mindot_back.reports.service;
 
-import com.my.mindot_back.records.entity.EmotionRecords;
-import com.my.mindot_back.records.entity.ReflectionSessionStatus;
-import com.my.mindot_back.records.entity.ReflectionSessions;
+import com.my.mindot_back.records.entity.*;
 import com.my.mindot_back.records.repository.EmotionRecordsRepository;
 import com.my.mindot_back.records.repository.ReflectionSessionsRepository;
+import com.my.mindot_back.records.repository.SessionDistortionsRepository;
 import com.my.mindot_back.reports.dto.RepeatedEmotionPatternDto;
 import com.my.mindot_back.reports.dto.WeeklyReportCbtEvidenceDto;
 import com.my.mindot_back.reports.dto.WeeklyReportEmotionEvidenceDto;
@@ -44,6 +43,9 @@ public class WeeklyReportsService {
     // 선택한 기간에 완료, 확정된 CBT 성찰 세션 조회
     private final ReflectionSessionsRepository reflectionSessionsRepository;
 
+    // 완료, 확정 CBT의 인지왜곡 전후 변화 통계용 라벨 조회
+    private final SessionDistortionsRepository sessionDistortionsRepository;
+
     // 사용자 시간대와 사용자 존재 여부 확인
     private final UsersRepository usersRepository;
 
@@ -54,6 +56,16 @@ public class WeeklyReportsService {
             String timeBucket
     ){
     }
+
+    // 주간 리포트에서 긍정 감정 상황 분포를 계산할 감정 코드
+    private static final Set<String> POSITIVE_EMOTION_CODES = Set.of(
+            "JOY",
+            "RELIEF",
+            "ACHIEVEMENT",
+            "CALM",
+            "GRATITUDE",
+            "EXCITEMENT"
+    );
 
     // 반복 패턴 판단에 필요한 집계값
     private record PatternStatistics(
@@ -380,6 +392,92 @@ public class WeeklyReportsService {
                 );
     }
 
+    // 완료, 확정 CBT의 BEFORE/AFTER 인지왜곡 라벨을 비교해 변화 통계 생성
+    private Map<String, Map<String, Long>> createDistortionChangeCounts(
+            List<ReflectionSessions> reflectionSessions
+    ) {
+        // 완료, 확정 CBT가 없으면 세 변화 항목을 빈값으로 반환
+        if (reflectionSessions.isEmpty()){
+            return Map.of(
+                    "REMOVED", Map.of(),
+                    "PERSISTED", Map.of(),
+                    "NEW", Map.of()
+            );
+        }
+
+        // 선택 주간의 완료 CBT 세션 ID 목록 생성
+        List<Long> sessionIds = reflectionSessions.stream()
+                .map(ReflectionSessions::getId)
+                .toList();
+
+        // 사용자가 CONFIRMED한 라벨만 통계에 사용
+        List<SessionDistortions> confirmedDistortions =
+                sessionDistortionsRepository
+                        .findAllBySession_IdInAndReviewStatus(
+                                sessionIds,
+                                DistortionReviewStatus.CONFIRMED
+                        );
+
+        // 세션별 질문 전 인지왜곡 코드 묶음
+        Map<Long, Set<String>> beforeCodesBySession = new HashMap<>();
+
+        // 세션별 질문 후 인지왜곡 코드 묶음
+        Map<Long, Set<String>> afterCodesBySession = new HashMap<>();
+
+        for (SessionDistortions distortion : confirmedDistortions) {
+            Long sessionId = distortion.getSession().getId();
+            String distortionCode = distortion.getDistortionType().getCode();
+
+            if (distortion.getPhase() == DistortionPhase.BEFORE) {
+                beforeCodesBySession
+                        .computeIfAbsent(sessionId, ignored -> new LinkedHashSet<>())
+                        .add(distortionCode);
+            } else if (distortion.getPhase() == DistortionPhase.AFTER) {
+                afterCodesBySession
+                        .computeIfAbsent(sessionId, ignored -> new LinkedHashSet<>())
+                        .add(distortionCode);
+            }
+        }
+
+        Map<String, Long> removedCounts = new LinkedHashMap<>();
+        Map<String, Long> persistedCounts = new LinkedHashMap<>();
+        Map<String, Long> newCounts = new LinkedHashMap<>();
+
+        // 세션마다 BEFORE / AFTER 차집합, 교집합 계산
+        for (Long sessionId : sessionIds) {
+            Set<String> beforeCodes = beforeCodesBySession
+                    .getOrDefault(sessionId, Set.of());
+
+            Set<String> afterCodes = afterCodesBySession
+                    .getOrDefault(sessionId, Set.of());
+
+            // BEFORE에만 있으면 성찰 후 제거된 인지왜곡
+            for (String distortionCode : beforeCodes) {
+                if (afterCodes.contains(distortionCode)) {
+                    persistedCounts.merge(distortionCode, 1L, Long::sum);
+                } else {
+                    removedCounts.merge(distortionCode, 1L, Long::sum);
+                }
+            }
+
+            // AFTER에만 새로 있으면 신규 인지왜곡
+            for (String distortionCode : afterCodes) {
+                if(!beforeCodes.contains(distortionCode)) {
+                    newCounts.merge(distortionCode, 1L, Long::sum);
+                }
+            }
+        }
+
+        Map<String, Map<String, Long>> distortionChangeCounts =
+                new LinkedHashMap<>();
+
+        distortionChangeCounts.put("REMOVED", removedCounts);
+        distortionChangeCounts.put("PERSISTED", persistedCounts);
+        distortionChangeCounts.put("NEW", newCounts);
+
+        return distortionChangeCounts;
+    }
+
     // 주간 감정 기록을 감정·요일·시간대별 통계 Map으로 변환
     private Map<String, Object> createWeeklyContent(
             List<EmotionRecords> emotionRecords,
@@ -397,6 +495,40 @@ public class WeeklyReportsService {
                         LinkedHashMap::new,
                         Collectors.counting()
                 ));
+
+        // AI가 분류한 상황 범주별 감정 기록 수 집계
+        Map<String,Long> contextCategoryCounts = emotionRecords.stream()
+                .map(EmotionRecords::getContextCategory)
+                .filter(Objects::nonNull)
+                .filter(contextCategory -> !contextCategory.isBlank())
+                .collect(Collectors.groupingBy(
+                        contextCategory -> contextCategory,
+                        LinkedHashMap::new,
+                        Collectors.counting()
+                ));
+
+        // 긍정 감정 코드별로 어느 상황 범주에서 기록됐는지 집계
+        Map<String, Map<String, Long>> positiveEmotionContextCounts =
+                emotionRecords.stream()
+                        .filter(emotionRecord ->
+                                emotionRecord.getPrimaryEmotionCode() != null
+                                        && POSITIVE_EMOTION_CODES.contains(
+                                        emotionRecord.getPrimaryEmotionCode()
+                                )
+                        )
+                        .filter(emotionRecord ->
+                                emotionRecord.getContextCategory() != null
+                                        && !emotionRecord.getContextCategory().isBlank()
+                        )
+                        .collect(Collectors.groupingBy(
+                                EmotionRecords::getPrimaryEmotionCode,
+                                LinkedHashMap::new,
+                                Collectors.groupingBy(
+                                        EmotionRecords::getContextCategory,
+                                        LinkedHashMap::new,
+                                        Collectors.counting()
+                                )
+                        ));
 
         // 발생 시각을 사용자 시간대로 변환해 실제 요일별 기록 수 집계
         Map<String, Long> weekdayCounts = emotionRecords.stream()
@@ -460,6 +592,10 @@ public class WeeklyReportsService {
                         .map(WeeklyReportCbtEvidenceDto::from)
                         .toList();
 
+        // 완료, 확정 CBT의 사용자 확인 인지왜곡 전후 변화 통계 생성
+        Map<String, Map<String, Long>> distortionChangeCounts =
+                createDistortionChangeCounts(reflectionSessions);
+
         // reports.content JSONB에 저장할 통계 구조 생성
         Map<String, Object> content = new LinkedHashMap<>();
         content.put("recordCount", emotionRecords.size());
@@ -468,11 +604,14 @@ public class WeeklyReportsService {
         content.put("completedCbtCount", completedCbtCount);
         content.put("averageHelpfulnessScore", averageHelpfulnessScore);
         content.put("emotionCounts", emotionCounts);
+        content.put("contextCategoryCounts", contextCategoryCounts);
+        content.put("positiveEmotionContextCounts", positiveEmotionContextCounts);
         content.put("weekdayCounts", weekdayCounts);
         content.put("timeBucketCounts", timeBucketCounts);
         content.put("repeatedPatterns", repeatedPatterns);
         content.put("emotionRecordEvidences", emotionRecordEvidences);
         content.put("completedCbtEvidences", completedCbtEvidences);
+        content.put("distortionChangeCounts", distortionChangeCounts);
 
         return content;
     }
@@ -522,8 +661,11 @@ public class WeeklyReportsService {
                 toCompletedCbtEvidences(
                         content.get("completedCbtEvidences")
                 ),
+                toNestedLongMap(content.get("distortionChangeCounts")),
                 toRepeatedEmotionPatterns(content.get("repeatedPatterns")),
                 toLongMap(content.get("emotionCounts")),
+                toLongMap(content.get("contextCategoryCounts")),
+                toNestedLongMap(content.get("positiveEmotionContextCounts")),
                 toLongMap(content.get("weekdayCounts")),
                 toLongMap(content.get("timeBucketCounts")),
                 report.getSourceSnapshotAt()
@@ -544,6 +686,25 @@ public class WeeklyReportsService {
             if (key instanceof String label
                     && count instanceof Number number) {
                 result.put(label, number.longValue());
+            }
+        });
+
+        return result;
+    }
+
+    // JSONB 안의 중첩 숫자 통계 Map을 Map<String, Map<String, Long>>으로 변환
+    private Map<String, Map<String, Long>> toNestedLongMap(
+            Object value
+    ){
+        if(!(value instanceof Map<?, ?> rawMap)) {
+            return Map.of();
+        }
+
+        Map<String, Map<String, Long>> result = new LinkedHashMap<>();
+
+        rawMap.forEach((key, nestedValue) -> {
+            if (key instanceof String label) {
+                result.put(label, toLongMap(nestedValue));
             }
         });
 
