@@ -12,6 +12,7 @@ import CompletedReflection from './components/CompletedReflection/CompletedRefle
 import AppIntroModal from './components/AppIntroModal/AppIntroModal.jsx'
 import Center from './components/Center/Center.jsx'
 import DailyCare from './components/DailyCare/DailyCare.jsx'
+import Admin from './components/Admin/Admin.jsx'
 import LoginRequiredModal from './components/LoginRequiredModal/LoginRequiredModal.jsx'
 import NetworkStatus from './components/NetworkStatus/NetworkStatus.jsx'
 import PwaInstallPrompt from './components/PwaInstallPrompt/PwaInstallPrompt.jsx'
@@ -29,6 +30,7 @@ const protectedPages = new Set([
   'weekly-report',
   'completed-reflection',
   'daily-care',
+  'admin',
 ])
 // 최초 URL의 보호 화면 접근 가능 여부 확인.
 const isInitialRouteBlocked = (
@@ -370,6 +372,21 @@ function App() {
         onEmotionRecord={() => moveToPage('emotion-record')}
         onCBT={handleCbtOpen}
         onReflectionResume={handleReflectionResume}
+      />
+    )
+  } else if (currentPage === 'admin') {
+    // 관리자 URL 접근 시 API 연결 전 기본 관리자 화면 렌더링.
+    currentPageContent = (
+      <Admin
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={() => moveToPage('login')}
+        onLogout={handleLogout}
+        onSignUp={() => moveToPage('signup')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onCenter={() => moveToPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
+        onHome={moveToMain}
       />
     )
   } else {

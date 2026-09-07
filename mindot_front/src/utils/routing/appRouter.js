@@ -54,6 +54,7 @@ export const readAppRoute = () => {
   }
   if (pathname === '/centers') return { page: 'center' }
   if (pathname === '/daily-care') return { page: 'daily-care' }
+  if (pathname === '/admin') return { page: 'admin' }
 
   return { page: 'main' }
 }
@@ -83,6 +84,7 @@ export const createAppPath = (page, parameters = {}) => {
   }
   if (page === 'center') return '/centers'
   if (page === 'daily-care') return '/daily-care'
+  if (page === 'admin') return '/admin'
 
   return '/'
 }
