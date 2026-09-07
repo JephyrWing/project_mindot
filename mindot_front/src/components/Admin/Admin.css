@@ -68,6 +68,47 @@
   background: var(--mindot-surface-muted);
 }
 
+/* 관리자 권한 확인과 접근 불가 안내의 중앙 정렬 영역 설정. */
+.admin-access-status {
+  padding: 40px 0;
+  text-align: center;
+}
+
+.admin-access-status h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.admin-access-status p {
+  margin: 14px 0 0;
+  color: var(--mindot-text-secondary);
+}
+
+/* 권한 재확인과 화면 이동 버튼의 충분한 터치 영역 설정. */
+.admin-access-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.admin-access-actions button {
+  min-height: 44px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  padding: 0 18px;
+  color: var(--mindot-primary-strong);
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+.admin-access-actions button:hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
 /* 모바일 화면에서 관리자 콘텐츠와 기능 영역을 세로로 배치하는 설정. */
 @media (max-width: 600px) {
   .admin-main {
@@ -84,5 +125,10 @@
     align-items: flex-start;
     flex-direction: column;
     gap: 14px;
+  }
+
+  .admin-access-actions {
+    display: grid;
+    grid-template-columns: 1fr;
   }
 }
