@@ -486,6 +486,35 @@
   color: var(--mindot-danger);
 }
 
+/* 확정된 감정 기록에서 CBT 검사 화면으로 이동하는 핵심 버튼 설정. */
+.emotion-detail-cbt-button {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  margin-top: 18px;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  background: var(--mindot-primary);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 활성화된 CBT 검사 이동 버튼 위의 진한 파란색 강조. */
+.emotion-detail-cbt-button:not(:disabled):hover {
+  border-color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-strong);
+}
+
+/* 상세 화면 작업 중 CBT 검사 이동 버튼의 비활성 상태 설정. */
+.emotion-detail-cbt-button:disabled {
+  border-color: var(--mindot-border);
+  color: var(--mindot-disabled);
+  background: var(--mindot-surface-muted);
+  cursor: wait;
+}
+
 /* 구조화된 상세 항목을 중첩 카드 없이 세로 목록으로 배치. */
 .emotion-detail-list {
   margin: 0;

@@ -48,8 +48,7 @@ function EmotionRecord({
   onEmotionHistory,
   onCenter,
   onDailyCare,
-  onCBT,
-  onWeeklyReport,
+  onRecordDetail,
   onHome,
 }) {
   // 감정 원문 입력값 상태 관리.
@@ -113,17 +112,7 @@ function EmotionRecord({
     }
   }
 
-  // 저장 완료 후 새로운 감정 기록을 작성하기 위한 전체 입력값 초기화.
-  const handleReset = () => {
-    setContent('')
-    setInputError('')
-    setSaveError('')
-    setSavedRecord(null)
-    setSaveStatus('idle')
-    setSafetyNotice(null)
-  }
-
-  // 즉시 안전 안내가 필요한 저장 결과의 CBT 이동 제한 여부 설정.
+  // 즉시 안전 안내가 필요한 저장 결과의 안전 우선 안내 여부 설정.
   const isCrisisNotice = savedRecord?.safetyNotice?.actionCode
     === 'SHOW_CRISIS_NOTICE'
 
@@ -229,45 +218,23 @@ function EmotionRecord({
             </section>
           )}
 
-          {/* 감정 기록 저장 완료 후에만 CBT 성찰 화면 이동 버튼 표시. */}
-          {saveStatus === 'saved' && !isCrisisNotice && (
+          {/* 저장 직후 생성된 기록 식별자를 사용한 상세 확인 화면 이동 버튼 표시. */}
+          {saveStatus === 'saved' && savedRecord && (
             <button
-              className="emotion-record-cbt-button"
+              className="emotion-record-detail-button"
               type="button"
-              onClick={() => onCBT(savedRecord.recordId)}
+              onClick={() => onRecordDetail(savedRecord.recordId)}
             >
-              CBT 검사 하기
+              감정 기록 상세 확인하기
             </button>
           )}
 
-          {/* 위기 안전 신호가 확인된 기록의 CBT 이동 대신 안전 우선 안내 표시. */}
+          {/* 위기 안전 신호가 확인된 기록의 안전 우선 안내 표시. */}
           {saveStatus === 'saved' && isCrisisNotice && (
             <p className="emotion-record-safety-guidance" role="status">
               현재는 CBT 성찰보다 즉시 안전을 확인하고 주변 또는 전문기관에
               도움을 요청하는 일이 우선입니다.
             </p>
-          )}
-
-          {/* 감정 기록 저장 완료 후에만 주간 리포트 화면 이동 버튼 표시. */}
-          {saveStatus === 'saved' && (
-            <button
-              className="emotion-record-report-button"
-              type="button"
-              onClick={onWeeklyReport}
-            >
-              주간 리포트로 이동하기
-            </button>
-          )}
-
-          {/* 저장 완료 후 현재 입력값을 비우고 새 기록을 시작하는 버튼 표시. */}
-          {saveStatus === 'saved' && (
-            <button
-              className="emotion-record-reset-button"
-              type="button"
-              onClick={handleReset}
-            >
-              새 기록 작성하기
-            </button>
           )}
           </form>
         </section>
