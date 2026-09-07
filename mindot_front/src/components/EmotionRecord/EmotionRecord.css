@@ -224,19 +224,15 @@
   background: var(--mindot-primary-strong);
 }
 
-/* 저장 완료 후 표시되는 후속 이동 버튼의 보조 색상 설정. */
-.emotion-record-form .emotion-record-cbt-button,
-.emotion-record-form .emotion-record-report-button,
-.emotion-record-form .emotion-record-reset-button {
+/* 저장 완료 후 표시되는 상세 확인 버튼의 보조 색상 설정. */
+.emotion-record-form .emotion-record-detail-button {
   border-color: var(--mindot-primary-line);
   color: var(--mindot-primary-strong);
   background: var(--mindot-primary-soft);
 }
 
-/* 후속 이동 버튼 위의 조금 짙은 파란색 강조. */
-.emotion-record-form button.emotion-record-cbt-button:hover,
-.emotion-record-form button.emotion-record-report-button:hover,
-.emotion-record-form button.emotion-record-reset-button:hover {
+/* 상세 확인 버튼 위의 조금 짙은 파란색 강조. */
+.emotion-record-form button.emotion-record-detail-button:hover {
   border-color: var(--mindot-primary);
   background: #d9e7f8;
 }

@@ -246,8 +246,7 @@ function App() {
         onEmotionHistory={() => moveToProtectedPage('emotion-history')}
         onCenter={() => moveToPage('center')}
         onDailyCare={() => moveToProtectedPage('daily-care')}
-        onCBT={handleCbtOpen}
-        onWeeklyReport={() => moveToProtectedPage('weekly-report')}
+        onRecordDetail={handleEmotionRecordDetailOpen}
         onHome={moveToMain}
       />
     )
@@ -282,6 +281,7 @@ function App() {
         onEmotionHistory={() => moveToProtectedPage('emotion-history')}
         onCenter={() => moveToPage('center')}
         onDailyCare={() => moveToProtectedPage('daily-care')}
+        onCBT={handleCbtOpen}
         onBack={() => moveToPage('emotion-history')}
         onHome={moveToMain}
       />
