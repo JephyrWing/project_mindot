@@ -969,7 +969,6 @@ public class WeeklyReportsService {
     }
 
     // 이미 생성된 선택 주의 리포트 조회
-    @Transactional
     public WeeklyReportResponseDto getWeeklyReport(
             Long userId,
             LocalDate weekStart
