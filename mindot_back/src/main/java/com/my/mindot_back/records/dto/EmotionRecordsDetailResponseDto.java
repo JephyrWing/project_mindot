@@ -2,6 +2,7 @@
 package com.my.mindot_back.records.dto;
 
 import com.my.mindot_back.records.entity.EmotionRecords;
+import com.my.mindot_back.safety.dto.SafetyNoticeResponseDto;
 
 import java.time.Instant;
 import java.util.List;
@@ -24,11 +25,19 @@ public record EmotionRecordsDetailResponseDto (
 
         String contextCategory,
         String relatedPersonType,
-        Map<String, Object> details
+        Map<String, Object> details,
+        SafetyNoticeResponseDto safetyNotice
 ){
-    // EmotionRecords Entity를 상세 응답 DTO로 변환
     public static EmotionRecordsDetailResponseDto from(
             EmotionRecords emotionRecord
+    ) {
+        return from(emotionRecord, null);
+    }
+
+    // EmotionRecords Entity를 상세 응답 DTO로 변환
+    public static EmotionRecordsDetailResponseDto from(
+            EmotionRecords emotionRecord,
+            SafetyNoticeResponseDto safetyNotice
     ) {
         return new EmotionRecordsDetailResponseDto(
                 emotionRecord.getId(),
@@ -47,7 +56,8 @@ public record EmotionRecordsDetailResponseDto (
 
                 emotionRecord.getContextCategory(),
                 emotionRecord.getRelatedPersonType(),
-                emotionRecord.getDetails()
+                emotionRecord.getDetails(),
+                safetyNotice
         );
     }
 }

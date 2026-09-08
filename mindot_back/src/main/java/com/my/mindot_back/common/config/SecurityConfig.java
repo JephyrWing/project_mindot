@@ -11,6 +11,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -20,6 +22,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.io.IOException;
 import java.util.List;
 
 @Configuration
@@ -55,15 +58,25 @@ public class SecurityConfig {
                         )
                 )
 
-                // 인증 정보가 없는 사용자가 보호 API 요청하면 401 반환
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(
                                 (request, response, authException) ->
-                                        response.sendError(
-                                                HttpServletResponse.SC_UNAUTHORIZED
+                                        writeSecurityError(
+                                                response,
+                                                HttpStatus.UNAUTHORIZED,
+                                                "인증이 필요합니다."
+                                        )
+                        )
+                        .accessDeniedHandler(
+                                (request, response, accessDeniedException) ->
+                                        writeSecurityError(
+                                                response,
+                                                HttpStatus.FORBIDDEN,
+                                                "접근 권한이 없습니다."
                                         )
                         )
                 )
+
                 // JWT와 DB의 현재 계정 상태·역할을 검증한 뒤 SecurityContext에 등록
                 .addFilterBefore(
                         new JwtAuthenticationFilter(
@@ -98,6 +111,22 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 );
         return http.build();
+    }
+
+    // Spring Security 단계의 401, 403도 프론트 공통 오류 JSON으로 반환
+    private void writeSecurityError(
+            HttpServletResponse response,
+            HttpStatus status,
+            String message
+    ) throws IOException {
+        response.setStatus(status.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
+
+        response.getWriter().write(
+                "{\"status\":" + status.value()
+                        + ",\"message\":\"" + message + "\"}"
+        );
     }
 
     /*

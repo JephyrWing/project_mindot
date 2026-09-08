@@ -8,7 +8,7 @@ import com.my.mindot_back.records.dto.ai.FastApiCbtResponseDto;
 import com.my.mindot_back.records.entity.*;
 import com.my.mindot_back.records.repository.ReflectionSessionsRepository;
 import com.my.mindot_back.safety.service.SafetyEventsService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -337,7 +337,6 @@ public class ReflectionSessionsService {
     }
 
     // 로그인 사용자가 자신의 CBT 성찰 세션 상세와 질문, 답변 이력 조회
-    @Transactional
     public ReflectionSessionDetailResponseDto getSessionDetail(
             Long userId,
             Long sessionId
@@ -364,7 +363,7 @@ public class ReflectionSessionsService {
     }
 
     // 로그인 사용자의 진행 중인 OPEN CBT 성찰 세션 목록 조회
-    @Transactional
+    @Transactional(readOnly = true)
     public List<OpenReflectionSessionResponseDto> getOpenSessions(
             // JWT에서 꺼낸 로그인 사용자 ID
             Long userId

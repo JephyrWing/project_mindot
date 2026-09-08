@@ -19,7 +19,7 @@ import com.my.mindot_back.reports.repository.ReportsRepository;
 import com.my.mindot_back.safety.dto.SafetyNoticeResponseDto;
 import com.my.mindot_back.safety.service.SafetyEventsService;
 import com.my.mindot_back.users.repository.UsersRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -150,11 +150,15 @@ public class EmotionRecordsService {
                         analysis
                 );
 
-        return EmotionRecordsDetailResponseDto.from(emotionRecord);
+        return EmotionRecordsDetailResponseDto.from(
+                emotionRecord,
+                safetyEventsService.getLatestSafetyNotice(
+                        emotionRecord.getId()
+                )
+        );
     }
 
     // 로그인한 사용자의 감정 기록을 최신순으로 조회
-    @Transactional
     public List<EmotionRecordsListItemResponseDto> getEmotionRecords(
             Long userId
     ) {
@@ -170,7 +174,6 @@ public class EmotionRecordsService {
     }
 
     // 로그인한 사용자의 감정 기록 상세 조회
-    @Transactional
     public EmotionRecordsDetailResponseDto getEmotionRecordsDetail(
             Long userId,
             Long emotionRecordId
@@ -211,6 +214,9 @@ public class EmotionRecordsService {
         // 사용자 최종값 반영 후 PARTIAL에서 COMPLETE로 변경
         emotionRecord.confirm(dto);
 
+        // 확정한 감정, 상황, 강도가 기존 주간 리포트 집계에 반영되도록 캐시 무효화
+        reportsRepository.deleteByUser_Id(userId);
+
         // JPA Dirty Checking으로 변경 내용을 저장하고 상세 응답 반환
         return EmotionRecordsDetailResponseDto.from(emotionRecord);
     }
@@ -232,6 +238,9 @@ public class EmotionRecordsService {
 
         // 발생 시각 수정과 함께 시간대·평일/주말 값 재계산
         emotionRecord.updateOccurredAt(dto.occurredAt());
+
+        // 발생 시각 변경으로 주간 리포트 대상 기간이 달라질 수 있어 캐시 무효화
+        reportsRepository.deleteByUser_Id(userId);
 
         // JPA Dirty Checking으로 수정값 저장 후 상세 응답 반환
         return EmotionRecordsDetailResponseDto.from(emotionRecord);
@@ -369,8 +378,8 @@ public class EmotionRecordsService {
                 .toList();
     }
 
-    // 현재 감정 기록과 유사한 완료 CBT를 기반으로 패턴 설명 생성
-    @Transactional
+    // 현재 감정 기록과 유사한 완료 CBT를 기반으로 패턴 설명
+    @Transactional(readOnly = true)
     public PatternExplanationResponseDto explainPattern(
             Long userId,
             Long emotionRecordId
