@@ -24,6 +24,14 @@ public class Users {
     @Column(name = "password_hash", length = 255)
     private String passwordHash;
 
+    // 카카오 고유 회원번호, null이면 카카오 로그인 미연결
+    @Column(name = "kakao_account_link", unique = true, length = 255)
+    private String kakaoAccountLink;
+
+    // 구글 OAuth 사용자 고유 식별자(sub), null이면 구글 로그인 미연결
+    @Column(name = "google_account_link", unique = true, length = 255)
+    private String googleAccountLink;
+
     @Column(name = "display_name", nullable = false, length = 80)
     private String displayName;
 
@@ -70,6 +78,24 @@ public class Users {
             String displayName
     ) {
         return new Users(email, encodedPassword, displayName);
+    }
+
+    // 검증된 소셜 이메일로 최초 로그인한 사용자를 생성
+    public static Users createSocial(
+            String email,
+            String displayName
+    ) {
+        return new Users(email, null, displayName);
+    }
+
+    // 기존 이메일 회원에 카카오 계정을 연결
+    public void linkKakaoAccount(String kakaoAccountLink) {
+        this.kakaoAccountLink = kakaoAccountLink;
+    }
+
+    // 기존 이메일 회원에 구글 계정을 연결
+    public void linkGoogleAccount(String googleAccountLink) {
+        this.googleAccountLink = googleAccountLink;
     }
 
     // DB insert 전 JPA가 자동 실행하는 메서드

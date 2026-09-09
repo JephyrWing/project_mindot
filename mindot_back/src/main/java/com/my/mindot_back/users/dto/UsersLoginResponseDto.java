@@ -5,6 +5,7 @@ public record UsersLoginResponseDto (
     Long id,
     String email,
     String displayName,
-    String accessToken
+    String accessToken,
+    String userRole
 ) {
 }

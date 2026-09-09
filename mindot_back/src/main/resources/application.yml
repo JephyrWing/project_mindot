@@ -59,3 +59,20 @@ auth:
 
   web:
     allowed-origins: ${AUTH_ALLOWED_ORIGINS:http://localhost:3000}
+
+  oauth-state-cookie:
+    path: /api/auth/oauth
+    secure: ${REFRESH_COOKIE_SECURE:false}
+    same-site: Lax
+    max-age: 5m
+
+oauth:
+  kakao:
+    rest-api-key: ${KAKAO_REST_API_KEY:}
+    client-secret: ${KAKAO_CLIENT_SECRET:}
+    redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost:3000/oauth/kakao/callback}
+
+  google:
+    client-id: ${GOOGLE_CLIENT_ID:}
+    client-secret: ${GOOGLE_CLIENT_SECRET:}
+    redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:3000/oauth/google/callback}
