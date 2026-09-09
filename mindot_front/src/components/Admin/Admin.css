@@ -8,7 +8,7 @@
 
 /* 관리자 내용을 감싸는 흰색 테두리 영역과 최대 너비 설정. */
 .admin-main {
-  width: min(calc(100% - 48px), 780px);
+  width: min(calc(100% - 48px), 980px);
   margin: 56px auto 32px;
   border: 1px solid var(--mindot-border);
   border-radius: 14px;
@@ -28,14 +28,10 @@
   color: var(--mindot-text-secondary);
 }
 
-/* 관리자 기능별 제목과 준비 상태를 나누는 가로 영역 설정. */
+/* 관리자 기능 단위 구분선과 세로 간격 설정. */
 .admin-section {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
   border-top: 1px solid var(--mindot-border);
-  padding: 26px 0;
+  padding: 30px 0;
 }
 
 .admin-heading + .admin-section {
@@ -43,29 +39,267 @@
 }
 
 .admin-section:last-child {
-  border-bottom: 1px solid var(--mindot-border);
+  padding-bottom: 0;
 }
 
-.admin-section h2 {
+/* 관리자 기능 제목과 전체 개수를 양쪽에 배치하는 설정. */
+.admin-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.admin-section-heading h2 {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 700;
 }
 
-.admin-section p {
+.admin-section-heading p {
   margin: 8px 0 0;
   color: var(--mindot-text-secondary);
 }
 
-/* 아직 API가 연결되지 않은 관리자 기능 상태 표시 설정. */
-.admin-section span {
+/* 회원 수와 안전 신호 건수를 강조하는 작은 개수 표시 설정. */
+.admin-count {
   flex: 0 0 auto;
   border-radius: 6px;
   padding: 7px 10px;
-  color: var(--mindot-text-muted);
+  color: var(--mindot-primary-strong);
   font-size: 13px;
   font-weight: 600;
+  background: var(--mindot-primary-soft);
+}
+
+/* 관리자 데이터 목록의 기본 여백과 목록 표시 제거 설정. */
+.admin-data-list {
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* 회원별 기본 정보와 관리 정보를 두 영역으로 나누는 행 설정. */
+.admin-user-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 16px 0;
+}
+
+.admin-user-row:first-child {
+  border-top: 1px solid var(--mindot-border);
+}
+
+.admin-user-identity {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.admin-user-identity strong {
+  font-weight: 700;
+}
+
+.admin-user-identity span {
+  overflow-wrap: anywhere;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+}
+
+.admin-user-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px 14px;
+  color: var(--mindot-text-secondary);
+  font-size: 13px;
+  text-align: right;
+}
+
+/* 안전 신호 목록과 선택 항목 상세를 나란히 배치하는 설정. */
+.admin-safety-layout {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.9fr) minmax(300px, 1.1fr);
+  margin-top: 20px;
+  border-top: 1px solid var(--mindot-border);
+}
+
+.admin-safety-list {
+  max-height: 520px;
+  margin: 0;
+  overflow-y: auto;
+}
+
+.admin-safety-list li {
+  border-bottom: 1px solid var(--mindot-border);
+}
+
+/* 안전 신호 한 건을 전체 터치 영역으로 제공하는 선택 버튼 설정. */
+.admin-safety-row {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 5px 10px;
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  padding: 15px 12px;
+  color: var(--mindot-text);
+  text-align: left;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+.admin-safety-row:hover,
+.admin-safety-row.is-selected {
+  background: var(--mindot-primary-soft);
+}
+
+.admin-safety-row:focus-visible {
+  outline: 2px solid var(--mindot-primary);
+  outline-offset: -2px;
+}
+
+.admin-safety-row strong {
+  align-self: center;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-safety-row > span:not(.admin-risk-level),
+.admin-safety-row time {
+  grid-column: 1 / -1;
+  overflow-wrap: anywhere;
+  color: var(--mindot-text-secondary);
+  font-size: 13px;
+}
+
+/* 검토 필요와 즉시 확인 위험 수준을 구분하는 상태 표시 설정. */
+.admin-risk-level {
+  align-self: center;
+  border-radius: 5px;
+  padding: 4px 7px;
+  font-size: 12px;
+  font-weight: 700;
   background: var(--mindot-surface-muted);
+}
+
+.admin-risk-review {
+  color: #8a5700;
+  background: #fff3d6;
+}
+
+.admin-risk-crisis {
+  color: #b42318;
+  background: #fee4e2;
+}
+
+/* 선택한 안전 신호의 상세 정보를 목록 오른쪽에 표시하는 영역 설정. */
+.admin-safety-detail {
+  min-width: 0;
+  border-left: 1px solid var(--mindot-border);
+  padding: 18px 0 0 24px;
+}
+
+.admin-safety-detail h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* 안전 신호 속성 이름과 값을 일정한 간격으로 배치하는 목록 설정. */
+.admin-detail-list {
+  margin: 16px 0 0;
+}
+
+.admin-detail-list > div {
+  display: grid;
+  grid-template-columns: 105px minmax(0, 1fr);
+  gap: 14px;
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 11px 0;
+}
+
+.admin-detail-list dt {
+  color: var(--mindot-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.admin-detail-list dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+}
+
+/* 안전 신호와 연결된 감정 기록 원문 확인 영역 설정. */
+.admin-record-content {
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--mindot-surface-muted);
+}
+
+.admin-record-content h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.admin-record-content p {
+  margin: 10px 0 0;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.admin-record-content span {
+  display: block;
+  margin-top: 12px;
+  color: var(--mindot-text-secondary);
+  font-size: 12px;
+}
+
+/* 관리자 목록의 로딩과 빈 상태 공통 안내 설정. */
+.admin-loading-message,
+.admin-empty-message {
+  margin: 20px 0 0;
+  padding: 20px 0;
+  color: var(--mindot-text-secondary);
+  text-align: center;
+}
+
+/* 관리자 데이터 조회 실패 안내와 재시도 버튼 설정. */
+.admin-inline-error {
+  margin-top: 20px;
+  padding: 18px 0;
+  color: #b42318;
+  text-align: center;
+}
+
+.admin-inline-error p {
+  margin: 0;
+}
+
+.admin-inline-error button {
+  min-height: 44px;
+  margin-top: 14px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  padding: 0 16px;
+  color: var(--mindot-primary-strong);
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+.admin-inline-error button:hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
 }
 
 /* 관리자 권한 확인과 접근 불가 안내의 중앙 정렬 영역 설정. */
@@ -109,10 +343,10 @@
   background: var(--mindot-primary-soft);
 }
 
-/* 모바일 화면에서 관리자 콘텐츠와 기능 영역을 세로로 배치하는 설정. */
-@media (max-width: 600px) {
+/* 좁은 화면에서 안전 신호 목록과 상세를 위아래로 배치하는 설정. */
+@media (max-width: 760px) {
   .admin-main {
-    width: min(calc(100% - 32px), 780px);
+    width: min(calc(100% - 32px), 980px);
     margin-top: 32px;
     padding: 24px;
   }
@@ -121,14 +355,47 @@
     font-size: 1.75rem;
   }
 
-  .admin-section {
+  .admin-section-heading,
+  .admin-user-row {
     align-items: flex-start;
     flex-direction: column;
     gap: 14px;
   }
 
+  .admin-user-meta {
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .admin-safety-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-safety-list {
+    max-height: 330px;
+  }
+
+  .admin-safety-detail {
+    border-top: 1px solid var(--mindot-border);
+    border-left: 0;
+    padding: 24px 0 0;
+  }
+
   .admin-access-actions {
     display: grid;
     grid-template-columns: 1fr;
+  }
+}
+
+/* 작은 모바일 화면에서 상세 항목 이름과 값을 세로로 배치하는 설정. */
+@media (max-width: 430px) {
+  .admin-main {
+    width: min(calc(100% - 20px), 980px);
+    padding: 20px;
+  }
+
+  .admin-detail-list > div {
+    grid-template-columns: 1fr;
+    gap: 5px;
   }
 }
