@@ -78,6 +78,18 @@ public class EmotionRecordsController {
         );
     }
 
+    // 로그인한 사용자의 감정 기록 상세 조회 API
+    @GetMapping("/{emotionRecordId}")
+    public EmotionRecordsDetailResponseDto getEmotionRecordDetail(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long emotionRecordId
+    ) {
+        return emotionRecordsService.getEmotionRecordsDetail(
+                userId,
+                emotionRecordId
+        );
+    }
+
     // 현재 감정 기록과 유사한 완료 CBT를 기반으로 패턴 설명 생성하는 API
     @PostMapping("/{emotionRecordId}/pattern-explanation")
     public  PatternExplanationResponseDto explainPattern(
