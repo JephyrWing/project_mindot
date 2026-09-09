@@ -1,154 +1,66 @@
-// CBT 성찰 세션 시작 요청을 받는 Controller
 package com.my.mindot_back.records.controller;
-
-import com.my.mindot_back.records.dto.*;
+import com.my.mindot_back.records.dto.InsightDtos.*;
+import com.my.mindot_back.records.dto.OpenReflectionSessionResponseDto;
+import com.my.mindot_back.records.service.InsightService;
 import com.my.mindot_back.records.service.ReflectionSessionsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/reflections")
 @RequiredArgsConstructor
 public class ReflectionSessionsController {
-
-    // 성찰 세션 생성, FastAPI 질문 생성을 처리하는 Service
-    private final ReflectionSessionsService reflectionSessionsService;
-
-    // 예시
-    // POST /api/reflections/start/2 (2: emotion_records.id)
-    @PostMapping("/start/{emotionRecordId}")
-    @ResponseStatus(HttpStatus.CREATED)
-    public ReflectionSessionStartResponseDto startSession(
-            // JwtAuthenticationFilter가 SecurityContext에 저장한 현재 로그인 사용자 ID
-            @AuthenticationPrincipal Long userId,
-
-            // URL의 /start/{emotionRecordId} 값
-            @PathVariable Long emotionRecordId
-    ){
-        // 사용자 확인, 감정 기록 소유권 확인, 성찰 세션 DB 생성, FastAPI 첫 질문 생성을
-        // Service가 하도록 함
-        return reflectionSessionsService.startSession(userId, emotionRecordId);
+    private final InsightService service;
+    private final ReflectionSessionsService existing;
+    private String key(String value) {
+        if(value==null || value.isBlank() || value.length()>120)throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"요청 키가 올바르지 않습니다.");
+        return value;
     }
-
-    // 예시
-    // POST /api/reflections/1/turn (1: reflection_sessions.id)
-    @PostMapping("/{sessionId}/turn")
-    public ReflectionSessionTurnResponseDto answerAndContinue(
-            // JwtAuthenticationFilter가 SecurityContext에 저장한 현재 로그인 사용자 ID
-            @AuthenticationPrincipal Long userId,
-
-            // URL의 /{sessionId}/turn 값
-            @PathVariable Long sessionId,
-
-            // 프론트가 보낸 현재 질문의 답변 JSON
-            // @Valid가 @NotBlank, @Size 검증을 실행함
-            @Valid @RequestBody ReflectionSessionTurnRequestDto request
-    ){
-        // 답변 저장, FastAPI 다음 질문 생성, DB 저장을 Service가 처리
-        return reflectionSessionsService.answerAndContinue(
-                userId,
-                sessionId,
-                request.answer()
-        );
+    private Long revision(String value) {
+        if(value==null)return null;
+        try {long revision=Long.parseLong(value.replace("\"",""));if(revision<0)throw new NumberFormatException();return revision;}
+        catch(NumberFormatException e) {throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"성찰 변경 번호가 올바르지 않습니다.");}
     }
-
-    // 다음 CBT 질문 생성 실패 후, 이미 저장된 답변으로 재시도
-    @PostMapping("/{sessionId}/retry-next-question")
-    public ReflectionSessionTurnResponseDto retryNextQuestion(
-            @AuthenticationPrincipal Long userId,
-            @PathVariable Long sessionId
-    ) {
-        return reflectionSessionsService.retryNextQuestion(
-                userId,
-                sessionId
-        );
+    private ResponseEntity<SessionView> response(SessionView view) {
+        boolean processing=view.job()!=null && List.of("PROCESSING","PENDING").contains(view.job().get("status"));
+        return ResponseEntity.status(processing?HttpStatus.ACCEPTED:HttpStatus.OK).eTag(Long.toString(view.revision())).body(view);
     }
-
-    // POST /api/reflections/1/confirm
-    // 사용자가 성찰 결과와 인지왜곡 검토 결과를 최종 확정
-    @PostMapping("/{sessionId}/confirm")
-    // NO_CONTENT: 요청처리와 DB 저장 완료, 프론트에 돌려줄 JSON 데이터 X
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void confirmSession(
-            // JWT 인증 필터가 SecurityContext에 저장한 현재 로그인 사용자 ID
-            @AuthenticationPrincipal Long userId,
-            @PathVariable Long sessionId,
-            // 프론트가 보낸 최종 성찰 결과와 인지왜곡 검토 결과 JSON
-            // @Valid가 DTO의 필수값, 범위, 길이 검증 실행
-            @Valid @RequestBody ReflectionSessionConfirmRequestDto request
-    ){
-        // 소유권 검증, 인지왜곡 검토 반영, 성찰 세션 최종 완료처리를 service가 함
-        reflectionSessionsService.confirmSession(
-                userId,
-                sessionId,
-                request
-        );
+    @PostMapping("/open")
+    public ResponseEntity<SessionView> open(@AuthenticationPrincipal Long user,@Valid @RequestBody Open body,
+        @RequestHeader("Idempotency-Key") String key,@RequestHeader(value="If-Match",required=false) String revision) {
+        return response(service.open(user,body,key(key),revision(revision)));
     }
-
-    // OpenAI 임베딩 생성 실패 후, 완료된 CBT 결과의 벡터 생성만 재시도
-    @PostMapping("/{sessionId}/retry-embedding")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void retryEmbedding(
-            @AuthenticationPrincipal Long userId,
-            @PathVariable Long sessionId
-    ) {
-        reflectionSessionsService.retryEmbedding(userId, sessionId);
+    @GetMapping("/{sid}")
+    public ResponseEntity<SessionView> get(@AuthenticationPrincipal Long user,@PathVariable Long sid) {return response(service.get(user,sid));}
+    @PostMapping("/{sid}/turn")
+    public ResponseEntity<SessionView> turn(@AuthenticationPrincipal Long user,@PathVariable Long sid,@Valid @RequestBody Turn body,
+        @RequestHeader("Idempotency-Key") String key,@RequestHeader("If-Match") String revision) {
+        return response(service.turn(user,sid,key(key),revision(revision),body));
     }
-
-    // 첫 CBT 질문 생성 실패 후, 질문이 없는 OPEN 세션의 재시도 API
-    @PostMapping("/{sessionId}/retry-first-question")
-    public ReflectionSessionStartResponseDto retryFirstQuestion(
-            @AuthenticationPrincipal Long userId,
-            @PathVariable Long sessionId
-    ) {
-        return reflectionSessionsService.retryFirstQuestion(
-                userId,
-                sessionId
-        );
+    @PostMapping("/{sid}/retry")
+    public ResponseEntity<SessionView> retry(@AuthenticationPrincipal Long user,@PathVariable Long sid,
+        @RequestHeader("Idempotency-Key") String key,@RequestHeader("If-Match") String revision) {
+        return response(service.retry(user,sid,key(key),revision(revision)));
     }
-
-    // POST /api/reflections/1/cancel
-    // 사용자가 진행 중인 CBT 성찰 세션을 완전히 중단
-    @PostMapping("/{sessionId}/cancel")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void cancelSession(
-            @AuthenticationPrincipal Long userId,
-            @PathVariable Long sessionId
-    ) {
-        // 세션 조회, 소유권 확인, OPEN 상태 확인, CANCELLED 변경을 Service가 처리
-        reflectionSessionsService.cancelSession(
-                userId,
-                sessionId
-        );
+    @PostMapping("/{sid}/confirm")
+    public ResponseEntity<SessionView> confirm(@AuthenticationPrincipal Long user,@PathVariable Long sid,@Valid @RequestBody Confirm body,
+        @RequestHeader("Idempotency-Key") String key,@RequestHeader("If-Match") String revision) {
+        return response(service.confirm(user,sid,key(key),revision(revision),body));
     }
-
-    // GET /api/reflections/open
-    // 로그인 사용자의 진행 중인 OPEN CBT 성찰 세션 목록 조회
+    @PostMapping("/{sid}/cancel")
+    public ResponseEntity<SessionView> cancel(@AuthenticationPrincipal Long user,@PathVariable Long sid,
+        @RequestHeader("Idempotency-Key") String key,@RequestHeader("If-Match") String revision) {
+        return response(service.cancel(user,sid,key(key),revision(revision)));
+    }
     @GetMapping("/open")
-    public List<OpenReflectionSessionResponseDto> getOpenSessions(
-            // JWT 인증 필터가 SecurityContext에 저장한 현재 로그인 사용자 ID
-            @AuthenticationPrincipal Long userId
-    ) {
-        // OPEN 세션 목록 조회는 Service가 처리
-        return reflectionSessionsService.getOpenSessions(userId);
-    }
-
-    // GET /api/reflections/1
-    // 로그인 사용자가 자신의 CBT 성찰 세션과 질문·답변 이력을 조회
-    @GetMapping("/{sessionId}")
-    public ReflectionSessionDetailResponseDto getSessionDetail(
-            @AuthenticationPrincipal Long userId,
-            @PathVariable Long sessionId
-    ) {
-        // 세션 조회와 소유권 검증은 Service가 처리
-        return reflectionSessionsService.getSessionDetail(
-                userId,
-                sessionId
-        );
-    }
+    public List<OpenReflectionSessionResponseDto> openSessions(@AuthenticationPrincipal Long user) {return existing.getOpenSessions(user);}
+    @PostMapping("/{sid}/retry-embedding")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void retryEmbedding(@AuthenticationPrincipal Long user,@PathVariable Long sid) {existing.retryEmbedding(user,sid);}
 }

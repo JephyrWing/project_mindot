@@ -21,7 +21,9 @@ public record OpenReflectionSessionResponseDto (
         String currentStep,
 
         // 성찰 세션을 시작한 시각
-        Instant createdAt
+        Instant createdAt,
+        String phase,
+        long revision
 ) {
     // ReflectionSessions Entity를 목록용 DTO로 변환
     public static OpenReflectionSessionResponseDto from(
@@ -32,7 +34,9 @@ public record OpenReflectionSessionResponseDto (
                 reflectionSession.getEmotionRecord().getId(),
                 reflectionSession.getEmotionRecord().getRawText(),
                 reflectionSession.getCurrentStep(),
-                reflectionSession.getCreatedAt()
+                reflectionSession.getCreatedAt(),
+                reflectionSession.insight().get("currentProposal") == null ? "DIALOGUE" : "PROPOSAL_REVIEW",
+                com.my.mindot_back.records.service.InsightMapping.number(reflectionSession.insight().get("revision"))
         );
     }
 }

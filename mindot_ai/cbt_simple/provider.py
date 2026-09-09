@@ -7,21 +7,17 @@ from pathlib import Path
 from time import perf_counter
 from types import SimpleNamespace
 from copy import deepcopy
-from langchain_core.messages import SystemMessage,HumanMessage
+from langchain_core.messages import SystemMessage,HumanMessage,AIMessage
 from langchain_openai import ChatOpenAI
 from openai import AsyncOpenAI
 from cbt_q11.contracts import CompletionTechnicalError
 from cbt_q11.diagnostics import canonical, sha
-from cbt_q11.llm import token_count, parse, unique_object, validate_schema
+from cbt_q11.llm import token_count, parse, unique_object
+from .schema import validate as validate_schema
 from . import schema
 
-MODEL='gpt-4o-mini'
-INPUT_TOKEN_LIMIT=48000
-REQUEST_BYTE_LIMIT=196608
-PHASES={'SELECT':8192,'WRITER':650,'ASSESSOR':1800,'ASSESSMENT_REVIEW':1200,'WRITER_REPAIR':650}
-PROMPTS={k:(Path(__file__).parent/'prompts'/v).read_text(encoding='utf-8').removesuffix('\n') for k,v in {
-    'SELECT':'agent.txt','WRITER':'writer.txt','ASSESSOR':'assessor.txt',
-    'ASSESSMENT_REVIEW':'assessment-review.txt','WRITER_REPAIR':'writer-repair.txt'}.items()}
+from .wire import MODEL,INPUT_TOKEN_LIMIT,REQUEST_BYTE_LIMIT,PHASES,PROMPTS
+from .wire import wire as serialize_wire,messages as serialize_messages
 aggregate_guard=ContextVar('simple_aggregate_guard',default=None)
 
 def measure(wire):
@@ -120,17 +116,7 @@ class Provider:
     async def close(self):
         if self.client: await self.client.close()
     def messages(self,phase,payload,pair=()):
-        # One projection shared by every phase; accepted raw memory is untouched.
-        context=deepcopy(payload);view=context['view'];latest_ids=set(view.pop('latestSourceIds',[]))
-        latest=[]
-        for s in view['sources']:
-            if s['sourceId'] in latest_ids:
-                latest.append(dict(sourceId=s['sourceId'],text=s.pop('text'),kind=s['kind'],questionCode=s.get('questionCode')))
-                s['textLocation']='LATEST_MESSAGE'
-        utterance=dict(currentQuestionCode=view['dialogue']['currentQuestionCode'],sources=latest,
-                       hasNewUtterance=bool(latest))
-        return [SystemMessage(content=PROMPTS[phase]),HumanMessage(content=canonical(context)),
-                *pair,HumanMessage(content=canonical(utterance))]
+        return serialize_messages(phase,payload,pair)
     async def choose(self,messages):
         self.capture.phase='SELECT'
         msg=await self.agent.bind_tools(schema.select_tools(),tool_choice='required',parallel_tool_calls=False,strict=True).ainvoke(messages,config={'callbacks':[]})
@@ -147,11 +133,7 @@ class Provider:
             raise CompletionTechnicalError('agent_parsed_tool_mismatch')
         return msg,dict(name=name,args=args,id=call['id'])
     def wire(self,phase,payload):
-        shapes={'WRITER':schema.writer_schema,'WRITER_REPAIR':schema.writer_repair_schema,'ASSESSOR':schema.assessor_schema,
-                'ASSESSMENT_REVIEW':schema.review_schema}
-        return dict(model=MODEL,temperature=0.3 if phase in ('WRITER','WRITER_REPAIR') else 0.0,
-            messages=[dict(role='system' if m.type=='system' else 'user',content=m.content) for m in self.messages(phase,payload)],
-            response_format=schema.response_format('cbt_'+phase.lower(),shapes[phase]()),max_completion_tokens=PHASES[phase])
+        return serialize_wire(phase,payload)
     async def structured(self,phase,payload):
         wire=self.wire(phase,payload); ticket=self.budget.admit(phase,wire)
         try:

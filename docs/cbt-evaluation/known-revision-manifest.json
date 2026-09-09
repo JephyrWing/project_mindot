@@ -1,0 +1,65 @@
+{
+  "revision": "cbt-known-insight-1",
+  "sourceRevision": "cbt-known-scope-2",
+  "authoredBeforeNewCandidateOutput": true,
+  "inputCount": 160,
+  "sessionCount": 10,
+  "logicalCount": 170,
+  "pairedPublicSlots": 340,
+  "historicalSealedSlots": 28,
+  "sealedRead": false,
+  "afterGateCounts": {
+    "SUPPORTED": 22,
+    "CONTEXTUAL": 35,
+    "NOT_ESTABLISHED": 83,
+    "SAFETY_FIRST": 15,
+    "HELP_FIRST": 5,
+    "FOLLOW_ACTUAL_DIALOGUE": 10
+  },
+  "rubricFamilyCounts": {
+    "FEATURE": 110,
+    "SAFETY": 15,
+    "QUESTION": 30,
+    "PROPOSAL": 5,
+    "SESSION": 10
+  },
+  "originalFiles": [
+    {
+      "path": "reference/legacy-known-scope-2/canonical-boundary-cases.json",
+      "sha256": "74f6220e5fbdeba7a260f2b49b2479ec1355b901e29d441411d516a5fe7f3762",
+      "bytes": 51889
+    },
+    {
+      "path": "reference/legacy-known-scope-2/canonical-feature-cases.json",
+      "sha256": "6fc929743423c6ccc3fa707637249940577c67b61f5faa74809772402b7fb66c",
+      "bytes": 287170
+    },
+    {
+      "path": "reference/legacy-known-scope-2/canonical-regression-cases.json",
+      "sha256": "8438b0d5c25d1e8ad1e340bc3ad144428a46ba8cd08d3e9322162bdd3f9bca88",
+      "bytes": 369167
+    },
+    {
+      "path": "reference/legacy-known-scope-2/fresh-q10-holdout-cases.json",
+      "sha256": "0e181749ecfadbc84846588b4a450b67894773b5294e5d988a2a1b4e5dbe275f",
+      "bytes": 267510
+    },
+    {
+      "path": "reference/legacy-known-scope-2/known-holdout-regression-cases.json",
+      "sha256": "8121a9a64d95e79507a08329e95881ce504d2377684cc0be91d70cc662da6200",
+      "bytes": 184538
+    },
+    {
+      "path": "reference/legacy-known-scope-2/known-long-sessions.json",
+      "sha256": "4184da0e757bf371b3580b16d962a1034ccbe73565e0973662bdccec861557c3",
+      "bytes": 3621
+    },
+    {
+      "path": "reference/legacy-known-scope-2/q10-long-sessions.json",
+      "sha256": "e59e6e89ed7e8ca381d8931f8d28f25dabde5b039a59268a6bc0f5a1feeb7fb6",
+      "bytes": 4300
+    }
+  ],
+  "status": "PREPARED_TESTS_BLOCKED_PENDING_GPT_FULL_BRANCH_REVIEW",
+  "dialoguePreservation": "160 single-turn record and all actual question/answer strings unchanged; transport metadata separated from grader expectations; session protocol changes recorded individually."
+}

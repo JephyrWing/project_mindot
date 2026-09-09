@@ -481,15 +481,17 @@ public class EmotionRecordsService {
                                     )
                                     .toList();
 
+                    if(reflectionSession.confirmedInsight()!=null)confirmedDistortionCodes=reflectionSession.confirmedInsightCodes();
                     return new PatternSimilarCaseDto(
                             reflectionSession.getId(),
                             reflectionSession.getEmotionRecord()
                                     .getSituationText(),
-                            reflectionSession.getEmotionRecord()
-                                    .getAutomaticThought(),
+                            reflectionSession.confirmedBeforeText(),
                             reflectionSession.getAlternativeThoughtText(),
                             reflectionSession.getHelpfulnessScore(),
-                            confirmedDistortionCodes
+                            confirmedDistortionCodes,
+                            reflectionSession.confirmedInsight()==null?"legacy":"cbt-insight-1",
+                            reflectionSession.confirmedInsight()
                     );
                 })
 

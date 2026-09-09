@@ -3,6 +3,8 @@ import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Navbar from '../Navbar/Navbar.jsx'
 import { getReflectionSessionDetail } from '../../utils/reflections/reflectionsApi.js'
 import './CompletedReflection.css'
+import InsightResult from '../CBT/InsightResult.jsx'
+import { retryReflectionEmbedding } from '../../utils/reflections/reflectionsApi.js'
 
 // 완료 CBT 결과 상세 조회 실패 상태에 맞는 사용자 안내 문구 반환.
 const getReflectionErrorMessage = (error) => {
@@ -54,6 +56,7 @@ function CompletedReflection({
   const [isLoading, setIsLoading] = useState(true)
   // 완료 CBT 성찰 상세 조회 실패 안내 상태 관리.
   const [loadError, setLoadError] = useState('')
+  const [embeddingMessage, setEmbeddingMessage] = useState('')
   // 사용자가 상세 결과 재조회 버튼을 선택한 횟수 상태 관리.
   const [reloadCount, setReloadCount] = useState(0)
 
@@ -76,13 +79,13 @@ function CompletedReflection({
 
         if (!isActive) return
 
-        if (detail.status !== 'COMPLETED' || !detail.outcome) {
+        if (detail.status !== 'COMPLETED' || (!detail.confirmedResult && !detail.legacyResult)) {
           setReflection(null)
           setLoadError('아직 최종 확정되지 않은 CBT 성찰입니다.')
           return
         }
 
-        setReflection(detail)
+        setReflection({ ...detail, outcome: detail.confirmedResult ?? detail.legacyResult })
       } catch (error) {
         if (isActive) {
           setReflection(null)
@@ -148,7 +151,11 @@ function CompletedReflection({
             </div>
           ) : (
             <>
-              {/* 사용자가 확정한 근거와 대안적 사고를 읽기 전용 결과로 표시. */}
+              {reflection.confirmedResult && <InsightResult result={reflection.confirmedResult} />}
+              {!reflection.confirmedResult && <p>기존 형식으로 저장된 성찰 결과입니다. 새 AFTER 의미로 재분류하지 않았습니다.</p>}
+              <button onClick={async () => { try { await retryReflectionEmbedding(sessionId); setEmbeddingMessage('검색 연결이 완료됐습니다.') } catch { setEmbeddingMessage('검색 연결을 이미 처리 중이거나 다시 시도할 수 없습니다. 결과 저장은 유지됩니다.') } }}>검색 연결 다시 시도</button>
+              {embeddingMessage && <p role="status">{embeddingMessage}</p>}
+              {/* Existing evidence and score values remain visible. */}
               <div className="completed-reflection-text-results">
                 <section>
                   <h2>처음 생각을 뒷받침하는 근거</h2>
@@ -159,8 +166,8 @@ function CompletedReflection({
                   <p>{getResultText(reflection.outcome.evidenceAgainstText)}</p>
                 </section>
                 <section>
-                  <h2>대안적 사고</h2>
-                  <p>{getResultText(reflection.outcome.alternativeThoughtText)}</p>
+                  <h2>{reflection.confirmedResult ? '확인한 수정 생각' : '대안적 사고 (기존 결과)'}</h2>
+                  <p>{getResultText(reflection.outcome.afterText ?? reflection.outcome.alternativeThoughtText)}</p>
                 </section>
               </div>
 
@@ -172,11 +179,11 @@ function CompletedReflection({
                 <h2 id="completed-reflection-scores-title">성찰 변화</h2>
                 <dl>
                   <div>
-                    <dt>성찰 전 생각 확신도</dt>
+                    <dt>같은 처음 생각에 대한 성찰 전 확신도</dt>
                     <dd>{getScoreText(reflection.outcome.beforeBeliefStrength, 100)}</dd>
                   </div>
                   <div>
-                    <dt>성찰 후 생각 확신도</dt>
+                    <dt>같은 처음 생각에 대한 현재 확신도</dt>
                     <dd>{getScoreText(reflection.outcome.afterBeliefStrength, 100)}</dd>
                   </div>
                   <div>

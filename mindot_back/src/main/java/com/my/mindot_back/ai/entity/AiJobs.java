@@ -128,6 +128,24 @@ public class AiJobs {
     private Instant createdAt;
 
     // DB 저장 전 시작, 생성 시각을 현재 시각으로 설정
+    // Nullable additions: historical jobs remain readable without bulk migration.
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(name = "request_payload", columnDefinition = "jsonb")
+    private java.util.Map<String,Object> requestPayload;
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(name = "response_payload", columnDefinition = "jsonb")
+    private java.util.Map<String,Object> responsePayload;
+    @Column(name = "attempt_deadline")
+    private Instant attemptDeadline;
+    public void prepareInsight(java.util.Map<String,Object> payload, short attempt, Instant deadline) {
+        this.requestPayload = new java.util.LinkedHashMap<>(payload);
+        this.attemptNo = attempt;
+        this.attemptDeadline = deadline;
+    }
+    public void cacheInsight(java.util.Map<String,Object> result) {
+        this.responsePayload = new java.util.LinkedHashMap<>(result);
+    }
+
     @PrePersist
     void prePersist() {
         Instant now = Instant.now();

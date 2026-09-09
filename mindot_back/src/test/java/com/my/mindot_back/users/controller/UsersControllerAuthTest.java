@@ -13,6 +13,9 @@ import com.my.mindot_back.users.dto.TokenRefreshResponseDto;
 import com.my.mindot_back.users.dto.UsersLoginRequestDto;
 import com.my.mindot_back.users.dto.UsersLoginResponseDto;
 import com.my.mindot_back.users.service.UsersService;
+import com.my.mindot_back.users.service.OAuthAuthorizationService;
+import com.my.mindot_back.users.service.SocialLoginService;
+import com.my.mindot_back.common.auth.OAuthStateCookieManager;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,7 +75,10 @@ class UsersControllerAuthTest {
                 cookieManager,
                 originValidator,
                 jwtTokenProvider,
-                new JwtProperties("unused", Duration.ofMinutes(15))
+                new JwtProperties("unused", Duration.ofMinutes(15)),
+                mock(OAuthAuthorizationService.class),
+                mock(OAuthStateCookieManager.class),
+                mock(SocialLoginService.class)
         );
     }
 
@@ -85,7 +91,8 @@ class UsersControllerAuthTest {
                         1L,
                         "user@example.com",
                         "user",
-                        "access-token"
+                        "access-token",
+                        "USER"
                 );
         IssuedRefreshToken refreshToken = issuedToken(1L, "refresh-token");
         when(usersService.login(requestDto)).thenReturn(loginResponse);

@@ -1,338 +1,61 @@
-"""Lossless raw memory and one source/event validity boundary.
+"""Ephemeral execution memory; Spring is the durable authority."""
+import asyncio
+from dataclasses import dataclass,field
+from time import monotonic
+from .contracts import ProtocolError
 
-No content extraction, coverage requirements, or semantic keyword routing.
-All semantic events are proposed by the Agent; offsets and dependencies are
-validated here and published only with the successful response.
-"""
-from copy import deepcopy
-from cbt_q11.contracts import CbtAgentIdempotencyError, CompletionTechnicalError
-from cbt_q11.diagnostics import canonical, sha
+@dataclass
+class Runtime:
+    lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+    snapshot: dict | None = None
+    successes: dict = field(default_factory=dict)
+    fingerprints: dict = field(default_factory=dict)
+    failures: dict = field(default_factory=dict)
+    expires: float = 0
+    closed: bool = False
 
-REVISION = 'simple-dialogue-2'
+class Registry:
+    def __init__(self,ttl=600):self.ttl=ttl;self.sessions={}
+    def acquire(self,sid):
+        now=monotonic()
+        for key,r in list(self.sessions.items()):
+            if not r.lock.locked() and r.expires<now:self.sessions.pop(key,None)
+        r=self.sessions.setdefault(sid,Runtime());r.expires=now+self.ttl;return r
+    def remove(self,sid):
+        r=self.sessions.pop(sid,None)
+        if r:r.closed=True
+    def touch(self,r):r.expires=monotonic()+self.ttl
 
-def empty():
-    return dict(revision=REVISION, sources={}, current={}, questions={}, history=[],
-                goals={}, requests={}, corrections=[], events=[], gap=None,
-                safety={}, stop=None, terminal=None, rejectedCodes=[],
-                pendingQuestion=None, legacySnapshot=None, restoration='COLD_PUBLIC_ONLY')
+def require(value,code):
+    if not value:raise ProtocolError(code)
 
-def require(condition, reason):
-    if not condition:
-        raise CompletionTechnicalError(reason)
-
-def add_source(state, address, text, kind, **metadata):
-    key = address + '@' + sha(text)
-    found = next((s for s in state['sources'].values() if s['key'] == key), None)
-    if found is None:
-        identity = 'S' + str(len(state['sources']) + 1)
-        found = dict(sourceId=identity, ordinal=len(state['sources'])+1, key=key, address=address, text=text,
-                     revision=sha(text), kind=kind, **metadata)
-        state['sources'][identity] = found
-    state['current'][address] = found['sourceId']
-    return found['sourceId']
-
-def receive(state, request):
-    prior_current=deepcopy(state['current']) if state else None
-    state = deepcopy(state) if state else empty()
-    require(state['revision'] == REVISION, 'checkpoint_revision_requires_migration')
-    sid, rid = request.session_id, request.record.record_id
-    if state.get('identity') not in (None, [sid, rid]):
-        raise CbtAgentIdempotencyError('session_record_binding')
-    state['identity'] = [sid, rid]
-    record = request.record.model_dump(by_alias=True, mode='json')
-    for field in ('situation', 'automaticThought'):
-        value = record.pop(field)
-        record[field + 'SourceId'] = add_source(state, f'record:{rid}:{field}', value,
-                                                'USER_RECORD', field=field) if value else None
-    state['record'] = record
-    history = []
-    for q in getattr(request, 'question_answers', []):
-        raw = q.model_dump(by_alias=True, mode='json')
-        old = state['questions'].get(q.question_code)
-        if old and any(old[k] != raw[k] for k in ('question', 'questionPurpose')):
-            raise CbtAgentIdempotencyError('question_identity_conflict')
-        state['questions'].setdefault(q.question_code, {k:raw[k] for k in
-            ('questionCode', 'question', 'questionPurpose', 'semanticRouteType')})
-        source = add_source(state, f'session:{sid}:record:{rid}:answer:{q.question_code}',
-            q.answer, 'USER_ANSWER', questionCode=q.question_code) if q.answer is not None else None
-        history.append(dict(questionCode=q.question_code, answerSourceId=source,
-                            askedAt=raw['askedAt'], answeredAt=raw['answeredAt']))
-    state['history'] = history
-    # Current utterance follows the public request delta, not source ordinal.
-    changed=[identity for address,identity in state['current'].items()
-             if prior_current is not None and prior_current.get(address)!=identity]
-    current_step=getattr(request,'current_step',None)
-    codes={h['questionCode'] for h in history}
-    current_code=current_step if current_step in codes else None
-    if current_step is None and history:
-        changed_codes={state['sources'][i].get('questionCode') for i in changed
-                       if state['sources'][i].get('questionCode')}
-        if prior_current is None or changed_codes=={history[-1]['questionCode']}:
-            current_code=history[-1]['questionCode']
-    if prior_current is None:
-        if not history:
-            latest=[i for k,i in record.items() if k.endswith('SourceId') and i]
-        else:
-            latest=[h['answerSourceId'] for h in history if h['questionCode']==current_code and h['answerSourceId']]
-    else: latest=changed
-    state['currentInput']=dict(sourceIds=list(dict.fromkeys(latest)),currentQuestionCode=current_code,
-        source='PUBLIC_REQUEST_DELTA' if prior_current is not None else ('COLD_PUBLIC_CURRENT_STEP' if history else 'START_RECORD'))
-    if any(h['questionCode']==state['pendingQuestion'] and h['answerSourceId'] is not None for h in history):
-        state['pendingQuestion']=None
-    state['rejectedCodes'] = list(dict.fromkeys(state['rejectedCodes'] + [x.code.value
-        for x in getattr(request, 'before_distortions', []) if x.review_status.value == 'REJECTED']))
-    refresh(state)
-    return state
-
-def source(state, identity, *, current=True):
-    value = state['sources'].get(identity)
-    require(value is not None, 'unknown_source')
-    require(not current or state['current'].get(value['address']) == identity, 'archived_source')
-    return value
-
-def span(state, identity, quote, occurrence=None, *, valid=True, current=True):
-    value = source(state, identity, current=current)
-    require(isinstance(quote, str) and bool(quote.strip()), 'empty_quote')
-    positions = [i for i in range(len(value['text'])) if value['text'].startswith(quote, i)]
-    require(bool(positions), 'quote_not_exact')
-    if occurrence is None:
-        require(len(positions) == 1, 'ambiguous_quote_occurrence')
-        occurrence = 0
-    require(type(occurrence) is int and 0 <= occurrence < len(positions), 'invalid_occurrence')
-    start = positions[occurrence]
-    pointer = dict(sourceId=identity, start=start, end=start + len(quote))
-    if valid:
-        require(valid_pointer(state, pointer), 'withdrawn_quote')
-    return pointer
-
-def valid_pointer(state, pointer):
-    s = state['sources'].get(pointer['sourceId'])
-    if not s or state['current'].get(s['address']) != s['sourceId']:
+def candidate_boundary(candidate,snapshot):
+    """One structural/USER-quotation boundary; meaning stays with the models."""
+    from .schema import validate,assessor_schema
+    validate(candidate,assessor_schema())
+    after=candidate['afterText'];evidence=candidate['afterEvidence'];suggestions=candidate['suggestions']
+    require(after is None or bool(after.strip()),'blank_after')
+    if after is None:
+        require(not evidence and not suggestions and candidate['assessmentType']=='UNDETERMINED','null_after_shape')
         return False
-    return not any(a < pointer['end'] and pointer['start'] < b
-                   for a, b in state.get('withdrawn', {}).get(s['sourceId'], []))
+    require(bool(evidence),'missing_user_evidence')
+    codes=[s['code'] for s in suggestions]
+    require(len(codes)==len(set(codes)),'duplicate_suggestion')
+    require(bool(codes)==(candidate['assessmentType']=='DISTORTION_SUGGESTED'),'suggestion_assessment_shape')
+    citations=list(evidence)
+    if candidate['beforeCorrection']:
+        require(bool(candidate['beforeCorrection']['text'].strip()),'blank_before_correction')
+        citations.append(candidate['beforeCorrection']['evidence'])
+    messages={m['messageNumber']:m for m in snapshot['messages']}
+    for p in citations:
+        m=messages.get(p['messageNumber'])
+        require(m and m['role']=='USER' and p['quote'].strip() and p['quote'] in m['content'],'invalid_user_quote')
+    return True
 
-def source_valid(state, identity):
-    s = source(state, identity)
-    intervals = state.get('withdrawn', {}).get(identity, [])
-    return sum(b-a for a,b in intervals) < len(s['text'])
-
-def references(state, identities):
-    require(len(identities) == len(set(identities)), 'duplicate_source_reference')
-    for identity in identities:
-        require(source_valid(state, identity), 'fully_withdrawn_source')
-
-def edit_intervals(intervals, start, end, retract):
-    if retract:
-        intervals = sorted(intervals + [[start, end]])
-        out = []
-        for a,b in intervals:
-            if out and a <= out[-1][1]: out[-1][1] = max(out[-1][1], b)
-            else: out.append([a,b])
-        return out
-    out = []
-    for a,b in intervals:
-        if b <= start or a >= end: out.append([a,b])
-        else:
-            if a < start: out.append([a,start])
-            if b > end: out.append([end,b])
-    return out
-
-def refresh(state):
-    # A correction is a past-to-future event. Later correction of its instruction
-    # disables its force. Recompute in reverse source chronology without inventing
-    # replacement facts; keep irreversible derived receipts separately.
-    def masks(events):
-        result={}
-        for index,c in sorted(events):
-            t=c['target']
-            result[t['sourceId']]=edit_intervals(result.get(t['sourceId'],[]),t['start'],t['end'],c['operation']=='RETRACT')
-        return result
-    groups={}; active=[]
-    for index,c in enumerate(state['corrections']):
-        s=state['sources'][c['instruction']['sourceId']]
-        if state['current'].get(s['address'])==s['sourceId']:
-            groups.setdefault(s['ordinal'],[]).append((index,c))
-    for ordinal in sorted(groups,reverse=True):
-        later=masks(active)
-        for index,c in groups[ordinal]:
-            p=c['instruction']
-            if not any(a<p['end'] and p['start']<b for a,b in later.get(p['sourceId'],[])):
-                active.append((index,c))
-    withdrawn=masks(active)
-    state['withdrawn'] = withdrawn
-    for goal in state['goals'].values():
-        if goal.get('dependency') and not valid_pointer(state, goal['dependency']):
-            goal.update(status='AWAITING_ANSWER', invalidated=True)
-    for req in state['requests'].values():
-        if not valid_pointer(state, req['origin']):
-            req.update(status='INVALIDATED', invalidated=True)
-    gap=state['gap']
-    if gap and gap.get('answerDependency') and not valid_pointer(state, gap['answerDependency']):
-        gap.update(answerState='AWAITING_ANSWER', invalidated=True)
-    for episode in state['safety'].values():
-        if episode.get('resolution') and not valid_pointer(state, episode['resolution']):
-            episode.update(status='ACTIVE', resolutionInvalidated=True)
-    if state['terminal']:
-        pointers=state['terminal'].get('pointers', [])
-        if any(not valid_pointer(state,p) for p in pointers):
-            state['terminal']['invalidated']=True
-
-def question(state, code):
-    require(code in state['questions'], 'unknown_target_question')
-    return state['questions'][code]
-
-def whole(state, identity):
-    s=source(state, identity)
-    return dict(sourceId=identity, start=0, end=len(s['text']))
-
-def new_request(state, event):
-    p=span(state,event['sourceId'],event['quote'])
-    target=event['targetQuestionCode']
-    if target is not None: question(state,target)
-    for req in state['requests'].values():
-        if req['origin']==p and req['kind']==event['kind'] and req['targetQuestionCode']==target:
-            return req
-    identity='R'+str(len(state['requests'])+1)
-    req=dict(requestId=identity, origin=p, kind=event['kind'], targetQuestionCode=target, status='PENDING', deliveries=[])
-    state['requests'][identity]=req
-    return req
-
-def updates(state, raw):
-    for event in (raw or {}).get('events', []):
-        kind=event['type']
-        sid=event['sourceId']
-        source(state,sid)
-        if kind=='CORRECTION':
-            instruction=span(state,sid,event['instructionQuote'])
-            target_source=source(state,event['targetSourceId'],current=False)
-            require(state['sources'][sid]['ordinal']>target_source['ordinal'], 'correction_must_follow_target')
-            target=span(state,target_source['sourceId'],event['targetQuote'],event['occurrence'],valid=False,current=False) if event['targetQuote'] is not None else dict(sourceId=target_source['sourceId'],start=0,end=len(target_source['text']))
-            require(event['targetQuote'] is not None or event['occurrence'] is None,'whole_correction_occurrence')
-            c=dict(operation=event['operation'],instruction=instruction,target=target)
-            if c not in state['corrections']: state['corrections'].append(c)
-        elif kind=='GOAL':
-            code=event['questionCode']; q=question(state,code)
-            goal=state['goals'].setdefault(code,dict(questionCode=code,status='OPEN'))
-            goal.update(status='OPEN' if event['status']=='REOPEN' else event['status'],
-                        dependency=whole(state,sid),note=event['note'],invalidated=False)
-            gap=state['gap']
-            if gap and (code==gap['questionCode'] or q.get('gapId')==gap['gapId']):
-                require(source(state,sid).get('questionCode') in state['questions'], 'gap_answer_source_kind')
-                actual=question(state,source(state,sid)['questionCode'])
-                require(actual.get('gapId')==gap['gapId'] or actual['questionCode']==gap['questionCode'], 'gap_answer_target_mismatch')
-                gap.update(answerState='AWAITING_ANSWER' if event['status']=='REOPEN' else 'ANSWERED',
-                           disposition=event['status'],answerDependency=whole(state,sid),invalidated=False)
-        elif kind=='REQUEST': new_request(state,event)
-        elif kind=='REQUEST_UPDATE':
-            req=state['requests'].get(event['requestId'])
-            require(req is not None and req['status']=='PENDING','request_not_pending')
-            if event['operation']=='CANCEL': req['status']='CANCELLED'
-            else:
-                if event['targetQuestionCode'] is not None: question(state,event['targetQuestionCode'])
-                req['targetQuestionCode']=event['targetQuestionCode']
-            req.setdefault('changes',[]).append(deepcopy(event))
-        elif kind=='RESUME':
-            target=state['stop'] if event['scope']=='DIALOGUE' else state['safety'].get(event['targetId'])
-            require(target is not None and target['id']==event['targetId'] and target['status']=='ACTIVE','resume_target_not_active')
-            target.update(status='RESOLVED',resolution=whole(state,sid),reason=event['reason'])
-        state['events'].append(deepcopy(event))
-        refresh(state)
-
-def view(state, remaining=3):
-    sources=[]
-    for s in sorted(state['sources'].values(),key=lambda x:x['ordinal']):
-        sources.append({k:v for k,v in s.items() if k not in ('key','address')} | {
-            'current':state['current'].get(s['address'])==s['sourceId'],
-            'withdrawnRanges':state.get('withdrawn',{}).get(s['sourceId'],[])})
-    def public_question(code):
-        return {k:state['questions'][code].get(k) for k in ('questionCode','questionPurpose','semanticRouteType','question')}
-    conversation=[dict(**public_question(h['questionCode']),answerSourceId=h['answerSourceId']) for h in state['history']]
-    if state['pendingQuestion'] and (not conversation or conversation[-1]['questionCode']!=state['pendingQuestion']):
-        conversation.append(dict(**public_question(state['pendingQuestion']),answerSourceId=None))
-    result=dict(record=deepcopy(state['record']),sources=sources,conversation=conversation,
-        latestSourceIds=state.get('currentInput',{}).get('sourceIds',[]),
-        dialogue=dict(currentQuestionCode=state.get('currentInput',{}).get('currentQuestionCode'),
-            pendingQuestionCode=state['pendingQuestion'],goals=deepcopy(list(state['goals'].values())),
-            requests=deepcopy(list(state['requests'].values())),corrections=deepcopy(state['corrections']),
-            rejectedCodes=state['rejectedCodes'],restoration=state['restoration']),
-        budget=dict(generationRemaining=remaining,gapUsed=state['gap'] is not None))
-    for k in ('gap','safety','stop'):
-        if state[k]: result[k]=deepcopy(state[k])
-    return result
-
-def migrate_legacy(data,request):
-    """Translate actual stored receipts; preserve all unknown fields verbatim.
-
-    This does not run old semantic policies or manufacture SELECT reviews.
-    Missing old receipt bindings remain explicit migration blockers, not fresh
-    gap/safety allowances or invented historical approvals.
-    """
-    if data.get('revision')=='simple-dialogue-1':
-        state=deepcopy(data)
-        state.update(revision=REVISION,restoration='LEGACY_MIGRATED',legacySnapshot=deepcopy(data))
-        return state
-    state=empty(); state['legacySnapshot']=deepcopy(data)
-    state['restoration']='LEGACY_MIGRATED'; aliases={}
-    for key,s in data.get('record_sources',{}).items():
-        sid=add_source(state,'record:'+str(request.record.record_id)+':'+s['field'],s['text'],'USER_RECORD',field=s['field'])
-        aliases[key]=sid
-    old_sources=data.get('sources',{})
-    for key,s in old_sources.items():
-        item=s['item']; code=item['questionCode']
-        sid=add_source(state,f'session:{request.session_id}:record:{request.record.record_id}:answer:{code}',
-                       item['answer'],'USER_ANSWER',questionCode=code)
-        aliases[key]=sid
-    for key in list(data.get('current_sources',{}).values())+list(data.get('current_record_sources',{}).values()):
-        if key in aliases:
-            s=state['sources'][aliases[key]];state['current'][s['address']]=s['sourceId']
-    for q in data.get('prior_questions',[])+([data['pending_question']] if data.get('pending_question') else []):
-        state['questions'][q['questionCode']]=deepcopy(q)
-    for q in data.get('history',[]):
-        state['questions'].setdefault(q['questionCode'],{k:q[k] for k in ('questionCode','question','questionPurpose','semanticRouteType')})
-    state['pendingQuestion']=(data.get('pending_question') or {}).get('questionCode')
-    def pointer(p):
-        if not p: return None
-        key=p.get('sourceKey') or p['address']+'@'+p['revision']
-        require(key in aliases,'legacy_pointer_source_missing')
-        return dict(sourceId=aliases[key],start=p['start'],end=p['start']+p['length'])
-    for e in data.get('retraction_history',[]):
-        require(e['correctionSourceKey'] in aliases,'legacy_correction_origin_missing')
-        state['corrections'].append(dict(operation=e['action'],
-            instruction=dict(sourceId=aliases[e['correctionSourceKey']],start=e['start'],end=e['start']+e['length']),target=pointer(e['target'])))
-    for g in data.get('goals',{}).values():
-        for code in g.get('questionCodes',[]):
-            state['goals'][code]=dict(questionCode=code,status=g.get('status','OPEN'),focus=g.get('focus'),legacyReceipt=deepcopy(g))
-    from cbt_q11.requests import pending_id
-    pending={pending_id(code):code for code in state['questions']}
-    for key,r in data.get('request_registry',{}).items():
-        target=r.get('resolvedTargetPendingId') or r.get('initialTargetPendingId')
-        for kind in r.get('requestedKinds',[]):
-            identity='R'+str(len(state['requests'])+1)
-            receipts=[x for x in data.get('presentation_receipts',[]) if x.get('requestId')==key and kind in x.get('fulfilledRequestKinds',[])]
-            cancelled=any(x.get('requestId')==key and x.get('action')=='CANCEL' and kind in x.get('kinds',[]) for x in data.get('request_updates',[]))
-            state['requests'][identity]=dict(requestId=identity,origin=pointer(r['source']),kind=kind.removeprefix('REQUEST_'),
-                targetQuestionCode=pending.get(target),status='FULFILLED' if receipts else ('CANCELLED' if cancelled else 'PENDING'),deliveries=deepcopy(receipts),legacyReceipt=deepcopy(r))
-    gap=data.get('pending_fact_boundary')
-    if not gap and data.get('gap_registry'): gap=list(data['gap_registry'].values())[-1]
-    if gap:
-        projection=gap.get('answerProjection')
-        bindings=(projection or {}).get('bindings',[])
-        state['gap']=dict(gapId=gap.get('gapId','LEGACY_GAP'),questionCode=gap.get('rootQuestionCode') or gap.get('questionCode'),
-            question=gap.get('question'),used=True,answerState='ANSWERED' if projection else 'AWAITING_ANSWER',
-            answerDependency=pointer(bindings[0]) if bindings else None,legacyReceipt=deepcopy(gap))
-        for q in state['questions'].values():
-            if q.get('rootGapQuestionCode')==state['gap']['questionCode'] or q['questionCode']==state['gap']['questionCode']:
-                q['gapId']=state['gap']['gapId']
-    elif data.get('fact_boundary_question_used') or data.get('gap_usage'):
-        state['gap']=dict(gapId='LEGACY_GAP',questionCode=None,answerState='UNKNOWN',used=True,legacyUsage=deepcopy(data.get('gap_usage')))
-    for eid,e in data.get('episodes',{}).items():
-        resolution=e.get('resolutionEvidence') or []
-        state['safety'][eid]=dict(id=eid,status=e['status'],trigger=pointer(e['primaryTrigger']),
-            clarificationUsed=e.get('clarificationUsed',False),history=[],legacyReceipt=deepcopy(e))
-        if isinstance(resolution,list) and resolution:
-            state['safety'][eid]['resolution']=pointer(resolution[0])
-    if data.get('stop_guidance_pending'): state['stop']=dict(id='LEGACY_STOP',status='ACTIVE')
-    state['rejectedCodes']=list(data.get('rejected_codes',[]))
-    refresh(state)
-    return state
+def render(proposal):
+    text=f"처음 생각: {proposal['beforeText']}\n알아차리고 수정한 생각: {proposal['afterText']}\n{proposal['comparisonExplanation']}"
+    if proposal.get('beforeCorrection'):text=f"처음 기록한 원문: {proposal['originalBeforeText']}\n"+text
+    for s in proposal['suggestions']:text+='\n'+s['code']+': '+s['explanation']
+    if not proposal['suggestions']:
+        text+='\n'+('뚜렷한 인지왜곡 유형을 제안하지 않습니다.' if proposal['assessmentType']=='NO_CLEAR_DISTORTION' else '현재 근거로 특정 인지왜곡 유형을 판단하기 어렵습니다.')
+    return text+'\n수정한 생각이 자신의 뜻에 맞는지 확인하고, 유형별 수락 또는 거부를 선택해 저장해 주세요.'

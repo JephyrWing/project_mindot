@@ -96,6 +96,15 @@ public class ReflectionSessionEmbeddingTransactionService {
             );
         }
 
+        long priorId=com.my.mindot_back.records.service.InsightMapping.number(reflectionSession.insight().get("embeddingJobId"));
+        if(priorId>0) {
+            var prior=aiJobsRepository.findById(priorId).orElse(null);
+            if(prior!=null && prior.getStatus()==com.my.mindot_back.ai.entity.AiJobStatus.PROCESSING) {
+                if(prior.getAttemptDeadline()==null || prior.getAttemptDeadline().isAfter(java.time.Instant.now()))
+                    throw new ResponseStatusException(HttpStatus.CONFLICT,"검색 연결을 처리하고 있습니다.");
+                prior.fail("ATTEMPT_EXPIRED");
+            }
+        }
         return createEmbeddingContext(reflectionSession);
     }
 
@@ -108,13 +117,16 @@ public class ReflectionSessionEmbeddingTransactionService {
             float[] thoughtAwareEmbedding
     ) {
         ReflectionSessions reflectionSession = reflectionSessionsRepository
-                .findById(sessionId)
+                .findLockedById(sessionId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "성찰 세션을 찾을 수 없습니다."
                 ));
 
         AiJobs aiJob = findAiJob(aiJobId);
+        if(aiJob.getStatus()!=com.my.mindot_back.ai.entity.AiJobStatus.PROCESSING
+                || reflectionSession.getStatus()!=ReflectionSessionStatus.COMPLETED
+                || (aiJob.getAttemptDeadline()!=null && !aiJob.getAttemptDeadline().isAfter(java.time.Instant.now())))return;
         reflectionSession.applyEmbedding(
                 contextEmbedding,
                 thoughtAwareEmbedding
@@ -138,8 +150,10 @@ public class ReflectionSessionEmbeddingTransactionService {
                 AiJobOperation.EMBED,
                 UUID.randomUUID().toString()
         );
-        aiJobsRepository.save(aiJob);
+        aiJob.prepareInsight(java.util.Map.of("kind","EMBED"),(short)1,java.time.Instant.now().plusSeconds(210));
+        aiJobsRepository.saveAndFlush(aiJob);
         aiJob.startProcessing();
+        var state=reflectionSession.insight();state.put("embeddingJobId",aiJob.getId());reflectionSession.replaceInsight(state);
 
         String contextEmbeddingText = """
                 상황 범주: %s
@@ -163,7 +177,7 @@ public class ReflectionSessionEmbeddingTransactionService {
                 reflectionSession.getEmotionRecord().getContextCategory(),
                 reflectionSession.getEmotionRecord().getSituationText(),
                 reflectionSession.getEmotionRecord().getPrimaryEmotionCode(),
-                reflectionSession.getEmotionRecord().getAutomaticThought(),
+                reflectionSession.confirmedBeforeText(),
                 reflectionSession.getEmotionRecord().getTimeBucket()
         );
 
@@ -177,7 +191,7 @@ public class ReflectionSessionEmbeddingTransactionService {
 
     private ReflectionSessions findOwnedSession(Long userId, Long sessionId) {
         ReflectionSessions reflectionSession = reflectionSessionsRepository
-                .findById(sessionId)
+                .findLockedById(sessionId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "성찰 세션을 찾을 수 없습니다."

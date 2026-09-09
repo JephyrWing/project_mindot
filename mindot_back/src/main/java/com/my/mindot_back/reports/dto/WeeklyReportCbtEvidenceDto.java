@@ -10,7 +10,9 @@ public record WeeklyReportCbtEvidenceDto (
 
         String alternativeThoughtText,
 
-        Short helpfulnessScore
+        Short helpfulnessScore,
+        String resultFormatVersion,
+        java.util.Map<String,Object> confirmedResult
 ){
     // ReflectionSessions Entity를 주간 리포트 근거용 DTO로 변환
     public static WeeklyReportCbtEvidenceDto from(
@@ -20,7 +22,9 @@ public record WeeklyReportCbtEvidenceDto (
                 reflectionSession.getId(),
                 reflectionSession.getEmotionRecord().getId(),
                 reflectionSession.getAlternativeThoughtText(),
-                reflectionSession.getHelpfulnessScore()
+                reflectionSession.getHelpfulnessScore(),
+                reflectionSession.confirmedInsight()==null?"legacy":"cbt-insight-1",
+                reflectionSession.confirmedInsight()
         );
     }
 }

@@ -1,0 +1,51 @@
+{
+  "checkType": "AUTHORING_ARTIFACT_INTEGRITY_ONLY",
+  "schemaVerification": "JSON parse and static key/required/enum/example consistency; provider acceptance NOT_RUN; general JSON Schema validator unavailable",
+  "productTestsRun": false,
+  "newModelCalls": 0,
+  "newProductImplementationReviewed": false,
+  "publicInputs": 160,
+  "publicSessions": 10,
+  "originalSingleTurnTextPreserved": true,
+  "scope2FilesByteIdentical": 7,
+  "q10FilesMatchHistoricalLock": 7,
+  "sealedCiphertextPreservedWithoutDecryption": true,
+  "canaryPlannedRequests": 12,
+  "promptCharacters": {
+    "agent": 1738,
+    "writer": 534,
+    "assessor": 1347,
+    "assessment-review": 558,
+    "writer-repair": 128
+  },
+  "mainPromptCharacters": 7152,
+  "qualityWeights": [
+    [
+      15,
+      15,
+      20,
+      15,
+      10,
+      10,
+      10,
+      5
+    ],
+    [
+      20,
+      25,
+      20,
+      15,
+      15,
+      5
+    ],
+    [
+      20,
+      25,
+      20,
+      15,
+      10,
+      10
+    ]
+  ],
+  "status": "PASS"
+}

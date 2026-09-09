@@ -46,7 +46,7 @@ public class RagUtils {
                 records.getEmotionRecord().getContextCategory(),
                 records.getEmotionRecord().getSituationText(),
                 records.getEmotionRecord().getPrimaryEmotionCode(),
-                records.getEmotionRecord().getAutomaticThought(),
+                records.confirmedBeforeText(),
                 records.getEmotionRecord().getTimeBucket()
         );
 

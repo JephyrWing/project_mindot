@@ -16,6 +16,9 @@ public interface ReflectionSessionsRepository
             extends JpaRepository<ReflectionSessions, Long> {
 
     // 감정 기록에 성찰 세션이 이미 생성되어 있는지 확인 (중복 확인)
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("select s from ReflectionSessions s where s.id = :id")
+    Optional<ReflectionSessions> findLockedById(@Param("id") Long id);
     boolean existsByEmotionRecord_Id(Long emotionRecordId);
 
     // 감정 기록과 로그인 사용자에게 연결된 CBT 성찰 세션 조회

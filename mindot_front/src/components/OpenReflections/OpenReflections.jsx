@@ -30,7 +30,7 @@ const formatReflectionDate = (createdAt) => new Intl.DateTimeFormat('ko-KR', {
 
 // 백엔드 성찰 진행 단계를 사용자에게 표시할 문구로 변환.
 const getReflectionStepLabel = (currentStep) => (
-  currentStep === 'CONFIRM_REQUIRED'
+  currentStep === 'PROPOSAL_REVIEW'
     ? '최종 결과 확인 단계'
     : 'AI CBT 대화 진행 중'
 )
@@ -186,7 +186,7 @@ function OpenReflections({ onResume }) {
               aria-controls="open-reflection-detail"
             >
               <span>
-                <strong>{getReflectionStepLabel(session.currentStep)}</strong>
+                <strong>{getReflectionStepLabel(session.phase)}</strong>
                 <time dateTime={session.createdAt}>
                   {formatReflectionDate(session.createdAt)}
                 </time>
@@ -216,17 +216,13 @@ function OpenReflections({ onResume }) {
             <>
               <p className="open-reflection-current-step">
                 <strong>현재 상태</strong>
-                <span>{getReflectionStepLabel(sessionDetail.currentStep)}</span>
+                <span>{getReflectionStepLabel(sessionDetail.phase)}</span>
               </p>
               <div className="open-reflection-questions">
-                {(sessionDetail.questionAnswers ?? []).map((questionAnswer, index) => (
-                  <section key={questionAnswer.questionCode ?? `question-${index}`}>
-                    <strong>질문 {index + 1}</strong>
-                    <p>{questionAnswer.question || '질문 내용이 없습니다.'}</p>
-                    <span>내 답변</span>
-                    <p>
-                      {questionAnswer.answer || '아직 답변하지 않은 질문입니다.'}
-                    </p>
+                {(sessionDetail.messages ?? []).map((message) => (
+                  <section key={message.messageNumber}>
+                    <strong>{message.role === 'USER' ? '나' : 'Mindot AI'}</strong>
+                    <p style={{ whiteSpace: 'pre-wrap' }}>{message.content}</p>
                   </section>
                 ))}
               </div>
@@ -236,7 +232,7 @@ function OpenReflections({ onResume }) {
                 type="button"
                 onClick={handleReflectionResume}
               >
-                {sessionDetail.currentStep === 'CONFIRM_REQUIRED'
+                {sessionDetail.phase === 'PROPOSAL_REVIEW'
                   ? '최종 결과 확인 이어하기'
                   : 'CBT 성찰 이어하기'}
               </button>

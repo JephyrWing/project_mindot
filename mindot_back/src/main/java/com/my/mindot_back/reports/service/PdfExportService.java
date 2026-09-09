@@ -349,11 +349,21 @@ public class PdfExportService {
             );
             writeCbtTextIfPresent(
                     writer,
-                    "대안적 사고",
+                    reflectionSession.confirmedInsight()==null?"대안적 사고 (구형 결과)":"알아차리고 수정한 생각",
                     reflectionSession.getAlternativeThoughtText()
             );
+            writeCbtTextIfPresent(writer,"처음 생각",reflectionSession.confirmedBeforeText());
+            var confirmed=reflectionSession.confirmedInsight();
+            if(confirmed!=null) {
+                writeCbtTextIfPresent(writer,"생각을 수정한 이유",(String)confirmed.get("comparisonExplanation"));
+                @SuppressWarnings("unchecked") var suggestions=(List<Map<String,Object>>)confirmed.get("suggestions");
+                for(var suggestion:suggestions) {
+                    String code=(String)suggestion.get("code");
+                    writeCbtTextIfPresent(writer,code+(reflectionSession.confirmedInsightCodes().contains(code)?" (수락)":" (거부)"),(String)suggestion.get("explanation"));
+                }
+            }
             writer.writeLine(
-                    "생각 확신도: "
+                    "같은 처음 생각에 대한 확신도: "
                             + scoreOrDash(reflectionSession.getBeforeBeliefStrength())
                             + " → "
                             + scoreOrDash(reflectionSession.getAfterBeliefStrength()),
@@ -408,6 +418,10 @@ public class PdfExportService {
         writer.addSpace(4f);
 
         for (Map<String, Object> questionAnswer : questionAnswers) {
+            if(questionAnswer.get("content") instanceof String content && questionAnswer.get("role") instanceof String role) {
+                writer.writeConversationBlock("USER".equals(role)?"사용자":"AI",content);
+                writer.addSpace(5f);continue;
+            }
             Object question = questionAnswer.get("question");
             Object answer = questionAnswer.get("answer");
 
