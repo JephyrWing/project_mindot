@@ -117,11 +117,15 @@ public class UsersService {
                         "이메일 또는 비밀번호가 올바르지 않습니다."
                 ));
 
-        if (!passwordEncoder.matches(dto.password(), user.getPasswordHash())) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNAUTHORIZED,
-                    "이메일 또는 비밀번호가 올바르지 않습니다."
-            );
+        if (user.getPasswordHash() == null
+                || !passwordEncoder.matches(
+                dto.password(),
+                user.getPasswordHash()
+        )) {
+                throw new ResponseStatusException(
+                       HttpStatus.UNAUTHORIZED,
+                        "이메일 또는 비밀번호가 올바르지 않습니다."
+                 );
         }
 
         // ACTIVE가 아니면 로그인 불가
@@ -139,7 +143,8 @@ public class UsersService {
                 user.getId(),
                 user.getEmail(),
                 user.getDisplayName(),
-                accessToken
+                accessToken,
+                user.getUserRole().name()
         );
     }
 

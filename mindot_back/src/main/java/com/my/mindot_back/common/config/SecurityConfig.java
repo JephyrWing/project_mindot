@@ -96,7 +96,16 @@ public class SecurityConfig {
                                 "/api/auth/signup",
                                 "/api/auth/login",
                                 "/api/auth/refresh",
-                                "/api/auth/logout"
+                                "/api/auth/logout",
+                                "/api/auth/oauth/kakao",
+                                "/api/auth/oauth/google"
+                        ).permitAll()
+
+                        // 소셜 로그인 시작 URL 요청은 로그인 전에도 허용
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/auth/oauth/kakao/authorize",
+                                "/api/auth/oauth/google/authorize"
                         ).permitAll()
 
                         // DB의 실제 ROLE_USER 또는 ROLE_ADMIN을 가진 로그인 사용자만 접근 가능
