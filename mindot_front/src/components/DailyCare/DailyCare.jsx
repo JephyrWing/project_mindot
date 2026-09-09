@@ -348,6 +348,17 @@ function DailyCare({
         latestOpenReflection.sessionId,
       )
 
+      // 목록 조회 이후 종료된 CBT 세션의 추천 목록 제거와 재진입 차단.
+      if (reflectionDetail.status !== 'OPEN') {
+        setOpenReflections((currentReflections) => (
+          currentReflections.filter((reflection) => (
+            reflection.sessionId !== latestOpenReflection.sessionId
+          ))
+        ))
+        setCbtError('이미 종료된 CBT 성찰입니다. 진행 중 목록에서 제외했습니다.')
+        return
+      }
+
       onReflectionResume({
         ...reflectionDetail,
         emotionRecordId: latestOpenReflection.emotionRecordId,
