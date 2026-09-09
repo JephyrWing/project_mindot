@@ -31,15 +31,26 @@ public class InsightTransactions {
     private ReflectionSessions owned(Long user,Long sid) {
         var s=sessions.findLockedById(sid).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"성찰 세션을 찾을 수 없습니다."));
         if(!s.getUser().getId().equals(user))throw new ResponseStatusException(HttpStatus.NOT_FOUND,"성찰 세션을 찾을 수 없습니다.");
+        if(LegacyReflectionRetry.legacyOpen(s)) {
+            var state=s.insight();long count=messages(s).size();
+            // Seed the revision from existing history, without rewriting any row.
+            if(number(state.get("revision"))<count) {state.put("revision",count);s.replaceInsight(state);}
+        }
         return s;
     }
     private AiJobs lastJob(ReflectionSessions s) {
-        long id=number(s.insight().get("lastJobId"));return id==0?null:jobs.findById(id).orElse(null);
+        long id=number(s.insight().get("lastJobId"));
+        if(id!=0)return jobs.findById(id).orElse(null);
+        if(!LegacyReflectionRetry.legacyOpen(s))return null;
+        var legacy=jobs.findFirstByUser_IdAndEntityTypeAndEntityIdAndOperationOrderByIdDesc(
+            s.getUser().getId(),AiJobEntityType.REFLECTION,s.getId(),AiJobOperation.QUESTION).orElse(null);
+        return LegacyReflectionRetry.matchesSavedInput(s,legacy)?legacy:null;
     }
     private boolean processing(AiJobs j) { return j!=null && (j.getStatus()==AiJobStatus.PROCESSING || j.getStatus()==AiJobStatus.PENDING); }
     private void expire(ReflectionSessions s) {
         var j=lastJob(s);
-        if(processing(j) && j.getAttemptDeadline()!=null && !j.getAttemptDeadline().isAfter(Instant.now())){j.fail("ATTEMPT_EXPIRED");j.cacheInsight(object("view",viewMap(view(s))));}
+        var deadline=LegacyReflectionRetry.deadline(j);
+        if(processing(j) && deadline!=null && !deadline.isAfter(Instant.now())){j.fail("ATTEMPT_EXPIRED");j.cacheInsight(object("view",viewMap(view(s))));}
     }
     private AiJobs duplicate(ReflectionSessions s,String key,String command) {
         var j=jobs.findFirstByUser_IdAndEntityTypeAndEntityIdAndOperationAndIdempotencyKeyOrderByIdDesc(
@@ -59,9 +70,14 @@ public class InsightTransactions {
         j.prepareInsight(object("command",command,"input",input),attempt,Instant.now().plusSeconds(210));
         j.startProcessing();return jobs.saveAndFlush(j);
     }
-    private Map<String,Object> pending(AiJobs j) {
+    private Map<String,Object> input(ReflectionSessions s,AiJobs j) {
+        if(j==null)return object();
+        if(j.getOperation()==AiJobOperation.QUESTION)return LegacyReflectionRetry.input(s,j);
+        return map(map(j.getRequestPayload()).get("input"));
+    }
+    private Map<String,Object> pending(ReflectionSessions s,AiJobs j) {
         if(j==null)return null;
-        var i=map(j.getRequestPayload().get("input"));
+        var i=input(s,j);
         if(!i.containsKey("requestId"))return null;
         return object("requestId",i.get("requestId"),"attemptNo",j.getAttemptNo(),"inputRevision",i.get("inputRevision"),
             "userMessageNumber",map(i.get("userMessage")).get("messageNumber"));
@@ -77,14 +93,14 @@ public class InsightTransactions {
         Map<String,Object> proposal=map(state.get("currentProposal"));
         return object("mode","RESTORE","sessionId",s.getId(),"revision",number(state.get("revision")),"record",record(s),
             "messages",messages(s),"phase",proposal.isEmpty()?"DIALOGUE":"PROPOSAL_REVIEW","currentProposal",proposal.isEmpty()?null:proposal,
-            "historicalTypeReviews",historicalReviews(s),"pendingJob",j!=null && j.getStatus()!=AiJobStatus.COMPLETED?pending(j):null);
+            "historicalTypeReviews",historicalReviews(s),"pendingJob",j!=null && j.getStatus()!=AiJobStatus.COMPLETED?pending(s,j):null);
     }
     private Prepared prepared(ReflectionSessions s,AiJobs j,boolean dispatch) {
-        var input=j==null?new LinkedHashMap<String,Object>():map(j.getRequestPayload().get("input"));
+        var input=input(s,j);
         var full=restore(s);boolean start="NEW".equals(input.get("kind"));
         Map<String,Object> request;
         if(start) {
-            request=new LinkedHashMap<>(full);request.put("mode","NEW");request.put("pendingJob",pending(j));
+            request=new LinkedHashMap<>(full);request.put("mode","NEW");request.put("pendingJob",pending(s,j));
         } else request=object("sessionId",s.getId(),"requestId",input.get("requestId"),"attemptNo",j==null?null:j.getAttemptNo(),
             "baseRevision",input.get("baseRevision"),"inputRevision",input.get("inputRevision"),"userMessage",input.get("userMessage"));
         return new Prepared(s.getId(),j==null?null:j.getId(),j==null?1:j.getAttemptNo(),number(input.get("inputRevision")),request,full,start,dispatch,view(s));
@@ -149,7 +165,7 @@ public class InsightTransactions {
         match(s,revision);openOnly(s);available(s);var previous=lastJob(s);
         if(previous==null || previous.getStatus()!=AiJobStatus.FAILED)throw conflict("재시도할 생성 작업이 없습니다.");
         if(previous.getAttemptNo()==Short.MAX_VALUE)throw conflict("재시도 횟수 한도입니다.");
-        var input=map(previous.getRequestPayload().get("input"));
+        var input=input(s,previous);
         var j=job(s,key,"RETRY",input,(short)(previous.getAttemptNo()+1));
         var state=s.insight();state.put("lastJobId",j.getId());s.replaceInsight(state);
         return prepared(s,j,true);
@@ -237,7 +253,7 @@ public class InsightTransactions {
         var state=s.insight();var j=lastJob(s);boolean waiting=j!=null && j.getStatus()!=AiJobStatus.COMPLETED;
         var proposal=map(state.get("currentProposal"));boolean open=s.getStatus()==ReflectionSessionStatus.OPEN;
         Map<String,Object> job=j==null?null:object("jobId",j.getId(),"attemptNo",j.getAttemptNo(),"status",j.getStatus().name(),"retryable",open && j.getStatus()==AiJobStatus.FAILED,
-            "errorCode",j.getErrorCode(),"deadline",j.getAttemptDeadline()==null?null:j.getAttemptDeadline().toString());
+            "errorCode",j.getErrorCode(),"deadline",LegacyReflectionRetry.deadline(j)==null?null:LegacyReflectionRetry.deadline(j).toString());
         Map<String,Object> legacy=s.confirmedInsight()==null && s.getStatus()==ReflectionSessionStatus.COMPLETED
             ?object("alternativeThoughtText",s.getAlternativeThoughtText(),"evidenceForText",s.getEvidenceForText(),"evidenceAgainstText",s.getEvidenceAgainstText(),
                 "beforeBeliefStrength",s.getBeforeBeliefStrength(),"afterBeliefStrength",s.getAfterBeliefStrength(),

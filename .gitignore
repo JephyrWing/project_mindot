@@ -588,5 +588,6 @@ gradle-app.setting
 
 # Local full-stack review packaging (source is committed separately).
 /mindot_ai/artifacts/full-stack-redesign-20260909/
+/mindot_ai/artifacts/review-fixes-b7cc7cb/
 
 # End of https://www.toptal.com/developers/gitignore/api/intellij+all,java,python,venv,react,node,gradle,dotenv,linux,windows,pycharm+all

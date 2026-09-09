@@ -495,10 +495,8 @@ public class EmotionRecordsService {
                     );
                 })
 
-                // 확정 인지왜곡이 없는 사례는 패턴 근거에서 제외
-                .filter(similarCase ->
-                        !similarCase.confirmedDistortionCodes().isEmpty()
-                )
+                // Confirmed AFTER eligibility is independent of accepted types.
+                .filter(PatternSimilarCaseDto::eligibleForPattern)
                 .toList();
     }
 
@@ -528,14 +526,14 @@ public class EmotionRecordsService {
         // 완료/확정 CBT 수, 날짜 수 ,도움 점수 조건 검사
         validatePatternAnalysisEligibility(userId);
 
-        // 현재 감정 기록과 유사하고 확정 인지왜곡이 있는 과거 CBT 사례 조회
+        // 확정 AFTER 사례와 구형 수락 유형 사례를 각각의 의미로 조회
         List<PatternSimilarCaseDto> similarCases =
                 findPatternSimilarCases(emotionRecord);
 
         if (similarCases.isEmpty()) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "확정된 인지왜곡을 가진 유사 CBT 사례가 없습니다."
+                    "검색에 활용할 수 있는 확정된 유사 CBT 사례가 없습니다."
             );
         }
 

@@ -6,6 +6,7 @@ import { newRequestKey, openReflection, submitReflectionAnswer, retryReflection,
   cancelReflection, getReflectionSessionDetail, retryReflectionEmbedding } from '../../utils/reflections/reflectionsApi.js'
 import { confirmEmotionRecord, getEmotionRecordDetail } from '../../utils/records/recordsApi.js'
 import { acceptSessionView } from '../../utils/reflections/sessionView.js'
+import { confirmThoughtForOpen } from '../../utils/reflections/confirmThoughtForOpen.js'
 import './CBT.css'
 
 const scoreFields = [
@@ -14,8 +15,9 @@ const scoreFields = [
   ['finalEmotionIntensity', '지금 감정의 강도', 10], ['helpfulnessScore', '성찰이 도움이 된 정도', 5],
 ]
 const pending = (v) => ['PROCESSING', 'PENDING'].includes(v?.job?.status)
-const errorMessage = (e) => typeof e.response?.data?.detail === 'string' ? e.response.data.detail
+const errorMessage = (e) => e.userMessage || (typeof e.response?.data?.detail === 'string' ? e.response.data.detail
   : e.response?.data?.message || '요청 결과를 확인하지 못했습니다. 작성한 내용을 유지하고 다시 확인해 주세요.'
+)
 
 export default function CBT(props) {
   const { emotionRecordId, resumeSession, resumeSessionId, onSessionStarted, onEmotionHistory, onHome } = props
@@ -26,6 +28,7 @@ export default function CBT(props) {
   const [error, setError] = useState('')
   const [answer, setAnswer] = useState('')
   const [record, setRecord] = useState(null)
+  const [confirmedRecord, setConfirmedRecord] = useState(null)
   const [thought, setThought] = useState('')
   const [reviews, setReviews] = useState({})
   const [scores, setScores] = useState({})
@@ -50,7 +53,7 @@ export default function CBT(props) {
       return result
     } catch (e) {
       // A transport retry keeps the same body/key/revision; no new logical answer.
-      if (e.response && e.response.status < 500) requests.current.delete(signature)
+      if (kind !== 'OPEN' && e.response && e.response.status < 500) requests.current.delete(signature)
       throw e
     }
   }
@@ -93,24 +96,29 @@ export default function CBT(props) {
       }
     } finally { setBusy(false) }
   }
-  const start = () => run(async () => {
-    if (!emotionRecordId) return
-    const saved = await getEmotionRecordDetail(emotionRecordId)
-    if (!saved.automaticThought?.trim()) { setRecord(saved); return }
+  const openSavedRecord = async () => {
     const result = await send('OPEN', { emotionRecordId }, (key) => openReflection({ emotionRecordId }, key))
     onSessionStarted?.(result.sessionId)
+  }
+  const start = () => run(async () => {
+    if (!emotionRecordId) return
+    if (confirmedRecord) { await openSavedRecord(); return }
+    const saved = await getEmotionRecordDetail(emotionRecordId)
+    if (!saved.automaticThought?.trim()) { setRecord(saved); return }
+    await openSavedRecord()
   })
   const saveThought = (e) => {
     e.preventDefault()
     run(async () => {
-      await confirmEmotionRecord(emotionRecordId, {
+      const saved = await confirmThoughtForOpen(emotionRecordId, {
         situationText: record.situationText, automaticThought: thought.trim(),
         primaryEmotionCode: record.primaryEmotionCode, primaryIntensity: record.primaryIntensity,
         secondaryEmotions: record.secondaryEmotions ?? [], contextCategory: record.contextCategory,
         relatedPersonType: record.relatedPersonType, details: record.details ?? {},
-      })
-      const result = await send('OPEN', { emotionRecordId }, (key) => openReflection({ emotionRecordId }, key))
-      setRecord(null); onSessionStarted?.(result.sessionId)
+      }, { confirmEmotionRecord, getEmotionRecordDetail })
+      setConfirmedRecord(saved)
+      setRecord(null) // This durable stage is complete even if OPEN loses its response.
+      await openSavedRecord()
     })
   }
   const submit = (e) => {
@@ -153,6 +161,7 @@ export default function CBT(props) {
       {error && <div role="alert"><p>{error}</p><button type="button" onClick={refresh}>현재 결과 확인</button></div>}
       {!view ? <>
         <p>감정이 생긴 순간의 생각을 편안한 속도로 살펴보세요.</p>
+        {confirmedRecord && <p>생각은 저장됐습니다. 성찰 시작을 다시 시도할 수 있어요.</p>}
         {record ? <form className="cbt-automatic-thought-form" onSubmit={saveThought}>
           <label>그때 처음 떠오른 생각<textarea required maxLength={4000} value={thought} onChange={(e) => setThought(e.target.value)} /></label>
           <button disabled={busy || !thought.trim()}>저장하고 시작하기</button>

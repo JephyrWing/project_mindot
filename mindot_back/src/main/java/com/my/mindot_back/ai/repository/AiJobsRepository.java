@@ -7,6 +7,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AiJobsRepository extends JpaRepository<AiJobs, Long> {
 
+    java.util.Optional<AiJobs> findFirstByUser_IdAndEntityTypeAndEntityIdAndOperationOrderByIdDesc(
+            Long userId, AiJobEntityType entityType, Long entityId,
+            com.my.mindot_back.ai.entity.AiJobOperation operation);
+
     // 특정 사용자의 대상 Entity와 연결된 AI 작업 이력 삭제
     java.util.Optional<AiJobs> findFirstByUser_IdAndEntityTypeAndEntityIdAndOperationAndIdempotencyKeyOrderByIdDesc(
             Long userId, AiJobEntityType entityType, Long entityId,
