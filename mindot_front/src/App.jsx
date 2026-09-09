@@ -8,6 +8,7 @@ import EmotionHistory from './components/EmotionHistory/EmotionHistory.jsx'
 import EmotionRecordDetail from './components/EmotionRecordDetail/EmotionRecordDetail.jsx'
 import CBT from './components/CBT/CBT.jsx'
 import WeeklyReport from './components/WeeklyReport/WeeklyReport.jsx'
+import WeeklyReportGraph from './components/WeeklyReportGraph/WeeklyReportGraph.jsx'
 import CompletedReflection from './components/CompletedReflection/CompletedReflection.jsx'
 import AppIntroModal from './components/AppIntroModal/AppIntroModal.jsx'
 import Center from './components/Center/Center.jsx'
@@ -28,6 +29,7 @@ const protectedPages = new Set([
   'emotion-record-detail',
   'cbt',
   'weekly-report',
+  'weekly-report-graph',
   'completed-reflection',
   'daily-care',
   'admin',
@@ -80,7 +82,6 @@ function App() {
       ? initialRoute.reflectionSessionId ?? null
       : null,
   )
-
   // 화면 상태와 상세 식별자를 브라우저 주소에 함께 반영하는 이동 처리.
   const moveToPage = (page, parameters = {}, options = {}) => {
     const nextPath = createAppPath(page, parameters)
@@ -320,7 +321,24 @@ function App() {
         onCompletedReflection={handleCompletedReflectionOpen}
         onCenter={() => moveToPage('center')}
         onDailyCare={() => moveToProtectedPage('daily-care')}
+        onGraph={() => moveToPage('weekly-report-graph')}
         onBack={moveToMain}
+        onHome={moveToMain}
+      />
+    )
+  } else if (currentPage === 'weekly-report-graph') {
+    // 선택한 주의 감정 강도 흐름을 보여 주는 그래프 화면 렌더링.
+    currentPageContent = (
+      <WeeklyReportGraph
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={() => moveToPage('login')}
+        onLogout={handleLogout}
+        onSignUp={() => moveToPage('signup')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onCenter={() => moveToPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
+        onBack={() => moveToPage('weekly-report')}
         onHome={moveToMain}
       />
     )
