@@ -76,7 +76,7 @@ public class RagUtils {
                     records.getPrimaryEmotionCode(),
                     records.getTimeBucket()
             );
-            CbtSimilaritySearchRequest request = new CbtSimilaritySearchRequest(records.getUser().getId(),
+            CbtSimilaritySearchRequest request = new CbtSimilaritySearchRequest(records.getUser().getId(), records.getId(),
                     Arrays.toString(embed(retrievalText)));
             return repository.findSimilarByContext(request);
         }
@@ -95,7 +95,7 @@ public class RagUtils {
                 records.getAutomaticThought(),
                 records.getTimeBucket()
         );
-        CbtSimilaritySearchRequest request = new CbtSimilaritySearchRequest(records.getUser().getId(),
+        CbtSimilaritySearchRequest request = new CbtSimilaritySearchRequest(records.getUser().getId(), records.getId(),
                 Arrays.toString(embed(retrievalText)));
         return repository.findSimilarByThoughtAware(request);
     }

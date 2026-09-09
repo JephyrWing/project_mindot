@@ -9,6 +9,9 @@ import java.util.Optional;
 
 
 public interface UsersRepository extends JpaRepository<Users, Long> {
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("select u from Users u where u.id = :id")
+    Optional<Users> findLockedById(@org.springframework.data.repository.query.Param("id") Long id);
     // 회원가입 시 이메일 중복 검사
     // true: 이미 가입된 이메일
     boolean existsByEmail(String email);

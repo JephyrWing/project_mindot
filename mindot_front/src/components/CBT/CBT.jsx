@@ -1,3 +1,4 @@
+import { automaticThoughtError, MAX_AUTOMATIC_THOUGHT_LENGTH } from '../../utils/reflections/automaticThought.js'
 import { useEffect, useRef, useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Navbar from '../Navbar/Navbar.jsx'
@@ -105,10 +106,14 @@ export default function CBT(props) {
     if (confirmedRecord) { await openSavedRecord(); return }
     const saved = await getEmotionRecordDetail(emotionRecordId)
     if (!saved.automaticThought?.trim()) { setRecord(saved); return }
+    const invalid = automaticThoughtError(saved.automaticThought)
+    if (invalid) { setError(invalid); return }
     await openSavedRecord()
   })
   const saveThought = (e) => {
     e.preventDefault()
+    const invalid = automaticThoughtError(thought)
+    if (invalid) { setError(invalid); return }
     run(async () => {
       const saved = await confirmThoughtForOpen(emotionRecordId, {
         situationText: record.situationText, automaticThought: thought.trim(),
@@ -163,7 +168,7 @@ export default function CBT(props) {
         <p>감정이 생긴 순간의 생각을 편안한 속도로 살펴보세요.</p>
         {confirmedRecord && <p>생각은 저장됐습니다. 성찰 시작을 다시 시도할 수 있어요.</p>}
         {record ? <form className="cbt-automatic-thought-form" onSubmit={saveThought}>
-          <label>그때 처음 떠오른 생각<textarea required maxLength={4000} value={thought} onChange={(e) => setThought(e.target.value)} /></label>
+          <label>그때 처음 떠오른 생각<textarea required maxLength={MAX_AUTOMATIC_THOUGHT_LENGTH} value={thought} onChange={(e) => setThought(e.target.value)} /></label>
           <button disabled={busy || !thought.trim()}>저장하고 시작하기</button>
         </form> : <button className="cbt-start-button" disabled={!emotionRecordId || busy} onClick={start}>{busy ? '불러오는 중…' : '성찰 시작하기'}</button>}
         {!emotionRecordId && !resumeId && <p>감정 기록을 선택한 뒤 시작해 주세요.</p>}

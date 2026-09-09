@@ -1,3 +1,4 @@
+import { automaticThoughtError, MAX_AUTOMATIC_THOUGHT_LENGTH } from '../../utils/reflections/automaticThought.js'
 import { useEffect, useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Navbar from '../Navbar/Navbar.jsx'
@@ -107,18 +108,6 @@ const createAnalysisForm = (record) => ({
 const getDisplayValue = (value, fallback = '분석 전') => (
   value === null || value === undefined || value === '' ? fallback : value
 )
-
-// 자동 사고가 최소 두 어절과 자연스러운 문장 종결 형태를 갖췄는지 확인.
-const isCompleteAutomaticThoughtSentence = (value) => {
-  const normalizedValue = value.trim()
-  const words = normalizedValue.split(/\s+/).filter(Boolean)
-  const valueWithoutPunctuation = normalizedValue.replace(/[.!?。！？]+$/, '')
-  const hasNaturalKoreanEnding = /(?:다|요|까|야|지|죠|네|군|어|아|해|돼|라|나)$/.test(
-    valueWithoutPunctuation,
-  )
-
-  return words.length >= 2 && hasNaturalKoreanEnding
-}
 
 // 감정 기록 시각을 사용자가 읽기 쉬운 한국어 형식으로 변환하는 함수 정의.
 const formatDetailDate = (occurredAt) => new Intl.DateTimeFormat('ko-KR', {
@@ -419,35 +408,13 @@ function EmotionRecordDetail({
     }))
   }
 
-  // 자동 사고의 입력 여부와 문장 완성도를 확인하고 작성 방법을 안내하는 처리.
   const validateAutomaticThought = (value) => {
-    if (!value.trim()) {
-      window.alert([
-        '자동으로 떠오른 생각을 입력해 주세요.',
-        '',
-        '이 항목은 CBT 검사를 시작하기 위한 필수 작성란입니다.',
-        '',
-        '작성 예시: “발표 중 실수하면 사람들이 나를 무능하다고 생각할 것 같다.”',
-      ].join('\n'))
-      return false
-    }
-
-    if (!isCompleteAutomaticThoughtSentence(value)) {
-      window.alert([
-        '자동으로 떠오른 생각은 완전한 문장이어야 합니다.',
-        '',
-        '단어나 짧은 구절만 적지 말고, 당시 머릿속에 떠오른 판단이나 예상을 구체적으로 작성해 주세요.',
-        '최소 두 어절 이상으로 작성하고 자연스러운 서술형 종결 표현이나 문장부호로 끝내 주세요.',
-        '',
-        '작성 예시: “발표 중 실수하면 사람들이 나를 무능하다고 생각할 것 같다.”',
-      ].join('\n'))
-      return false
-    }
-
-    return true
+    const error = automaticThoughtError(value)
+    if (error) window.alert(error)
+    return !error
   }
 
-  // 확정된 기록의 자동 사고 문장 완성도를 다시 확인한 뒤 CBT 화면으로 이동하는 처리.
+  // 확정된 기록도 동일한 필수 입력·길이 검사 후 CBT 화면으로 이동.
   const handleCbtStart = () => {
     if (!validateAutomaticThought(record?.automaticThought ?? '')) return
 
@@ -465,7 +432,7 @@ function EmotionRecordDetail({
     if (!validateAutomaticThought(analysisForm.automaticThought)) {
       setAnalysisMessage(
         analysisForm.automaticThought.trim()
-          ? '자동으로 떠오른 생각을 완전한 문장으로 작성해 주세요.'
+          ? automaticThoughtError(analysisForm.automaticThought)
           : '자동으로 떠오른 생각을 입력해야 CBT 검사를 시작할 수 있습니다.',
       )
       setIsAnalysisError(true)
@@ -555,7 +522,9 @@ function EmotionRecordDetail({
 
       setRecord(reanalyzedRecord)
       setAnalysisForm(createAnalysisForm(reanalyzedRecord))
-      setReanalysisMessage('AI 재분석을 완료했습니다. 제안된 내용을 확인해 주세요.')
+      setReanalysisMessage(reanalyzedRecord.completionStatus === 'QUICK'
+          ? '원문은 저장되어 있지만 분석이 아직 완료되지 않았습니다. 잠시 뒤 다시 확인하거나 재분석해 주세요.'
+          : 'AI 재분석을 완료했습니다. 제안된 내용을 확인해 주세요.')
     } catch (error) {
       setReanalysisMessage(getReanalysisErrorMessage(error))
     } finally {
@@ -831,6 +800,7 @@ function EmotionRecordDetail({
                     <span>자동으로 떠오른 생각</span>
                     <textarea
                       name="automaticThought"
+                      maxLength={MAX_AUTOMATIC_THOUGHT_LENGTH}
                       rows="3"
                       value={analysisForm.automaticThought}
                       disabled={isConfirmingAnalysis || isDeleting}

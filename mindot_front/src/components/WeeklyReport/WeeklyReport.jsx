@@ -381,8 +381,8 @@ function WeeklyReport({
     {
       label: '평균 강도',
       value: Number.isFinite(report.averageIntensity)
-        ? `${report.averageIntensity.toFixed(1)}/5`
-        : '-',
+        ? `${report.averageIntensity.toFixed(1)}/10`
+        : '기록 없음',
     },
     { label: '완료 CBT', value: `${report.completedCbtCount}회` },
     {
@@ -427,6 +427,7 @@ function WeeklyReport({
           <BrandLogo className="weekly-report-logo" onClick={onHome} />
 
           <h1 id="weekly-report-title">주간 리포트</h1>
+          <p>감정 통계는 감정 발생일, CBT 통계는 성찰 완료일 기준입니다. PDF는 감정 발생일로 선택한 기록과 연결된 CBT를 포함합니다.</p>
           <p className="weekly-report-description">
             선택한 주의 감정 기록과 CBT 성찰 흐름을 확인하는 공간입니다.
           </p>
@@ -774,7 +775,7 @@ function WeeklyReport({
                               ?? evidence.primaryEmotionCode
                               ?? '분석 전'}
                             {Number.isFinite(evidence.primaryIntensity)
-                              ? ` · 강도 ${evidence.primaryIntensity}/5`
+                              ? ` · 강도 ${evidence.primaryIntensity}/10`
                               : ''}
                           </strong>
                           <time dateTime={evidence.occurredAt}>

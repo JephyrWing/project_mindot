@@ -923,10 +923,10 @@ public class WeeklyReportsService {
                 );
 
         // 기록이 없는 주에는 리포트 생성 불가
-        if (emotionRecords.isEmpty()) {
+        if (emotionRecords.isEmpty() && reflectionSessions.isEmpty()) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "선택한 주에 감정 기록이 없어 리포트를 생성할 수 없습니다."
+                    "선택한 주에 감정 기록과 완료된 CBT 성찰이 없습니다."
             );
         }
 

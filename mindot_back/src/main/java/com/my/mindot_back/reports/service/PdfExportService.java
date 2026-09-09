@@ -304,11 +304,13 @@ public class PdfExportService {
                 DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
         writer.writeSectionTitle("완료 CBT 성찰 결과");
+        writer.writeParagraph("이 PDF는 감정 발생일로 선택한 기록에 연결된 CBT를 포함합니다. 주간 리포트의 CBT 완료일 기준과 다를 수 있습니다.", 9f);
+        writer.writeParagraph("폰트가 지원하지 않는 문자는 [U+코드]로 표시합니다. 예: [U+1F600].", 9f);
         writer.addSpace(6f);
 
         if (reflectionSessions.isEmpty()) {
             writer.writeLine(
-                    "선택한 날짜에 완료, 확정된 CBT 성찰 결과가 없습니다.",
+                    "선택한 감정 발생일의 기록에 연결된 완료 CBT 성찰 결과가 없습니다.",
                     10f
             );
             return;
@@ -503,7 +505,7 @@ public class PdfExportService {
             contentStream.beginText();
             contentStream.setFont(font, fontSize);
             contentStream.newLineAtOffset(PAGE_MARGIN, cursorY);
-            contentStream.showText(text);
+            contentStream.showText(safeText(text));
             contentStream.endText();
 
             cursorY -= fontSize + 9f;
@@ -518,7 +520,7 @@ public class PdfExportService {
                 addPage();
             }
 
-            float textWidth = font.getStringWidth(text) / 1000 * fontSize;
+            float textWidth = font.getStringWidth(safeText(text)) / 1000 * fontSize;
             float startX = (PAGE_WIDTH - textWidth) / 2;
 
             contentStream.beginText();
@@ -529,7 +531,7 @@ public class PdfExportService {
             );
             contentStream.setFont(font, fontSize);
             contentStream.newLineAtOffset(startX, cursorY);
-            contentStream.showText(text);
+            contentStream.showText(safeText(text));
             contentStream.endText();
 
             contentStream.setNonStrokingColor(0, 0, 0);
@@ -560,7 +562,7 @@ public class PdfExportService {
             );
             contentStream.setFont(font, 15f);
             contentStream.newLineAtOffset(PAGE_MARGIN + 12f, cursorY - 11f);
-            contentStream.showText(text);
+            contentStream.showText(safeText(text));
             contentStream.endText();
 
             contentStream.setNonStrokingColor(0, 0, 0);
@@ -584,72 +586,15 @@ public class PdfExportService {
             );
             contentStream.setFont(font, fontSize);
             contentStream.newLineAtOffset(PAGE_MARGIN, cursorY);
-            contentStream.showText(text);
+            contentStream.showText(safeText(text));
             contentStream.endText();
 
             contentStream.setNonStrokingColor(0, 0, 0);
             cursorY -= fontSize + 9f;
         }
 
-        // AI 질문과 사용자 답변을 각각 테두리 블록으로 작성
-        private void writeConversationBlock(
-                String speaker,
-                String text
-        ) throws IOException {
-            float speakerWidth = 54f;
-            float tableWidth = PAGE_WIDTH - PAGE_MARGIN * 2;
-            float textWidth = tableWidth - speakerWidth - 14f;
-            List<String> lines = wrapText(text, 9f, textWidth);
-            float rowHeight = Math.max(22f, lines.size() * 14f + 10f);
-
-            if (cursorY - rowHeight < PAGE_MARGIN) {
-                addPage();
-            }
-
-            float rowBottom = cursorY - rowHeight;
-
-            contentStream.setNonStrokingColor(
-                    241f / 255f,
-                    245f / 255f,
-                    249f / 255f
-            );
-            contentStream.addRect(PAGE_MARGIN, rowBottom, speakerWidth, rowHeight);
-            contentStream.fill();
-
-            contentStream.setStrokingColor(
-                    70f / 255f,
-                    113f / 255f,
-                    175f / 255f
-            );
-            contentStream.addRect(PAGE_MARGIN, rowBottom, tableWidth, rowHeight);
-            contentStream.moveTo(PAGE_MARGIN + speakerWidth, rowBottom);
-            contentStream.lineTo(PAGE_MARGIN + speakerWidth, cursorY);
-            contentStream.stroke();
-
-            contentStream.beginText();
-            contentStream.setNonStrokingColor(
-                    25f / 255f,
-                    76f / 255f,
-                    145f / 255f
-            );
-            contentStream.setFont(font, 9f);
-            contentStream.newLineAtOffset(PAGE_MARGIN + 10f, cursorY - 15f);
-            contentStream.showText(speaker + ":");
-            contentStream.endText();
-
-            contentStream.beginText();
-            contentStream.setNonStrokingColor(0, 0, 0);
-            contentStream.setFont(font, 9f);
-            for (int index = 0; index < lines.size(); index++) {
-                contentStream.newLineAtOffset(
-                        index == 0 ? PAGE_MARGIN + speakerWidth + 7f : 0,
-                        index == 0 ? cursorY - 15f : -14f
-                );
-                contentStream.showText(lines.get(index));
-            }
-            contentStream.endText();
-
-            cursorY -= rowHeight;
+        private void writeConversationBlock(String speaker, String text) throws IOException {
+            writePagedRow(speaker, text, 82f, 9f);
         }
 
         // 텍스트 없이 세로 여백만 추가
@@ -661,83 +606,63 @@ public class PdfExportService {
             cursorY -= space;
         }
 
-        // 상담용 식별 정보를 2열 표 한 행으로 작성
-        private void writeInfoRow(
-                String label,
-                String value
-        ) throws IOException {
+        private void writeInfoRow(String label, String value) throws IOException {
+            writePagedRow(label, value, INFO_LABEL_WIDTH, 10f);
+        }
+
+        // Both conversation and information rows split by available lines on every page.
+        private void writePagedRow(String label, String value, float labelWidth, float size) throws IOException {
             float tableWidth = PAGE_WIDTH - PAGE_MARGIN * 2;
-            float valueWidth = tableWidth - INFO_LABEL_WIDTH - 14f;
-            List<String> valueLines = wrapText(value, 10f, valueWidth);
-            float rowHeight = Math.max(
-                    INFO_ROW_HEIGHT,
-                    valueLines.size() * 14f + 10f
-            );
+            List<String> lines = wrapText(value, size, tableWidth - labelWidth - 14f);
+            int offset = 0;
+            do {
+                String pageLabel = label + (offset > 0 ? " (이어짐)" : "");
+                List<String> labels = wrapText(pageLabel, size, labelWidth - 14f);
+                int capacity = (int)Math.floor((cursorY - PAGE_MARGIN - 10f) / 14f);
+                if (capacity < Math.max(1, labels.size())) {
+                    addPage();
+                    capacity = (int)Math.floor((cursorY - PAGE_MARGIN - 10f) / 14f);
+                }
+                int count = Math.min(capacity, lines.size() - offset);
+                float height = Math.max(labels.size(), count) * 14f + 10f;
+                float bottom = cursorY - height;
+                contentStream.setNonStrokingColor(241f/255, 245f/255, 249f/255);
+                contentStream.addRect(PAGE_MARGIN, bottom, labelWidth, height);
+                contentStream.fill();
+                contentStream.setStrokingColor(196f/255, 207f/255, 222f/255);
+                contentStream.addRect(PAGE_MARGIN, bottom, tableWidth, height);
+                contentStream.moveTo(PAGE_MARGIN + labelWidth, bottom);
+                contentStream.lineTo(PAGE_MARGIN + labelWidth, cursorY);
+                contentStream.stroke();
+                for (int i = 0; i < labels.size(); i++)
+                    writeCellText(labels.get(i), PAGE_MARGIN + 7f, cursorY - 15f - i*14f, size);
+                for (int i = 0; i < count; i++)
+                    writeCellText(lines.get(offset+i), PAGE_MARGIN + labelWidth + 7f, cursorY - 15f - i*14f, size);
+                cursorY = bottom;
+                offset += count;
+                if (offset < lines.size()) addPage();
+            } while (offset < lines.size());
+        }
 
-            if (cursorY - rowHeight < PAGE_MARGIN) {
-                addPage();
-            }
-
-            float rowBottom = cursorY - rowHeight;
-
-            // 왼쪽 항목명 칸의 연한 배경
-            contentStream.setNonStrokingColor(
-                    241f / 255f,
-                    245f / 255f,
-                    249f / 255f
-            );
-            contentStream.addRect(
-                    PAGE_MARGIN,
-                    rowBottom,
-                    INFO_LABEL_WIDTH,
-                    rowHeight
-            );
-            contentStream.fill();
-
-            // 표 외곽선과 가운데 구분선
-            contentStream.setStrokingColor(
-                    196f / 255f,
-                    207f / 255f,
-                    222f / 255f
-            );
-            contentStream.addRect(
-                    PAGE_MARGIN,
-                    rowBottom,
-                    tableWidth,
-                    rowHeight
-            );
-            contentStream.moveTo(PAGE_MARGIN + INFO_LABEL_WIDTH, rowBottom);
-            contentStream.lineTo(PAGE_MARGIN + INFO_LABEL_WIDTH, cursorY);
-            contentStream.stroke();
-
-            // 항목명 텍스트
-            contentStream.beginText();
-            contentStream.setNonStrokingColor(
-                    35f / 255f,
-                    59f / 255f,
-                    99f / 255f
-            );
-            contentStream.setFont(font, 10f);
-            contentStream.newLineAtOffset(PAGE_MARGIN + 7f, cursorY - 17f);
-            contentStream.showText(label);
-            contentStream.endText();
-
-            // 값 텍스트를 표 폭에 맞춰 여러 줄로 작성
+        private void writeCellText(String text, float x, float y, float size) throws IOException {
             contentStream.beginText();
             contentStream.setNonStrokingColor(0, 0, 0);
-            contentStream.setFont(font, 10f);
-            for (int index = 0; index < valueLines.size(); index++) {
-                contentStream.newLineAtOffset(
-                        index == 0
-                                ? PAGE_MARGIN + INFO_LABEL_WIDTH + 7f
-                                : 0,
-                        index == 0 ? cursorY - 17f : -14f
-                );
-                contentStream.showText(valueLines.get(index));
-            }
+            contentStream.setFont(font, size);
+            contentStream.newLineAtOffset(x, y);
+            contentStream.showText(safeText(text));
             contentStream.endText();
+        }
 
-            cursorY -= rowHeight;
+        // No missing glyph is silently discarded. Mark the exact Unicode code point.
+        private String safeText(String text) throws IOException {
+            if (text == null) return "";
+            StringBuilder result = new StringBuilder();
+            for (int cp : text.codePoints().toArray()) {
+                String glyph = new String(Character.toChars(cp));
+                try { font.getStringWidth(glyph); result.append(glyph); }
+                catch (IllegalArgumentException unsupported) { result.append(String.format("[U+%04X]", cp)); }
+            }
+            return result.toString();
         }
 
         // PDF 가로 폭에 맞춰 긴 문장을 여러 줄로 분리
@@ -759,36 +684,19 @@ public class PdfExportService {
                 float maxWidth
         ) throws IOException {
             List<String> lines = new ArrayList<>();
-
-            if (text == null || text.isBlank()) {
-                return lines;
-            }
-
-            StringBuilder currentLine = new StringBuilder();
-
-            for (char character : text.replace("\r", "").toCharArray()) {
-                if (character == '\n') {
-                    lines.add(currentLine.toString());
-                    currentLine.setLength(0);
-                    continue;
+            String normalized = (text == null ? "" : text).replace("\r\n", "\n").replace('\r', '\n');
+            for (String paragraph : normalized.split("\n", -1)) {
+                StringBuilder line = new StringBuilder();
+                for (int cp : safeText(paragraph).codePoints().toArray()) {
+                    String glyph = new String(Character.toChars(cp));
+                    String candidate = line.toString() + glyph;
+                    if (line.length() > 0 && font.getStringWidth(candidate) / 1000 * fontSize > maxWidth) {
+                        lines.add(line.toString()); line.setLength(0);
+                    }
+                    line.append(glyph);
                 }
-
-                String candidate = currentLine.toString() + character;
-                float candidateWidth =
-                        font.getStringWidth(candidate) / 1000 * fontSize;
-
-                if (candidateWidth > maxWidth && currentLine.length() > 0) {
-                    lines.add(currentLine.toString());
-                    currentLine.setLength(0);
-                }
-
-                currentLine.append(character);
+                lines.add(line.toString());
             }
-
-            if (currentLine.length() > 0) {
-                lines.add(currentLine.toString());
-            }
-
             return lines;
         }
 

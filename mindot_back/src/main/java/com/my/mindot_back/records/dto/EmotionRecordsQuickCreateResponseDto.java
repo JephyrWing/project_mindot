@@ -37,7 +37,9 @@ public record EmotionRecordsQuickCreateResponseDto(
     // AI 모델명과 프롬프트 버전
     FastApiRecordAnalysisResponseDto.AnalysisMeta meta,
 
-    SafetyNoticeResponseDto safetyNotice
+    SafetyNoticeResponseDto safetyNotice,
+    String analysisStatus,
+    String analysisErrorCode
 ){
     // DB에 저장된 EmotionRecords Entity를 프론트 응답용 DTO로 변환
     public static EmotionRecordsQuickCreateResponseDto from(
@@ -56,7 +58,29 @@ public record EmotionRecordsQuickCreateResponseDto(
                 analysis.record(),
                 analysis.risk(),
                 analysis.meta(),
-                safetyNotice
+                safetyNotice, "COMPLETED", null
         );
+    }
+    public static EmotionRecordsQuickCreateResponseDto saved(EmotionRecords record, String status, String error,
+            SafetyNoticeResponseDto notice) {
+        var emotions = new java.util.ArrayList<FastApiRecordAnalysisResponseDto.EmotionItem>();
+        if (record.getPrimaryEmotionCode() != null) emotions.add(new FastApiRecordAnalysisResponseDto.EmotionItem(
+                record.getPrimaryEmotionCode(), record.getPrimaryIntensity() == null ? null : record.getPrimaryIntensity().intValue()));
+        if (record.getSecondaryEmotions() != null) for (var emotion : record.getSecondaryEmotions())
+            emotions.add(new FastApiRecordAnalysisResponseDto.EmotionItem((String)emotion.get("code"),
+                    emotion.get("intensity") instanceof Number n ? n.intValue() : null));
+        var details = record.getDetails() == null ? java.util.Map.<String,Object>of() : record.getDetails();
+        var metadata = record.getAiMeta() == null ? java.util.Map.<String,Object>of() : record.getAiMeta();
+        var structured = record.getCompletionStatus() == com.my.mindot_back.records.entity.CompletionStatus.QUICK ? null
+                : new FastApiRecordAnalysisResponseDto.StructuredRecord(record.getSituationText(), (String)details.get("interpretation"),
+                        record.getAutomaticThought(), emotions, (String)details.get("bodyReaction"), (String)details.get("behavior"),
+                        record.getContextCategory(), record.getRelatedPersonType());
+        return new EmotionRecordsQuickCreateResponseDto(record.getId(), record.getRawText(), record.getOccurredAt(),
+                record.getTimeBucket().name(), record.getWeekdayType().name(), record.getCompletionStatus().name(),
+                structured, metadata.containsKey("riskLevel") ? new FastApiRecordAnalysisResponseDto.RiskAssessment(
+                        (String)metadata.get("riskLevel"), (String)metadata.get("riskReason")) : null,
+                metadata.containsKey("model") ? new FastApiRecordAnalysisResponseDto.AnalysisMeta(
+                        (String)metadata.get("model"), (String)metadata.get("promptVersion")) : null,
+                notice, status, error);
     }
 }

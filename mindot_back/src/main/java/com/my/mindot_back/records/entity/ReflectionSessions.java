@@ -369,6 +369,11 @@ public class ReflectionSessions {
      * thoughtAwareEmbedding:
      * 자동사고까지 포함한 더 구체적인 검색 벡터
      */
+    public void invalidateEmbedding() {
+        this.contextEmbedding = null;
+        this.thoughtAwareEmbedding = null;
+    }
+
     public void applyEmbedding(
             float[] contextEmbedding,
             float[] thoughtAwareEmbedding

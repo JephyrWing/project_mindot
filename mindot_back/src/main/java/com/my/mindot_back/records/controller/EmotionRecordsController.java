@@ -27,9 +27,10 @@ public class EmotionRecordsController {
             @AuthenticationPrincipal Long userId,
 
             // 요청 JSON을 DTO로 변환하고 @NotBlack, @NotNull 검증 수행
-            @Valid @RequestBody EmotionRecordsQuickCreateRequestDto dto
+            @Valid @RequestBody EmotionRecordsQuickCreateRequestDto dto,
+            @RequestHeader("Idempotency-Key") String key
     ){
-        return emotionRecordsService.createQuickRecord(userId, dto);
+        return emotionRecordsService.createQuickRecord(userId, dto, key);
     }
 
     // 기간, 감정, 상황, 검색어, 정렬, 페이지 조건으로 로그인 사용자의 감정 기록 목록 조회

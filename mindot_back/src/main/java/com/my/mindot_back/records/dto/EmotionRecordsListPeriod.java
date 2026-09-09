@@ -3,6 +3,7 @@ package com.my.mindot_back.records.dto;
 
 public enum EmotionRecordsListPeriod {
     ALL,
+    RECENT_7_DAYS,
     WEEK,
     MONTH
 }

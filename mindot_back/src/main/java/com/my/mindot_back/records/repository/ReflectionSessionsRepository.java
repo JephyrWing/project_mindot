@@ -19,6 +19,8 @@ public interface ReflectionSessionsRepository
     @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
     @Query("select s from ReflectionSessions s where s.id = :id")
     Optional<ReflectionSessions> findLockedById(@Param("id") Long id);
+    @Query("select s.emotionRecord.id from ReflectionSessions s where s.id = :id")
+    Optional<Long> findRecordIdBySessionId(@Param("id") Long id);
     boolean existsByEmotionRecord_Id(Long emotionRecordId);
 
     // 감정 기록과 로그인 사용자에게 연결된 CBT 성찰 세션 조회
@@ -31,6 +33,7 @@ public interface ReflectionSessionsRepository
             SELECT rs.*
             FROM reflection_sessions rs
             WHERE rs.user_id = :#{#request.userId}
+              AND rs.emotion_record_id <> :#{#request.excludeRecordId}
               AND rs.status = 'COMPLETED'
               AND rs.context_embedding IS NOT NULL
               AND rs.user_confirmed = true
@@ -60,6 +63,7 @@ public interface ReflectionSessionsRepository
             SELECT rs.*
             FROM reflection_sessions rs
             WHERE rs.user_id = :#{#request.userId}
+              AND rs.emotion_record_id <> :#{#request.excludeRecordId}
               AND rs.status = 'COMPLETED'
               AND rs.thought_aware_embedding IS NOT NULL
               AND rs.user_confirmed = true
@@ -91,9 +95,9 @@ public interface ReflectionSessionsRepository
     );
 
     // 패턴 분석에 사용할 사용자 확정 완료 CBT 세션 수 조회
-    long countByUser_IdAndStatusAndUserConfirmedTrue(
+    long countByUser_IdAndStatusAndUserConfirmedTrueAndEmotionRecord_IdNot(
             Long userId,
-            ReflectionSessionStatus status
+            ReflectionSessionStatus status, Long excludeRecordId
     );
 
     // 패턴 분석에 사용할 서로 다른 날에 발생한 감정기록이 몇개인지 조회 (완료된 CBT만)
@@ -102,18 +106,19 @@ public interface ReflectionSessionsRepository
                     FROM reflection_sessions rs
                     JOIN emotion_records er ON er.id = rs.emotion_record_id
                     WHERE rs.user_id = :userId
+                        AND rs.emotion_record_id <> :excludeRecordId
                         AND rs.status = 'COMPLETED'
                         AND rs.user_confirmed = true
                     """, nativeQuery = true)
     long countDistinctCompletedReflectionDates(
-            @Param("userId") Long userId
+            @Param("userId") Long userId, @Param("excludeRecordId") Long excludeRecordId
     );
 
     // 사용자에게 도움이 된 확정 완료 CBT 세션 존재 여부 조회
-    boolean existsByUser_IdAndStatusAndUserConfirmedTrueAndHelpfulnessScoreGreaterThanEqual(
+    boolean existsByUser_IdAndStatusAndUserConfirmedTrueAndHelpfulnessScoreGreaterThanEqualAndEmotionRecord_IdNot(
             Long userId,
             ReflectionSessionStatus status,
-            short helpfulnessScore
+            short helpfulnessScore, Long excludeRecordId
     );
 
     // 선택한 기간에 최종 확정된 CBT 성찰 세션을 완료 시각 오래된 순으로 조회

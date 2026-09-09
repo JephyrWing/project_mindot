@@ -7,11 +7,12 @@ import lombok.Getter;
 @Getter
 public class CbtSimilaritySearchRequest {
     private Long userId;
+    private Long excludeRecordId;
     private String embeddedQueryString;
     private int topK;
     private double threshold;
 
-    public CbtSimilaritySearchRequest(Long userId, String embeddedQueryString) {
-        this(userId, embeddedQueryString, 10, 0.7);
+    public CbtSimilaritySearchRequest(Long userId, Long excludeRecordId, String embeddedQueryString) {
+        this(userId, excludeRecordId, embeddedQueryString, 10, 0.7);
     }
 }
