@@ -9,8 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/records")
 @RequiredArgsConstructor
@@ -34,25 +32,49 @@ public class EmotionRecordsController {
         return emotionRecordsService.createQuickRecord(userId, dto);
     }
 
-    // 로그인한 사용자의 감정 기록 목록 조회 API
+    // 기간, 감정, 상황, 검색어, 정렬, 페이지 조건으로 로그인 사용자의 감정 기록 목록 조회
     @GetMapping
-    public List<EmotionRecordsListItemResponseDto> getEmotionRecords(
-            @AuthenticationPrincipal Long userId
-    ){
-        // JWT에서 확인한 로그인 사용자 ID로 목록 조회
-        return emotionRecordsService.getEmotionRecords(userId);
-    }
-
-    // 로그인한 사용자의 감정 기록 상세 조회 API
-    @GetMapping("/{emotionRecordId}")
-    public EmotionRecordsDetailResponseDto getEmotionRecordDetail(
+    public EmotionRecordsPageResponseDto getEmotionRecords(
             @AuthenticationPrincipal Long userId,
-            @PathVariable Long emotionRecordId
-    ){
-        // JWT 사용자 ID와 URL의 기록 ID로 본인 기록만 상세 조회
-        return emotionRecordsService.getEmotionRecordsDetail(
+
+            // ALL / WEEK / MONTH
+            @RequestParam(defaultValue = "ALL")
+            EmotionRecordsListPeriod period,
+
+            // 예: ANXIETY
+            @RequestParam(required = false)
+            String emotionCode,
+
+            // 예: WORK
+            @RequestParam(required = false)
+            String contextCategory,
+
+            // 사용자가  입력한 감정 기록 원문 검색어
+            @RequestParam(required = false)
+            String keyword,
+
+            // LATEST / OLDEST / INTENSITY_HIGH / INTENSITY_LOW
+            @RequestParam(defaultValue = "LATEST")
+            EmotionRecordsListSort sort,
+
+            // 페이지 번호는 0부터 시작
+            @RequestParam(defaultValue = "0")
+            int page,
+
+            // 프론트가 size를 보내지 않으면 5개씩 조회
+            // 프론트에서 값 수정해서 페이지 크기 조절 가능
+            @RequestParam(defaultValue = "5")
+            int size
+    ) {
+        return emotionRecordsService.getEmotionRecords(
                 userId,
-                emotionRecordId
+                period,
+                emotionCode,
+                contextCategory,
+                keyword,
+                sort,
+                page,
+                size
         );
     }
 

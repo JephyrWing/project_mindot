@@ -103,6 +103,18 @@ function OpenReflections({ onResume }) {
     try {
       const detail = await getReflectionSessionDetail(sessionId)
 
+      // 목록 조회 이후 종료된 세션의 진행 중 목록 제거와 재진입 차단.
+      if (detail.status !== 'OPEN') {
+        setOpenSessions((currentSessions) => (
+          currentSessions.filter((session) => session.sessionId !== sessionId)
+        ))
+        setSessionDetail(null)
+        setDetailError(
+          '이미 종료된 CBT 성찰입니다. 진행 중 목록에서 제외했습니다.',
+        )
+        return
+      }
+
       setSessionDetail(detail)
     } catch (error) {
       setDetailError(getOpenReflectionsErrorMessage(
@@ -116,7 +128,7 @@ function OpenReflections({ onResume }) {
 
   // 선택한 OPEN 성찰의 목록 정보와 상세 이력을 CBT 화면 이동 데이터로 전달.
   const handleReflectionResume = () => {
-    if (!sessionDetail) return
+    if (!sessionDetail || sessionDetail.status !== 'OPEN') return
 
     const selectedSession = openSessions.find(
       (session) => session.sessionId === selectedSessionId,
