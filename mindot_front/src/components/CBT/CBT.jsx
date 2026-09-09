@@ -196,6 +196,23 @@ const createResumedChatMessages = (resumeSession) => (
   })
 )
 
+// 백엔드 세션 상태와 현재 질문 단계를 CBT 화면 상태로 변환.
+const resolveReflectionStatus = (reflectionSession) => {
+  if (!reflectionSession) return 'IDLE'
+
+  if (reflectionSession.status === 'COMPLETED') return 'COMPLETED'
+  if (reflectionSession.status === 'CANCELLED') return 'CANCELLED'
+  if (reflectionSession.status === 'SAFETY_STOPPED') return 'SAFETY_STOP'
+
+  if (reflectionSession.status === 'OPEN') {
+    return reflectionSession.currentStep === 'CONFIRM_REQUIRED'
+      ? 'CONFIRM_REQUIRED'
+      : 'CONTINUE'
+  }
+
+  return 'IDLE'
+}
+
 // 감정 기록을 바탕으로 생각을 돌아보는 기본 CBT 성찰 화면 컴포넌트 정의.
 function CBT({
   emotionRecordId,
@@ -250,11 +267,7 @@ function CBT({
   const [isAutomaticThoughtRequired, setIsAutomaticThoughtRequired] = useState(false)
   // CBT 대화 계속 여부를 판단하기 위한 백엔드 응답 상태 관리.
   const [reflectionStatus, setReflectionStatus] = useState(
-    () => (
-      resumeSession?.sessionId
-        ? resumeSession.currentStep ?? 'CONTINUE'
-        : 'IDLE'
-    ),
+    () => resolveReflectionStatus(resumeSession),
   )
   // CONFIRM_REQUIRED 결과의 인지왜곡 판정 유형 상태 관리.
   const [assessmentType, setAssessmentType] = useState(
@@ -323,8 +336,7 @@ function CBT({
 
         if (!isActive) return
 
-        const resumedStatus = detail.currentStep
-          ?? (detail.status === 'COMPLETED' ? 'COMPLETED' : 'CONTINUE')
+        const resumedStatus = resolveReflectionStatus(detail)
 
         setSessionId(detail.sessionId)
         setReflectionStatus(resumedStatus)
