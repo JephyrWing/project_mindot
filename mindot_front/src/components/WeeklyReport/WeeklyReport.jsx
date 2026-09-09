@@ -161,6 +161,7 @@ function WeeklyReport({
   onCompletedReflection,
   onCenter,
   onDailyCare,
+  onGraph,
   onBack,
   onHome,
 }) {
@@ -450,6 +451,17 @@ function WeeklyReport({
               다음 주 →
             </button>
           </div>
+
+          {/* 선택한 주의 감정 강도 그래프 화면으로 이동하는 버튼 배치. */}
+          {onGraph && (
+            <button
+              className="weekly-report-graph-button"
+              type="button"
+              onClick={onGraph}
+            >
+              주간 감정 그래프로 보기
+            </button>
+          )}
 
           {/* 날짜와 포함 내용을 직접 정하는 상담용 PDF 내보내기 설정 영역 배치. */}
           <section

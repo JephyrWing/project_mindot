@@ -45,6 +45,7 @@ export const readAppRoute = () => {
       emotionRecordId: parseIdentifier(searchParams.get('emotionRecordId')),
     }
   }
+  if (pathname === '/reports/weekly/graph') return { page: 'weekly-report-graph' }
   if (pathname === '/reports/weekly') return { page: 'weekly-report' }
   if (completedReflectionMatch) {
     return {
@@ -78,6 +79,7 @@ export const createAppPath = (page, parameters = {}) => {
     return `/cbt?emotionRecordId=${emotionRecordId}`
   }
   if (page === 'cbt') return '/cbt'
+  if (page === 'weekly-report-graph') return '/reports/weekly/graph'
   if (page === 'weekly-report') return '/reports/weekly'
   if (page === 'completed-reflection' && reflectionSessionId) {
     return `/reflections/${reflectionSessionId}`
