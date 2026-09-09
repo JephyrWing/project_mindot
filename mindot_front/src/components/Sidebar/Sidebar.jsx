@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import './Sidebar.css'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
+import { getUserRole } from '../../utils/auth/tokenStorage.js'
 
 // 열림 상태와 주요 화면 이동을 담당하는 모바일 사이드바 컴포넌트 정의.
 function Sidebar({
@@ -16,6 +17,8 @@ function Sidebar({
 }) {
   // 사이드바 열림 여부 상태 관리.
   const [isOpen, setIsOpen] = useState(false)
+  // 로그인 응답에 저장된 권한을 기준으로 관리자 메뉴 표시 여부 확인.
+  const hasAdminRole = isAuthenticated && getUserRole() === 'ROLE_ADMIN'
 
   // 사이드바 열림 중 배경 스크롤 차단과 Escape 키 닫기 처리.
   useEffect(() => {
@@ -120,6 +123,12 @@ function Sidebar({
                 일일 마음 돌봄 서비스
               </button>
             </>
+          )}
+          {/* 관리자 권한이 확인된 로그인 사용자에게만 관리자 화면 링크 표시. */}
+          {hasAdminRole && (
+            <a href="/admin" onClick={() => setIsOpen(false)}>
+              관리자
+            </a>
           )}
           <button type="button" onClick={() => moveToPage(onCenter)}>
             관련 기관 찾기

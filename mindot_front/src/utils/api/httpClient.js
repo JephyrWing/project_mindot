@@ -1,6 +1,6 @@
 import axios from 'axios'
 import {
-  clearAccessToken,
+  clearAuthSession,
   getAccessToken,
   setAccessToken,
 } from '../auth/tokenStorage.js'
@@ -67,7 +67,7 @@ export const createHttpClient = ({
             return data.accessToken
           })
           .catch((refreshError) => {
-            clearAccessToken()
+            clearAuthSession()
             throw refreshError
           })
           .finally(() => {
