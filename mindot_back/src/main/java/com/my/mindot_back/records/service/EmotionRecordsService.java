@@ -13,23 +13,34 @@ import com.my.mindot_back.records.dto.ai.FastApiPatternExplanationResponseDto;
 import com.my.mindot_back.records.dto.ai.FastApiRecordAnalysisResponseDto;
 import com.my.mindot_back.records.entity.*;
 import com.my.mindot_back.records.repository.EmotionRecordsRepository;
+import com.my.mindot_back.records.repository.EmotionRecordsSpecifications;
 import com.my.mindot_back.records.repository.ReflectionSessionsRepository;
 import com.my.mindot_back.records.repository.SessionDistortionsRepository;
 import com.my.mindot_back.reports.repository.ReportsRepository;
 import com.my.mindot_back.safety.dto.SafetyNoticeResponseDto;
 import com.my.mindot_back.safety.service.SafetyEventsService;
+import com.my.mindot_back.users.entity.Users;
 import com.my.mindot_back.users.repository.UsersRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class EmotionRecordsService {
+
+    // 한번의 목록 요청에서 허용하는 최대 감정 기록의 수
+    private static final int MAX_PAGE_SIZE = 50;
 
     // 감정 기록을 저장하는 Repository
     private final EmotionRecordsRepository emotionRecordsRepository;
@@ -158,19 +169,130 @@ public class EmotionRecordsService {
         );
     }
 
-    // 로그인한 사용자의 감정 기록을 최신순으로 조회
-    public List<EmotionRecordsListItemResponseDto> getEmotionRecords(
-            Long userId
+    // 기간·감정·상황·원문 검색어·정렬·페이지 조건으로 감정 기록 목록 조회
+    public EmotionRecordsPageResponseDto getEmotionRecords(
+            Long userId,
+            EmotionRecordsListPeriod period,
+            String emotionCode,
+            String contextCategory,
+            String keyword,
+            EmotionRecordsListSort sort,
+            int page,
+            int size
     ) {
-        // 해당 사용자의 감정 기록 Entity 목록 조회
-        List<EmotionRecords> emotionRecords =
-                emotionRecordsRepository
-                        .findAllByUser_IdOrderByOccurredAtDesc(userId);
+        // 페이지 번호는 0부터 시작
+        if (page < 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "페이지 번호는 0 이상이어야 합니다."
+            );
+        }
 
-        // Entity 목록을 프론트 응답용 DTO 목록으로 변환
-        return emotionRecords.stream()
-                .map(EmotionRecordsListItemResponseDto::from)
-                .toList();
+        // 프론트는 size로 페이지당 개수를 바꿀 수 있지만,
+        // 한 번에 과도한 데이터를 조회하지 않도록 최대 50개로 제한
+        if (size < 1 || size > MAX_PAGE_SIZE) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "페이지 크기는 1 이상 50 이하이어야 합니다."
+            );
+        }
+
+        // 기간 계산에 사용할 현재 사용자의 시간대 조회
+        Users user = usersRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED,
+                        "로그인한 사용자를 찾을 수 없습니다."
+                ));
+
+        PeriodRange periodRange = calculatePeriodRange(
+                period,
+                ZoneId.of(user.getTimezone())
+        );
+
+        // 사용자 본인 기록 조건에 선택한 필터 조건을 차례대로 결합
+        Specification<EmotionRecords> specification =
+                EmotionRecordsSpecifications.ownedBy(userId)
+                        .and(
+                                EmotionRecordsSpecifications
+                                        .hasEmotionCode(emotionCode)
+                        )
+                        .and(
+                                EmotionRecordsSpecifications
+                                        .hasContextCategory(contextCategory)
+                        )
+                        .and(
+                                EmotionRecordsSpecifications
+                                        .occurredBetween(
+                                                periodRange.startInclusive(),
+                                                periodRange.endExclusive()
+                                        )
+                        )
+                        .and(
+                                EmotionRecordsSpecifications
+                                        .containsRawTextKeyword(keyword)
+                        );
+
+        // 프론트가 요청한 페이지 번호·크기·정렬 기준으로 DB 조회
+        Page<EmotionRecords> emotionRecordsPage =
+                emotionRecordsRepository.findAll(
+                        specification,
+                        PageRequest.of(
+                                page,
+                                size,
+                                sort.toSort()
+                        )
+                );
+
+        // 목록 내용과 전체 페이지 정보를 함께 반환
+        return EmotionRecordsPageResponseDto.from(
+                emotionRecordsPage
+        );
+    }
+    // ALL, WEEK, MONTH 선택값을 실제 DB 조회용 시각 범위로 변환
+    private PeriodRange calculatePeriodRange(
+            EmotionRecordsListPeriod period,
+            ZoneId userTimezone
+    ) {
+        // 사용자의 시간대 기준 오늘 날짜
+        LocalDate today = LocalDate.now(userTimezone);
+
+        return switch (period) {
+            // 전체는 시작·종료 조건 없이 조회
+            case ALL -> new PeriodRange(null, null);
+
+            // 이번 주 월요일 00:00부터 다음 주 월요일 00:00 전까지 조회
+            case WEEK -> {
+                LocalDate weekStart = today.minusDays(
+                        today.getDayOfWeek().getValue() - 1L
+                );
+
+                yield new PeriodRange(
+                        weekStart.atStartOfDay(userTimezone).toInstant(),
+                        weekStart.plusWeeks(1)
+                                .atStartOfDay(userTimezone)
+                                .toInstant()
+                );
+            }
+
+            // 이번 달 1일 00:00부터 다음 달 1일 00:00 전까지 조회
+            case MONTH -> {
+                LocalDate monthStart = today.withDayOfMonth(1);
+
+                yield new PeriodRange(
+                        monthStart.atStartOfDay(userTimezone).toInstant(),
+                        monthStart.plusMonths(1)
+                                .atStartOfDay(userTimezone)
+                                .toInstant()
+                );
+            }
+        };
+    }
+
+    // 기간 시작은 포함하고 종료는 포함하지 않는 조회 범위 객체
+    private record PeriodRange(
+            Instant startInclusive,
+            Instant endExclusive
+    ) {
     }
 
     // 로그인한 사용자의 감정 기록 상세 조회

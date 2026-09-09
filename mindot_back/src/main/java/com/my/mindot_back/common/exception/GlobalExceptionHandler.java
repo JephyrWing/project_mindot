@@ -13,6 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 
 // API 처리 중 exception을 낚아서 처리하는 컨트롤러
@@ -99,6 +100,18 @@ public class GlobalExceptionHandler {
         return ErrorResponse.builder()
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .message("서버 내부 오류가 발생했습니다.")
+                .build();
+    }
+
+    // enum 또는 숫자 쿼리 파라미터 형식이 잘못된 경우 공통 JSON 형식으로 반환
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleQueryParameterTypeMismatch(
+            MethodArgumentTypeMismatchException exception
+    ) {
+        return ErrorResponse.builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .message("요청 쿼리 값이 올바르지 않습니다.")
                 .build();
     }
 }

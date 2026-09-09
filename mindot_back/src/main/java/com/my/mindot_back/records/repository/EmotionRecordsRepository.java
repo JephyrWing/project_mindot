@@ -3,13 +3,15 @@ package com.my.mindot_back.records.repository;
 
 import com.my.mindot_back.records.entity.EmotionRecords;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
 public interface EmotionRecordsRepository
-        extends JpaRepository<EmotionRecords, Long> {
+        extends JpaRepository<EmotionRecords, Long>,
+        JpaSpecificationExecutor<EmotionRecords> {
 
     // 로그인한 사용자의 감정 기록을 발생 시각 최신순으로 조회
     List<EmotionRecords> findAllByUser_IdOrderByOccurredAtDesc(
