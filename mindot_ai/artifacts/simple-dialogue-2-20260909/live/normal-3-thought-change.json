@@ -1,0 +1,16 @@
+{
+  "caseId": "normal-3-thought-change",
+  "status": "NOT_RUN",
+  "executionOutcome": "NOT_RUN",
+  "acceptanceOutcome": "BLOCKED_BY_PARENT",
+  "confirmationAncestor": null,
+  "parentConfirmationRequiresFunctionReview": false,
+  "request": null,
+  "response": null,
+  "error": null,
+  "functionReview": {
+    "observation": "NOT_OBSERVED_LIVE",
+    "reason": "The normal chain stopped at its failed START ancestor. Adaptive thought-change follow-up was not observed.",
+    "method": "CODEx_POST_RUN_DIRECT_RAW_REVIEW_NO_GRADER_API"
+  }
+}

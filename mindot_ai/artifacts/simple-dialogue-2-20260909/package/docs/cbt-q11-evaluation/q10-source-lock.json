@@ -1,0 +1,218 @@
+{
+  "attemptId": "Q10_EVAL_ATTEMPT_2",
+  "productIteration": "Q10",
+  "predecessorAttempt": "Q10_EVAL_ATTEMPT_1_INVALID",
+  "predecessorRunDirectory": "C:\\Users\\human-09\\AppData\\Local\\Temp\\cbt-q10-evaluation\\20260902T073509Z",
+  "lockedAtUtc": "2026-09-02T09:44:36.248190+00:00",
+  "branch": "fix/CBTAI",
+  "head": "4475e3c0931c9ccf1a764b255287803cda147315",
+  "q9SourceManifest": [
+    {
+      "relativePath": ".dockerignore",
+      "bytes": 31,
+      "sha256": "7ee5c98d555c5541ea5dd917190b0108b800b123f01e5ce37bd4f8895068e4b1"
+    },
+    {
+      "relativePath": ".idea/.gitignore",
+      "bytes": 103,
+      "sha256": "4cb643e4d25b781f1a0daf170b75f9a3b60c31c2d6fdc57b83174ce678293826"
+    },
+    {
+      "relativePath": ".idea/inspectionProfiles/profiles_settings.xml",
+      "bytes": 179,
+      "sha256": "0156739e86d393cb905f58205f66160abd542749917415ac3b5155261528ae0b"
+    },
+    {
+      "relativePath": ".idea/mindot_ai.iml",
+      "bytes": 596,
+      "sha256": "2135c3d33292eb3b13ce9c82e07b443fc0cd3c1a6a541a4bd49b635f5dca2cfb"
+    },
+    {
+      "relativePath": ".idea/modules.xml",
+      "bytes": 277,
+      "sha256": "30f322499c70eb270a001a4fa918a38b475a1881a192da9806a31c8956dae6fb"
+    },
+    {
+      "relativePath": ".idea/prettier.xml",
+      "bytes": 194,
+      "sha256": "29cdb7c754c0ff6ba0063077f24cfc30afea3ffb800e1f16256b85f26bfe5ef9"
+    },
+    {
+      "relativePath": ".idea/vcs.xml",
+      "bytes": 188,
+      "sha256": "d0df76de3a966f51606b564edccc430dbc21c32ee5c3f35dccf95597fad81392"
+    },
+    {
+      "relativePath": "__pycache__/app.cpython-312.pyc",
+      "bytes": 7503,
+      "sha256": "16fc970190b4fb90ebd4eba472976a4ecda05df4fb7fc778510fa4bbde0104f0"
+    },
+    {
+      "relativePath": "__pycache__/cbt_agent.cpython-312.pyc",
+      "bytes": 109240,
+      "sha256": "898b76f427293be71bab4bef0a731c0692f8c16505dfdceb1ef2c6094a146027"
+    },
+    {
+      "relativePath": "__pycache__/cbt_session_agent.cpython-312.pyc",
+      "bytes": 132608,
+      "sha256": "412242f91200a08ad7d6317ff6b938ed28543ea736169e74df5ca059e494c560"
+    },
+    {
+      "relativePath": "__pycache__/records_agent.cpython-312.pyc",
+      "bytes": 15582,
+      "sha256": "2278ccbc219ad581fe638b4699338487f760fdd128abd63429c9a2fd3b086915"
+    },
+    {
+      "relativePath": "app.py",
+      "bytes": 7294,
+      "sha256": "d11f23c3e23ff588c838ad319b5dc2acc9109fc2bafff3b3095ac08f1de12c00"
+    },
+    {
+      "relativePath": "cbt_agent.py",
+      "bytes": 105203,
+      "sha256": "ee8f742d7ae90a0a23846f867382fc04991ba4244075b6a460d8a3fd42b2b613"
+    },
+    {
+      "relativePath": "cbt_session_agent.py",
+      "bytes": 132146,
+      "sha256": "649f1f738fad47a6b4c0b6c36ff5d9d32bffe069f35892f48246d68863dc5893"
+    },
+    {
+      "relativePath": "Dockerfile",
+      "bytes": 189,
+      "sha256": "635e8f323816aafbdb287da623aec77b02e4ca31c89e152f8cd7e86654f2f671"
+    },
+    {
+      "relativePath": "records_agent.py",
+      "bytes": 15919,
+      "sha256": "d3322b4a3fb1157ffd350b57e4f6dd4c4264037f64a90979f917b27ab8c51e41"
+    },
+    {
+      "relativePath": "requirements.txt",
+      "bytes": 3168,
+      "sha256": "f610bd67950cbd46de0ffaa9dd537e84dcd0f82098612ba1f90de4798e11937b"
+    }
+  ],
+  "q10SourceManifest": [
+    {
+      "relativePath": ".dockerignore",
+      "bytes": 31,
+      "sha256": "7ee5c98d555c5541ea5dd917190b0108b800b123f01e5ce37bd4f8895068e4b1"
+    },
+    {
+      "relativePath": "app.py",
+      "bytes": 7294,
+      "sha256": "d11f23c3e23ff588c838ad319b5dc2acc9109fc2bafff3b3095ac08f1de12c00"
+    },
+    {
+      "relativePath": "cbt_agent.py",
+      "bytes": 105203,
+      "sha256": "ee8f742d7ae90a0a23846f867382fc04991ba4244075b6a460d8a3fd42b2b613"
+    },
+    {
+      "relativePath": "cbt_session_agent.py",
+      "bytes": 159173,
+      "sha256": "e359c881ac8a544955800372e6db3b84e657ea5d0ebd55b81cb0118ef31e6d5d"
+    },
+    {
+      "relativePath": "Dockerfile",
+      "bytes": 189,
+      "sha256": "635e8f323816aafbdb287da623aec77b02e4ca31c89e152f8cd7e86654f2f671"
+    },
+    {
+      "relativePath": "records_agent.py",
+      "bytes": 15919,
+      "sha256": "d3322b4a3fb1157ffd350b57e4f6dd4c4264037f64a90979f917b27ab8c51e41"
+    },
+    {
+      "relativePath": "requirements.txt",
+      "bytes": 3168,
+      "sha256": "f610bd67950cbd46de0ffaa9dd537e84dcd0f82098612ba1f90de4798e11937b"
+    }
+  ],
+  "q9MainSourceSha256": "649f1f738fad47a6b4c0b6c36ff5d9d32bffe069f35892f48246d68863dc5893",
+  "q10MainSourceSha256": "e359c881ac8a544955800372e6db3b84e657ea5d0ebd55b81cb0118ef31e6d5d",
+  "sourceDiffSha256": "8946ca4cd73662ac506337b7aa92f2021f2e25b833086577150bb4b899c6ba6a",
+  "openapiQ9Sha256": "18664a1fb7a491523daa5ddb3e73e9c5cfb121a276700f2b8f8889cae43c6257",
+  "openapiQ10Sha256": "18664a1fb7a491523daa5ddb3e73e9c5cfb121a276700f2b8f8889cae43c6257",
+  "openapiCanonicalEqual": true,
+  "toolSchemasQ9Sha256": "2ed5d67f840e4bb4dd88496404e07c3eaed60b2fd0855a902987a3fa606a71b9",
+  "toolSchemasQ10Sha256": "fe54b7c7307bfa0f3b74078e772569bbc791e69885703185ddf4aec2492bfac0",
+  "assessorSchemaQ10Sha256": "cea7d55d77e26cf73ccaf70b16e106aec1821680bacfe639e2bfce3c6457bdd4",
+  "blindAdapterSchemaSha256": "a2ff094dec1a3abb82f27074259b3c9d18fe39815e94eec97a02f4b0da2c652d",
+  "prompts": {
+    "Q9.agentPrompt": {
+      "characters": 3798,
+      "sha256": "ed21a89df2c933d2f8efebbcd30a9513ca94468295fb3e7063041a2fa7391d54"
+    },
+    "Q9.writerPrompt": {
+      "characters": 985,
+      "sha256": "996f3069f78776d2ac09c7439c18de051ae81e3d80075e197ab2a33f69b6c936"
+    },
+    "Q10.agentPrompt": {
+      "characters": 2567,
+      "sha256": "09768c53209bbe1e3fb28ab732dd8b1ed0e5a5698d5c5c9eb0d56dfd21fae604"
+    },
+    "Q10.assessorPrompt": {
+      "characters": 2714,
+      "sha256": "bd444e20ae4b9d0f9c7496c21dab83af5074341a251c235913e04a1b9361e328"
+    },
+    "Q10.writerPrompt": {
+      "characters": 985,
+      "sha256": "996f3069f78776d2ac09c7439c18de051ae81e3d80075e197ab2a33f69b6c936"
+    }
+  },
+  "promptVersions": {
+    "Q9": {
+      "coverage": "cbt-session-agent-quality-q9",
+      "assessor": null,
+      "writer": null
+    },
+    "Q10": {
+      "coverage": "cbt-session-agent-quality-q10-coverage",
+      "assessor": "cbt-session-agent-quality-q10-assessor",
+      "writer": "cbt-session-agent-quality-q9-writer-preserved"
+    }
+  },
+  "inputChecks": {
+    "canonical-boundary-cases.json": true,
+    "canonical-feature-cases.json": true,
+    "canonical-regression-cases.json": true,
+    "feature-boundary-rubric.md": true,
+    "fresh-q10-holdout-cases.json": true,
+    "known-holdout-regression-cases.json": true,
+    "known-long-sessions.json": true,
+    "long-session-rubric.md": true,
+    "q10-long-sessions.json": true,
+    "regression-rubric.md": true
+  },
+  "inputLockSha256": "f6015981d7d84c8468f54c74375ee88a7a8a0919bc8fd68e356f2115f73e278c",
+  "frozenHoldoutPolicy": "technical-invalid attempt 1 inputs carried forward byte-for-byte; not claimed as newly fresh",
+  "mappingSha256": "e9affc3a6f83e910e4be540afd1416fe9d421fb56857fd3095c24b2184530033",
+  "runnerSha256": "134a2591f9b175a029551be6a625afb59391b7a29e69dbd127240a4fa642067d",
+  "suiteLogicalCaseCounts": {
+    "boundary": 20,
+    "feature": 40,
+    "fresh_holdout": 36,
+    "known_holdout_regression": 24,
+    "known_long_session": 4,
+    "long_session": 6,
+    "regression": 40
+  },
+  "logicalCaseCount": 170,
+  "expectedVersionRecordCount": 340,
+  "workerCount": 2,
+  "model": "gpt-4o-mini",
+  "agentTemperature": 0.0,
+  "assessorTemperature": 0.0,
+  "writerTemperature": 0.3,
+  "structuredOutputAttempts": 2,
+  "timeoutSeconds": 30,
+  "caseTimeoutSeconds": 180.0,
+  "overallTimeoutSeconds": 7200.0,
+  "progressTimeoutSeconds": 240.0,
+  "workerShutdownTimeoutSeconds": 10.0,
+  "wholeCaseTechnicalRetryMax": 1,
+  "cachePolicy": "independent process/runtime/registry/id/cache per version",
+  "actualModelOutputExistsAtLock": false
+}

@@ -1,0 +1,36 @@
+{
+  "kind": "DELIVERABLE_STRUCTURE_CHECK_ONLY",
+  "productCodeExecuted": false,
+  "paidCalls": 0,
+  "hiddenKeyOrPlaintextRead": false,
+  "knownOriginalAndReplayVerified": true,
+  "knownSingleUserPayloadsUnchanged": 160,
+  "knownLogicalCount": 170,
+  "knownChangedCaseCount": 68,
+  "recordedFieldChanges": 144,
+  "canaryPlannedNodes": 12,
+  "canaryChangedUserInputs": [
+    "normal-2-no-more",
+    "normal-3-thought-change",
+    "help-2-correction",
+    "help-3-maintain-corrected-context",
+    "true-fact-boundary",
+    "safety-noncurrent-continue"
+  ],
+  "canaryAcyclicSchedule": true,
+  "staticSelectTools": 5,
+  "normalTargetRemovedHelpTargetPreserved": true,
+  "schemaRequiredPropertyConsistency": true,
+  "fullJsonSchemaMetaValidatorRun": false,
+  "assessorReviewRepairUnchanged": true,
+  "promptChars": {
+    "agent": 2051,
+    "assessment-review": 416,
+    "assessor": 1500,
+    "writer-repair": 267,
+    "writer": 890
+  },
+  "liveProviderValidated": false,
+  "rubricBytes": 141290,
+  "rubricSha256": "883fe7c7e1d69f81dd2682ea230899fa1e5030422074fbbb619669c1a2f50390"
+}

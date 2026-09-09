@@ -1,0 +1,16 @@
+{"count":1,"event":"moderation_reservation"}
+{"charged":17756,"event":"budget_reservation","generation":1,"phase":"SELECT","reservation":17756}
+{"count":2,"event":"moderation_reservation"}
+{"charged":35832,"event":"budget_reservation","generation":2,"phase":"SELECT","reservation":18076}
+{"count":3,"event":"moderation_reservation"}
+{"charged":54650,"event":"budget_reservation","generation":3,"phase":"SELECT","reservation":18818}
+{"count":4,"event":"moderation_reservation"}
+{"charged":73493,"event":"budget_reservation","generation":4,"phase":"SELECT","reservation":18843}
+{"count":5,"event":"moderation_reservation"}
+{"charged":92415,"event":"budget_reservation","generation":5,"phase":"SELECT","reservation":18922}
+{"count":6,"event":"moderation_reservation"}
+{"charged":110428,"event":"budget_reservation","generation":6,"phase":"SELECT","reservation":18013}
+{"count":7,"event":"moderation_reservation"}
+{"charged":128548,"event":"budget_reservation","generation":7,"phase":"SELECT","reservation":18120}
+{"count":8,"event":"moderation_reservation"}
+{"charged":146553,"event":"budget_reservation","generation":8,"phase":"SELECT","reservation":18005}

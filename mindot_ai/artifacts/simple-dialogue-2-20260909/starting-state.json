@@ -1,0 +1,11 @@
+{
+  "baseMatched": 47,
+  "baseFiles": 47,
+  "differences": [],
+  "preservedFiles": 63,
+  "preservedZipSha256": "fc6a54e5452ac19f88fece0b0c1cf43eaccd354c1fd6515226db7a09966714c0",
+  "priorAuditSha256": "71d631d430ad305ed55c924dba6964c5792902bc08305c20c774ba4d95c376c2",
+  "sourceStart": "actual simple-dialogue-1 submission; no rebuild from REPAIR-13",
+  "iterationLogReadOnly": true,
+  "iterationLogModifiedAt": "2026-09-09T05:25:14.654Z"
+}

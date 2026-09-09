@@ -1,0 +1,994 @@
+{
+  "reportKind": "VERIFIED_CANONICAL_FINALIZATION_AUDIT",
+  "status": "CANARY_BLOCKED",
+  "createdAt": "2026-09-08T15:53:04.576891+00:00",
+  "attemptLabel": "CANARY_ATTEMPT_11_RETRY10",
+  "canonicalEngineFinish": true,
+  "canonicalResult": {
+    "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\live\\mindot_ai\\canary-retry10\\canary-result.json",
+    "sha256": "c2793aec0914874de03a49307ceb2281be3caa9eaa76dd3eff251d78f0e2b550",
+    "bytes": 2373
+  },
+  "canonicalResultUnmodified": true,
+  "canonicalResultEqualsFinalJournalPayload": true,
+  "priorLock": {
+    "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\locks\\canary-retry10\\files.json",
+    "sha256": "763ffa292e4a58ee8dea44c543313ab3468529bf60bd920f272141dfd9be3e77",
+    "bytes": 228608,
+    "fileCount": 608,
+    "postCheck": {
+      "checked": 608,
+      "matched": 608,
+      "mismatched": 0,
+      "mismatches": []
+    }
+  },
+  "preservedEvidence": [
+    {
+      "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\live\\mindot_ai\\canary-retry10\\canary.claim.json",
+      "sha256": "d210a1ad7d14d8720a824866c246ba2488842cde700a87901529d53341eceba5",
+      "bytes": 155,
+      "kind": "claim"
+    },
+    {
+      "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\live\\mindot_ai\\canary-retry10\\events.jsonl",
+      "sha256": "22254ed7a5ba306a78be26cb3050c7f453b0f6c930d1644ffe084bece57c26b3",
+      "bytes": 878099,
+      "kind": "journal"
+    },
+    {
+      "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\live\\mindot_ai\\canary-retry10\\example-only.json",
+      "sha256": "c0f1510d87ab80fd468eb749160f183381ff636d07e0b2abfc944c0f65a75c58",
+      "bytes": 233301,
+      "kind": "case_result",
+      "caseId": "example-only"
+    },
+    {
+      "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\live\\mindot_ai\\canary-retry10\\complete-substantive-example.json",
+      "sha256": "537ec05d1701b67395877f629d1fdc618d2a5559abfc6fab6e85545db4daaf9d",
+      "bytes": 233687,
+      "kind": "case_result",
+      "caseId": "complete-substantive-example"
+    },
+    {
+      "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\live\\mindot_ai\\canary-retry10\\canary-result.json",
+      "sha256": "c2793aec0914874de03a49307ceb2281be3caa9eaa76dd3eff251d78f0e2b550",
+      "bytes": 2373,
+      "kind": "canonical_result"
+    }
+  ],
+  "evidenceUnchangedDuringAudit": true,
+  "journalVerification": {
+    "chainValid": true,
+    "eventCount": 91,
+    "eventKinds": {
+      "canary_start": 1,
+      "attempt_start": 2,
+      "product_diagnostic": 58,
+      "provider_dispatch": 6,
+      "provider_raw": 6,
+      "usage_settled": 4,
+      "accepted_result": 2,
+      "attempt_end": 2,
+      "development_invariant_review": 2,
+      "case_not_run": 7,
+      "canary_end": 1
+    },
+    "hasReviewEvent": true,
+    "hasCanaryEnd": true,
+    "reader": {
+      "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\frozen-runner-retry04\\journal.py",
+      "sha256": "de8dca9203445781f0230911f97f42540b196f54a8bcd5cd10ec063319fa03f3",
+      "bytes": 6301
+    },
+    "readerMatchedOriginalLock": true,
+    "lastEventSha256": "6c7bb380575049da390bf0993870f4a4394195d0dba8eb62447c749917ccda10",
+    "caseResultsEqualJournalResults": true,
+    "noDispatchAfterFailReview": true,
+    "laterCaseStartedOnlyAfterPreviousPass": true
+  },
+  "observedCounts": {
+    "attemptedCases": 2,
+    "passedCases": 1,
+    "failedCases": 1,
+    "generationInvocations": 4,
+    "agentInvocations": 3,
+    "writerInvocations": 1,
+    "moderationInvocations": 2,
+    "actualModelResponsesReceived": 4,
+    "http200Responses": 6,
+    "remainingCanaryCasesNotRun": 7,
+    "formalCasesNotRun": 368
+  },
+  "observedUsage": {
+    "status": "KNOWN_FROM_PROVIDER_RESPONSES",
+    "promptTokens": 46295,
+    "completionTokens": 507,
+    "totalTokens": 46802,
+    "allGenerationUsageSettled": true,
+    "moderationOutsideGenerationTokenUsage": true
+  },
+  "caseResults": [
+    {
+      "caseId": "example-only",
+      "caseResult": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\live\\mindot_ai\\canary-retry10\\example-only.json",
+        "sha256": "c0f1510d87ab80fd468eb749160f183381ff636d07e0b2abfc944c0f65a75c58",
+        "bytes": 233301
+      },
+      "canonicalVerdict": {
+        "status": "PASS",
+        "evidence": "Explicit fictional A/B and one closer/neither; zero atoms and all NOT_EXPLORED; correct help fulfilled. SELECT phantom alias used permitted ARGUMENT_REPAIR, then Writer; 3 calls. Limited diversity caveat."
+      },
+      "review": {
+        "caseId": "example-only",
+        "evidence": "Explicit fictional A/B and one closer/neither; zero atoms and all NOT_EXPLORED; correct help fulfilled. SELECT phantom alias used permitted ARGUMENT_REPAIR, then Writer; 3 calls. Limited diversity caveat.",
+        "status": "PASS"
+      },
+      "usage": {
+        "promptTokens": 20146,
+        "completionTokens": 275,
+        "totalTokens": 20421
+      },
+      "calls": [
+        {
+          "invocationId": "50b61b05-2d0a-49df-b3ad-8072b04516a7",
+          "component": "moderation",
+          "phase": null,
+          "moderation": true,
+          "httpStatus": 200,
+          "dispatchSequence": 8,
+          "rawSequence": 9,
+          "bodyBytes": 5744,
+          "bodySha256": "24316b5bc500f543fd4208f076401660fe5faa79bde62a0458b906126dd30290",
+          "usage": null
+        },
+        {
+          "invocationId": "72816692-301c-42c1-828c-16396ed76e87",
+          "component": "agent",
+          "phase": "SELECT",
+          "moderation": false,
+          "httpStatus": 200,
+          "dispatchSequence": 17,
+          "rawSequence": 18,
+          "bodyBytes": 1644,
+          "bodySha256": "f8672f90c2311d71a18923114f466a3b79fc2b3c7d0a4bf043e362713cd1442a",
+          "usage": {
+            "prompt_tokens": 14769,
+            "completion_tokens": 146,
+            "total_tokens": 14915,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "audio_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "audio_tokens": 0,
+              "accepted_prediction_tokens": 0,
+              "rejected_prediction_tokens": 0
+            }
+          }
+        },
+        {
+          "invocationId": "4cd55131-6513-450e-899c-205bad54065c",
+          "component": "agent",
+          "phase": "ARGUMENT_REPAIR",
+          "moderation": false,
+          "httpStatus": 200,
+          "dispatchSequence": 33,
+          "rawSequence": 34,
+          "bodyBytes": 1124,
+          "bodySha256": "a96f26b4707ab169e1e77d2e93ffd2967aba2b2976bbf61be0c148d48dd450ca",
+          "usage": {
+            "prompt_tokens": 2075,
+            "completion_tokens": 25,
+            "total_tokens": 2100,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "audio_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "audio_tokens": 0,
+              "accepted_prediction_tokens": 0,
+              "rejected_prediction_tokens": 0
+            }
+          }
+        },
+        {
+          "invocationId": "3710edf5-cdba-4e79-b279-275004070d22",
+          "component": "writer",
+          "phase": "WRITER",
+          "moderation": false,
+          "httpStatus": 200,
+          "dispatchSequence": 43,
+          "rawSequence": 44,
+          "bodyBytes": 1237,
+          "bodySha256": "50e09fee8c5914c394ee51390a7c21ec021541c5bdd4e53a46d3310d78e672f0",
+          "usage": {
+            "prompt_tokens": 3302,
+            "completion_tokens": 104,
+            "total_tokens": 3406,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "audio_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "audio_tokens": 0,
+              "accepted_prediction_tokens": 0,
+              "rejected_prediction_tokens": 0
+            }
+          }
+        }
+      ],
+      "generationPhases": [
+        "SELECT",
+        "ARGUMENT_REPAIR",
+        "WRITER"
+      ],
+      "generationInvocations": 3,
+      "moderationInvocations": 1,
+      "publicResponseStatus": "CONTINUE",
+      "acceptedStatePresent": true,
+      "stateCommitted": true,
+      "acceptedHeadUnchangedOnAbort": null,
+      "callerDatabaseCommitKnown": false,
+      "error": null,
+      "actualModelResponsesReceived": 3,
+      "writerReached": true,
+      "assessorReached": false,
+      "canonicalCaseEqualsJournal": true,
+      "argumentRepairVerification": {
+        "rawSelectedRequestIds": [
+          "slot_000:signal_0",
+          "slot_000:signal_1"
+        ],
+        "actualSignalAliases": [
+          "slot_000:signal_0"
+        ],
+        "rawRepairedArguments": {
+          "requestIds": [
+            "slot_000:signal_0"
+          ]
+        },
+        "oneRecordedArgumentRepairBeforeWriter": true,
+        "noRawResponseRewritten": true
+      },
+      "invariantEvidence": {
+        "allAtomsEmpty": true,
+        "allCoverageNotExplored": true,
+        "assessorNotReached": true,
+        "limitedDiversityCaveatPreservedInReview": true
+      }
+    },
+    {
+      "caseId": "complete-substantive-example",
+      "caseResult": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\live\\mindot_ai\\canary-retry10\\complete-substantive-example.json",
+        "sha256": "537ec05d1701b67395877f629d1fdc618d2a5559abfc6fab6e85545db4daaf9d",
+        "bytes": 233687
+      },
+      "canonicalVerdict": {
+        "status": "FAIL",
+        "evidence": "ACK help still emitted in FOR_1 slot_000; all four CONTENT arrays empty. Presentation target/aliases point ACK but signal target FOR_1; no valid slot003 signals. invalid_occurrence; no Writer/commit."
+      },
+      "review": {
+        "caseId": "complete-substantive-example",
+        "evidence": "ACK help still emitted in FOR_1 slot_000; all four CONTENT arrays empty. Presentation target/aliases point ACK but signal target FOR_1; no valid slot003 signals. invalid_occurrence; no Writer/commit.",
+        "status": "FAIL"
+      },
+      "usage": {
+        "promptTokens": 26149,
+        "completionTokens": 232,
+        "totalTokens": 26381
+      },
+      "calls": [
+        {
+          "invocationId": "234faf48-e1a8-4dc7-a3d9-8f81dfa6c880",
+          "component": "moderation",
+          "phase": null,
+          "moderation": true,
+          "httpStatus": 200,
+          "dispatchSequence": 64,
+          "rawSequence": 65,
+          "bodyBytes": 11411,
+          "bodySha256": "e38593324d42f98cd06994d67e32dbfacf8d46f34a92055eb45c6ff5ac2f8b2f",
+          "usage": null
+        },
+        {
+          "invocationId": "4aced685-818e-4698-b894-14a798c26769",
+          "component": "agent",
+          "phase": "SELECT",
+          "moderation": false,
+          "httpStatus": 200,
+          "dispatchSequence": 73,
+          "rawSequence": 74,
+          "bodyBytes": 1989,
+          "bodySha256": "d9e1bbc076fa4abf44a332cfe97e1f19094e74625e239a1b81f7059e57475b4a",
+          "usage": {
+            "prompt_tokens": 26149,
+            "completion_tokens": 232,
+            "total_tokens": 26381,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "audio_tokens": 0
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "audio_tokens": 0,
+              "accepted_prediction_tokens": 0,
+              "rejected_prediction_tokens": 0
+            }
+          }
+        }
+      ],
+      "generationPhases": [
+        "SELECT"
+      ],
+      "generationInvocations": 1,
+      "moderationInvocations": 1,
+      "publicResponseStatus": null,
+      "acceptedStatePresent": false,
+      "stateCommitted": false,
+      "acceptedHeadUnchangedOnAbort": true,
+      "callerDatabaseCommitKnown": false,
+      "error": {
+        "type": "CompletionTechnicalError",
+        "reason": "answer_review_batch_rejected:invalid_occurrence"
+      },
+      "actualModelResponsesReceived": 1,
+      "writerReached": false,
+      "assessorReached": false,
+      "canonicalCaseEqualsJournal": true,
+      "rawSlotOwnershipVerification": {
+        "signals": [
+          {
+            "slot": "slot_000",
+            "sourceQuestionCode": "FOR_1",
+            "signalType": "REQUEST_EXAMPLE",
+            "excerptSha256": "b275dc58d33ca7347a6124324a35e68c13c1ddcc36068406a18a3948dbeb6e48",
+            "occurrence": 0,
+            "belongsToOwnSource": false,
+            "alsoFoundInSlots": [
+              "slot_003"
+            ]
+          }
+        ],
+        "noRawRewriting": true,
+        "reviewLabelsAllSignalsAsHelpRequests": true,
+        "allProposedContributionsEmpty": true
+      },
+      "proposedContentVerification": {
+        "count": 0,
+        "entries": [],
+        "allFourContributionArraysEmpty": true,
+        "allReviewsRejectedAtomically": true,
+        "doesNotClaimSuccessfulContentExtraction": true
+      },
+      "requestTargetVerification": {
+        "rawPresentationTargetPendingId": "WI7",
+        "actualPresentationTargetQuestionCode": "ACK_4",
+        "actualHelpSourceQuestionCode": "ACK_4",
+        "actualSignalTargetQuestionCodes": [
+          "FOR_1"
+        ],
+        "presentationTargetMatchesHelpSourceButSignalTargetDoesNot": true,
+        "metadataDidNotAutoRepairOutput": true
+      },
+      "requestAliasVerification": {
+        "rawRequestIds": [
+          "slot_003:signal_0",
+          "slot_003:signal_1"
+        ],
+        "createdSignalAliases": [
+          "slot_000:signal_0"
+        ],
+        "nonexistentSignalAliases": [
+          "slot_003:signal_0",
+          "slot_003:signal_1"
+        ],
+        "bothAliasesReservedInActualSourceLocalInput": true,
+        "reservationDoesNotCreateActualRequest": true,
+        "notAutoRepairedOrCommitted": true
+      }
+    }
+  ],
+  "scheduledVerdicts": {
+    "example-only": {
+      "status": "PASS",
+      "evidence": "Explicit fictional A/B and one closer/neither; zero atoms and all NOT_EXPLORED; correct help fulfilled. SELECT phantom alias used permitted ARGUMENT_REPAIR, then Writer; 3 calls. Limited diversity caveat."
+    },
+    "complete-substantive-example": {
+      "status": "FAIL",
+      "evidence": "ACK help still emitted in FOR_1 slot_000; all four CONTENT arrays empty. Presentation target/aliases point ACK but signal target FOR_1; no valid slot003 signals. invalid_occurrence; no Writer/commit."
+    },
+    "no-clear-ready": {
+      "status": "NOT_RUN_CANARY_BLOCKED",
+      "evidence": "No invocation after complete-substantive-example received FAIL.",
+      "blockedByCaseId": "complete-substantive-example"
+    },
+    "false-boundary-trap": {
+      "status": "NOT_RUN_CANARY_BLOCKED",
+      "evidence": "No invocation after complete-substantive-example received FAIL.",
+      "blockedByCaseId": "complete-substantive-example"
+    },
+    "true-fact-boundary": {
+      "status": "NOT_RUN_CANARY_BLOCKED",
+      "evidence": "No invocation after complete-substantive-example received FAIL.",
+      "blockedByCaseId": "complete-substantive-example"
+    },
+    "contextual-safety": {
+      "status": "NOT_RUN_CANARY_BLOCKED",
+      "evidence": "No invocation after complete-substantive-example received FAIL.",
+      "blockedByCaseId": "complete-substantive-example"
+    },
+    "after-example-resolved": {
+      "status": "NOT_RUN_CANARY_BLOCKED",
+      "evidence": "No invocation after complete-substantive-example received FAIL.",
+      "blockedByCaseId": "complete-substantive-example"
+    },
+    "after-real-gap": {
+      "status": "NOT_RUN_CANARY_BLOCKED",
+      "evidence": "No invocation after complete-substantive-example received FAIL.",
+      "blockedByCaseId": "complete-substantive-example"
+    },
+    "after-safety-resolved": {
+      "status": "NOT_RUN_CANARY_BLOCKED",
+      "evidence": "No invocation after complete-substantive-example received FAIL.",
+      "blockedByCaseId": "complete-substantive-example"
+    }
+  },
+  "workerTermination": {
+    "evidenceSource": "ROOT_TOOL_OBSERVATION",
+    "processSessionId": 25229,
+    "exitCode": 0,
+    "canonicalFinishIndependentlyVerified": true
+  },
+  "frozenCandidateVerification": {
+    "checked": 50,
+    "matched": 50,
+    "mismatched": 0,
+    "mismatches": [],
+    "sourceSetSha256": "f4fa31387855250597e68a04b6e09d3bcade680ad406dcbfa0d5e54c1278e927",
+    "snapshotReceipt": {
+      "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\snapshot-REPAIR-13.json",
+      "sha256": "c968397b266cee65664871d896d9026900fb7301f30899e0be954c64c0a0287d",
+      "bytes": 14860
+    }
+  },
+  "frozenRunnerVerification": {
+    "checked": 50,
+    "matched": 50,
+    "mismatched": 0,
+    "mismatches": []
+  },
+  "sourceRevisionBinding": {
+    "afterFiles": [
+      {
+        "bytes": 31153,
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-13\\mindot_ai\\cbt_q11\\prompts.py",
+        "sha256": "5f1d9a0ea3cf6fe9766108620f3fa8cb9f0485d0a188b8e9c521973ac18b5f9d"
+      },
+      {
+        "bytes": 14484,
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-13\\mindot_ai\\cbt_q11\\provider.py",
+        "sha256": "e2867dc5958528de6914e669036f7bec0ff3f9a8b14e15d018b980941e57c3e4"
+      }
+    ],
+    "afterSourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-13\\mindot_ai",
+    "allOtherProductBytesUnchanged": true,
+    "allowedProductFiles": [
+      "cbt_q11/prompts.py",
+      "cbt_q11/provider.py"
+    ],
+    "authority": {
+      "bytes": 4480,
+      "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\reports\\retry10-authorization.md",
+      "sha256": "73808c850843fc3f88b3d26d0bc028fc62540188f94dfc90ab57e860550f716c"
+    },
+    "authorizedExactProductHashPairs": {
+      "cbt_q11/prompts.py": {
+        "afterSha256": "5f1d9a0ea3cf6fe9766108620f3fa8cb9f0485d0a188b8e9c521973ac18b5f9d",
+        "beforeSha256": "8d14b22485d020feecec586236c6a637f463e06947d8bb2170af7ce8b660585f"
+      },
+      "cbt_q11/provider.py": {
+        "afterSha256": "e2867dc5958528de6914e669036f7bec0ff3f9a8b14e15d018b980941e57c3e4",
+        "beforeSha256": "cce723a6fd8f16019395dc2564537c3de8621925537cff4cb31cf2db243276cb"
+      }
+    },
+    "beforeFiles": [
+      {
+        "bytes": 30441,
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-12\\mindot_ai\\cbt_q11\\prompts.py",
+        "sha256": "8d14b22485d020feecec586236c6a637f463e06947d8bb2170af7ce8b660585f"
+      },
+      {
+        "bytes": 12970,
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-12\\mindot_ai\\cbt_q11\\provider.py",
+        "sha256": "cce723a6fd8f16019395dc2564537c3de8621925537cff4cb31cf2db243276cb"
+      }
+    ],
+    "beforeSourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-12\\mindot_ai",
+    "candidateSourceSetSha256": "f4fa31387855250597e68a04b6e09d3bcade680ad406dcbfa0d5e54c1278e927",
+    "changedFiles": [
+      "cbt_q11/prompts.py",
+      "cbt_q11/provider.py",
+      "tests/test_cbt_bounded_schema_compaction.py",
+      "tests/test_cbt_q11.py",
+      "tests/test_cbt_whole_flow_writer.py"
+    ],
+    "promptEffectivenessUnprovenUntilLiveOutput": true
+  },
+  "systemPromptVerification": {
+    "frozenPromptModule": {
+      "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-13\\mindot_ai\\cbt_q11\\prompts.py",
+      "sha256": "5f1d9a0ea3cf6fe9766108620f3fa8cb9f0485d0a188b8e9c521973ac18b5f9d",
+      "bytes": 31153
+    },
+    "sourceReadMethod": "STATIC_AST_LITERAL_ONLY_NO_PRODUCT_IMPORT",
+    "actualSystemPromptHashesByCaseAndPhase": [
+      {
+        "caseId": "example-only",
+        "phase": "SELECT",
+        "actualSystemPromptHashes": [
+          "cb4b3c4ff2c0408f985753a0f4a2a95dd0da3fe52a7a4608ed2c1b07bf3d6343"
+        ]
+      },
+      {
+        "caseId": "example-only",
+        "phase": "ARGUMENT_REPAIR",
+        "actualSystemPromptHashes": [
+          "cb482c19d887a73e64003fd2dbd7d0ea208649319745d77401f52aaaf087904b"
+        ]
+      },
+      {
+        "caseId": "example-only",
+        "phase": "WRITER",
+        "actualSystemPromptHashes": [
+          "097620e26a0261bc5ef3678faca6d730fce865e565726901b7e31664e94ebd81"
+        ]
+      },
+      {
+        "caseId": "complete-substantive-example",
+        "phase": "SELECT",
+        "actualSystemPromptHashes": [
+          "cb4b3c4ff2c0408f985753a0f4a2a95dd0da3fe52a7a4608ed2c1b07bf3d6343"
+        ]
+      }
+    ],
+    "allSentPromptsMatchSourceAndDiagnostics": true
+  },
+  "priorAttemptsVerification": [
+    {
+      "attempt": 1,
+      "report": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\reports\\canary-attempt-01-finalization.json",
+        "sha256": "c5819eaee2b4fcb981b01476e5d450a395df1a302f3ebffd0f8761b6afcf60f4",
+        "bytes": 8953
+      },
+      "priorLock": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\locks\\canary\\files.json",
+        "sha256": "bfb635e8a72ee023024ce9095bd7696a16b314e2e8dabd6a7a201390395e7b42",
+        "bytes": 37008
+      },
+      "lockPostCheck": {
+        "checked": 152,
+        "matched": 152,
+        "mismatched": 0,
+        "mismatches": []
+      },
+      "priorClaimAndRawUnmodified": true,
+      "journalChainValid": true,
+      "journalEventCount": 27,
+      "reader": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\frozen-runner\\journal.py",
+        "sha256": "de8dca9203445781f0230911f97f42540b196f54a8bcd5cd10ec063319fa03f3",
+        "bytes": 6301
+      },
+      "canonicalEngineFinish": false,
+      "generationInvocations": 1,
+      "moderationInvocations": 1,
+      "actualTotalTokens": 12718,
+      "knownPromptTokens": 12572,
+      "knownCompletionTokens": 146,
+      "actualUsageStatus": "KNOWN",
+      "reservedTokensRetained": null
+    },
+    {
+      "attempt": 2,
+      "report": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\reports\\canary-attempt-02-finalization.json",
+        "sha256": "d3a2aa43887de1260f61c00631186f0ca1e5e2101bd097f29a84e5cd70589272",
+        "bytes": 12697
+      },
+      "priorLock": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\locks\\canary-retry01\\files.json",
+        "sha256": "bf32ffc63e5d699865f669a2f9c76b6e461732cb361a2f466d8b3a183b914e4b",
+        "bytes": 42979
+      },
+      "lockPostCheck": {
+        "checked": 166,
+        "matched": 166,
+        "mismatched": 0,
+        "mismatches": []
+      },
+      "priorClaimAndRawUnmodified": true,
+      "journalChainValid": true,
+      "journalEventCount": 61,
+      "reader": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\frozen-runner-retry01\\journal.py",
+        "sha256": "de8dca9203445781f0230911f97f42540b196f54a8bcd5cd10ec063319fa03f3",
+        "bytes": 6301
+      },
+      "canonicalEngineFinish": true,
+      "generationInvocations": 3,
+      "moderationInvocations": 1,
+      "actualTotalTokens": 17431,
+      "knownPromptTokens": 17167,
+      "knownCompletionTokens": 264,
+      "actualUsageStatus": "KNOWN",
+      "reservedTokensRetained": null
+    },
+    {
+      "attempt": 3,
+      "report": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\reports\\canary-attempt-03-finalization.json",
+        "sha256": "83671f2c2098909b74a09062d515723723bf69dc81c01e513bdaf5fbe7bffda8",
+        "bytes": 13400
+      },
+      "priorLock": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\locks\\canary-retry02\\files.json",
+        "sha256": "c8dfcda10488ce9611a83ff3c7a7e77ab17968746447b4a0321108f7fb9bf6ac",
+        "bytes": 49091
+      },
+      "lockPostCheck": {
+        "checked": 181,
+        "matched": 181,
+        "mismatched": 0,
+        "mismatches": []
+      },
+      "priorClaimAndRawUnmodified": true,
+      "journalChainValid": true,
+      "journalEventCount": 63,
+      "reader": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\frozen-runner-retry02\\journal.py",
+        "sha256": "de8dca9203445781f0230911f97f42540b196f54a8bcd5cd10ec063319fa03f3",
+        "bytes": 6301
+      },
+      "canonicalEngineFinish": true,
+      "generationInvocations": 3,
+      "moderationInvocations": 1,
+      "actualTotalTokens": 17806,
+      "knownPromptTokens": 17518,
+      "knownCompletionTokens": 288,
+      "actualUsageStatus": "KNOWN",
+      "reservedTokensRetained": null
+    },
+    {
+      "attempt": 4,
+      "report": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\reports\\canary-attempt-04-finalization.json",
+        "sha256": "62c291e28fffe324fbb2aa9824092fe6fcc5af110a61966882a0c4aa61524cf1",
+        "bytes": 14252
+      },
+      "priorLock": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\locks\\canary-retry03\\files.json",
+        "sha256": "fe737ed8595de89b8c34ea24328bea0bcb5c7f1a6416a4ae7f0071a6693c3be0",
+        "bytes": 54208
+      },
+      "lockPostCheck": {
+        "checked": 194,
+        "matched": 194,
+        "mismatched": 0,
+        "mismatches": []
+      },
+      "priorClaimAndRawUnmodified": true,
+      "journalChainValid": true,
+      "journalEventCount": 63,
+      "reader": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\frozen-runner-retry03\\journal.py",
+        "sha256": "de8dca9203445781f0230911f97f42540b196f54a8bcd5cd10ec063319fa03f3",
+        "bytes": 6301
+      },
+      "canonicalEngineFinish": true,
+      "generationInvocations": 3,
+      "moderationInvocations": 1,
+      "actualTotalTokens": 18819,
+      "knownPromptTokens": 18521,
+      "knownCompletionTokens": 298,
+      "actualUsageStatus": "KNOWN",
+      "reservedTokensRetained": null
+    },
+    {
+      "attempt": 5,
+      "report": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\reports\\canary-attempt-05-finalization.json",
+        "sha256": "c8122eef44514f1513dfa50a3c75a92c0fed4311068358775368a18c83fe8c32",
+        "bytes": 20750
+      },
+      "priorLock": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\locks\\canary-retry04\\files.json",
+        "sha256": "1a1e81b2c2c9582086fe22476069a43133889767076cc0621d9f2d905dcbcf98",
+        "bytes": 75676
+      },
+      "lockPostCheck": {
+        "checked": 260,
+        "matched": 260,
+        "mismatched": 0,
+        "mismatches": []
+      },
+      "priorClaimAndRawUnmodified": true,
+      "journalChainValid": true,
+      "journalEventCount": 33,
+      "reader": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\frozen-runner-retry04\\journal.py",
+        "sha256": "de8dca9203445781f0230911f97f42540b196f54a8bcd5cd10ec063319fa03f3",
+        "bytes": 6301
+      },
+      "canonicalEngineFinish": true,
+      "generationInvocations": 1,
+      "moderationInvocations": 1,
+      "actualTotalTokens": null,
+      "knownPromptTokens": null,
+      "knownCompletionTokens": null,
+      "actualUsageStatus": "UNKNOWN",
+      "reservedTokensRetained": 18806
+    },
+    {
+      "attempt": 6,
+      "report": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\reports\\canary-attempt-06-finalization.json",
+        "sha256": "f244e22b2cf6e0fcbff973c59b714dc85b3a0b3f3aa9b4e95381e43a4ce6aadb",
+        "bytes": 26652
+      },
+      "priorLock": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\locks\\canary-retry05\\files.json",
+        "sha256": "3753e9d10c6c307de8e2eb68b05442384eefc0728839d3a7d0536179882dbea8",
+        "bytes": 85034
+      },
+      "lockPostCheck": {
+        "checked": 273,
+        "matched": 273,
+        "mismatched": 0,
+        "mismatches": []
+      },
+      "priorClaimAndRawUnmodified": true,
+      "journalChainValid": true,
+      "journalEventCount": 63,
+      "reader": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\frozen-runner-retry04\\journal.py",
+        "sha256": "de8dca9203445781f0230911f97f42540b196f54a8bcd5cd10ec063319fa03f3",
+        "bytes": 6301
+      },
+      "canonicalEngineFinish": true,
+      "generationInvocations": 3,
+      "moderationInvocations": 1,
+      "actualTotalTokens": 19215,
+      "knownPromptTokens": 18884,
+      "knownCompletionTokens": 331,
+      "actualUsageStatus": "KNOWN",
+      "reservedTokensRetained": null
+    },
+    {
+      "attempt": 7,
+      "report": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\reports\\canary-attempt-07-finalization.json",
+        "sha256": "1d8e159d62b435d1cfad08e8ebac9ec0982df775683e7f0acfd595e54c7ae93b",
+        "bytes": 31797
+      },
+      "priorLock": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\locks\\canary-retry06\\files.json",
+        "sha256": "2e630165baf8d53c4595de8b8b4c587368294d0df4fac7a111b5fdd86d0aefb7",
+        "bytes": 113920
+      },
+      "lockPostCheck": {
+        "checked": 340,
+        "matched": 340,
+        "mismatched": 0,
+        "mismatches": []
+      },
+      "priorClaimAndRawUnmodified": true,
+      "journalChainValid": true,
+      "journalEventCount": 91,
+      "reader": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\frozen-runner-retry04\\journal.py",
+        "sha256": "de8dca9203445781f0230911f97f42540b196f54a8bcd5cd10ec063319fa03f3",
+        "bytes": 6301
+      },
+      "canonicalEngineFinish": true,
+      "generationInvocations": 4,
+      "moderationInvocations": 2,
+      "actualTotalTokens": 40493,
+      "knownPromptTokens": 39640,
+      "knownCompletionTokens": 853,
+      "actualUsageStatus": "KNOWN",
+      "reservedTokensRetained": null
+    },
+    {
+      "attempt": 8,
+      "report": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\reports\\canary-attempt-08-finalization.json",
+        "sha256": "5e1222d5c46dd82377c398277df58ae87f9143f29c7dc951646f7ed4dbb91006",
+        "bytes": 30954
+      },
+      "priorLock": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\locks\\canary-retry07\\files.json",
+        "sha256": "9dad9994ad0e5ebfa76a91cc3e28efddb6aa6cd7983e1b98b6a879b7a565cd86",
+        "bytes": 142243
+      },
+      "lockPostCheck": {
+        "checked": 407,
+        "matched": 407,
+        "mismatched": 0,
+        "mismatches": []
+      },
+      "priorClaimAndRawUnmodified": true,
+      "journalChainValid": true,
+      "journalEventCount": 79,
+      "reader": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\frozen-runner-retry04\\journal.py",
+        "sha256": "de8dca9203445781f0230911f97f42540b196f54a8bcd5cd10ec063319fa03f3",
+        "bytes": 6301
+      },
+      "canonicalEngineFinish": true,
+      "generationInvocations": 3,
+      "moderationInvocations": 2,
+      "actualTotalTokens": 43205,
+      "knownPromptTokens": 42735,
+      "knownCompletionTokens": 470,
+      "actualUsageStatus": "KNOWN",
+      "reservedTokensRetained": null
+    },
+    {
+      "attempt": 9,
+      "report": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\reports\\canary-attempt-09-finalization.json",
+        "sha256": "156be727a6ccc7753a6f0fc8accbf0c17ed8111776f7fd282315ecb00ccd5948",
+        "bytes": 34088
+      },
+      "priorLock": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\locks\\canary-retry08\\files.json",
+        "sha256": "294849f54e6640c63003f0e0a875e6d2efcbc69e61b49908cf4eb00a99f48306",
+        "bytes": 171298
+      },
+      "lockPostCheck": {
+        "checked": 474,
+        "matched": 474,
+        "mismatched": 0,
+        "mismatches": []
+      },
+      "priorClaimAndRawUnmodified": true,
+      "journalChainValid": true,
+      "journalEventCount": 79,
+      "reader": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\frozen-runner-retry04\\journal.py",
+        "sha256": "de8dca9203445781f0230911f97f42540b196f54a8bcd5cd10ec063319fa03f3",
+        "bytes": 6301
+      },
+      "canonicalEngineFinish": true,
+      "generationInvocations": 3,
+      "moderationInvocations": 2,
+      "actualTotalTokens": 44323,
+      "knownPromptTokens": 43678,
+      "knownCompletionTokens": 645,
+      "actualUsageStatus": "KNOWN",
+      "reservedTokensRetained": null
+    },
+    {
+      "attempt": 10,
+      "report": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\reports\\canary-attempt-10-finalization.json",
+        "sha256": "fafa72cf76edaaa05f45de916038f4f1fe69dd1110e3cd7459e3cf8426a6ded2",
+        "bytes": 35958
+      },
+      "priorLock": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\locks\\canary-retry09\\files.json",
+        "sha256": "cde511c14e88da4f4c187d3273a26f42dece5f4367b6da38f4938b97c8f83aed",
+        "bytes": 199954
+      },
+      "lockPostCheck": {
+        "checked": 541,
+        "matched": 541,
+        "mismatched": 0,
+        "mismatches": []
+      },
+      "priorClaimAndRawUnmodified": true,
+      "journalChainValid": true,
+      "journalEventCount": 79,
+      "reader": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\frozen-runner-retry04\\journal.py",
+        "sha256": "de8dca9203445781f0230911f97f42540b196f54a8bcd5cd10ec063319fa03f3",
+        "bytes": 6301
+      },
+      "canonicalEngineFinish": true,
+      "generationInvocations": 3,
+      "moderationInvocations": 2,
+      "actualTotalTokens": 44543,
+      "knownPromptTokens": 43884,
+      "knownCompletionTokens": 659,
+      "actualUsageStatus": "KNOWN",
+      "reservedTokensRetained": null
+    }
+  ],
+  "cumulativeUsage": {
+    "attempts": 11,
+    "generationInvocations": 31,
+    "moderationInvocations": 16,
+    "invocationCountsAreDispatchAttemptsNotAllConfirmedProviderExecutions": true,
+    "knownActualTotalTokens": 305355,
+    "knownPromptTokens": 300894,
+    "knownCompletionTokens": 4461,
+    "actualTotalTokens": null,
+    "actualTotalTokensStatus": "UNKNOWN_ATTEMPT_05_USAGE_RETAINED",
+    "currentAttemptActualTokens": 46802,
+    "unknownAttemptNumbers": [
+      5
+    ],
+    "unknownAttemptsReservedTokensRetained": 18806,
+    "knownPlusReservedAccountingTokens": 324161,
+    "accountingSumIsNotActualUsageOrInvoice": true,
+    "priorPaidUsageNotReset": true
+  },
+  "offlineGate": {
+    "receipt": {
+      "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\offline\\mindot_ai\\runs\\repair-13\\results\\offline-result.json",
+      "sha256": "384ba6e3a1325cc8524b4026e37fed731627a1a59b963377d2df29eeb24d07d1",
+      "bytes": 255991
+    },
+    "status": "OFFLINE_PASSED",
+    "counts": {
+      "discovered": 121,
+      "executed": 121,
+      "passed": 121,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "expectedFailures": 0,
+      "unexpectedSuccesses": 0,
+      "subtests": 516,
+      "notRun": 0
+    },
+    "sourceBytesUnchangedDuringRun": true,
+    "paidCalls": 0,
+    "offlineSuccessIsNotLiveCanarySuccess": true
+  },
+  "terminalUserInstruction": {
+    "evidenceSource": "ROOT_USER_INSTRUCTION_OBSERVATION",
+    "noFurtherRepairOrRetry": true,
+    "formalEvaluationNotAuthorizedAfterThisFailure": true,
+    "remainingActions": "PRESERVE_FULL_AUDIT_DELIVER_STATUS_AND_ROOT_CONTROLLED_NORMAL_SHUTDOWN",
+    "deliveryOrShutdownPerformedByAudit": false
+  },
+  "formalEvaluation": {
+    "plannedCases": 368,
+    "attemptedCases": 0,
+    "status": "NOT_RUN",
+    "evidenceSource": "ROOT_TOOL_OBSERVATION_AND_CANARY_GATING"
+  },
+  "hiddenHoldout": {
+    "plaintextReadByAudit": false,
+    "plaintextReadByRunReported": false,
+    "evidenceSourceForRun": "FROZEN_LOCK_DECLARATION_AND_ROOT_OBSERVATION"
+  },
+  "limitations": [
+    "Canary development reviews are preserved, not formal evaluation grades.",
+    "Example-only PASS does not mean ideal variety or success on later cases.",
+    "Case2 rejected after an actual SELECT response; no Writer or state commit occurred for that case.",
+    "Attempt05 provider execution and usage remain UNKNOWN; later responses do not erase that uncertainty."
+  ],
+  "auditExecution": {
+    "productImports": 0,
+    "sdkImports": 0,
+    "paidCalls": 0,
+    "realCredentialReads": 0,
+    "holdoutPlaintextReads": 0,
+    "networkAllowed": false,
+    "guardEvents": [],
+    "helper": {
+      "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\reports\\finalize_canary_attempt_11.py",
+      "sha256": "817f5ff3a49b07fbf806b68a5292ec40a98f52cc42add41b7f36bfce76bc7509",
+      "bytes": 34793
+    }
+  }
+}

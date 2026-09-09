@@ -1,0 +1,278 @@
+{
+  "status": "PASS",
+  "testsRun": 12,
+  "testsFailed": 0,
+  "successfulFakeProductRequests": 27,
+  "sdkFakeGenerationDispatches": 52,
+  "actualLiveCalls": 0,
+  "commonNeutralExports": 29,
+  "publicOpenAPIEqual": true,
+  "openapiSha256": "27b96486bd1f060dc45dba19d2899a6401fc09870894b82e1cc9ea9fb4f07ba5",
+  "maximumInputEstimate": 21113,
+  "maximumRequestBytes": 87011,
+  "capacityDefaultSufficient": true,
+  "inputTokenCap": 48000,
+  "inputByteCap": 196608,
+  "measurements": [
+    {
+      "inputEstimate": 5649,
+      "requestBytes": 22441,
+      "reservation": 18078
+    },
+    {
+      "inputEstimate": 1008,
+      "requestBytes": 3878,
+      "reservation": 2414
+    },
+    {
+      "inputEstimate": 5933,
+      "requestBytes": 23264,
+      "reservation": 18575
+    },
+    {
+      "inputEstimate": 1448,
+      "requestBytes": 5187,
+      "reservation": 3184
+    },
+    {
+      "inputEstimate": 6399,
+      "requestBytes": 24756,
+      "reservation": 19391
+    },
+    {
+      "inputEstimate": 5649,
+      "requestBytes": 22441,
+      "reservation": 18078
+    },
+    {
+      "inputEstimate": 949,
+      "requestBytes": 3282,
+      "reservation": 2861
+    },
+    {
+      "inputEstimate": 2676,
+      "requestBytes": 10480,
+      "reservation": 6483
+    },
+    {
+      "inputEstimate": 6006,
+      "requestBytes": 23555,
+      "reservation": 18703
+    },
+    {
+      "inputEstimate": 1424,
+      "requestBytes": 5156,
+      "reservation": 3142
+    },
+    {
+      "inputEstimate": 6365,
+      "requestBytes": 24688,
+      "reservation": 19331
+    },
+    {
+      "inputEstimate": 1651,
+      "requestBytes": 5421,
+      "reservation": 4090
+    },
+    {
+      "inputEstimate": 3364,
+      "requestBytes": 12631,
+      "reservation": 7687
+    },
+    {
+      "inputEstimate": 6692,
+      "requestBytes": 25886,
+      "reservation": 19903
+    },
+    {
+      "inputEstimate": 5649,
+      "requestBytes": 22441,
+      "reservation": 18078
+    },
+    {
+      "inputEstimate": 1008,
+      "requestBytes": 3878,
+      "reservation": 2414
+    },
+    {
+      "inputEstimate": 5911,
+      "requestBytes": 23264,
+      "reservation": 18537
+    },
+    {
+      "inputEstimate": 1325,
+      "requestBytes": 4869,
+      "reservation": 2969
+    },
+    {
+      "inputEstimate": 6315,
+      "requestBytes": 24501,
+      "reservation": 19244
+    },
+    {
+      "inputEstimate": 1633,
+      "requestBytes": 5766,
+      "reservation": 3508
+    },
+    {
+      "inputEstimate": 6617,
+      "requestBytes": 25493,
+      "reservation": 19772
+    },
+    {
+      "inputEstimate": 1883,
+      "requestBytes": 6590,
+      "reservation": 3946
+    },
+    {
+      "inputEstimate": 5649,
+      "requestBytes": 22441,
+      "reservation": 18078
+    },
+    {
+      "inputEstimate": 1008,
+      "requestBytes": 3878,
+      "reservation": 2414
+    },
+    {
+      "inputEstimate": 20427,
+      "requestBytes": 84775,
+      "reservation": 43940
+    },
+    {
+      "inputEstimate": 14754,
+      "requestBytes": 62372,
+      "reservation": 26470
+    },
+    {
+      "inputEstimate": 20882,
+      "requestBytes": 86189,
+      "reservation": 44736
+    },
+    {
+      "inputEstimate": 15123,
+      "requestBytes": 63466,
+      "reservation": 27116
+    },
+    {
+      "inputEstimate": 21113,
+      "requestBytes": 87011,
+      "reservation": 45140
+    },
+    {
+      "inputEstimate": 15311,
+      "requestBytes": 64128,
+      "reservation": 27445
+    },
+    {
+      "inputEstimate": 5649,
+      "requestBytes": 22441,
+      "reservation": 18078
+    },
+    {
+      "inputEstimate": 1008,
+      "requestBytes": 3878,
+      "reservation": 2414
+    },
+    {
+      "inputEstimate": 5911,
+      "requestBytes": 23231,
+      "reservation": 18537
+    },
+    {
+      "inputEstimate": 1255,
+      "requestBytes": 4612,
+      "reservation": 2847
+    },
+    {
+      "inputEstimate": 5649,
+      "requestBytes": 22441,
+      "reservation": 18078
+    },
+    {
+      "inputEstimate": 1008,
+      "requestBytes": 3878,
+      "reservation": 2414
+    },
+    {
+      "inputEstimate": 5943,
+      "requestBytes": 23245,
+      "reservation": 18593
+    },
+    {
+      "inputEstimate": 6306,
+      "requestBytes": 24542,
+      "reservation": 19228
+    },
+    {
+      "inputEstimate": 1604,
+      "requestBytes": 5750,
+      "reservation": 3457
+    },
+    {
+      "inputEstimate": 5649,
+      "requestBytes": 22441,
+      "reservation": 18078
+    },
+    {
+      "inputEstimate": 5942,
+      "requestBytes": 23320,
+      "reservation": 18591
+    },
+    {
+      "inputEstimate": 1282,
+      "requestBytes": 4680,
+      "reservation": 2894
+    },
+    {
+      "inputEstimate": 6224,
+      "requestBytes": 24217,
+      "reservation": 19084
+    },
+    {
+      "inputEstimate": 5649,
+      "requestBytes": 22441,
+      "reservation": 18078
+    },
+    {
+      "inputEstimate": 988,
+      "requestBytes": 3468,
+      "reservation": 2929
+    },
+    {
+      "inputEstimate": 2676,
+      "requestBytes": 10480,
+      "reservation": 6483
+    },
+    {
+      "inputEstimate": 5649,
+      "requestBytes": 22441,
+      "reservation": 18078
+    },
+    {
+      "inputEstimate": 905,
+      "requestBytes": 3094,
+      "reservation": 2784
+    },
+    {
+      "inputEstimate": 2676,
+      "requestBytes": 10480,
+      "reservation": 6483
+    },
+    {
+      "inputEstimate": 5649,
+      "requestBytes": 22441,
+      "reservation": 18078
+    },
+    {
+      "inputEstimate": 1008,
+      "requestBytes": 3878,
+      "reservation": 2414
+    },
+    {
+      "inputEstimate": 708,
+      "requestBytes": 2474,
+      "reservation": 1889
+    }
+  ]
+}

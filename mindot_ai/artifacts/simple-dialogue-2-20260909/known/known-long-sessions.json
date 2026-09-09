@@ -1,0 +1,108 @@
+[
+  {
+    "sessionCaseId": "Q9_LONG_UNCLEAR",
+    "versions": [
+      "Q8",
+      "Q9"
+    ],
+    "flow": "START_CONTINUE_REMOVE_REHYDRATE",
+    "recordSourceCaseId": "A01",
+    "maxTurns": 6,
+    "removeRuntimeAfterTurn": 4,
+    "answerStrategy": {
+      "sequence": [
+        "잘 판단하기 어려워요.",
+        "아직 잘 모르겠어요.",
+        "명확히 답하기 힘들어요.",
+        "지금은 모르겠어요.",
+        "다른 방향을 고를게요."
+      ],
+      "default": "잘 모르겠어요."
+    },
+    "requiredGates": [
+      "respond_to_uncertainty_without_fabricating_an_answer",
+      "preserve_relevant_public_behavior_after_rehydration",
+      "no_unhelpful_repetition_in_actual_question_history",
+      "retain_valid_user_information"
+    ]
+  },
+  {
+    "sessionCaseId": "Q9_LONG_SKIPPED",
+    "versions": [
+      "Q8",
+      "Q9"
+    ],
+    "flow": "START_CONTINUE_REMOVE_REHYDRATE",
+    "recordSourceCaseId": "B01",
+    "maxTurns": 6,
+    "removeRuntimeAfterTurn": 4,
+    "answerStrategy": {
+      "sequence": [
+        "이 질문은 건너뛸게요.",
+        "이번에도 답하지 않을게요.",
+        "이 부분은 넘어가고 싶어요.",
+        "계속 건너뛸게요.",
+        "다른 주제를 선택할게요."
+      ],
+      "default": "건너뛸게요."
+    },
+    "requiredGates": [
+      "respect_skip_without_reasking_the_declined_information",
+      "preserve_relevant_public_behavior_after_rehydration",
+      "no_unhelpful_repetition_in_actual_question_history",
+      "do_not_treat_skip_or_feedback_as_factual_evidence"
+    ]
+  },
+  {
+    "sessionCaseId": "Q9_LONG_FEEDBACK",
+    "versions": [
+      "Q8",
+      "Q9"
+    ],
+    "flow": "START_CONTINUE_REMOVE_REHYDRATE",
+    "recordSourceCaseId": "C01",
+    "maxTurns": 6,
+    "removeRuntimeAfterTurn": 5,
+    "answerStrategy": {
+      "sequence": [
+        "그건 핵심과 관련 없는 질문 같아요.",
+        "비슷한 질문이 반복돼요.",
+        "그 방향은 그만 묻고 싶어요.",
+        "다른 방식으로 진행해 주세요.",
+        "이제 제가 방향을 고를게요."
+      ],
+      "default": "다른 방향으로 진행해 주세요."
+    },
+    "requiredGates": [
+      "respond_to_the_actual_cbt_feedback",
+      "preserve_relevant_public_behavior_after_rehydration",
+      "do_not_reask_the_same_declined_information",
+      "do_not_treat_skip_or_feedback_as_factual_evidence"
+    ]
+  },
+  {
+    "sessionCaseId": "Q9_LONG_REHYDRATE_READY",
+    "versions": [
+      "Q8",
+      "Q9"
+    ],
+    "flow": "START_CONTINUE_4_REMOVE_REHYDRATE",
+    "recordSourceCaseId": "D06",
+    "maxTurns": 5,
+    "removeRuntimeAfterTurn": 4,
+    "answerStrategy": {
+      "sequence": [
+        "이번 면접에서는 직무 경험 설명이 부족하다는 피드백을 받았어요. 이전 면접에서는 합격한 적이 있고 업무 성과도 인정받았어요. 이번 결과가 제 모든 능력이나 앞으로의 결과까지 뜻하는지는 잘 모르겠어요.",
+        "새로 덧붙일 사실은 없어요. 이번 불합격을 모든 능력과 앞으로의 결과로 넓혀 생각했다는 점은 알겠어요.",
+        "현재 말한 내용은 그대로예요. 같은 내용을 더 반복해서 답하고 싶지는 않아요."
+      ],
+      "default": "지금은 더 떠오르는 내용이 없어요."
+    },
+    "requiredGates": [
+      "preserve_relevant_public_behavior_after_rehydration",
+      "base_assessment_on_actual_valid_answers_after_restore",
+      "ground_factual_claims_in_actual_user_evidence",
+      "retain_valid_user_information"
+    ]
+  }
+]

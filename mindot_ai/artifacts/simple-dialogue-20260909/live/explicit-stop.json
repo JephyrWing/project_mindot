@@ -1,0 +1,884 @@
+{
+  "caseId": "explicit-stop",
+  "status": "REQUIRES_FUNCTION_REVIEW",
+  "request": {
+    "requestId": "99dfae3e-76ac-5f06-8291-c8978a8e8837",
+    "sessionId": 11904,
+    "currentStep": "ROOT_1",
+    "record": {
+      "recordId": 11904,
+      "situation": "보고서의 오류 한 곳을 지적받았다.",
+      "automaticThought": "보고서에서 오류 한 곳을 지적받았으니 내 능력 전체가 부족하다.",
+      "primaryEmotionCode": null,
+      "primaryIntensity": null,
+      "beforeBeliefStrength": null,
+      "contextCategory": null
+    },
+    "questionAnswers": [
+      {
+        "questionCode": "ROOT_1",
+        "questionPurpose": "EVIDENCE_FOR",
+        "semanticRouteType": "DIRECT_WORD_OR_ACTION",
+        "question": "그 생각을 하게 된 구체적인 장면은 무엇인가요?",
+        "answer": "오늘은 성찰을 그만하고 싶어요. 더 질문하지 말고 중단하는 방법을 알려주세요.",
+        "askedAt": "2026-09-09T00:00:00Z",
+        "answeredAt": "2026-09-09T00:01:00Z"
+      }
+    ],
+    "beforeDistortions": []
+  },
+  "response": {
+    "requestId": "99dfae3e-76ac-5f06-8291-c8978a8e8837",
+    "status": "CONTINUE",
+    "assessmentType": null,
+    "nextQuestion": {
+      "questionCode": "SD_07E8498843E5A73D452528C9",
+      "questionPurpose": "FREE_REFLECTION",
+      "semanticRouteType": "USER_SELECTED_DIRECTION",
+      "question": "사용자가 성찰을 중단하고 싶어하는 이유를 이해하고 지원하기 위해 어떤 방법이 필요할까요?"
+    },
+    "beforeDistortions": [],
+    "outcomeDraft": null,
+    "confirmationRequiredFields": [],
+    "acknowledgementEvidence": null,
+    "acknowledgementSourceQuestionCode": null,
+    "proposalMessage": null,
+    "risk": {
+      "level": "NONE",
+      "reasonCode": null
+    },
+    "meta": {
+      "model": "gpt-4o-mini",
+      "promptVersion": "simple-dialogue-1"
+    }
+  },
+  "error": null,
+  "technicalFailures": [],
+  "elapsedSeconds": 3.5233783000003314,
+  "acceptedState": {
+    "corrections": [],
+    "current": {
+      "record:11904:automaticThought": "S2",
+      "record:11904:situation": "S1",
+      "session:11904:record:11904:answer:ROOT_1": "S3"
+    },
+    "events": [
+      {
+        "note": "사용자가 성찰을 중단하고 싶어함.",
+        "questionCode": "ROOT_1",
+        "sourceId": "S3",
+        "status": "ANSWERED",
+        "type": "GOAL"
+      }
+    ],
+    "gap": null,
+    "goals": {
+      "ROOT_1": {
+        "dependency": {
+          "end": 43,
+          "sourceId": "S3",
+          "start": 0
+        },
+        "invalidated": false,
+        "note": "사용자가 성찰을 중단하고 싶어함.",
+        "questionCode": "ROOT_1",
+        "status": "ANSWERED"
+      },
+      "SD_07E8498843E5A73D452528C9": {
+        "focus": "사용자가 성찰을 중단하고 싶어하는 이유를 이해하고 지원하기 위해.",
+        "questionCode": "SD_07E8498843E5A73D452528C9",
+        "status": "OPEN"
+      }
+    },
+    "history": [
+      {
+        "answerSourceId": "S3",
+        "answeredAt": "2026-09-09T00:01:00Z",
+        "askedAt": "2026-09-09T00:00:00Z",
+        "questionCode": "ROOT_1"
+      }
+    ],
+    "identity": [
+      11904,
+      11904
+    ],
+    "legacySnapshot": null,
+    "pendingQuestion": "SD_07E8498843E5A73D452528C9",
+    "questions": {
+      "ROOT_1": {
+        "question": "그 생각을 하게 된 구체적인 장면은 무엇인가요?",
+        "questionCode": "ROOT_1",
+        "questionPurpose": "EVIDENCE_FOR",
+        "semanticRouteType": "DIRECT_WORD_OR_ACTION"
+      },
+      "SD_07E8498843E5A73D452528C9": {
+        "control": null,
+        "episodeId": null,
+        "focus": "사용자가 성찰을 중단하고 싶어하는 이유를 이해하고 지원하기 위해.",
+        "gapId": null,
+        "mode": "NORMAL",
+        "move": "USER_DIRECTION",
+        "question": "사용자가 성찰을 중단하고 싶어하는 이유를 이해하고 지원하기 위해 어떤 방법이 필요할까요?",
+        "questionCode": "SD_07E8498843E5A73D452528C9",
+        "questionPurpose": "FREE_REFLECTION",
+        "semanticRouteType": "USER_SELECTED_DIRECTION",
+        "targetQuestionCode": null
+      }
+    },
+    "record": {
+      "automaticThoughtSourceId": "S2",
+      "beforeBeliefStrength": null,
+      "contextCategory": null,
+      "primaryEmotionCode": null,
+      "primaryIntensity": null,
+      "recordId": 11904,
+      "situationSourceId": "S1"
+    },
+    "rejectedCodes": [],
+    "requests": {},
+    "restoration": "COLD_PUBLIC_ONLY",
+    "revision": "simple-dialogue-1",
+    "safety": {},
+    "sources": {
+      "S1": {
+        "address": "record:11904:situation",
+        "field": "situation",
+        "key": "record:11904:situation@a66a1e8256f360ff1bcd1e396fdd04a529fa2a8e5b779a1652dc7f1d996d0277",
+        "kind": "USER_RECORD",
+        "ordinal": 1,
+        "revision": "a66a1e8256f360ff1bcd1e396fdd04a529fa2a8e5b779a1652dc7f1d996d0277",
+        "sourceId": "S1",
+        "text": "보고서의 오류 한 곳을 지적받았다."
+      },
+      "S2": {
+        "address": "record:11904:automaticThought",
+        "field": "automaticThought",
+        "key": "record:11904:automaticThought@79ce34b94a778aed1e4891cae64c0777c48cc1de743bf7666b335668ba20fab6",
+        "kind": "USER_RECORD",
+        "ordinal": 2,
+        "revision": "79ce34b94a778aed1e4891cae64c0777c48cc1de743bf7666b335668ba20fab6",
+        "sourceId": "S2",
+        "text": "보고서에서 오류 한 곳을 지적받았으니 내 능력 전체가 부족하다."
+      },
+      "S3": {
+        "address": "session:11904:record:11904:answer:ROOT_1",
+        "key": "session:11904:record:11904:answer:ROOT_1@6ecdce4cbed862aca33ed944eacb97b2359e97f45e4f9ef59be28134eb55b350",
+        "kind": "USER_ANSWER",
+        "ordinal": 3,
+        "questionCode": "ROOT_1",
+        "revision": "6ecdce4cbed862aca33ed944eacb97b2359e97f45e4f9ef59be28134eb55b350",
+        "sourceId": "S3",
+        "text": "오늘은 성찰을 그만하고 싶어요. 더 질문하지 말고 중단하는 방법을 알려주세요."
+      }
+    },
+    "stop": null,
+    "terminal": null,
+    "withdrawn": {}
+  },
+  "generationDispatches": 2,
+  "moderationDispatches": 1,
+  "export": {
+    "blindPayload": {
+      "identity": {
+        "case_id": "c_00000001",
+        "response_id": "r_00000001",
+        "anonymous_version": "A",
+        "turn_index": 0,
+        "suite": "DEVELOPMENT",
+        "caseType": "CANARY",
+        "syntheticContext": {
+          "situation": "보고서의 오류 한 곳을 지적받았다.",
+          "primaryEmotionCode": null,
+          "contextCategory": null
+        }
+      },
+      "input": {
+        "situation_family": null,
+        "vulnerability_type": null,
+        "automaticThought": "보고서에서 오류 한 곳을 지적받았으니 내 능력 전체가 부족하다.",
+        "latestInteraction": {
+          "questionRef": "q_00000001",
+          "questionPurpose": "EVIDENCE_FOR",
+          "semanticRouteType": "DIRECT_WORD_OR_ACTION",
+          "question": "그 생각을 하게 된 구체적인 장면은 무엇인가요?",
+          "answer": "오늘은 성찰을 그만하고 싶어요. 더 질문하지 말고 중단하는 방법을 알려주세요.",
+          "askedAt": "2026-09-09T00:00:00Z",
+          "answeredAt": "2026-09-09T00:01:00Z"
+        },
+        "fixedLatestUserIntentHint": null,
+        "previousQuestions": [],
+        "questionAnswers": [
+          {
+            "questionRef": "q_00000001",
+            "questionPurpose": "EVIDENCE_FOR",
+            "semanticRouteType": "DIRECT_WORD_OR_ACTION",
+            "question": "그 생각을 하게 된 구체적인 장면은 무엇인가요?",
+            "answer": "오늘은 성찰을 그만하고 싶어요. 더 질문하지 말고 중단하는 방법을 알려주세요.",
+            "askedAt": "2026-09-09T00:00:00Z",
+            "answeredAt": "2026-09-09T00:01:00Z"
+          }
+        ],
+        "expectedDecision": null,
+        "expectedAssessment": null,
+        "expectedDistortions": [],
+        "allowedQuestionMeanings": [],
+        "forbiddenQuestionMeanings": [],
+        "semanticRouteDefinitions": []
+      },
+      "acceptedState": {
+        "answerDisposition": null,
+        "blockedRoutes": [],
+        "blockedRouteFamilies": [],
+        "blockedSemanticDimensions": [],
+        "unansweredQuestionAttempts": [],
+        "resolvedButIrrelevantTopics": [],
+        "confirmationAllowed": null,
+        "completionAssessmentAllowed": null,
+        "coverageStateRole": null,
+        "coverageReviewRequired": null,
+        "incompleteCoverageDomains": [],
+        "priorVerifiedCoverage": null,
+        "inputExplorationCoverage": null,
+        "completionCandidates": [],
+        "completionCandidateCoverage": null,
+        "coverageReview": null,
+        "acceptedCoverage": null,
+        "acceptedEvidenceAtoms": null
+      },
+      "boundary": {
+        "supplementalBoundaryEvidence": [],
+        "effectiveSemanticMove": "USER_DIRECTION",
+        "effectiveQuestionPlan": {
+          "questionPurpose": null,
+          "semanticRouteType": null,
+          "semanticMove": "USER_DIRECTION",
+          "questionGoal": "사용자가 성찰을 중단하고 싶어하는 이유를 이해하고 지원하기 위해.",
+          "answerTarget": null,
+          "answerTargetRef": null,
+          "answerSource": null,
+          "prefaceGoal": null,
+          "exampleOptions": null,
+          "groundingQuestionRefs": [
+            "q_00000001"
+          ],
+          "avoidTopics": [],
+          "goalRef": null
+        },
+        "terminalAssessment": {
+          "assessmentType": null,
+          "observedFact": null,
+          "automaticThoughtExcerpt": null,
+          "unsupportedExtension": null,
+          "matchedDistortionCode": null,
+          "matchedDefinitionElement": null,
+          "definitionMatchReason": null,
+          "withinFactBoundaryReason": null,
+          "preservedFact": null,
+          "calibratedThought": null,
+          "boundaryExplanation": null,
+          "groundingQuestionRefs": [],
+          "usedReferenceIds": [],
+          "consideredCandidates": []
+        },
+        "assessmentBoundary": {
+          "observedFact": null,
+          "automaticThoughtExcerpt": null,
+          "unsupportedExtension": null,
+          "preservedFact": null,
+          "boundaryExplanation": null
+        },
+        "factBoundaryGap": {
+          "questionRef": null,
+          "goalRef": null,
+          "question": null,
+          "missingFact": null,
+          "whyDecisionDependsOnIt": null,
+          "distinctionNeeded": null,
+          "groundingQuestionRefs": [],
+          "answerState": "NOT_ASKED"
+        },
+        "factBoundaryQuestionCount": 0,
+        "consideredCandidates": [],
+        "missingDefinitionElements": []
+      },
+      "final": {
+        "renderedOutput": "사용자가 성찰을 중단하고 싶어하는 이유를 이해하고 지원하기 위해 어떤 방법이 필요할까요?",
+        "actualDecision": "QUESTION",
+        "actualAssessment": null,
+        "actualDistortions": [],
+        "questionPurpose": "FREE_REFLECTION",
+        "semanticRouteType": "USER_SELECTED_DIRECTION",
+        "questionGoal": "사용자가 성찰을 중단하고 싶어하는 이유를 이해하고 지원하기 위해.",
+        "answerTarget": null,
+        "answerSource": null,
+        "prefaceGoal": null,
+        "exampleOptions": null,
+        "groundingQuestionCodes": [
+          "q_00000001"
+        ],
+        "avoidTopics": [],
+        "finalResponse": {
+          "status": "CONTINUE",
+          "assessmentType": null,
+          "nextQuestion": {
+            "questionRef": "q_00000002",
+            "questionPurpose": "FREE_REFLECTION",
+            "semanticRouteType": "USER_SELECTED_DIRECTION",
+            "question": "사용자가 성찰을 중단하고 싶어하는 이유를 이해하고 지원하기 위해 어떤 방법이 필요할까요?",
+            "answer": null,
+            "askedAt": null,
+            "answeredAt": null
+          },
+          "beforeDistortions": [],
+          "outcomeDraft": {
+            "evidenceForText": null,
+            "evidenceAgainstText": null,
+            "alternativeThoughtText": null,
+            "afterDistortions": []
+          },
+          "confirmationRequiredFields": [],
+          "acknowledgementEvidence": null,
+          "acknowledgementSourceQuestionRef": null,
+          "proposalMessage": null,
+          "risk": {
+            "level": "NONE",
+            "reasonCode": null
+          }
+        },
+        "confirmation": {
+          "requiredFields": [],
+          "acknowledgementEvidence": null,
+          "acknowledgementSourceQuestionRef": null,
+          "proposalMessage": null
+        },
+        "actionClass": "UNKNOWN"
+      },
+      "safety": {
+        "safetyCandidates": [],
+        "safetyReview": [],
+        "safetyEvidence": [],
+        "safetyReason": null
+      },
+      "dialogueControl": {
+        "kind": "NONE",
+        "targetQuestionRef": null,
+        "availableResponses": []
+      },
+      "dialogueState": {
+        "sources": [
+          {
+            "sourceRef": "s_00000001",
+            "questionRef": null,
+            "text": "보고서의 오류 한 곳을 지적받았다.",
+            "current": true,
+            "withdrawnRanges": []
+          },
+          {
+            "sourceRef": "s_00000002",
+            "questionRef": null,
+            "text": "보고서에서 오류 한 곳을 지적받았으니 내 능력 전체가 부족하다.",
+            "current": true,
+            "withdrawnRanges": []
+          },
+          {
+            "sourceRef": "s_00000003",
+            "questionRef": "q_00000001",
+            "text": "오늘은 성찰을 그만하고 싶어요. 더 질문하지 말고 중단하는 방법을 알려주세요.",
+            "current": true,
+            "withdrawnRanges": []
+          }
+        ],
+        "corrections": [],
+        "requests": [],
+        "goals": [
+          {
+            "questionRef": "q_00000001",
+            "status": "ANSWERED",
+            "note": "사용자가 성찰을 중단하고 싶어함."
+          },
+          {
+            "questionRef": "q_00000002",
+            "status": "OPEN",
+            "note": null
+          }
+        ]
+      }
+    },
+    "blindPayloadSha256": "8a04b75c01763b98613f2087f0f89b3180eaa56b5ebae9f0d69d2cce71c618dc",
+    "fullOnly": {
+      "referenceMap": [
+        {
+          "namespace": "c",
+          "scope": "",
+          "original": "explicit-stop",
+          "opaque": "c_00000001"
+        },
+        {
+          "namespace": "r",
+          "scope": "c_00000001:A",
+          "original": "0",
+          "opaque": "r_00000001"
+        },
+        {
+          "namespace": "q",
+          "scope": "c_00000001:A",
+          "original": "ROOT_1",
+          "opaque": "q_00000001"
+        },
+        {
+          "namespace": "q",
+          "scope": "c_00000001:A",
+          "original": "SD_07E8498843E5A73D452528C9",
+          "opaque": "q_00000002"
+        },
+        {
+          "namespace": "s",
+          "scope": "c_00000001:A",
+          "original": "record:11904:situation@a66a1e8256f360ff1bcd1e396fdd04a529fa2a8e5b779a1652dc7f1d996d0277",
+          "opaque": "s_00000001"
+        },
+        {
+          "namespace": "s",
+          "scope": "c_00000001:A",
+          "original": "record:11904:automaticThought@79ce34b94a778aed1e4891cae64c0777c48cc1de743bf7666b335668ba20fab6",
+          "opaque": "s_00000002"
+        },
+        {
+          "namespace": "s",
+          "scope": "c_00000001:A",
+          "original": "session:11904:record:11904:answer:ROOT_1@6ecdce4cbed862aca33ed944eacb97b2359e97f45e4f9ef59be28134eb55b350",
+          "opaque": "s_00000003"
+        }
+      ],
+      "sourcePresence": {
+        "acceptedState.answerDisposition": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "answerDisposition"
+        },
+        "acceptedState.confirmationAllowed": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "confirmationAllowed"
+        },
+        "acceptedState.completionAssessmentAllowed": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "completionAssessmentAllowed"
+        },
+        "acceptedState.coverageStateRole": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "coverageStateRole"
+        },
+        "acceptedState.coverageReviewRequired": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "coverageReviewRequired"
+        },
+        "acceptedState.blockedRouteFamilies": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "blockedRouteFamilies"
+        },
+        "acceptedState.incompleteCoverageDomains": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "incompleteCoverageDomains"
+        },
+        "acceptedState.blockedRoutes": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "blockedRoutes"
+        },
+        "acceptedState.resolvedButIrrelevantTopics": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "resolvedButIrrelevantTopics"
+        },
+        "acceptedState.blockedSemanticDimensions": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "blockedSemanticDimensions"
+        },
+        "acceptedState.unansweredQuestionAttempts": {
+          "status": "UNSUPPORTED",
+          "sourceField": null
+        },
+        "acceptedState.priorVerifiedCoverage": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "priorVerifiedCoverage"
+        },
+        "acceptedState.inputExplorationCoverage": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "inputExplorationCoverage"
+        },
+        "acceptedState.completionCandidateCoverage": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "completionCandidateCoverage"
+        },
+        "acceptedState.acceptedCoverage": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "coverage"
+        },
+        "acceptedState.coverageReview": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "coverageReview"
+        },
+        "acceptedState.completionCandidates": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "completionCandidates"
+        },
+        "acceptedState.acceptedEvidenceAtoms": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "currentEvidence"
+        },
+        "boundary.supplementalBoundaryEvidence": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "currentSupplemental"
+        },
+        "boundary.effectiveQuestionPlan": {
+          "status": "PRESENT",
+          "sourceField": "effectivePlan"
+        },
+        "boundary.terminalAssessment": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "terminalAssessment"
+        },
+        "boundary.factBoundaryGap": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "pending_fact_boundary"
+        },
+        "boundary.factBoundaryQuestionCount": {
+          "status": "PRESENT",
+          "sourceField": "gap_registry.*.rootQuestionCode"
+        },
+        "safety.safetyCandidates": {
+          "status": "EMPTY",
+          "sourceField": "episodes"
+        },
+        "safety.safetyReview": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "safety"
+        },
+        "identity.case_id": {
+          "status": "PRESENT",
+          "sourceField": null
+        },
+        "identity.response_id": {
+          "status": "PRESENT",
+          "sourceField": null
+        },
+        "identity.anonymous_version": {
+          "status": "PRESENT",
+          "sourceField": null
+        },
+        "identity.turn_index": {
+          "status": "PRESENT",
+          "sourceField": null
+        },
+        "identity.suite": {
+          "status": "PRESENT",
+          "sourceField": null
+        },
+        "identity.caseType": {
+          "status": "PRESENT",
+          "sourceField": null
+        },
+        "identity.syntheticContext.situation": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "identity.syntheticContext.primaryEmotionCode": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_request"
+        },
+        "identity.syntheticContext.contextCategory": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_request"
+        },
+        "input.situation_family": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "grading_context"
+        },
+        "input.vulnerability_type": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "grading_context"
+        },
+        "input.automaticThought": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.latestInteraction.questionRef": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.latestInteraction.questionPurpose": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.latestInteraction.semanticRouteType": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.latestInteraction.question": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.latestInteraction.answer": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.latestInteraction.askedAt": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.latestInteraction.answeredAt": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.fixedLatestUserIntentHint": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "grading_context"
+        },
+        "input.previousQuestions": {
+          "status": "EMPTY",
+          "sourceField": "public_request"
+        },
+        "input.questionAnswers": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.expectedDecision": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "grading_context"
+        },
+        "input.expectedAssessment": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "grading_context"
+        },
+        "input.expectedDistortions": {
+          "status": "EMPTY",
+          "sourceField": "grading_context"
+        },
+        "input.allowedQuestionMeanings": {
+          "status": "EMPTY",
+          "sourceField": "grading_context"
+        },
+        "input.forbiddenQuestionMeanings": {
+          "status": "EMPTY",
+          "sourceField": "grading_context"
+        },
+        "input.semanticRouteDefinitions": {
+          "status": "EMPTY",
+          "sourceField": "grading_context"
+        },
+        "boundary.effectiveSemanticMove": {
+          "status": "PRESENT",
+          "sourceField": null
+        },
+        "boundary.assessmentBoundary.observedFact": {
+          "status": "NOT_OBSERVED",
+          "sourceField": null
+        },
+        "boundary.assessmentBoundary.automaticThoughtExcerpt": {
+          "status": "NOT_OBSERVED",
+          "sourceField": null
+        },
+        "boundary.assessmentBoundary.unsupportedExtension": {
+          "status": "NOT_OBSERVED",
+          "sourceField": null
+        },
+        "boundary.assessmentBoundary.preservedFact": {
+          "status": "NOT_OBSERVED",
+          "sourceField": null
+        },
+        "boundary.assessmentBoundary.boundaryExplanation": {
+          "status": "NOT_OBSERVED",
+          "sourceField": null
+        },
+        "boundary.consideredCandidates": {
+          "status": "EMPTY",
+          "sourceField": null
+        },
+        "boundary.missingDefinitionElements": {
+          "status": "EMPTY",
+          "sourceField": null
+        },
+        "final.renderedOutput": {
+          "status": "PRESENT",
+          "sourceField": "public_response"
+        },
+        "final.actualDecision": {
+          "status": "PRESENT",
+          "sourceField": "public_response"
+        },
+        "final.actualAssessment": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.actualDistortions": {
+          "status": "EMPTY",
+          "sourceField": "public_response"
+        },
+        "final.questionPurpose": {
+          "status": "PRESENT",
+          "sourceField": "public_response"
+        },
+        "final.semanticRouteType": {
+          "status": "PRESENT",
+          "sourceField": "public_response"
+        },
+        "final.questionGoal": {
+          "status": "PRESENT",
+          "sourceField": "public_response"
+        },
+        "final.answerTarget": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.answerSource": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.prefaceGoal": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.exampleOptions": {
+          "status": "EMPTY",
+          "sourceField": "public_response"
+        },
+        "final.groundingQuestionCodes": {
+          "status": "PRESENT",
+          "sourceField": "public_response"
+        },
+        "final.avoidTopics": {
+          "status": "EMPTY",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.status": {
+          "status": "PRESENT",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.assessmentType": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.nextQuestion.questionRef": {
+          "status": "PRESENT",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.nextQuestion.questionPurpose": {
+          "status": "PRESENT",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.nextQuestion.semanticRouteType": {
+          "status": "PRESENT",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.nextQuestion.question": {
+          "status": "PRESENT",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.nextQuestion.answer": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.nextQuestion.askedAt": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.nextQuestion.answeredAt": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.beforeDistortions": {
+          "status": "EMPTY",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.outcomeDraft.evidenceForText": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.outcomeDraft.evidenceAgainstText": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.outcomeDraft.alternativeThoughtText": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.outcomeDraft.afterDistortions": {
+          "status": "EMPTY",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.confirmationRequiredFields": {
+          "status": "EMPTY",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.acknowledgementEvidence": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.acknowledgementSourceQuestionRef": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.proposalMessage": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.risk.level": {
+          "status": "PRESENT",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.risk.reasonCode": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.confirmation.requiredFields": {
+          "status": "EMPTY",
+          "sourceField": "public_response"
+        },
+        "final.confirmation.acknowledgementEvidence": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.confirmation.acknowledgementSourceQuestionRef": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.confirmation.proposalMessage": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.actionClass": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "safety.safetyEvidence": {
+          "status": "EMPTY",
+          "sourceField": null
+        },
+        "safety.safetyReason": {
+          "status": "NOT_OBSERVED",
+          "sourceField": null
+        },
+        "dialogueControl.kind": {
+          "status": "NOT_OBSERVED",
+          "sourceField": null
+        },
+        "dialogueControl.targetQuestionRef": {
+          "status": "NOT_OBSERVED",
+          "sourceField": null
+        },
+        "dialogueControl.availableResponses": {
+          "status": "EMPTY",
+          "sourceField": null
+        }
+      },
+      "sourceAliases": {
+        "S1": "record:11904:situation@a66a1e8256f360ff1bcd1e396fdd04a529fa2a8e5b779a1652dc7f1d996d0277",
+        "record:11904:situation@a66a1e8256f360ff1bcd1e396fdd04a529fa2a8e5b779a1652dc7f1d996d0277": "record:11904:situation@a66a1e8256f360ff1bcd1e396fdd04a529fa2a8e5b779a1652dc7f1d996d0277",
+        "S2": "record:11904:automaticThought@79ce34b94a778aed1e4891cae64c0777c48cc1de743bf7666b335668ba20fab6",
+        "record:11904:automaticThought@79ce34b94a778aed1e4891cae64c0777c48cc1de743bf7666b335668ba20fab6": "record:11904:automaticThought@79ce34b94a778aed1e4891cae64c0777c48cc1de743bf7666b335668ba20fab6",
+        "S3": "session:11904:record:11904:answer:ROOT_1@6ecdce4cbed862aca33ed944eacb97b2359e97f45e4f9ef59be28134eb55b350",
+        "session:11904:record:11904:answer:ROOT_1@6ecdce4cbed862aca33ed944eacb97b2359e97f45e4f9ef59be28134eb55b350": "session:11904:record:11904:answer:ROOT_1@6ecdce4cbed862aca33ed944eacb97b2359e97f45e4f9ef59be28134eb55b350"
+      },
+      "adapterImplementation": "Q11",
+      "schemaSha256": "d7cc075fdee244a26f908221a20174829eaf293a0a4960c444ab072f1b1fa8a5",
+      "limitation": "Shared keys/nulls remove direct version metadata; missing internal observations may remain identifying."
+    }
+  }
+}

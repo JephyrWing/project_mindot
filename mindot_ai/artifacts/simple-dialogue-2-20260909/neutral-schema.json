@@ -1,0 +1,4349 @@
+{
+  "type": "object",
+  "properties": {
+    "identity": {
+      "type": "object",
+      "properties": {
+        "case_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "response_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "anonymous_version": {
+          "type": "string",
+          "enum": [
+            "A",
+            "B"
+          ]
+        },
+        "turn_index": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "suite": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "caseType": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "syntheticContext": {
+          "type": "object",
+          "properties": {
+            "situation": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "primaryEmotionCode": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "contextCategory": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "situation",
+            "primaryEmotionCode",
+            "contextCategory"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "case_id",
+        "response_id",
+        "anonymous_version",
+        "turn_index",
+        "suite",
+        "caseType",
+        "syntheticContext"
+      ],
+      "additionalProperties": false
+    },
+    "input": {
+      "type": "object",
+      "properties": {
+        "situation_family": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "vulnerability_type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "automaticThought": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "latestInteraction": {
+          "type": "object",
+          "properties": {
+            "questionRef": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "questionPurpose": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "semanticRouteType": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "question": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "answer": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "askedAt": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "answeredAt": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "questionRef",
+            "questionPurpose",
+            "semanticRouteType",
+            "question",
+            "answer",
+            "askedAt",
+            "answeredAt"
+          ],
+          "additionalProperties": false
+        },
+        "fixedLatestUserIntentHint": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "previousQuestions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "questionRef": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "questionPurpose": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "semanticRouteType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "question": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "answer": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "askedAt": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "answeredAt": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "questionRef",
+              "questionPurpose",
+              "semanticRouteType",
+              "question",
+              "answer",
+              "askedAt",
+              "answeredAt"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "questionAnswers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "questionRef": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "questionPurpose": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "semanticRouteType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "question": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "answer": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "askedAt": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "answeredAt": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "questionRef",
+              "questionPurpose",
+              "semanticRouteType",
+              "question",
+              "answer",
+              "askedAt",
+              "answeredAt"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "expectedDecision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "expectedAssessment": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "expectedDistortions": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "allowedQuestionMeanings": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "forbiddenQuestionMeanings": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "semanticRouteDefinitions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "route": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "family": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "definition": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "informationSource": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "forbiddenDirections": {
+                "type": "array",
+                "items": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "allowedQuestionPurposes": {
+                "type": "array",
+                "items": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "dimensions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "dimension": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "value": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "dimension",
+                    "value"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "route",
+              "family",
+              "definition",
+              "informationSource",
+              "forbiddenDirections",
+              "allowedQuestionPurposes",
+              "dimensions"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "allowedDecisions": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "classificationApplicability": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "assessmentPolicy": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "situation_family",
+        "vulnerability_type",
+        "automaticThought",
+        "latestInteraction",
+        "fixedLatestUserIntentHint",
+        "previousQuestions",
+        "questionAnswers",
+        "expectedDecision",
+        "expectedAssessment",
+        "expectedDistortions",
+        "allowedQuestionMeanings",
+        "forbiddenQuestionMeanings",
+        "semanticRouteDefinitions",
+        "allowedDecisions",
+        "classificationApplicability",
+        "assessmentPolicy"
+      ],
+      "additionalProperties": false
+    },
+    "acceptedState": {
+      "type": "object",
+      "properties": {
+        "answerDisposition": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "blockedRoutes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "questionRef": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "questionPurpose": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "semanticRouteType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "semanticRouteFamily": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "question": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "semanticDimensions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "dimension": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "value": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "dimension",
+                    "value"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "questionRef",
+              "questionPurpose",
+              "semanticRouteType",
+              "semanticRouteFamily",
+              "question",
+              "semanticDimensions"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "blockedRouteFamilies": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "blockedSemanticDimensions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "dimension": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "value": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "dimension",
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "unansweredQuestionAttempts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "questionRef": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "questionPurpose": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "semanticRouteType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "answerTarget": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "answerSource": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "answerDisposition": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "semanticDimensions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "dimension": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "value": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "dimension",
+                    "value"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "questionRef",
+              "questionPurpose",
+              "semanticRouteType",
+              "answerTarget",
+              "answerSource",
+              "answerDisposition",
+              "semanticDimensions"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "resolvedButIrrelevantTopics": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "questionRef": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "questionPurpose": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "semanticRouteType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "semanticRouteFamily": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "question": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "semanticDimensions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "dimension": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "value": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "dimension",
+                    "value"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "questionRef",
+              "questionPurpose",
+              "semanticRouteType",
+              "semanticRouteFamily",
+              "question",
+              "semanticDimensions"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "confirmationAllowed": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "completionAssessmentAllowed": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "coverageStateRole": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "coverageReviewRequired": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "incompleteCoverageDomains": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "priorVerifiedCoverage": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "evidenceFor": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "EVIDENCE_FOUND",
+                    "EXPLICITLY_NONE",
+                    "NOT_EXPLORED",
+                    "UNKNOWN"
+                  ]
+                },
+                "questionRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "grounding": {
+                  "type": "object",
+                  "properties": {
+                    "sourceRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "questionRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "excerpt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "sourceRef",
+                    "questionRef",
+                    "start",
+                    "length",
+                    "excerpt"
+                  ],
+                  "additionalProperties": false
+                },
+                "rejectionReason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "status",
+                "questionRefs",
+                "grounding",
+                "rejectionReason"
+              ],
+              "additionalProperties": false
+            },
+            "evidenceAgainst": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "EVIDENCE_FOUND",
+                    "EXPLICITLY_NONE",
+                    "NOT_EXPLORED",
+                    "UNKNOWN"
+                  ]
+                },
+                "questionRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "grounding": {
+                  "type": "object",
+                  "properties": {
+                    "sourceRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "questionRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "excerpt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "sourceRef",
+                    "questionRef",
+                    "start",
+                    "length",
+                    "excerpt"
+                  ],
+                  "additionalProperties": false
+                },
+                "rejectionReason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "status",
+                "questionRefs",
+                "grounding",
+                "rejectionReason"
+              ],
+              "additionalProperties": false
+            },
+            "alternativeViews": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "EVIDENCE_FOUND",
+                    "EXPLICITLY_NONE",
+                    "NOT_EXPLORED",
+                    "UNKNOWN"
+                  ]
+                },
+                "questionRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "grounding": {
+                  "type": "object",
+                  "properties": {
+                    "sourceRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "questionRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "excerpt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "sourceRef",
+                    "questionRef",
+                    "start",
+                    "length",
+                    "excerpt"
+                  ],
+                  "additionalProperties": false
+                },
+                "rejectionReason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "status",
+                "questionRefs",
+                "grounding",
+                "rejectionReason"
+              ],
+              "additionalProperties": false
+            },
+            "acknowledgement": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "EVIDENCE_FOUND",
+                    "EXPLICITLY_NONE",
+                    "NOT_EXPLORED",
+                    "UNKNOWN"
+                  ]
+                },
+                "questionRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "grounding": {
+                  "type": "object",
+                  "properties": {
+                    "sourceRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "questionRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "excerpt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "sourceRef",
+                    "questionRef",
+                    "start",
+                    "length",
+                    "excerpt"
+                  ],
+                  "additionalProperties": false
+                },
+                "rejectionReason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "status",
+                "questionRefs",
+                "grounding",
+                "rejectionReason"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "evidenceFor",
+            "evidenceAgainst",
+            "alternativeViews",
+            "acknowledgement"
+          ],
+          "additionalProperties": false
+        },
+        "inputExplorationCoverage": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "evidenceFor": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "EVIDENCE_FOUND",
+                    "EXPLICITLY_NONE",
+                    "NOT_EXPLORED",
+                    "UNKNOWN"
+                  ]
+                },
+                "questionRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "grounding": {
+                  "type": "object",
+                  "properties": {
+                    "sourceRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "questionRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "excerpt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "sourceRef",
+                    "questionRef",
+                    "start",
+                    "length",
+                    "excerpt"
+                  ],
+                  "additionalProperties": false
+                },
+                "rejectionReason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "status",
+                "questionRefs",
+                "grounding",
+                "rejectionReason"
+              ],
+              "additionalProperties": false
+            },
+            "evidenceAgainst": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "EVIDENCE_FOUND",
+                    "EXPLICITLY_NONE",
+                    "NOT_EXPLORED",
+                    "UNKNOWN"
+                  ]
+                },
+                "questionRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "grounding": {
+                  "type": "object",
+                  "properties": {
+                    "sourceRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "questionRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "excerpt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "sourceRef",
+                    "questionRef",
+                    "start",
+                    "length",
+                    "excerpt"
+                  ],
+                  "additionalProperties": false
+                },
+                "rejectionReason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "status",
+                "questionRefs",
+                "grounding",
+                "rejectionReason"
+              ],
+              "additionalProperties": false
+            },
+            "alternativeViews": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "EVIDENCE_FOUND",
+                    "EXPLICITLY_NONE",
+                    "NOT_EXPLORED",
+                    "UNKNOWN"
+                  ]
+                },
+                "questionRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "grounding": {
+                  "type": "object",
+                  "properties": {
+                    "sourceRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "questionRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "excerpt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "sourceRef",
+                    "questionRef",
+                    "start",
+                    "length",
+                    "excerpt"
+                  ],
+                  "additionalProperties": false
+                },
+                "rejectionReason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "status",
+                "questionRefs",
+                "grounding",
+                "rejectionReason"
+              ],
+              "additionalProperties": false
+            },
+            "acknowledgement": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "EVIDENCE_FOUND",
+                    "EXPLICITLY_NONE",
+                    "NOT_EXPLORED",
+                    "UNKNOWN"
+                  ]
+                },
+                "questionRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "grounding": {
+                  "type": "object",
+                  "properties": {
+                    "sourceRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "questionRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "excerpt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "sourceRef",
+                    "questionRef",
+                    "start",
+                    "length",
+                    "excerpt"
+                  ],
+                  "additionalProperties": false
+                },
+                "rejectionReason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "status",
+                "questionRefs",
+                "grounding",
+                "rejectionReason"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "evidenceFor",
+            "evidenceAgainst",
+            "alternativeViews",
+            "acknowledgement"
+          ],
+          "additionalProperties": false
+        },
+        "completionCandidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "assessmentType": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "observedFact": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "automaticThoughtExcerpt": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "unsupportedExtension": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "matchedDistortionCode": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "matchedDefinitionElement": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "definitionMatchReason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "withinFactBoundaryReason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "preservedFact": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "calibratedThought": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "boundaryExplanation": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "groundingQuestionRefs": {
+                "type": "array",
+                "items": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "usedReferenceIds": {
+                "type": "array",
+                "items": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "consideredCandidates": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "definitionElementChecked": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "missingDefinitionElement": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "whyAutomaticThoughtDoesNotMatch": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "definitionElementChecked",
+                    "missingDefinitionElement",
+                    "whyAutomaticThoughtDoesNotMatch"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "assessmentType",
+              "observedFact",
+              "automaticThoughtExcerpt",
+              "unsupportedExtension",
+              "matchedDistortionCode",
+              "matchedDefinitionElement",
+              "definitionMatchReason",
+              "withinFactBoundaryReason",
+              "preservedFact",
+              "calibratedThought",
+              "boundaryExplanation",
+              "groundingQuestionRefs",
+              "usedReferenceIds",
+              "consideredCandidates"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "completionCandidateCoverage": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "evidenceFor": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "EVIDENCE_FOUND",
+                    "EXPLICITLY_NONE",
+                    "NOT_EXPLORED",
+                    "UNKNOWN"
+                  ]
+                },
+                "questionRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "grounding": {
+                  "type": "object",
+                  "properties": {
+                    "sourceRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "questionRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "excerpt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "sourceRef",
+                    "questionRef",
+                    "start",
+                    "length",
+                    "excerpt"
+                  ],
+                  "additionalProperties": false
+                },
+                "rejectionReason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "status",
+                "questionRefs",
+                "grounding",
+                "rejectionReason"
+              ],
+              "additionalProperties": false
+            },
+            "evidenceAgainst": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "EVIDENCE_FOUND",
+                    "EXPLICITLY_NONE",
+                    "NOT_EXPLORED",
+                    "UNKNOWN"
+                  ]
+                },
+                "questionRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "grounding": {
+                  "type": "object",
+                  "properties": {
+                    "sourceRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "questionRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "excerpt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "sourceRef",
+                    "questionRef",
+                    "start",
+                    "length",
+                    "excerpt"
+                  ],
+                  "additionalProperties": false
+                },
+                "rejectionReason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "status",
+                "questionRefs",
+                "grounding",
+                "rejectionReason"
+              ],
+              "additionalProperties": false
+            },
+            "alternativeViews": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "EVIDENCE_FOUND",
+                    "EXPLICITLY_NONE",
+                    "NOT_EXPLORED",
+                    "UNKNOWN"
+                  ]
+                },
+                "questionRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "grounding": {
+                  "type": "object",
+                  "properties": {
+                    "sourceRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "questionRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "excerpt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "sourceRef",
+                    "questionRef",
+                    "start",
+                    "length",
+                    "excerpt"
+                  ],
+                  "additionalProperties": false
+                },
+                "rejectionReason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "status",
+                "questionRefs",
+                "grounding",
+                "rejectionReason"
+              ],
+              "additionalProperties": false
+            },
+            "acknowledgement": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "EVIDENCE_FOUND",
+                    "EXPLICITLY_NONE",
+                    "NOT_EXPLORED",
+                    "UNKNOWN"
+                  ]
+                },
+                "questionRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "grounding": {
+                  "type": "object",
+                  "properties": {
+                    "sourceRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "questionRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "excerpt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "sourceRef",
+                    "questionRef",
+                    "start",
+                    "length",
+                    "excerpt"
+                  ],
+                  "additionalProperties": false
+                },
+                "rejectionReason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "status",
+                "questionRefs",
+                "grounding",
+                "rejectionReason"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "evidenceFor",
+            "evidenceAgainst",
+            "alternativeViews",
+            "acknowledgement"
+          ],
+          "additionalProperties": false
+        },
+        "coverageReview": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "evidenceFor": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "EVIDENCE_FOUND",
+                    "EXPLICITLY_NONE",
+                    "NOT_EXPLORED",
+                    "UNKNOWN"
+                  ]
+                },
+                "questionRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "grounding": {
+                  "type": "object",
+                  "properties": {
+                    "sourceRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "questionRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "excerpt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "sourceRef",
+                    "questionRef",
+                    "start",
+                    "length",
+                    "excerpt"
+                  ],
+                  "additionalProperties": false
+                },
+                "rejectionReason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "status",
+                "questionRefs",
+                "grounding",
+                "rejectionReason"
+              ],
+              "additionalProperties": false
+            },
+            "evidenceAgainst": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "EVIDENCE_FOUND",
+                    "EXPLICITLY_NONE",
+                    "NOT_EXPLORED",
+                    "UNKNOWN"
+                  ]
+                },
+                "questionRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "grounding": {
+                  "type": "object",
+                  "properties": {
+                    "sourceRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "questionRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "excerpt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "sourceRef",
+                    "questionRef",
+                    "start",
+                    "length",
+                    "excerpt"
+                  ],
+                  "additionalProperties": false
+                },
+                "rejectionReason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "status",
+                "questionRefs",
+                "grounding",
+                "rejectionReason"
+              ],
+              "additionalProperties": false
+            },
+            "alternativeViews": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "EVIDENCE_FOUND",
+                    "EXPLICITLY_NONE",
+                    "NOT_EXPLORED",
+                    "UNKNOWN"
+                  ]
+                },
+                "questionRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "grounding": {
+                  "type": "object",
+                  "properties": {
+                    "sourceRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "questionRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "excerpt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "sourceRef",
+                    "questionRef",
+                    "start",
+                    "length",
+                    "excerpt"
+                  ],
+                  "additionalProperties": false
+                },
+                "rejectionReason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "status",
+                "questionRefs",
+                "grounding",
+                "rejectionReason"
+              ],
+              "additionalProperties": false
+            },
+            "acknowledgement": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "EVIDENCE_FOUND",
+                    "EXPLICITLY_NONE",
+                    "NOT_EXPLORED",
+                    "UNKNOWN"
+                  ]
+                },
+                "questionRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "grounding": {
+                  "type": "object",
+                  "properties": {
+                    "sourceRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "questionRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "excerpt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "sourceRef",
+                    "questionRef",
+                    "start",
+                    "length",
+                    "excerpt"
+                  ],
+                  "additionalProperties": false
+                },
+                "rejectionReason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "status",
+                "questionRefs",
+                "grounding",
+                "rejectionReason"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "evidenceFor",
+            "evidenceAgainst",
+            "alternativeViews",
+            "acknowledgement"
+          ],
+          "additionalProperties": false
+        },
+        "acceptedCoverage": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "evidenceFor": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "EVIDENCE_FOUND",
+                    "EXPLICITLY_NONE",
+                    "NOT_EXPLORED",
+                    "UNKNOWN"
+                  ]
+                },
+                "questionRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "grounding": {
+                  "type": "object",
+                  "properties": {
+                    "sourceRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "questionRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "excerpt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "sourceRef",
+                    "questionRef",
+                    "start",
+                    "length",
+                    "excerpt"
+                  ],
+                  "additionalProperties": false
+                },
+                "rejectionReason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "status",
+                "questionRefs",
+                "grounding",
+                "rejectionReason"
+              ],
+              "additionalProperties": false
+            },
+            "evidenceAgainst": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "EVIDENCE_FOUND",
+                    "EXPLICITLY_NONE",
+                    "NOT_EXPLORED",
+                    "UNKNOWN"
+                  ]
+                },
+                "questionRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "grounding": {
+                  "type": "object",
+                  "properties": {
+                    "sourceRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "questionRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "excerpt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "sourceRef",
+                    "questionRef",
+                    "start",
+                    "length",
+                    "excerpt"
+                  ],
+                  "additionalProperties": false
+                },
+                "rejectionReason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "status",
+                "questionRefs",
+                "grounding",
+                "rejectionReason"
+              ],
+              "additionalProperties": false
+            },
+            "alternativeViews": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "EVIDENCE_FOUND",
+                    "EXPLICITLY_NONE",
+                    "NOT_EXPLORED",
+                    "UNKNOWN"
+                  ]
+                },
+                "questionRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "grounding": {
+                  "type": "object",
+                  "properties": {
+                    "sourceRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "questionRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "excerpt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "sourceRef",
+                    "questionRef",
+                    "start",
+                    "length",
+                    "excerpt"
+                  ],
+                  "additionalProperties": false
+                },
+                "rejectionReason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "status",
+                "questionRefs",
+                "grounding",
+                "rejectionReason"
+              ],
+              "additionalProperties": false
+            },
+            "acknowledgement": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "EVIDENCE_FOUND",
+                    "EXPLICITLY_NONE",
+                    "NOT_EXPLORED",
+                    "UNKNOWN"
+                  ]
+                },
+                "questionRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "grounding": {
+                  "type": "object",
+                  "properties": {
+                    "sourceRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "questionRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "excerpt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "sourceRef",
+                    "questionRef",
+                    "start",
+                    "length",
+                    "excerpt"
+                  ],
+                  "additionalProperties": false
+                },
+                "rejectionReason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "status",
+                "questionRefs",
+                "grounding",
+                "rejectionReason"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "evidenceFor",
+            "evidenceAgainst",
+            "alternativeViews",
+            "acknowledgement"
+          ],
+          "additionalProperties": false
+        },
+        "acceptedEvidenceAtoms": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "sourceRef": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "questionRef": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "contributions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "referenceId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "excerpt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "domain": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "CONTENT",
+                        "EXPLICIT_NONE",
+                        "UNKNOWN"
+                      ]
+                    },
+                    "role": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "goalRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "validity": {
+                      "type": "string",
+                      "enum": [
+                        "CURRENT",
+                        "UNKNOWN"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "referenceId",
+                    "start",
+                    "length",
+                    "excerpt",
+                    "domain",
+                    "kind",
+                    "role",
+                    "goalRef",
+                    "validity"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "sourceRef",
+              "questionRef",
+              "contributions"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "answerDisposition",
+        "blockedRoutes",
+        "blockedRouteFamilies",
+        "blockedSemanticDimensions",
+        "unansweredQuestionAttempts",
+        "resolvedButIrrelevantTopics",
+        "confirmationAllowed",
+        "completionAssessmentAllowed",
+        "coverageStateRole",
+        "coverageReviewRequired",
+        "incompleteCoverageDomains",
+        "priorVerifiedCoverage",
+        "inputExplorationCoverage",
+        "completionCandidates",
+        "completionCandidateCoverage",
+        "coverageReview",
+        "acceptedCoverage",
+        "acceptedEvidenceAtoms"
+      ],
+      "additionalProperties": false
+    },
+    "boundary": {
+      "type": "object",
+      "properties": {
+        "supplementalBoundaryEvidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "sourceRef": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "questionRef": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "contributions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "referenceId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "excerpt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "domain": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "CONTENT",
+                        "EXPLICIT_NONE",
+                        "UNKNOWN"
+                      ]
+                    },
+                    "role": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "goalRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "validity": {
+                      "type": "string",
+                      "enum": [
+                        "CURRENT",
+                        "UNKNOWN"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "referenceId",
+                    "start",
+                    "length",
+                    "excerpt",
+                    "domain",
+                    "kind",
+                    "role",
+                    "goalRef",
+                    "validity"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "sourceRef",
+              "questionRef",
+              "contributions"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "effectiveSemanticMove": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "effectiveQuestionPlan": {
+          "type": "object",
+          "properties": {
+            "questionPurpose": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "semanticRouteType": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "semanticMove": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "questionGoal": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "answerTarget": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "answerTargetRef": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "answerSource": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "prefaceGoal": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "exampleOptions": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "groundingQuestionRefs": {
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "avoidTopics": {
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "goalRef": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "questionPurpose",
+            "semanticRouteType",
+            "semanticMove",
+            "questionGoal",
+            "answerTarget",
+            "answerTargetRef",
+            "answerSource",
+            "prefaceGoal",
+            "exampleOptions",
+            "groundingQuestionRefs",
+            "avoidTopics",
+            "goalRef"
+          ],
+          "additionalProperties": false
+        },
+        "terminalAssessment": {
+          "type": "object",
+          "properties": {
+            "assessmentType": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "observedFact": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "automaticThoughtExcerpt": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "unsupportedExtension": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "matchedDistortionCode": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "matchedDefinitionElement": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "definitionMatchReason": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "withinFactBoundaryReason": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "preservedFact": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "calibratedThought": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "boundaryExplanation": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "groundingQuestionRefs": {
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "usedReferenceIds": {
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "consideredCandidates": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "definitionElementChecked": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "missingDefinitionElement": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "whyAutomaticThoughtDoesNotMatch": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "code",
+                  "definitionElementChecked",
+                  "missingDefinitionElement",
+                  "whyAutomaticThoughtDoesNotMatch"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "assessmentType",
+            "observedFact",
+            "automaticThoughtExcerpt",
+            "unsupportedExtension",
+            "matchedDistortionCode",
+            "matchedDefinitionElement",
+            "definitionMatchReason",
+            "withinFactBoundaryReason",
+            "preservedFact",
+            "calibratedThought",
+            "boundaryExplanation",
+            "groundingQuestionRefs",
+            "usedReferenceIds",
+            "consideredCandidates"
+          ],
+          "additionalProperties": false
+        },
+        "assessmentBoundary": {
+          "type": "object",
+          "properties": {
+            "observedFact": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "automaticThoughtExcerpt": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "unsupportedExtension": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "preservedFact": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "boundaryExplanation": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "observedFact",
+            "automaticThoughtExcerpt",
+            "unsupportedExtension",
+            "preservedFact",
+            "boundaryExplanation"
+          ],
+          "additionalProperties": false
+        },
+        "factBoundaryGap": {
+          "type": "object",
+          "properties": {
+            "questionRef": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "goalRef": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "question": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "missingFact": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "whyDecisionDependsOnIt": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "distinctionNeeded": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "groundingQuestionRefs": {
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "answerState": {
+              "type": "string",
+              "enum": [
+                "NOT_ASKED",
+                "AWAITING_ANSWER",
+                "ANSWERED",
+                "UNKNOWN"
+              ]
+            }
+          },
+          "required": [
+            "questionRef",
+            "goalRef",
+            "question",
+            "missingFact",
+            "whyDecisionDependsOnIt",
+            "distinctionNeeded",
+            "groundingQuestionRefs",
+            "answerState"
+          ],
+          "additionalProperties": false
+        },
+        "factBoundaryQuestionCount": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "consideredCandidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "definitionElementChecked": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "missingDefinitionElement": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "whyAutomaticThoughtDoesNotMatch": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "code",
+              "definitionElementChecked",
+              "missingDefinitionElement",
+              "whyAutomaticThoughtDoesNotMatch"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "missingDefinitionElements": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "required": [
+        "supplementalBoundaryEvidence",
+        "effectiveSemanticMove",
+        "effectiveQuestionPlan",
+        "terminalAssessment",
+        "assessmentBoundary",
+        "factBoundaryGap",
+        "factBoundaryQuestionCount",
+        "consideredCandidates",
+        "missingDefinitionElements"
+      ],
+      "additionalProperties": false
+    },
+    "final": {
+      "type": "object",
+      "properties": {
+        "renderedOutput": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "actualDecision": {
+          "type": "string",
+          "enum": [
+            "QUESTION",
+            "DISTORTION_PRESENT",
+            "NO_CLEAR_DISTORTION",
+            "SAFETY_CLARIFICATION",
+            "SAFETY_STOP",
+            "STOP",
+            "TECHNICAL_NO_OUTPUT",
+            "UNKNOWN"
+          ]
+        },
+        "actualAssessment": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "actualDistortions": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "questionPurpose": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "semanticRouteType": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "questionGoal": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "answerTarget": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "answerSource": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "prefaceGoal": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "exampleOptions": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "groundingQuestionCodes": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "avoidTopics": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "finalResponse": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "assessmentType": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "nextQuestion": {
+              "type": "object",
+              "properties": {
+                "questionRef": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "questionPurpose": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "semanticRouteType": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "question": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "answer": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "askedAt": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "answeredAt": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "questionRef",
+                "questionPurpose",
+                "semanticRouteType",
+                "question",
+                "answer",
+                "askedAt",
+                "answeredAt"
+              ],
+              "additionalProperties": false
+            },
+            "beforeDistortions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "reviewStatus": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "classifierConfidence": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "code",
+                  "reviewStatus",
+                  "classifierConfidence"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "outcomeDraft": {
+              "type": "object",
+              "properties": {
+                "evidenceForText": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "evidenceAgainstText": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "alternativeThoughtText": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "afterDistortions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "code": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "reviewStatus": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "classifierConfidence": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "code",
+                      "reviewStatus",
+                      "classifierConfidence"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "evidenceForText",
+                "evidenceAgainstText",
+                "alternativeThoughtText",
+                "afterDistortions"
+              ],
+              "additionalProperties": false
+            },
+            "confirmationRequiredFields": {
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "acknowledgementEvidence": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "acknowledgementSourceQuestionRef": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "proposalMessage": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "risk": {
+              "type": "object",
+              "properties": {
+                "level": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "reasonCode": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "level",
+                "reasonCode"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "status",
+            "assessmentType",
+            "nextQuestion",
+            "beforeDistortions",
+            "outcomeDraft",
+            "confirmationRequiredFields",
+            "acknowledgementEvidence",
+            "acknowledgementSourceQuestionRef",
+            "proposalMessage",
+            "risk"
+          ],
+          "additionalProperties": false
+        },
+        "confirmation": {
+          "type": "object",
+          "properties": {
+            "requiredFields": {
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "acknowledgementEvidence": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "acknowledgementSourceQuestionRef": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "proposalMessage": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "requiredFields",
+            "acknowledgementEvidence",
+            "acknowledgementSourceQuestionRef",
+            "proposalMessage"
+          ],
+          "additionalProperties": false
+        },
+        "actionClass": {
+          "type": "string",
+          "enum": [
+            "UNCERTAIN",
+            "UNKNOWN"
+          ]
+        }
+      },
+      "required": [
+        "renderedOutput",
+        "actualDecision",
+        "actualAssessment",
+        "actualDistortions",
+        "questionPurpose",
+        "semanticRouteType",
+        "questionGoal",
+        "answerTarget",
+        "answerSource",
+        "prefaceGoal",
+        "exampleOptions",
+        "groundingQuestionCodes",
+        "avoidTopics",
+        "finalResponse",
+        "confirmation",
+        "actionClass"
+      ],
+      "additionalProperties": false
+    },
+    "safety": {
+      "type": "object",
+      "properties": {
+        "safetyCandidates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "safetyRef": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "concern": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "level": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "subject": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "currentness": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "intent": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "immediacy": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "state": {
+                "type": "string",
+                "enum": [
+                  "UNRESOLVED",
+                  "RESOLVED",
+                  "UNKNOWN"
+                ]
+              },
+              "origin": {
+                "type": "object",
+                "properties": {
+                  "sourceRef": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "questionRef": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "start": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "length": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "excerpt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "sourceRef",
+                  "questionRef",
+                  "start",
+                  "length",
+                  "excerpt"
+                ],
+                "additionalProperties": false
+              },
+              "resolutionEvidence": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "sourceRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "questionRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "excerpt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "sourceRef",
+                    "questionRef",
+                    "start",
+                    "length",
+                    "excerpt"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "reopeningEvidence": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "sourceRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "questionRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "excerpt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "sourceRef",
+                    "questionRef",
+                    "start",
+                    "length",
+                    "excerpt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "safetyRef",
+              "concern",
+              "reason",
+              "level",
+              "subject",
+              "currentness",
+              "intent",
+              "immediacy",
+              "state",
+              "origin",
+              "resolutionEvidence",
+              "reopeningEvidence"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "safetyReview": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "decision": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "clearance": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "context": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "sourceRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "questionRef": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "length": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "excerpt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "sourceRef",
+                    "questionRef",
+                    "start",
+                    "length",
+                    "excerpt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "decision",
+              "clearance",
+              "context"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "safetyEvidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "sourceRef": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "questionRef": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "start": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "length": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "excerpt": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "sourceRef",
+              "questionRef",
+              "start",
+              "length",
+              "excerpt"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "safetyReason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "safetyCandidates",
+        "safetyReview",
+        "safetyEvidence",
+        "safetyReason"
+      ],
+      "additionalProperties": false
+    },
+    "dialogueControl": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "ANSWER_WAIT",
+            "USER_STOP",
+            "SUMMARY_ONLY",
+            "NONE",
+            "UNKNOWN"
+          ]
+        },
+        "targetQuestionRef": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "availableResponses": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "ANSWER",
+              "SKIP"
+            ]
+          }
+        }
+      },
+      "required": [
+        "kind",
+        "targetQuestionRef",
+        "availableResponses"
+      ],
+      "additionalProperties": false
+    },
+    "dialogueState": {
+      "type": "object",
+      "properties": {
+        "sources": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "sourceRef": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "questionRef": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "text": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "current": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              },
+              "withdrawnRanges": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "start": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "end": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "start",
+                    "end"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "sourceRef",
+              "questionRef",
+              "text",
+              "current",
+              "withdrawnRanges"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "corrections": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "operation": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "instruction": {
+                "type": "object",
+                "properties": {
+                  "sourceRef": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "questionRef": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "start": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "length": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "excerpt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "sourceRef",
+                  "questionRef",
+                  "start",
+                  "length",
+                  "excerpt"
+                ],
+                "additionalProperties": false
+              },
+              "target": {
+                "type": "object",
+                "properties": {
+                  "sourceRef": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "questionRef": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "start": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "length": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "excerpt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "sourceRef",
+                  "questionRef",
+                  "start",
+                  "length",
+                  "excerpt"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "operation",
+              "instruction",
+              "target"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "requests": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "requestRef": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "origin": {
+                "type": "object",
+                "properties": {
+                  "sourceRef": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "questionRef": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "start": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "length": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "excerpt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "sourceRef",
+                  "questionRef",
+                  "start",
+                  "length",
+                  "excerpt"
+                ],
+                "additionalProperties": false
+              },
+              "kind": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "status": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "targetQuestionRef": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "deliveryQuestionRefs": {
+                "type": "array",
+                "items": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "requestRef",
+              "origin",
+              "kind",
+              "status",
+              "targetQuestionRef",
+              "deliveryQuestionRefs"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "goals": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object",
+            "properties": {
+              "questionRef": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "status": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "note": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "questionRef",
+              "status",
+              "note"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "sources",
+        "corrections",
+        "requests",
+        "goals"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "identity",
+    "input",
+    "acceptedState",
+    "boundary",
+    "final",
+    "safety",
+    "dialogueControl"
+  ],
+  "additionalProperties": false
+}

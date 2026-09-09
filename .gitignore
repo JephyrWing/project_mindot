@@ -582,4 +582,8 @@ gradle-app.setting
 # Local project documentation
 /docs/
 
+/mindot_ai/tests/
+
+/mindot_ai/.idea/
+
 # End of https://www.toptal.com/developers/gitignore/api/intellij+all,java,python,venv,react,node,gradle,dotenv,linux,windows,pycharm+all

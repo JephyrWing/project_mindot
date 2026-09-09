@@ -1,0 +1,82 @@
+{
+  "lockedAtUtc": "2026-09-02T07:40:58.335582+00:00",
+  "files": [
+    {
+      "relativePath": "canonical-boundary-cases.json",
+      "bytes": 51889,
+      "sha256": "74f6220e5fbdeba7a260f2b49b2479ec1355b901e29d441411d516a5fe7f3762",
+      "recordCount": 20
+    },
+    {
+      "relativePath": "canonical-feature-cases.json",
+      "bytes": 284373,
+      "sha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "recordCount": 40
+    },
+    {
+      "relativePath": "canonical-regression-cases.json",
+      "bytes": 357002,
+      "sha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "recordCount": 40
+    },
+    {
+      "relativePath": "feature-boundary-rubric.md",
+      "bytes": 1622,
+      "sha256": "abe0c65d84d668115329354b16bf0b82fde0a3dbb19fcdb8492a565cd28bb1c8",
+      "recordCount": null
+    },
+    {
+      "relativePath": "fresh-q10-holdout-cases.json",
+      "bytes": 273016,
+      "sha256": "90c2cb93855e3e5300b18981a7416bdd101eae7d2a56986f1f1831ab7c06149c",
+      "recordCount": 36
+    },
+    {
+      "relativePath": "known-holdout-regression-cases.json",
+      "bytes": 185432,
+      "sha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+      "recordCount": 24
+    },
+    {
+      "relativePath": "known-long-sessions.json",
+      "bytes": 2802,
+      "sha256": "4172949989456f86d36f034d8be96db42e3a8a0ffddfcd447802db423ccad986",
+      "recordCount": 4
+    },
+    {
+      "relativePath": "long-session-rubric.md",
+      "bytes": 859,
+      "sha256": "7afeba50bfc2699a071f794267cb389402976ca73eb5f2f1943f2475726a2241",
+      "recordCount": null
+    },
+    {
+      "relativePath": "q10-long-sessions.json",
+      "bytes": 3847,
+      "sha256": "29c9e712f6d37d63f5f7bacf3dda558d1a031b23ee644c28af2f04f0c48808e5",
+      "recordCount": 6
+    },
+    {
+      "relativePath": "regression-rubric.md",
+      "bytes": 1228,
+      "sha256": "9d7c2a07625103baf85468bd3d778ae46bff305ebf9b2f8a6ae4eea8f82351de",
+      "recordCount": null
+    }
+  ],
+  "caseCounts": {
+    "regression": 40,
+    "feature": 40,
+    "boundary": 20,
+    "known_holdout_regression": 24,
+    "fresh_holdout": 36,
+    "known_long_session": 4,
+    "new_long_session": 6
+  },
+  "freshTypeCounts": {
+    "distortion_no_clear_minimal_pair": 16,
+    "mixed_fact_and_distortion": 6,
+    "rejected_code_boundary": 4,
+    "safety_minimal_pair": 8,
+    "incomplete_coverage": 2
+  },
+  "freshSituationFamilyCount": 28
+}

@@ -1,0 +1,43 @@
+{
+  "recordedAtUtc": "2026-09-08 16:31:59 UTC",
+  "finalState": "DEVELOPMENT_BLOCKED_ARCHIVED_AND_UPLOADED",
+  "formalEvaluation": "NOT_RUN_0_OF_368",
+  "additionalProductChanges": false,
+  "additionalPaidCalls": 0,
+  "archive": {
+    "localPath": "D:/project_mindot/mindot_ai/artifacts/q11-validation-paid-20260909-final/Mindot-Q11-Final-Attempt-Full-Audit-20260908T162158Z.zip",
+    "driveUrl": "https://drive.google.com/file/d/1icms7SgFamUlm3jXHA3v2vjRewbuUIEe/view?usp=drivesdk",
+    "bytes": 11574036,
+    "sha256": "2d357abb4d6d56cd045386c1715a837f52f8c7f9309500109120e64dd4812d89",
+    "uniqueEntries": 2168,
+    "crcAllPassed": true,
+    "all2167PayloadEntriesShaAndSizeVerified": true,
+    "uploadMetadataVerified": true,
+    "serverChecksumNotAvailable": true
+  },
+  "finalStatus": {
+    "localPath": "D:/project_mindot/mindot_ai/artifacts/q11-validation-paid-20260909-final/FINAL_STATUS.md",
+    "driveUrl": "https://drive.google.com/file/d/17NwQiVoTRfBPcBdkOYlwaBsRoA4Ki9RS/view?usp=drivesdk",
+    "uploadMetadataVerified": true
+  },
+  "independentVerification": {
+    "result": "PASS",
+    "workerExitCode": 0,
+    "filesChanged": 0,
+    "apiCalls": 0,
+    "activeChildProcesses": 0
+  },
+  "shutdown": {
+    "userAuthorized": true,
+    "command": "shutdown.exe /s /t 0",
+    "force": false,
+    "stateAtRecordTime": "READY_TO_ISSUE_AFTER_FINAL_READ_ONLY_QUIESCENCE_CHECK",
+    "commandResultNotYetKnown": true,
+    "physicalPowerOffNotVerified": true
+  },
+  "reupload": {
+    "needed": false,
+    "folderId": "1kQ8MriKCP1afqw7jpLFlHzaKAPuDGmgW",
+    "instructions": "If retransmission is necessary, upload the existing local verified ZIP; do not rerun evaluations."
+  }
+}
