@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
 import './Sidebar.css'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
+import { checkAdminAccess } from '../../utils/admin/adminApi.js'
+import {
+  getUserRole,
+  setUserRole,
+} from '../../utils/auth/tokenStorage.js'
 
 // 열림 상태와 주요 화면 이동을 담당하는 모바일 사이드바 컴포넌트 정의.
 function Sidebar({
@@ -16,6 +21,42 @@ function Sidebar({
 }) {
   // 사이드바 열림 여부 상태 관리.
   const [isOpen, setIsOpen] = useState(false)
+  // 로그인 응답 또는 관리자 API 확인으로 판별한 현재 회원 권한 상태 설정.
+  const [resolvedUserRole, setResolvedUserRole] = useState(
+    () => getUserRole(),
+  )
+  // 인증 상태와 확인된 관리자 권한을 함께 적용한 관리자 메뉴 표시 여부 설정.
+  const hasAdminRole = isAuthenticated && resolvedUserRole === 'ROLE_ADMIN'
+
+  // 로그인 응답에 권한이 없을 때 관리자 API 접근 성공 여부로 권한 보완 확인.
+  useEffect(() => {
+    if (!isAuthenticated || getUserRole()) return undefined
+
+    let isActive = true
+
+    const resolveAdminRole = async () => {
+      try {
+        await checkAdminAccess()
+        if (!isActive) return
+
+        setUserRole('ROLE_ADMIN')
+        setResolvedUserRole('ROLE_ADMIN')
+      } catch (error) {
+        if (!isActive) return
+
+        if (error.response?.status === 403) {
+          setUserRole('ROLE_USER')
+          setResolvedUserRole('ROLE_USER')
+        }
+      }
+    }
+
+    resolveAdminRole()
+
+    return () => {
+      isActive = false
+    }
+  }, [isAuthenticated])
 
   // 사이드바 열림 중 배경 스크롤 차단과 Escape 키 닫기 처리.
   useEffect(() => {
@@ -124,6 +165,12 @@ function Sidebar({
           <button type="button" onClick={() => moveToPage(onCenter)}>
             관련 기관 찾기
           </button>
+          {/* 관리자 권한이 확인된 로그인 사용자에게만 관리자 화면 링크 표시. */}
+          {hasAdminRole && (
+            <a href="/admin" onClick={() => setIsOpen(false)}>
+              관리자 페이지
+            </a>
+          )}
         </nav>
       </aside>
     </>

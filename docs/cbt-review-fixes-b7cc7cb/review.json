@@ -1,0 +1,91 @@
+{
+  "reviewStatus": "CHANGES_REQUIRED",
+  "repository": "JephyrWing/project_mindot",
+  "branch": "fix/CBTAI",
+  "reviewedCommitSha": "b7cc7cba4bf33ecc7361e32c06bde834206cd3ad",
+  "baseCommitSha": "92618c194e8a70a13a8913425b5d396aea359e10",
+  "reviewedAt": "2026-09-09T11:31:23.270265+00:00",
+  "readManifest": {
+    "path": "read-manifest.json",
+    "sha256": "2c3a6ac2f0b2e43019a05bf7a347c039b389196a33ad9e35fd3eb21f1c1fd0dd",
+    "trackedFiles": 682
+  },
+  "report": "Mindot-CBT-Full-Branch-Review-b7cc7cb.md",
+  "findings": [
+    {
+      "id": "F1",
+      "priority": "P2",
+      "blocksTestEntry": true,
+      "feature": "첫 시작 실패 복구",
+      "cause": "COMPLETE record is confirmed again when OPEN fails",
+      "userImpact": "same-form start retry returns 409",
+      "consumers": [
+        "CBT.jsx",
+        "EmotionRecordsService.java"
+      ],
+      "requiredFix": "separate record confirmation and idempotent OPEN retry; reconcile lost confirmation response"
+    },
+    {
+      "id": "F2",
+      "priority": "P2",
+      "blocksTestEntry": true,
+      "feature": "구형 세션 저장 답변 재시도",
+      "cause": "legacy failed QUESTION job is not connected to insight.lastJobId",
+      "userImpact": "restored saved answer cannot use new RETRY",
+      "consumers": [
+        "InsightTransactions.java",
+        "InsightMapping.java",
+        "ReflectionSessionTurnTransactionService.java",
+        "CBT.jsx"
+      ],
+      "requiredFix": "minimal legacy job/read compatibility; no duplicate USER and no generation on RESTORE"
+    },
+    {
+      "id": "F3",
+      "priority": "P2",
+      "blocksTestEntry": true,
+      "feature": "확정 AFTER 검색 소비",
+      "cause": "empty accepted distortion list removes otherwise eligible confirmed AFTER",
+      "userImpact": "all-rejected valid AFTER disappears from useful similar cases",
+      "consumers": [
+        "EmotionRecordsService.java",
+        "pattern_explanation.py",
+        "DailyCare",
+        "EmotionRecordDetail"
+      ],
+      "requiredFix": "separate useful AFTER case eligibility from accepted-type aggregation"
+    }
+  ],
+  "nonblockingObservations": [
+    "PDF oversized single conversation table row pagination",
+    "Writer format repair regenerates from plan without failed draft"
+  ],
+  "unreviewed": [],
+  "metadataOnlyCategories": [
+    "cache_metadata_only",
+    "historical_evaluation_inventory_only",
+    "binary_structure_metadata",
+    "generated_wrapper_structure",
+    "dependency_lock_metadata",
+    "data_dictionary_metadata_and_helper_source"
+  ],
+  "runtimeUnknowns": [
+    "Actual LLM question and insight detection quality",
+    "Network/concurrency/restart behavior",
+    "Live database enum/check compatibility",
+    "Real API token consumption and latency",
+    "Long-message PDF output"
+  ],
+  "nextTestScope": [
+    "After F1-F3 fixes and new SHA review: first-start failure recovery",
+    "Legacy/new retry and restore, pending/succeeded/failed distinction",
+    "AFTER consumption with accepted/partly rejected/all rejected types",
+    "CBT question/help/insight/proposal/confirm/pause/cancel",
+    "Idempotency/timeout/cancel late response/cache-loss resync",
+    "Reviewed runner and product-scope canary before official evaluation"
+  ],
+  "testsRun": false,
+  "modelCalls": 0,
+  "productFilesModified": false,
+  "sourceWorktreeClean": true
+}

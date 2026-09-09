@@ -1,0 +1,16 @@
+{
+  "caseId": "help-3-maintain-corrected-context",
+  "status": "NOT_RUN",
+  "executionOutcome": "NOT_RUN",
+  "acceptanceOutcome": "BLOCKED_BY_PARENT",
+  "confirmationAncestor": null,
+  "parentConfirmationRequiresFunctionReview": false,
+  "request": null,
+  "response": null,
+  "error": null,
+  "functionReview": {
+    "observation": "NOT_OBSERVED_LIVE",
+    "reason": "help-2-correction failed without a nextQuestion. Corrected-context follow-up was not observed.",
+    "method": "CODEx_POST_RUN_DIRECT_RAW_REVIEW_NO_GRADER_API"
+  }
+}

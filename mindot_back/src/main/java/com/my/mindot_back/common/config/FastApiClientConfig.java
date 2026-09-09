@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
 
+@org.springframework.scheduling.annotation.EnableAsync
 @Configuration
 @RequiredArgsConstructor
 public class FastApiClientConfig {
@@ -22,5 +23,12 @@ public class FastApiClientConfig {
         return builder
                 .baseUrl(fastApiProperties.baseUrl())
                 .build();
+    }
+    @Bean("cbtRestClient")
+    public RestClient cbtRestClient(RestClient.Builder builder) {
+        var factory=new org.springframework.http.client.JdkClientHttpRequestFactory(
+            java.net.http.HttpClient.newBuilder().connectTimeout(java.time.Duration.ofSeconds(5)).build());
+        factory.setReadTimeout(java.time.Duration.ofSeconds(195));
+        return builder.baseUrl(fastApiProperties.baseUrl()).requestFactory(factory).build();
     }
 }

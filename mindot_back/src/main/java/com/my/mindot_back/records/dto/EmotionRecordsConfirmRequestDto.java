@@ -14,6 +14,7 @@ public record EmotionRecordsConfirmRequestDto(
         String situationText,
 
         // AI가 추출한 자동적 사고를 사용자가 수정한 값
+        @jakarta.validation.constraints.Size(max = 4000)
         String automaticThought,
 
         // 사용자가 확인한 대표 감정 코드

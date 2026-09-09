@@ -1,0 +1,12 @@
+{
+  "status": "CANARY_BLOCKED",
+  "archives": [
+    {
+      "path": "D:\\project_mindot\\mindot_ai\\artifacts\\simple-dialogue-20260909\\submissions\\Mindot-Q11-Simple-Dialogue-Audit-20260909T043047Z.zip",
+      "bytes": 1410944,
+      "sha256": "71d631d430ad305ed55c924dba6964c5792902bc08305c20c774ba4d95c376c2",
+      "md5": "94735d9b3b594ecdaa1470523cec44e5",
+      "files": 199
+    }
+  ]
+}

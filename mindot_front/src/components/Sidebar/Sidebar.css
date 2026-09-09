@@ -127,15 +127,19 @@
   margin-top: 28px;
 }
 
-/* 사이드바 이동 버튼의 동일한 크기와 단일 테두리 설정. */
-.main-sidebar__navigation button {
+/* 사이드바 이동 버튼과 관리자 링크의 동일한 크기와 단일 테두리 설정. */
+.main-sidebar__navigation button,
+.main-sidebar__navigation a {
+  display: flex;
   min-height: 52px;
+  align-items: center;
   border: 1px solid var(--mindot-border);
   border-radius: 8px;
   padding: 0 16px;
   color: var(--mindot-text);
   font-weight: 600;
   text-align: left;
+  text-decoration: none;
   background: var(--mindot-surface);
   cursor: pointer;
   touch-action: manipulation;
@@ -143,7 +147,9 @@
 
 /* 사이드바 이동 버튼의 선택 가능 상태 강조. */
 .main-sidebar__navigation button:hover,
-.main-sidebar__navigation button:active {
+.main-sidebar__navigation button:active,
+.main-sidebar__navigation a:hover,
+.main-sidebar__navigation a:active {
   border-color: var(--mindot-primary-line);
   color: var(--mindot-primary-strong);
   background: var(--mindot-primary-soft);

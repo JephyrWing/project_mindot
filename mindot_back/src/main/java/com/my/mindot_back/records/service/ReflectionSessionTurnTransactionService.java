@@ -102,7 +102,7 @@ public class ReflectionSessionTurnTransactionService {
             FastApiCbtResponseDto fastApiResponse
     ) {
         ReflectionSessions reflectionSession = reflectionSessionsRepository
-                .findById(sessionId)
+                .findLockedById(sessionId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "성찰 세션을 찾을 수 없습니다."
@@ -114,6 +114,9 @@ public class ReflectionSessionTurnTransactionService {
                         "AI 작업 이력을 찾을 수 없습니다."
                 ));
 
+        if (!LegacyReflectionRetry.canComplete(reflectionSession, aiJob)) return reflectionSession;
+
+        var previousInsightState = reflectionSession.insight();
         reflectionSession.applyAiMeta(fastApiResponse.meta());
 
         // REVIEW 또는 CRISIS 위험 신호가 있으면 안전 이벤트 이력 생성
@@ -186,6 +189,8 @@ public class ReflectionSessionTurnTransactionService {
                 fastApiResponse.meta().promptVersion()
         );
 
+        LegacyReflectionRetry.completed(reflectionSession, previousInsightState);
+
         return reflectionSession;
     }
 
@@ -198,7 +203,9 @@ public class ReflectionSessionTurnTransactionService {
                         "AI 작업 이력을 찾을 수 없습니다."
                 ));
 
-        aiJob.fail("FAST_API_CBT_TURN_FAILED");
+        if (aiJob.getStatus() == com.my.mindot_back.ai.entity.AiJobStatus.PROCESSING
+                || aiJob.getStatus() == com.my.mindot_back.ai.entity.AiJobStatus.PENDING)
+            aiJob.fail("FAST_API_CBT_TURN_FAILED");
     }
 
     // 트랜잭션 A: 답변은 이미 저장됐지만 다음 질문 생성에 실패한 세션 재시도 준비

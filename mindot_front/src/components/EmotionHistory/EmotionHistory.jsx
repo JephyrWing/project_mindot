@@ -93,25 +93,6 @@ const formatHistoryDate = (occurredAt) => new Intl.DateTimeFormat('ko-KR', {
   minute: '2-digit',
 }).format(new Date(occurredAt))
 
-// 현재 날짜를 기준으로 선택한 기간의 시작 시각을 계산하는 함수 정의.
-const getPeriodStartDate = (period) => {
-  const startDate = new Date()
-
-  startDate.setHours(0, 0, 0, 0)
-
-  if (period === 'week') {
-    const daysFromMonday = (startDate.getDay() + 6) % 7
-
-    startDate.setDate(startDate.getDate() - daysFromMonday)
-  }
-
-  if (period === 'month') {
-    startDate.setDate(1)
-  }
-
-  return startDate
-}
-
 // 감정 기록 목록 API 결과와 탐색 기능을 제공하는 목록 화면 컴포넌트 정의.
 function EmotionHistory({
   isAuthenticated,
@@ -140,7 +121,9 @@ function EmotionHistory({
   const [searchKeyword, setSearchKeyword] = useState('')
 
   // 사용자가 현재 확인 중인 감정 기록 페이지 번호 상태 설정.
-  const [currentPage, setCurrentPage] = useState(1)
+  const [currentPage, setCurrentPage] = useState(0)
+  const [pageInfo, setPageInfo] = useState({ totalPages: 0, totalElements: 0 })
+  const [selectedContext, setSelectedContext] = useState('all')
 
   // 백엔드에서 조회한 로그인 사용자의 감정 기록 목록 상태 설정.
   const [emotionRecords, setEmotionRecords] = useState([])
@@ -163,11 +146,21 @@ function EmotionHistory({
       setLoadError('')
 
       try {
-        const records = await getEmotionRecords()
+        const records = await getEmotionRecords({
+          period: selectedPeriod.toUpperCase(), sort: sortOrder.toUpperCase().replaceAll('-', '_'),
+          emotionCode: selectedEmotion === 'all' ? undefined : selectedEmotion,
+          contextCategory: selectedContext === 'all' ? undefined : selectedContext,
+          keyword: searchKeyword.trim() || undefined, page: currentPage, size: recordsPerPage,
+        })
 
         if (isActive) {
-          setEmotionRecords(records.map(normalizeEmotionRecord))
-          setCurrentPage(1)
+          // Deletion or concurrent filtering can make the last page disappear.
+          if (currentPage > 0 && currentPage >= records.totalPages) {
+            setCurrentPage(Math.max(0, records.totalPages - 1))
+            return
+          }
+          setEmotionRecords(records.content.map(normalizeEmotionRecord))
+          setPageInfo(records)
         }
       } catch (error) {
         if (isActive) {
@@ -184,7 +177,7 @@ function EmotionHistory({
     return () => {
       isActive = false
     }
-  }, [reloadCount])
+  }, [reloadCount, selectedPeriod, sortOrder, selectedEmotion, selectedContext, searchKeyword, currentPage])
 
   // 선택한 기간에 해당하는 사용자 표시용 한글 문구 탐색.
   const selectedPeriodLabel = historyPeriodFilters.find(
@@ -194,70 +187,13 @@ function EmotionHistory({
   // 앞뒤 공백과 대소문자 차이를 제거한 기록 검색어 생성.
   const normalizedSearchKeyword = searchKeyword.trim().toLocaleLowerCase('ko-KR')
 
-  // 조회된 기록에 실제 포함된 대표 감정만 필터 선택 항목으로 구성.
   const historyEmotionFilters = [
     { value: 'all', label: '전체 감정' },
-    ...Array.from(new Set(
-      emotionRecords
-        .map((record) => record.emotionCode)
-        .filter(Boolean),
-    )).map((emotionCode) => ({
-      value: emotionCode,
-      label: emotionCodeLabels[emotionCode] ?? emotionCode,
-    })),
+    ...Object.entries(emotionCodeLabels).map(([value, label]) => ({ value, label })),
   ]
-
-  // 선택한 기간에 해당하는 조회 기록만 남기는 필터 처리.
-  const periodFilteredRecords = selectedPeriod === 'all'
-    ? emotionRecords
-    : emotionRecords.filter(
-      (record) => new Date(record.occurredAt) >= getPeriodStartDate(selectedPeriod),
-    )
-
-  // 선택한 대표 감정과 일치하는 기록만 남기는 감정 필터 처리.
-  const emotionFilteredRecords = selectedEmotion === 'all'
-    ? periodFilteredRecords
-    : periodFilteredRecords.filter(
-      (record) => record.emotionCode === selectedEmotion,
-    )
-
-  // 내용과 감정 및 상황 중 입력한 검색어가 포함된 기록만 남기는 검색 처리.
-  const filteredRecords = normalizedSearchKeyword
-    ? emotionFilteredRecords.filter((record) => (
-      [record.content, record.emotion, record.context].some((searchTarget) => (
-        searchTarget.toLocaleLowerCase('ko-KR').includes(normalizedSearchKeyword)
-      ))
-    ))
-    : emotionFilteredRecords
-
-  // 선택한 정렬 기준에 따라 원본 배열을 변경하지 않고 기록 순서 정렬.
-  const displayedRecords = [...filteredRecords].sort((firstRecord, secondRecord) => {
-    if (sortOrder === 'intensity-high') {
-      return (secondRecord.intensity ?? -1) - (firstRecord.intensity ?? -1)
-    }
-    if (sortOrder === 'intensity-low') {
-      return (firstRecord.intensity ?? Number.POSITIVE_INFINITY)
-        - (secondRecord.intensity ?? Number.POSITIVE_INFINITY)
-    }
-
-    const firstTime = new Date(firstRecord.occurredAt).getTime()
-    const secondTime = new Date(secondRecord.occurredAt).getTime()
-
-    return sortOrder === 'latest' ? secondTime - firstTime : firstTime - secondTime
-  })
-
-  // 필터링된 전체 기록을 기준으로 필요한 마지막 페이지 번호 계산.
-  const totalPages = Math.max(
-    1,
-    Math.ceil(displayedRecords.length / recordsPerPage),
-  )
-
-  // 현재 페이지에서 화면에 표시할 감정 기록 범위 계산.
-  const pageStartIndex = (currentPage - 1) * recordsPerPage
-  const paginatedRecords = displayedRecords.slice(
-    pageStartIndex,
-    pageStartIndex + recordsPerPage,
-  )
+  const displayedRecords = emotionRecords
+  const paginatedRecords = emotionRecords
+  const totalPages = pageInfo.totalPages
 
   // 선택한 기간에 따라 빈 목록의 현재 상태를 설명하는 제목 설정.
   const emptyTitle = normalizedSearchKeyword
@@ -271,31 +207,31 @@ function EmotionHistory({
   // 기간 필터 변경 후 목록 첫 페이지로 이동하는 처리.
   const handlePeriodChange = (period) => {
     setSelectedPeriod(period)
-    setCurrentPage(1)
+    setCurrentPage(0)
   }
 
   // 정렬 기준 변경 후 목록 첫 페이지로 이동하는 처리.
   const handleSortChange = (event) => {
     setSortOrder(event.target.value)
-    setCurrentPage(1)
+    setCurrentPage(0)
   }
 
   // 대표 감정 필터 변경 후 목록 첫 페이지로 이동하는 처리.
   const handleEmotionChange = (event) => {
     setSelectedEmotion(event.target.value)
-    setCurrentPage(1)
+    setCurrentPage(0)
   }
 
   // 기록 검색어 변경 후 목록 첫 페이지로 이동하는 처리.
   const handleSearchKeywordChange = (event) => {
     setSearchKeyword(event.target.value)
-    setCurrentPage(1)
+    setCurrentPage(0)
   }
 
   // 입력한 기록 검색어를 비우고 목록 첫 페이지로 이동하는 처리.
   const handleSearchKeywordClear = () => {
     setSearchKeyword('')
-    setCurrentPage(1)
+    setCurrentPage(0)
   }
 
   // 공통 네비게이션과 감정 기록 목록의 두 번째 단계 탐색 화면 반환.
@@ -330,7 +266,7 @@ function EmotionHistory({
               ? '불러오는 중'
               : loadError
                 ? '조회 실패'
-                : `${selectedPeriodLabel} ${displayedRecords.length}개`}
+                : `${selectedPeriodLabel} ${pageInfo.totalElements}개`}
           </span>
         </div>
 
@@ -372,6 +308,14 @@ function EmotionHistory({
             </select>
           </label>
 
+          <label htmlFor="emotion-history-context">
+            <span>상황</span>
+            <select id="emotion-history-context" value={selectedContext}
+              onChange={(event) => { setSelectedContext(event.target.value); setCurrentPage(0) }}>
+              <option value="all">전체 상황</option>
+              {Object.entries(contextCategoryLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+            </select>
+          </label>
           <label htmlFor="emotion-history-sort">
             <span>정렬</span>
             <select
@@ -396,7 +340,7 @@ function EmotionHistory({
                 type="search"
                 value={searchKeyword}
                 onChange={handleSearchKeywordChange}
-                placeholder="내용·감정·상황에서 검색"
+                placeholder="기록 원문에서 검색"
               />
             </label>
             <button
@@ -471,17 +415,17 @@ function EmotionHistory({
                 <button
                   type="button"
                   onClick={() => setCurrentPage((page) => page - 1)}
-                  disabled={currentPage === 1}
+                  disabled={currentPage === 0}
                 >
                   이전
                 </button>
                 <span aria-current="page">
-                  {currentPage} / {totalPages}
+                  {currentPage + 1} / {totalPages}
                 </span>
                 <button
                   type="button"
                   onClick={() => setCurrentPage((page) => page + 1)}
-                  disabled={currentPage === totalPages}
+                  disabled={currentPage + 1 >= totalPages}
                 >
                   다음
                 </button>

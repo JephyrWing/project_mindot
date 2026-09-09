@@ -1,0 +1,64 @@
+{
+  "manifestVersion": "mindot-cbt-hidden-holdout-seal-1.0",
+  "createdAtUtc": "2026-09-03T04:49:06Z",
+  "status": "SEALED_KEY_WITHHELD",
+  "archive": {
+    "fileName": "Mindot-CBT-Q11-Hidden-Holdout-Sealed.tar.enc",
+    "bytes": 51232,
+    "sha256": "a5de742651891641fd1ce78a65aa0c6c7d11a4fd1e4ac79250133706b916f99e",
+    "encryption": {
+      "format": "OpenSSL enc",
+      "cipher": "AES-256-CBC",
+      "kdf": "PBKDF2-HMAC-SHA256",
+      "iterations": 250000,
+      "salted": true,
+      "archiveHeaderAndFileNamesEncrypted": true
+    }
+  },
+  "sealedContent": {
+    "plainTarSha256": "8c15cd8a9c68aa4278a9b58edd5c3373122fb86b4265e0d6397fc729aa06b080",
+    "contentManifestSha256": "03c4964ff671920a9b416deae8d76086b4087d56ef98d6893da46a1703efce39",
+    "singleTurnCases": 12,
+    "longSessions": 2,
+    "freshLogicalCases": 14,
+    "pairedVersionRecords": 28
+  },
+  "officialEvaluationBudget": {
+    "knownLogicalCases": 170,
+    "hiddenLogicalCases": 14,
+    "totalLogicalCases": 184,
+    "versions": 2,
+    "expectedVersionRecords": 368,
+    "wholeCaseQualityRetries": 0
+  },
+  "freshness": {
+    "createdWhileQ11ImplementationWasInProgress": true,
+    "createdBeforeCandidateSourcePromptSchemaAndRunnerLock": true,
+    "candidateOutputsOrCanaryResultsUsed": false,
+    "priorQ9Q10AndFailedQ11CasesClassifiedAsKnown": true,
+    "implementationCodexMayVerifyOnlyThisManifestAndEncryptedArchiveBeforeLock": true
+  },
+  "releaseGate": {
+    "requiredStatus": "READY_FOR_HOLDOUT_LOCK",
+    "requiredLocks": [
+      "Q11 source",
+      "all product prompts",
+      "provider schemas",
+      "evaluation runner",
+      "Q10 architecture-neutral adapter",
+      "anonymous version mapping"
+    ],
+    "releaseKeyDisclosedBeforeGate": false,
+    "mutationAfterReleaseAllowed": false
+  },
+  "verification": {
+    "jsonAndContractChecks": "PASS",
+    "uniqueCaseIds": 14,
+    "exactKnownSituationOrAutomaticThoughtOverlap": 0,
+    "decryptAndInnerHashRoundTrip": "PASS"
+  },
+  "decryptAfterRelease": {
+    "command": "openssl enc -d -aes-256-cbc -pbkdf2 -iter 250000 -md sha256 -in Mindot-CBT-Q11-Hidden-Holdout-Sealed.tar.enc -out Mindot-CBT-Q11-Hidden-Holdout.tar -pass file:Q11-Holdout-Release-Key.txt",
+    "then": "Verify plainTarSha256, extract the tar, and verify content-manifest.json before running any case."
+  }
+}

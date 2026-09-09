@@ -1,0 +1,182 @@
+{
+  "packageId": "q11-simple-dialogue-1",
+  "authorCheckedAt": "2026-09-09",
+  "candidate": {
+    "version": "Q11 simple-dialogue-1",
+    "sourceSetSha256": null,
+    "status": "NOT_IMPLEMENTED; executor creates and locks actual source after this package implementation"
+  },
+  "baseline": {
+    "version": "Q10",
+    "driveSnapshotFolderId": "1HHjk5d1H5Vo_NFWEnoOueGEGEUJXWsUq",
+    "files": [
+      {
+        "relativePath": "app.py",
+        "bytes": 7294,
+        "sha256": "d11f23c3e23ff588c838ad319b5dc2acc9109fc2bafff3b3095ac08f1de12c00",
+        "driveId": "1yhbQaflk-gY46sREwPGGyr_suJqCBKHd"
+      },
+      {
+        "relativePath": "cbt_agent.py",
+        "bytes": 105203,
+        "sha256": "ee8f742d7ae90a0a23846f867382fc04991ba4244075b6a460d8a3fd42b2b613",
+        "driveId": "1BAijMzUGQ3vXO3BrtGgC0eVo0aQFUWDo"
+      },
+      {
+        "relativePath": "cbt_session_agent.py",
+        "bytes": 159173,
+        "sha256": "e359c881ac8a544955800372e6db3b84e657ea5d0ebd55b81cb0118ef31e6d5d",
+        "driveId": "1DKYX3v0noV6Tb2IXGsjWcasngCl0yupW"
+      },
+      {
+        "relativePath": "Dockerfile",
+        "bytes": 189,
+        "sha256": "635e8f323816aafbdb287da623aec77b02e4ca31c89e152f8cd7e86654f2f671",
+        "driveId": "1rhJowPpJhQahDIEZYAT1OyLZ13M_awDW"
+      },
+      {
+        "relativePath": "records_agent.py",
+        "bytes": 15919,
+        "sha256": "d3322b4a3fb1157ffd350b57e4f6dd4c4264037f64a90979f917b27ab8c51e41",
+        "driveId": "1clX7cbHnOqyToDetYM-5gUpf7d9yRCcA"
+      },
+      {
+        "relativePath": "requirements.txt",
+        "bytes": 3168,
+        "sha256": "f610bd67950cbd46de0ffaa9dd537e84dcd0f82098612ba1f90de4798e11937b",
+        "driveId": "1RJaqyeg1BeAB5pmz0pm_B5jW2Xj_SfAo"
+      }
+    ],
+    "productMutationAllowed": false
+  },
+  "knownInputs": {
+    "folderId": "1HM8SLf4ASM_ytwGHQptItISh-3ZK-D9C",
+    "logicalCount": 170,
+    "files": [
+      {
+        "relativePath": "canonical-boundary-cases.json",
+        "bytes": 51889,
+        "sha256": "74f6220e5fbdeba7a260f2b49b2479ec1355b901e29d441411d516a5fe7f3762",
+        "recordCount": 20,
+        "driveId": "1YykrAp8LdbJKPy2V1Q_SIuu7lBWvZety",
+        "stagePath": "docs/cbt-q11-evaluation/known/canonical-boundary-cases.json",
+        "verification": "expected hash from historical lock; executor verifies downloaded bytes"
+      },
+      {
+        "relativePath": "canonical-feature-cases.json",
+        "bytes": 284373,
+        "sha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+        "recordCount": 40,
+        "driveId": "1vdqjw-NA6EvrfhnTqoMGcfedD7A-AigQ",
+        "stagePath": "docs/cbt-q11-evaluation/known/canonical-feature-cases.json",
+        "verification": "expected hash from historical lock; executor verifies downloaded bytes"
+      },
+      {
+        "relativePath": "canonical-regression-cases.json",
+        "bytes": 357002,
+        "sha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+        "recordCount": 40,
+        "driveId": "1atfMHtLQq1X1iFvrGOnGuRtJYrpaHSWf",
+        "stagePath": "docs/cbt-q11-evaluation/known/canonical-regression-cases.json",
+        "verification": "expected hash from historical lock; executor verifies downloaded bytes"
+      },
+      {
+        "relativePath": "fresh-q10-holdout-cases.json",
+        "bytes": 273016,
+        "sha256": "90c2cb93855e3e5300b18981a7416bdd101eae7d2a56986f1f1831ab7c06149c",
+        "recordCount": 36,
+        "driveId": "1XP1DQhyNpDhZ35AGPrswf-hyQqZY8l9O",
+        "stagePath": "docs/cbt-q11-evaluation/known/fresh-q10-holdout-cases.json",
+        "verification": "expected hash from historical lock; executor verifies downloaded bytes"
+      },
+      {
+        "relativePath": "known-holdout-regression-cases.json",
+        "bytes": 185432,
+        "sha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+        "recordCount": 24,
+        "driveId": "17E3Yqmokxon7TYNcsrmCZqm7nGg5vjZs",
+        "stagePath": "docs/cbt-q11-evaluation/known/known-holdout-regression-cases.json",
+        "verification": "expected hash from historical lock; executor verifies downloaded bytes"
+      },
+      {
+        "relativePath": "known-long-sessions.json",
+        "bytes": 2802,
+        "sha256": "4172949989456f86d36f034d8be96db42e3a8a0ffddfcd447802db423ccad986",
+        "recordCount": 4,
+        "driveId": "1zNIvDBZSKLFa2FWScEpokfLQd_VYmxSp",
+        "stagePath": "docs/cbt-q11-evaluation/known/known-long-sessions.json",
+        "verification": "expected hash from historical lock; executor verifies downloaded bytes"
+      },
+      {
+        "relativePath": "q10-long-sessions.json",
+        "bytes": 3847,
+        "sha256": "29c9e712f6d37d63f5f7bacf3dda558d1a031b23ee644c28af2f04f0c48808e5",
+        "recordCount": 6,
+        "driveId": "1cmo8jWN9vTOR85E8nt-l7cVMX2yea3sf",
+        "stagePath": "docs/cbt-q11-evaluation/known/q10-long-sessions.json",
+        "verification": "expected hash from historical lock; executor verifies downloaded bytes"
+      }
+    ],
+    "oldVersionsAnnotationPolicy": "Keep original bytes; map historical annotations to current baseline/candidate roles in locked runner configuration only"
+  },
+  "rubric": {
+    "version": "1.11",
+    "fileName": "Mindot-CBT-Blind-Grading-Rubric-v1.11.md",
+    "driveId": "1brCwhEPqkSAaUSsjyuslvj87muW-JjE8",
+    "bytes": 136063,
+    "sha256": "2bdfd89a6ecf7bc7c74aa0b21f47bc3a8e7f2288467290868d40af91b3fb620f",
+    "readByExecutor": "hash/bytes only, never grading content; raw export contract is separate"
+  },
+  "hidden": {
+    "manifestPath": "docs/cbt-q11-evaluation/holdout-manifest.json",
+    "ciphertextPath": "docs/cbt-q11-evaluation/Mindot-CBT-Q11-Hidden-Holdout-Sealed.tar.enc",
+    "freshLogicalCases": 14,
+    "pairedVersionRecords": 28,
+    "key": {
+      "fileName": "Q11-Holdout-Release-Key.txt",
+      "libraryFileId": "libfile_22e2560b1e2c8191ae17689064443342",
+      "libraryPath": "/project_mindot/Q11-Holdout-Release-Key.txt",
+      "stage": "ONLY_AFTER_READY_FOR_HOLDOUT_LOCK_RECEIPT",
+      "includedInThisPackage": false,
+      "executorAccess": "Not verified. Only after gate, use available authenticated access to the specified Library file. If an original authorized local copy exists it may also be used after gate; prior receipt is not assumed. No bypass and no key value in reports."
+    },
+    "preGateKeyOrPlaintextRead": false
+  },
+  "official": {
+    "baseline": "Q10",
+    "candidate": "Q11",
+    "logicalCases": 184,
+    "versionResultRecords": 368,
+    "scoredBy": "GPT after blind-grade lock; Codex raw only"
+  },
+  "delivery": {
+    "folderId": "1kQ8MriKCP1afqw7jpLFlHzaKAPuDGmgW",
+    "path": "project_mindot/CBT AI 테스트 결과 모음/raw files/cbt-11/",
+    "separateBlindAndFullZips": true
+  },
+  "priority": "latest user > current main/execution contract > fixed work inputs > historical records",
+  "implementationBase": {
+    "sourceSetSha256": "f4fa31387855250597e68a04b6e09d3bcade680ad406dcbfa0d5e54c1278e927",
+    "sourceFiles": 50,
+    "pythonFiles": 47,
+    "sourcePathInStoppedAudit": "frozen-source/Q11/mindot_ai",
+    "auditDriveId": "1icms7SgFamUlm3jXHA3v2vjRewbuUIEe",
+    "status": "last stopped REPAIR-13, not a passing candidate"
+  },
+  "iterationLog": {
+    "driveId": "1SEXzKZPNTJzuzjrcjp8hiyBnMHU4oetu",
+    "readAtExecutionStart": true,
+    "executorWriteAllowed": false,
+    "authoringBaseModifiedAt": "2026-09-09T03:25:08.324Z",
+    "authoringBaseSha256": "2358d687daa1278bc8fe2fe91d0f4dbdcae3294575e1b1ed1eb9202676fea300",
+    "note": "Author appends this design decision after packaging. Read latest actual remote bytes; do not treat this pre-append hash as latest-state equality gate."
+  },
+  "capacityPolicyRevision": "capacity-policy-1",
+  "handoff": {
+    "mode": "FIRST_DELIVERY_OF_REDESIGN",
+    "priorRedesignInstructionsDelivered": false,
+    "priorRedesignImplementationRequired": false,
+    "implementationStart": "Last stopped REPAIR-13 plus preserved actual current worktree; implement simple-dialogue-1 directly",
+    "instructionScope": "Current main prompt and ZIP contain complete redesign instructions; use this index for original source and evaluation assets."
+  }
+}

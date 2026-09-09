@@ -1,0 +1,30 @@
+{
+  "recordedAt": "2026-09-08T16:30:20Z",
+  "statusFile": {
+    "localPath": "D:/project_mindot/mindot_ai/artifacts/q11-validation-paid-20260909-final/FINAL_STATUS.md",
+    "bytes": 3762,
+    "sha256": "04825282e6bd22924154aabda775c75c269bedc5da3a0129b5baf8deb7991868"
+  },
+  "uploadSuccess": true,
+  "metadataReadbackVerified": true,
+  "metadata": {
+    "id": "17NwQiVoTRfBPcBdkOYlwaBsRoA4Ki9RS",
+    "title": "Mindot-Q11-Final-Status-20260909.md",
+    "mime_type": "text/markdown",
+    "size": "3762",
+    "url": "https://drive.google.com/file/d/17NwQiVoTRfBPcBdkOYlwaBsRoA4Ki9RS/view?usp=drivesdk",
+    "file_or_folder": "file",
+    "created_time": null,
+    "modified_time": null,
+    "parent_ids": [
+      "1kQ8MriKCP1afqw7jpLFlHzaKAPuDGmgW"
+    ],
+    "drive_id": null,
+    "current_user_can_share": null,
+    "has_augmented_permissions": null,
+    "shared": null,
+    "permissions": null,
+    "source_visibility_status": "access_not_verified"
+  },
+  "sharingChanges": false
+}

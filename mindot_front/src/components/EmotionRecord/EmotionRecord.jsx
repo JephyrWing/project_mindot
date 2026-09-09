@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Navbar from '../Navbar/Navbar.jsx'
 import SafetyNoticeModal from '../SafetyNoticeModal/SafetyNoticeModal.jsx'
@@ -29,7 +29,7 @@ const getSaveErrorMessage = (error) => {
   if (error.response.status === 401) {
     return '로그인 정보가 만료되었습니다. 다시 로그인해 주세요.'
   }
-  return '감정 기록을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.'
+  return '저장 결과를 확인하지 못했습니다. 같은 요청으로 다시 확인해 주세요.'
 }
 
 // 저장 시각을 한국어 날짜와 시간 형식으로 변환.
@@ -48,12 +48,13 @@ function EmotionRecord({
   onEmotionHistory,
   onCenter,
   onDailyCare,
-  onCBT,
-  onWeeklyReport,
+  onRecordDetail,
   onHome,
 }) {
   // 감정 원문 입력값 상태 관리.
   const [content, setContent] = useState('')
+  const pendingSave = useRef(null)
+  const saving = useRef(false)
   // 빈 내용 검증 오류 문구 상태 관리.
   const [inputError, setInputError] = useState('')
   // 작성 및 저장 진행 상태 관리.
@@ -67,6 +68,7 @@ function EmotionRecord({
 
   // 감정 원문 변경에 따른 작성 상태 반영.
   const handleContentChange = (event) => {
+    pendingSave.current = null // Editing starts a different logical record.
     setContent(event.target.value)
     setInputError('')
     setSaveError('')
@@ -85,6 +87,7 @@ function EmotionRecord({
   // 입력한 감정 원문을 백엔드 간편 저장 API로 전달하는 처리.
   const handleSubmit = async (event) => {
     event.preventDefault()
+    if (saving.current || savedRecord) return
     const isContentValid = validateContent()
 
     if (!isContentValid) {
@@ -92,16 +95,17 @@ function EmotionRecord({
       return
     }
 
+    saving.current = true
     setSaveStatus('saving')
     setSaveError('')
     setSafetyNotice(null)
 
     try {
-      const record = await createQuickRecord({
-        rawText: content.trim(),
-        inputType: 'TEXT',
-        occurredAt: new Date().toISOString(),
-      })
+      pendingSave.current ??= {
+        key: crypto.randomUUID(),
+        body: { rawText: content.trim(), inputType: 'TEXT', occurredAt: new Date().toISOString() },
+      }
+      const record = await createQuickRecord(pendingSave.current.body, pendingSave.current.key)
 
       setSavedRecord(record)
       setSaveStatus('saved')
@@ -110,20 +114,10 @@ function EmotionRecord({
       setSavedRecord(null)
       setSaveError(getSaveErrorMessage(error))
       setSaveStatus('error')
-    }
+    } finally { saving.current = false }
   }
 
-  // 저장 완료 후 새로운 감정 기록을 작성하기 위한 전체 입력값 초기화.
-  const handleReset = () => {
-    setContent('')
-    setInputError('')
-    setSaveError('')
-    setSavedRecord(null)
-    setSaveStatus('idle')
-    setSafetyNotice(null)
-  }
-
-  // 즉시 안전 안내가 필요한 저장 결과의 CBT 이동 제한 여부 설정.
+  // 즉시 안전 안내가 필요한 저장 결과의 안전 우선 안내 여부 설정.
   const isCrisisNotice = savedRecord?.safetyNotice?.actionCode
     === 'SHOW_CRISIS_NOTICE'
 
@@ -199,7 +193,7 @@ function EmotionRecord({
             <strong className={`is-${saveStatus}`}>{statusText}</strong>
           </div>
 
-          <button type="submit" disabled={saveStatus === 'saving'}>
+          <button type="submit" disabled={saveStatus === 'saving' || Boolean(savedRecord)}>
             {saveStatus === 'saving' ? '저장 중…' : '기록하기'}
           </button>
 
@@ -216,6 +210,12 @@ function EmotionRecord({
                     || savedRecord.weekdayType}
                 </span>
               </div>
+              <p role="status">{savedRecord.analysisStatus === 'FAILED'
+                ? '원문은 저장되었습니다. AI 분석에 실패했으니 상세 화면에서 재분석해 주세요.'
+                : ['PENDING', 'PROCESSING'].includes(savedRecord.analysisStatus)
+                  ? '원문은 저장되었고 AI 분석은 진행 중입니다. 상세 화면에서 상태를 확인해 주세요.'
+                  : '원문 저장이 완료되었습니다.'}</p>
+              <button type="button" onClick={() => { pendingSave.current = null; setSavedRecord(null); setContent(''); setSaveStatus('idle') }}>새 기록 작성</button>
               <dl>
                 <div>
                   <dt>기록 시각</dt>
@@ -229,45 +229,23 @@ function EmotionRecord({
             </section>
           )}
 
-          {/* 감정 기록 저장 완료 후에만 CBT 성찰 화면 이동 버튼 표시. */}
-          {saveStatus === 'saved' && !isCrisisNotice && (
+          {/* 저장 직후 생성된 기록 식별자를 사용한 상세 확인 화면 이동 버튼 표시. */}
+          {saveStatus === 'saved' && savedRecord && (
             <button
-              className="emotion-record-cbt-button"
+              className="emotion-record-detail-button"
               type="button"
-              onClick={() => onCBT(savedRecord.recordId)}
+              onClick={() => onRecordDetail(savedRecord.recordId)}
             >
-              CBT 검사 하기
+              감정 기록 상세 확인하기
             </button>
           )}
 
-          {/* 위기 안전 신호가 확인된 기록의 CBT 이동 대신 안전 우선 안내 표시. */}
+          {/* 위기 안전 신호가 확인된 기록의 안전 우선 안내 표시. */}
           {saveStatus === 'saved' && isCrisisNotice && (
             <p className="emotion-record-safety-guidance" role="status">
               현재는 CBT 성찰보다 즉시 안전을 확인하고 주변 또는 전문기관에
               도움을 요청하는 일이 우선입니다.
             </p>
-          )}
-
-          {/* 감정 기록 저장 완료 후에만 주간 리포트 화면 이동 버튼 표시. */}
-          {saveStatus === 'saved' && (
-            <button
-              className="emotion-record-report-button"
-              type="button"
-              onClick={onWeeklyReport}
-            >
-              주간 리포트로 이동하기
-            </button>
-          )}
-
-          {/* 저장 완료 후 현재 입력값을 비우고 새 기록을 시작하는 버튼 표시. */}
-          {saveStatus === 'saved' && (
-            <button
-              className="emotion-record-reset-button"
-              type="button"
-              onClick={handleReset}
-            >
-              새 기록 작성하기
-            </button>
           )}
           </form>
         </section>

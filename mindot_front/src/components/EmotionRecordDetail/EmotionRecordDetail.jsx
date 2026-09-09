@@ -1,3 +1,4 @@
+import { automaticThoughtError, MAX_AUTOMATIC_THOUGHT_LENGTH } from '../../utils/reflections/automaticThought.js'
 import { useEffect, useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Navbar from '../Navbar/Navbar.jsx'
@@ -253,6 +254,7 @@ function EmotionRecordDetail({
   onEmotionHistory,
   onCenter,
   onDailyCare,
+  onCBT,
   onBack,
   onHome,
 }) {
@@ -356,6 +358,11 @@ function EmotionRecordDetail({
     }).join(', ')
     : '분석 전'
 
+  // 수정 화면에서는 입력 중인 자동 사고를 상세 요약에도 즉시 반영하는 문구 설정.
+  const automaticThoughtText = record?.completionStatus === 'PARTIAL'
+    ? analysisForm.automaticThought.trim()
+    : record?.automaticThought?.trim()
+
   // 분석 확인 입력 항목의 변경값을 해당 필드에 반영.
   const handleAnalysisFieldChange = (event) => {
     const { name, value } = event.target
@@ -401,6 +408,19 @@ function EmotionRecordDetail({
     }))
   }
 
+  const validateAutomaticThought = (value) => {
+    const error = automaticThoughtError(value)
+    if (error) window.alert(error)
+    return !error
+  }
+
+  // 확정된 기록도 동일한 필수 입력·길이 검사 후 CBT 화면으로 이동.
+  const handleCbtStart = () => {
+    if (!validateAutomaticThought(record?.automaticThought ?? '')) return
+
+    onCBT(emotionRecordId)
+  }
+
   // 사용자가 수정한 AI 분석 결과의 유효성을 확인하고 최종 확정 요청.
   const handleAnalysisConfirm = async (event) => {
     event.preventDefault()
@@ -408,6 +428,16 @@ function EmotionRecordDetail({
     const primaryIntensity = analysisForm.primaryIntensity === ''
       ? null
       : Number(analysisForm.primaryIntensity)
+
+    if (!validateAutomaticThought(analysisForm.automaticThought)) {
+      setAnalysisMessage(
+        analysisForm.automaticThought.trim()
+          ? automaticThoughtError(analysisForm.automaticThought)
+          : '자동으로 떠오른 생각을 입력해야 CBT 검사를 시작할 수 있습니다.',
+      )
+      setIsAnalysisError(true)
+      return
+    }
 
     if (!analysisForm.primaryEmotionCode) {
       setAnalysisMessage('대표 감정을 선택해 주세요.')
@@ -492,7 +522,9 @@ function EmotionRecordDetail({
 
       setRecord(reanalyzedRecord)
       setAnalysisForm(createAnalysisForm(reanalyzedRecord))
-      setReanalysisMessage('AI 재분석을 완료했습니다. 제안된 내용을 확인해 주세요.')
+      setReanalysisMessage(reanalyzedRecord.completionStatus === 'QUICK'
+          ? '원문은 저장되어 있지만 분석이 아직 완료되지 않았습니다. 잠시 뒤 다시 확인하거나 재분석해 주세요.'
+          : 'AI 재분석을 완료했습니다. 제안된 내용을 확인해 주세요.')
     } catch (error) {
       setReanalysisMessage(getReanalysisErrorMessage(error))
     } finally {
@@ -768,6 +800,7 @@ function EmotionRecordDetail({
                     <span>자동으로 떠오른 생각</span>
                     <textarea
                       name="automaticThought"
+                      maxLength={MAX_AUTOMATIC_THOUGHT_LENGTH}
                       rows="3"
                       value={analysisForm.automaticThought}
                       disabled={isConfirmingAnalysis || isDeleting}
@@ -942,6 +975,18 @@ function EmotionRecordDetail({
                   {analysisMessage}
                 </p>
               )}
+
+              {/* 사용자 확정을 마친 기록의 CBT 시작 버튼 표시. */}
+              {record.completionStatus === 'COMPLETE' && (
+                <button
+                  className="emotion-detail-cbt-button"
+                  type="button"
+                  onClick={handleCbtStart}
+                  disabled={isDeleting}
+                >
+                  CBT 검사 하기
+                </button>
+              )}
             </section>
 
             <dl className="emotion-detail-list">
@@ -962,7 +1007,7 @@ function EmotionRecordDetail({
               </div>
               <div>
                 <dt>자동으로 떠오른 생각</dt>
-                <dd>{getDisplayValue(record.automaticThought)}</dd>
+                <dd>{automaticThoughtText || '작성 전(필수 작성란)'}</dd>
               </div>
               <div>
                 <dt>함께 느낀 감정</dt>

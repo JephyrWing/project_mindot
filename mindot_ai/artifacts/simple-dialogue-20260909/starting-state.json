@@ -1,0 +1,258 @@
+{
+  "head": "7337122da39c817f7e324694d45c8edddc7421e5",
+  "status": " M .gitignore\n M mindot_ai/app.py\n M mindot_ai/cbt_session_agent.py\n?? mindot_ai/artifacts/\n?? mindot_ai/cbt_q11/\n?? mindot_ai/cbt_q5/\n",
+  "packageManifestVerified": true,
+  "baseComparison": [
+    {
+      "path": "Dockerfile",
+      "expected": "635e8f323816aafbdb287da623aec77b02e4ca31c89e152f8cd7e86654f2f671",
+      "actual": "635e8f323816aafbdb287da623aec77b02e4ca31c89e152f8cd7e86654f2f671"
+    },
+    {
+      "path": "app.py",
+      "expected": "f77e218a5edb67a7772703053585434a6ccb7a6d3d1b448b15a49795239a27ee",
+      "actual": "f77e218a5edb67a7772703053585434a6ccb7a6d3d1b448b15a49795239a27ee"
+    },
+    {
+      "path": "cbt_agent.py",
+      "expected": "ee8f742d7ae90a0a23846f867382fc04991ba4244075b6a460d8a3fd42b2b613",
+      "actual": "ee8f742d7ae90a0a23846f867382fc04991ba4244075b6a460d8a3fd42b2b613"
+    },
+    {
+      "path": "cbt_q11/__init__.py",
+      "expected": "b924c80eea341758dd2d2649649429c66164307b88b6e13fb62d37fe8159ba9c",
+      "actual": "b924c80eea341758dd2d2649649429c66164307b88b6e13fb62d37fe8159ba9c"
+    },
+    {
+      "path": "cbt_q11/agent_graph.py",
+      "expected": "7b867abccc5763e598739e8b2a805d94236c7b8d9a8e8f3278f4a9176cc52ff5",
+      "actual": "7b867abccc5763e598739e8b2a805d94236c7b8d9a8e8f3278f4a9176cc52ff5"
+    },
+    {
+      "path": "cbt_q11/assessment_target.py",
+      "expected": "fe32d3a987807001029b8f636b0d62d72421cb459b202ad34832280f64efe635",
+      "actual": "fe32d3a987807001029b8f636b0d62d72421cb459b202ad34832280f64efe635"
+    },
+    {
+      "path": "cbt_q11/capacity.py",
+      "expected": "1251a7c1802360848acf6715912abc49d6e05c654c32696a60054ad2aa731c51",
+      "actual": "1251a7c1802360848acf6715912abc49d6e05c654c32696a60054ad2aa731c51"
+    },
+    {
+      "path": "cbt_q11/checkpoint.py",
+      "expected": "23b0a4a4be265aadb7fb381e7208e6010d6d5325bf7bc62812aaa81eecc5afca",
+      "actual": "23b0a4a4be265aadb7fb381e7208e6010d6d5325bf7bc62812aaa81eecc5afca"
+    },
+    {
+      "path": "cbt_q11/completion.py",
+      "expected": "75f84d634700d063618b84ce1a190e6961b47a5b579d68e9a3475f260773ff59",
+      "actual": "75f84d634700d063618b84ce1a190e6961b47a5b579d68e9a3475f260773ff59"
+    },
+    {
+      "path": "cbt_q11/contracts.py",
+      "expected": "daf0c581b36e76c7b59acf7777f063f3ddf07c428b7cc1e6961482840d25c2ca",
+      "actual": "daf0c581b36e76c7b59acf7777f063f3ddf07c428b7cc1e6961482840d25c2ca"
+    },
+    {
+      "path": "cbt_q11/diagnostics.py",
+      "expected": "8c178cd645a294eac684e5b3b63575e57a574450969733be1b9e89ad013fccba",
+      "actual": "8c178cd645a294eac684e5b3b63575e57a574450969733be1b9e89ad013fccba"
+    },
+    {
+      "path": "cbt_q11/gaps.py",
+      "expected": "48f571dbb700b87c51aa2675bab56901419b19625043eb9d0abf00ae6c19fe69",
+      "actual": "48f571dbb700b87c51aa2675bab56901419b19625043eb9d0abf00ae6c19fe69"
+    },
+    {
+      "path": "cbt_q11/goals.py",
+      "expected": "80d74034a2295ffc3051d3b53ea235b7771a6b2225fd3a89d90306a8c977a4a8",
+      "actual": "80d74034a2295ffc3051d3b53ea235b7771a6b2225fd3a89d90306a8c977a4a8"
+    },
+    {
+      "path": "cbt_q11/llm.py",
+      "expected": "e5ca36ee39535b98ccceb87b42dd189addd76d05e4af31e9dfb8cce2a3567957",
+      "actual": "e5ca36ee39535b98ccceb87b42dd189addd76d05e4af31e9dfb8cce2a3567957"
+    },
+    {
+      "path": "cbt_q11/memory.py",
+      "expected": "a5da98e50dc4377afcb53d2ef5b7abc1d2d4e302f780fc61ea30f66ad610b1d5",
+      "actual": "a5da98e50dc4377afcb53d2ef5b7abc1d2d4e302f780fc61ea30f66ad610b1d5"
+    },
+    {
+      "path": "cbt_q11/phases.py",
+      "expected": "b5d9674425f9e52b2ed2a8fda79a97cd66e32cab9b577374ef5963b04ba732c7",
+      "actual": "b5d9674425f9e52b2ed2a8fda79a97cd66e32cab9b577374ef5963b04ba732c7"
+    },
+    {
+      "path": "cbt_q11/planner.py",
+      "expected": "906d4efc79ad43485e1d3d9bb2888e01fdf5db317d695ecbac10820399504d76",
+      "actual": "906d4efc79ad43485e1d3d9bb2888e01fdf5db317d695ecbac10820399504d76"
+    },
+    {
+      "path": "cbt_q11/policy.py",
+      "expected": "f9b75b734dc1156c49226a31b152d72ce6105be951d2bc30c0e54e397f3ef843",
+      "actual": "f9b75b734dc1156c49226a31b152d72ce6105be951d2bc30c0e54e397f3ef843"
+    },
+    {
+      "path": "cbt_q11/prompts.py",
+      "expected": "5f1d9a0ea3cf6fe9766108620f3fa8cb9f0485d0a188b8e9c521973ac18b5f9d",
+      "actual": "5f1d9a0ea3cf6fe9766108620f3fa8cb9f0485d0a188b8e9c521973ac18b5f9d"
+    },
+    {
+      "path": "cbt_q11/provider.py",
+      "expected": "e2867dc5958528de6914e669036f7bec0ff3f9a8b14e15d018b980941e57c3e4",
+      "actual": "e2867dc5958528de6914e669036f7bec0ff3f9a8b14e15d018b980941e57c3e4"
+    },
+    {
+      "path": "cbt_q11/provider_schemas.py",
+      "expected": "80b422419afa3ce8e9dc71263d63425b6b2f266a64bce09817be58a262123e2a",
+      "actual": "80b422419afa3ce8e9dc71263d63425b6b2f266a64bce09817be58a262123e2a"
+    },
+    {
+      "path": "cbt_q11/rendering.py",
+      "expected": "ee4b653c5b4e0ee608133c507ff8928d727ce05db8305ddb371f84acf1dbd4a3",
+      "actual": "ee4b653c5b4e0ee608133c507ff8928d727ce05db8305ddb371f84acf1dbd4a3"
+    },
+    {
+      "path": "cbt_q11/requests.py",
+      "expected": "1f54c651b42e882cde1caa7e99684b067559a796a120688e6fd8743ca015bf8e",
+      "actual": "1f54c651b42e882cde1caa7e99684b067559a796a120688e6fd8743ca015bf8e"
+    },
+    {
+      "path": "cbt_q11/review.py",
+      "expected": "fc3d09335865e1b832aee8bea469e87f0c1b44ecf0a3b1476d21fa573a220b8c",
+      "actual": "fc3d09335865e1b832aee8bea469e87f0c1b44ecf0a3b1476d21fa573a220b8c"
+    },
+    {
+      "path": "cbt_q11/safety.py",
+      "expected": "847358f72024086ce34ceaf1d6a00ea3be167c0ffe0724dbafe167ba218cdefa",
+      "actual": "847358f72024086ce34ceaf1d6a00ea3be167c0ffe0724dbafe167ba218cdefa"
+    },
+    {
+      "path": "cbt_q11/service.py",
+      "expected": "831ac168140190e95c7f2dbce005e2b1b4faae58c144574726abef97f37fa590",
+      "actual": "831ac168140190e95c7f2dbce005e2b1b4faae58c144574726abef97f37fa590"
+    },
+    {
+      "path": "cbt_q11/signals.py",
+      "expected": "075c4aa7e556f384e3d8d4ecc74f1b390619ba1953d6b7152712aab9a5af7e12",
+      "actual": "075c4aa7e556f384e3d8d4ecc74f1b390619ba1953d6b7152712aab9a5af7e12"
+    },
+    {
+      "path": "cbt_q11/state.py",
+      "expected": "e18b731132c875043524770ee3bf5ac4e356ed3c5d51a60245e4cddc621e9151",
+      "actual": "e18b731132c875043524770ee3bf5ac4e356ed3c5d51a60245e4cddc621e9151"
+    },
+    {
+      "path": "cbt_q11/tools.py",
+      "expected": "38aecc5342a23353ae884c77d7c933b925b01b6fe32872b90d1269d52ed3548e",
+      "actual": "38aecc5342a23353ae884c77d7c933b925b01b6fe32872b90d1269d52ed3548e"
+    },
+    {
+      "path": "cbt_q11/validity.py",
+      "expected": "d243d540b1e4c61ce7630145c0d54c7c28e6387ecc614a7ec351c6265f66c05b",
+      "actual": "d243d540b1e4c61ce7630145c0d54c7c28e6387ecc614a7ec351c6265f66c05b"
+    },
+    {
+      "path": "cbt_q11/views.py",
+      "expected": "198b738312920cf90ca435710aaf36e1b67b9ae53d58e2f1799895aa845a2306",
+      "actual": "198b738312920cf90ca435710aaf36e1b67b9ae53d58e2f1799895aa845a2306"
+    },
+    {
+      "path": "cbt_q11/wire_ids.py",
+      "expected": "72ddf54cca7580b3406945b2b59581d89c3c0c80a47491ff6b12298ccfa77bf1",
+      "actual": "72ddf54cca7580b3406945b2b59581d89c3c0c80a47491ff6b12298ccfa77bf1"
+    },
+    {
+      "path": "cbt_q11/writer.py",
+      "expected": "5f28aeedb206cb200f8a266e4c42ccd2d7a47cb66dc1536f00fe10d492850165",
+      "actual": "5f28aeedb206cb200f8a266e4c42ccd2d7a47cb66dc1536f00fe10d492850165"
+    },
+    {
+      "path": "cbt_session_agent.py",
+      "expected": "8b9881408df5ddbe02b85912940faaf020fd1ba0af8928df53acfb2c58b8f332",
+      "actual": "8b9881408df5ddbe02b85912940faaf020fd1ba0af8928df53acfb2c58b8f332"
+    },
+    {
+      "path": "records_agent.py",
+      "expected": "d3322b4a3fb1157ffd350b57e4f6dd4c4264037f64a90979f917b27ab8c51e41",
+      "actual": "d3322b4a3fb1157ffd350b57e4f6dd4c4264037f64a90979f917b27ab8c51e41"
+    },
+    {
+      "path": "requirements.txt",
+      "expected": "f610bd67950cbd46de0ffaa9dd537e84dcd0f82098612ba1f90de4798e11937b",
+      "actual": "f610bd67950cbd46de0ffaa9dd537e84dcd0f82098612ba1f90de4798e11937b"
+    },
+    {
+      "path": "tests/EXECUTION_PLAN.md",
+      "expected": "efa8f6a16ecf7d1946d90a6cb384a51f97bd5126ea908f4413ae964c76f7f556",
+      "actual": "efa8f6a16ecf7d1946d90a6cb384a51f97bd5126ea908f4413ae964c76f7f556"
+    },
+    {
+      "path": "tests/test_cbt_bounded_gaps.py",
+      "expected": "69b6310befdda7c1c3dedc7cdae5aa103c5aa5b02896ec2983bfdb8ed830f346",
+      "actual": "69b6310befdda7c1c3dedc7cdae5aa103c5aa5b02896ec2983bfdb8ed830f346"
+    },
+    {
+      "path": "tests/test_cbt_bounded_projection_stability.py",
+      "expected": "d3ed3315f1e93017e6897eccf907e151d3621c14dcf6683bf13392a9f6178a43",
+      "actual": "d3ed3315f1e93017e6897eccf907e151d3621c14dcf6683bf13392a9f6178a43"
+    },
+    {
+      "path": "tests/test_cbt_bounded_provenance.py",
+      "expected": "d200bd00dbf8a891022715dcc1578c46bca739575e7fe36b68d1648ba6c74916",
+      "actual": "d200bd00dbf8a891022715dcc1578c46bca739575e7fe36b68d1648ba6c74916"
+    },
+    {
+      "path": "tests/test_cbt_bounded_safety.py",
+      "expected": "0985fd70ad5f0df3134851ba7d911fd4f8065402e54fd9e1884116a4647f8f76",
+      "actual": "0985fd70ad5f0df3134851ba7d911fd4f8065402e54fd9e1884116a4647f8f76"
+    },
+    {
+      "path": "tests/test_cbt_bounded_schema_compaction.py",
+      "expected": "672ff4c5db198dfa9b81c2a7647aadde1b076b0da886a66a9f0bf84d1b08460f",
+      "actual": "672ff4c5db198dfa9b81c2a7647aadde1b076b0da886a66a9f0bf84d1b08460f"
+    },
+    {
+      "path": "tests/test_cbt_bounded_wire_ids.py",
+      "expected": "cdd6348376857b1d118a1c92d0d3414f5b0d5064f0326a3e72a68111544c662f",
+      "actual": "cdd6348376857b1d118a1c92d0d3414f5b0d5064f0326a3e72a68111544c662f"
+    },
+    {
+      "path": "tests/test_cbt_integrity_relations.py",
+      "expected": "f13eaa94913eb2d53d3e7c5e04cada2403d8f06a90f22ff6c76f962d3b92191a",
+      "actual": "f13eaa94913eb2d53d3e7c5e04cada2403d8f06a90f22ff6c76f962d3b92191a"
+    },
+    {
+      "path": "tests/test_cbt_q11.py",
+      "expected": "0aefa7e9e09d49f02c0e53567803343f1deb3207f8938c05f3f8f36d6678aa48",
+      "actual": "0aefa7e9e09d49f02c0e53567803343f1deb3207f8938c05f3f8f36d6678aa48"
+    },
+    {
+      "path": "tests/test_cbt_whole_flow_contracts.py",
+      "expected": "09414fe16686cc66b752cde6c5af3d2bffa236bb4c6feeb8624839dce49ec9ff",
+      "actual": "09414fe16686cc66b752cde6c5af3d2bffa236bb4c6feeb8624839dce49ec9ff"
+    },
+    {
+      "path": "tests/test_cbt_whole_flow_lifecycle.py",
+      "expected": "aa762c8d8dae721cc2c434e79854298fec848837f53805622e0a8885e6fd6260",
+      "actual": "aa762c8d8dae721cc2c434e79854298fec848837f53805622e0a8885e6fd6260"
+    },
+    {
+      "path": "tests/test_cbt_whole_flow_provenance.py",
+      "expected": "d50059c0896cb759cf21c9e4fc7047542a447f738d299d3f0fc1ca63a52dcc7f",
+      "actual": "d50059c0896cb759cf21c9e4fc7047542a447f738d299d3f0fc1ca63a52dcc7f"
+    },
+    {
+      "path": "tests/test_cbt_whole_flow_requests.py",
+      "expected": "6e614f250cf707b841418972db567a19e80f14469a6b169821137130e7e72daf",
+      "actual": "6e614f250cf707b841418972db567a19e80f14469a6b169821137130e7e72daf"
+    },
+    {
+      "path": "tests/test_cbt_whole_flow_writer.py",
+      "expected": "feeea7adcbbd16063ce565ff1eb686c43e51fbc2b50abb35b7ab67c69bb736b2",
+      "actual": "feeea7adcbbd16063ce565ff1eb686c43e51fbc2b50abb35b7ab67c69bb736b2"
+    }
+  ],
+  "snapshotSha256": "2ab08dd3fb2a0d6201ded2c564640107f989979842b0ae490c82fe5990f1d773"
+}

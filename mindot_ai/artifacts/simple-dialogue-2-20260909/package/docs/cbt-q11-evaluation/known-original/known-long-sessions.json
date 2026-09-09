@@ -1,0 +1,109 @@
+[
+  {
+    "sessionCaseId": "Q9_LONG_UNCLEAR",
+    "versions": [
+      "Q8",
+      "Q9"
+    ],
+    "flow": "START_CONTINUE_REMOVE_REHYDRATE",
+    "recordSourceCaseId": "A01",
+    "maxTurns": 6,
+    "removeRuntimeAfterTurn": 4,
+    "answerStrategy": {
+      "sequence": [
+        "잘 판단하기 어려워요.",
+        "아직 잘 모르겠어요.",
+        "명확히 답하기 힘들어요.",
+        "지금은 모르겠어요.",
+        "다른 방향을 고를게요."
+      ],
+      "default": "잘 모르겠어요."
+    },
+    "requiredGates": [
+      "UNCLEAR",
+      "REHYDRATE",
+      "semantic_repeat_zero",
+      "state_preservation"
+    ]
+  },
+  {
+    "sessionCaseId": "Q9_LONG_SKIPPED",
+    "versions": [
+      "Q8",
+      "Q9"
+    ],
+    "flow": "START_CONTINUE_REMOVE_REHYDRATE",
+    "recordSourceCaseId": "B01",
+    "maxTurns": 6,
+    "removeRuntimeAfterTurn": 4,
+    "answerStrategy": {
+      "sequence": [
+        "이 질문은 건너뛸게요.",
+        "이번에도 답하지 않을게요.",
+        "이 부분은 넘어가고 싶어요.",
+        "계속 건너뛸게요.",
+        "다른 주제를 선택할게요."
+      ],
+      "default": "건너뛸게요."
+    },
+    "requiredGates": [
+      "SKIPPED",
+      "REHYDRATE",
+      "semantic_repeat_zero",
+      "coverage_contamination_zero"
+    ]
+  },
+  {
+    "sessionCaseId": "Q9_LONG_FEEDBACK",
+    "versions": [
+      "Q8",
+      "Q9"
+    ],
+    "flow": "START_CONTINUE_REMOVE_REHYDRATE",
+    "recordSourceCaseId": "C01",
+    "maxTurns": 6,
+    "removeRuntimeAfterTurn": 5,
+    "answerStrategy": {
+      "sequence": [
+        "그건 핵심과 관련 없는 질문 같아요.",
+        "비슷한 질문이 반복돼요.",
+        "그 방향은 그만 묻고 싶어요.",
+        "다른 방식으로 진행해 주세요.",
+        "이제 제가 방향을 고를게요."
+      ],
+      "default": "다른 방향으로 진행해 주세요."
+    },
+    "requiredGates": [
+      "feedback",
+      "REHYDRATE",
+      "closed_signature_reuse_zero",
+      "coverage_contamination_zero"
+    ]
+  },
+  {
+    "sessionCaseId": "Q9_LONG_REHYDRATE_READY",
+    "versions": [
+      "Q8",
+      "Q9"
+    ],
+    "flow": "START_CONTINUE_4_REMOVE_REHYDRATE",
+    "recordSourceCaseId": "D06",
+    "maxTurns": 5,
+    "removeRuntimeAfterTurn": 4,
+    "answerStrategy": {
+      "sequence": [
+        "직접 확인된 말은 한 가지 있었어요.",
+        "그 결론과 맞지 않는 사실도 있었어요.",
+        "다른 제한된 설명도 가능해요.",
+        "사실과 추측을 나누면 확신은 낮아져요."
+      ],
+      "default": "확인된 내용만 말했어요."
+    },
+    "requiredGates": [
+      "REHYDRATE",
+      "readiness_reconstruction",
+      "exact_grounding",
+      "state_preservation"
+    ]
+  }
+]

@@ -1,0 +1,18 @@
+{
+  "status": "UPLOADED_AND_DOWNLOAD_HASH_VERIFIED",
+  "fileId": "1ytTNH8V1sqj4V6PlgdsDoaH1KjtrzzLY",
+  "name": "Mindot-Q11-Simple-Dialogue-Audit-20260909T043047Z.zip",
+  "parentIds": [
+    "1kQ8MriKCP1afqw7jpLFlHzaKAPuDGmgW"
+  ],
+  "bytes": 1410944,
+  "sha256": "71d631d430ad305ed55c924dba6964c5792902bc08305c20c774ba4d95c376c2",
+  "url": "https://drive.google.com/file/d/1ytTNH8V1sqj4V6PlgdsDoaH1KjtrzzLY/view?usp=drivesdk",
+  "remoteBytesMatch": true,
+  "remoteHashMatch": true,
+  "localPath": "D:/project_mindot/mindot_ai/artifacts/simple-dialogue-20260909/submissions/Mindot-Q11-Simple-Dialogue-Audit-20260909T043047Z.zip",
+  "initialApprovalReviewRejected": true,
+  "authorizationRecheckedAndSameUploadApproved": true,
+  "canaryStatus": "CANARY_BLOCKED",
+  "formalResults": 0
+}

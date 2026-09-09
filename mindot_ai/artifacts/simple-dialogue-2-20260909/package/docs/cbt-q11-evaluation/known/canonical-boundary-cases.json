@@ -1,0 +1,1302 @@
+[
+  {
+    "caseId": "Q7D01",
+    "requestType": "TURN",
+    "currentStep": "BALANCED_THOUGHT_004",
+    "record": {
+      "recordId": 7001,
+      "situation": "팀장이 보고서 숫자 오류 한 곳을 지적했다.",
+      "automaticThought": "한 번 실수했으니 나는 모든 일을 망치는 사람이야.",
+      "primaryEmotionCode": "ANXIETY",
+      "primaryIntensity": 7,
+      "beforeBeliefStrength": 75,
+      "contextCategory": "OTHER"
+    },
+    "questionAnswers": [
+      {
+        "questionCode": "EVIDENCE_FOR_001",
+        "questionPurpose": "EVIDENCE_FOR",
+        "semanticRouteType": "DIRECT_WORD_OR_ACTION",
+        "question": "그 생각이 든 직접적인 사실은 무엇인가요?",
+        "answer": "숫자 오류를 지적받은 건 사실이에요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "EVIDENCE_AGAINST_002",
+        "questionPurpose": "EVIDENCE_AGAINST",
+        "semanticRouteType": "CONTRADICTORY_FACT",
+        "question": "확신을 낮추는 사실은 무엇인가요?",
+        "answer": "다른 부분은 괜찮다고 했어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "ALTERNATIVE_VIEW_003",
+        "questionPurpose": "ALTERNATIVE_VIEW",
+        "semanticRouteType": "ALTERNATIVE_EXPLANATION",
+        "question": "다른 가능한 관점은 무엇인가요?",
+        "answer": "한 부분을 고치라는 피드백일 수 있어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "BALANCED_THOUGHT_004",
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "CERTAINTY_REASSESSMENT",
+        "question": "사실과 추론을 나누면 어떻게 정리할 수 있나요?",
+        "answer": "오류 한 번은 사실이지만 모든 일을 망친다는 결론은 너무 넓어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      }
+    ],
+    "beforeDistortions": [],
+    "evaluationContext": {
+      "situationFamily": "PARTLY_TRUE_CLEAR",
+      "vulnerabilityType": "Q7_BOUNDARY",
+      "expectedDecision": "DISTORTION_PRESENT",
+      "allowedQuestionMeanings": [
+        "아직 판단을 바꿀 수 있는 미확인 정보 하나"
+      ],
+      "forbiddenQuestionMeanings": [
+        "이미 답한 의미 반복",
+        "제3자의 실제 숨은 상태 단정"
+      ]
+    }
+  },
+  {
+    "caseId": "Q7D02",
+    "requestType": "TURN",
+    "currentStep": "BALANCED_THOUGHT_004",
+    "record": {
+      "recordId": 7002,
+      "situation": "친구가 하루 동안 답장을 보내지 않았다.",
+      "automaticThought": "답장이 늦으니 친구는 분명 나를 싫어해.",
+      "primaryEmotionCode": "ANXIETY",
+      "primaryIntensity": 7,
+      "beforeBeliefStrength": 75,
+      "contextCategory": "OTHER"
+    },
+    "questionAnswers": [
+      {
+        "questionCode": "EVIDENCE_FOR_001",
+        "questionPurpose": "EVIDENCE_FOR",
+        "semanticRouteType": "DIRECT_WORD_OR_ACTION",
+        "question": "그 생각이 든 직접적인 사실은 무엇인가요?",
+        "answer": "오늘 답장이 없었던 건 사실이에요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "EVIDENCE_AGAINST_002",
+        "questionPurpose": "EVIDENCE_AGAINST",
+        "semanticRouteType": "CONTRADICTORY_FACT",
+        "question": "확신을 낮추는 사실은 무엇인가요?",
+        "answer": "지난주에는 먼저 연락했어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "ALTERNATIVE_VIEW_003",
+        "questionPurpose": "ALTERNATIVE_VIEW",
+        "semanticRouteType": "ALTERNATIVE_EXPLANATION",
+        "question": "다른 가능한 관점은 무엇인가요?",
+        "answer": "바쁘거나 휴대폰을 못 봤을 수도 있어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "BALANCED_THOUGHT_004",
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "CERTAINTY_REASSESSMENT",
+        "question": "사실과 추론을 나누면 어떻게 정리할 수 있나요?",
+        "answer": "답장이 늦은 사실과 나를 싫어한다는 생각은 같은 사실이 아니에요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      }
+    ],
+    "beforeDistortions": [],
+    "evaluationContext": {
+      "situationFamily": "PARTLY_TRUE_CLEAR",
+      "vulnerabilityType": "Q7_BOUNDARY",
+      "expectedDecision": "DISTORTION_PRESENT",
+      "allowedQuestionMeanings": [
+        "아직 판단을 바꿀 수 있는 미확인 정보 하나"
+      ],
+      "forbiddenQuestionMeanings": [
+        "이미 답한 의미 반복",
+        "제3자의 실제 숨은 상태 단정"
+      ]
+    }
+  },
+  {
+    "caseId": "Q7D03",
+    "requestType": "TURN",
+    "currentStep": "BALANCED_THOUGHT_004",
+    "record": {
+      "recordId": 7003,
+      "situation": "발표 직전에 심장이 빠르게 뛰었다.",
+      "automaticThought": "이렇게 긴장하니 발표를 반드시 망칠 거야.",
+      "primaryEmotionCode": "ANXIETY",
+      "primaryIntensity": 7,
+      "beforeBeliefStrength": 75,
+      "contextCategory": "OTHER"
+    },
+    "questionAnswers": [
+      {
+        "questionCode": "EVIDENCE_FOR_001",
+        "questionPurpose": "EVIDENCE_FOR",
+        "semanticRouteType": "DIRECT_WORD_OR_ACTION",
+        "question": "그 생각이 든 직접적인 사실은 무엇인가요?",
+        "answer": "심장이 빨리 뛰고 손에 땀이 났어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "EVIDENCE_AGAINST_002",
+        "questionPurpose": "EVIDENCE_AGAINST",
+        "semanticRouteType": "CONTRADICTORY_FACT",
+        "question": "확신을 낮추는 사실은 무엇인가요?",
+        "answer": "긴장해도 발표를 끝낸 적이 있어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "ALTERNATIVE_VIEW_003",
+        "questionPurpose": "ALTERNATIVE_VIEW",
+        "semanticRouteType": "ALTERNATIVE_EXPLANATION",
+        "question": "다른 가능한 관점은 무엇인가요?",
+        "answer": "긴장은 준비한 발표를 시작할 때 나타나는 반응일 수도 있어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "BALANCED_THOUGHT_004",
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "CERTAINTY_REASSESSMENT",
+        "question": "사실과 추론을 나누면 어떻게 정리할 수 있나요?",
+        "answer": "긴장한 건 사실이지만 반드시 망친다는 미래 결론은 확정할 수 없어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      }
+    ],
+    "beforeDistortions": [],
+    "evaluationContext": {
+      "situationFamily": "PARTLY_TRUE_CLEAR",
+      "vulnerabilityType": "Q7_BOUNDARY",
+      "expectedDecision": "DISTORTION_PRESENT",
+      "allowedQuestionMeanings": [
+        "아직 판단을 바꿀 수 있는 미확인 정보 하나"
+      ],
+      "forbiddenQuestionMeanings": [
+        "이미 답한 의미 반복",
+        "제3자의 실제 숨은 상태 단정"
+      ]
+    }
+  },
+  {
+    "caseId": "Q7D04",
+    "requestType": "TURN",
+    "currentStep": "BALANCED_THOUGHT_004",
+    "record": {
+      "recordId": 7004,
+      "situation": "친구가 약속 당일 몸이 아파 취소했다.",
+      "automaticThought": "이번에도 취소했으니 아무도 나와 만나고 싶어 하지 않아.",
+      "primaryEmotionCode": "ANXIETY",
+      "primaryIntensity": 7,
+      "beforeBeliefStrength": 75,
+      "contextCategory": "OTHER"
+    },
+    "questionAnswers": [
+      {
+        "questionCode": "EVIDENCE_FOR_001",
+        "questionPurpose": "EVIDENCE_FOR",
+        "semanticRouteType": "DIRECT_WORD_OR_ACTION",
+        "question": "그 생각이 든 직접적인 사실은 무엇인가요?",
+        "answer": "친구가 오늘 약속을 취소한 건 사실이에요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "EVIDENCE_AGAINST_002",
+        "questionPurpose": "EVIDENCE_AGAINST",
+        "semanticRouteType": "CONTRADICTORY_FACT",
+        "question": "확신을 낮추는 사실은 무엇인가요?",
+        "answer": "다른 친구와는 어제 만났어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "ALTERNATIVE_VIEW_003",
+        "questionPurpose": "ALTERNATIVE_VIEW",
+        "semanticRouteType": "ALTERNATIVE_EXPLANATION",
+        "question": "다른 가능한 관점은 무엇인가요?",
+        "answer": "친구가 몸이 아파 오늘만 취소했을 수 있어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "BALANCED_THOUGHT_004",
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "CERTAINTY_REASSESSMENT",
+        "question": "사실과 추론을 나누면 어떻게 정리할 수 있나요?",
+        "answer": "한 번 취소된 사실을 모든 관계로 넓힌 건 제 결론이에요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      }
+    ],
+    "beforeDistortions": [],
+    "evaluationContext": {
+      "situationFamily": "PARTLY_TRUE_CLEAR",
+      "vulnerabilityType": "Q7_BOUNDARY",
+      "expectedDecision": "DISTORTION_PRESENT",
+      "allowedQuestionMeanings": [
+        "아직 판단을 바꿀 수 있는 미확인 정보 하나"
+      ],
+      "forbiddenQuestionMeanings": [
+        "이미 답한 의미 반복",
+        "제3자의 실제 숨은 상태 단정"
+      ]
+    }
+  },
+  {
+    "caseId": "Q7D05",
+    "requestType": "TURN",
+    "currentStep": "BALANCED_THOUGHT_004",
+    "record": {
+      "recordId": 7005,
+      "situation": "시험에서 80점을 받았다.",
+      "automaticThought": "만점이 아니니 나는 공부를 못하는 사람이야.",
+      "primaryEmotionCode": "ANXIETY",
+      "primaryIntensity": 7,
+      "beforeBeliefStrength": 75,
+      "contextCategory": "OTHER"
+    },
+    "questionAnswers": [
+      {
+        "questionCode": "EVIDENCE_FOR_001",
+        "questionPurpose": "EVIDENCE_FOR",
+        "semanticRouteType": "DIRECT_WORD_OR_ACTION",
+        "question": "그 생각이 든 직접적인 사실은 무엇인가요?",
+        "answer": "만점이 아닌 건 사실이에요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "EVIDENCE_AGAINST_002",
+        "questionPurpose": "EVIDENCE_AGAINST",
+        "semanticRouteType": "CONTRADICTORY_FACT",
+        "question": "확신을 낮추는 사실은 무엇인가요?",
+        "answer": "지난 시험보다 점수는 올랐어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "ALTERNATIVE_VIEW_003",
+        "questionPurpose": "ALTERNATIVE_VIEW",
+        "semanticRouteType": "ALTERNATIVE_EXPLANATION",
+        "question": "다른 가능한 관점은 무엇인가요?",
+        "answer": "부족한 단원을 확인한 결과로 볼 수도 있어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "BALANCED_THOUGHT_004",
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "CERTAINTY_REASSESSMENT",
+        "question": "사실과 추론을 나누면 어떻게 정리할 수 있나요?",
+        "answer": "80점이라는 사실과 공부를 전혀 못한다는 평가는 달라요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      }
+    ],
+    "beforeDistortions": [],
+    "evaluationContext": {
+      "situationFamily": "PARTLY_TRUE_CLEAR",
+      "vulnerabilityType": "Q7_BOUNDARY",
+      "expectedDecision": "DISTORTION_PRESENT",
+      "allowedQuestionMeanings": [
+        "아직 판단을 바꿀 수 있는 미확인 정보 하나"
+      ],
+      "forbiddenQuestionMeanings": [
+        "이미 답한 의미 반복",
+        "제3자의 실제 숨은 상태 단정"
+      ]
+    }
+  },
+  {
+    "caseId": "Q7D06",
+    "requestType": "TURN",
+    "currentStep": "BALANCED_THOUGHT_004",
+    "record": {
+      "recordId": 7006,
+      "situation": "보고서 숫자 오류 한 곳을 지적받았다.",
+      "automaticThought": "보고서의 숫자 오류는 수정해야 한다.",
+      "primaryEmotionCode": "ANXIETY",
+      "primaryIntensity": 7,
+      "beforeBeliefStrength": 75,
+      "contextCategory": "OTHER"
+    },
+    "questionAnswers": [
+      {
+        "questionCode": "EVIDENCE_FOR_001",
+        "questionPurpose": "EVIDENCE_FOR",
+        "semanticRouteType": "DIRECT_WORD_OR_ACTION",
+        "question": "그 생각이 든 직접적인 사실은 무엇인가요?",
+        "answer": "팀장이 숫자 오류를 고치라고 했어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "EVIDENCE_AGAINST_002",
+        "questionPurpose": "EVIDENCE_AGAINST",
+        "semanticRouteType": "CONTRADICTORY_FACT",
+        "question": "확신을 낮추는 사실은 무엇인가요?",
+        "answer": "다른 부분은 괜찮다고 했어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "ALTERNATIVE_VIEW_003",
+        "questionPurpose": "ALTERNATIVE_VIEW",
+        "semanticRouteType": "ALTERNATIVE_EXPLANATION",
+        "question": "다른 가능한 관점은 무엇인가요?",
+        "answer": "해당 숫자만 수정하면 되는 업무 피드백이에요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "BALANCED_THOUGHT_004",
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "CERTAINTY_REASSESSMENT",
+        "question": "사실과 추론을 나누면 어떻게 정리할 수 있나요?",
+        "answer": "확인된 오류를 수정해야 한다는 범위로 생각하고 있어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      }
+    ],
+    "beforeDistortions": [],
+    "evaluationContext": {
+      "situationFamily": "NO_CLEAR",
+      "vulnerabilityType": "Q7_BOUNDARY",
+      "expectedDecision": "NO_CLEAR_DISTORTION",
+      "allowedQuestionMeanings": [
+        "아직 판단을 바꿀 수 있는 미확인 정보 하나"
+      ],
+      "forbiddenQuestionMeanings": [
+        "이미 답한 의미 반복",
+        "제3자의 실제 숨은 상태 단정"
+      ]
+    }
+  },
+  {
+    "caseId": "Q7D07",
+    "requestType": "TURN",
+    "currentStep": "BALANCED_THOUGHT_004",
+    "record": {
+      "recordId": 7007,
+      "situation": "친구가 아파서 오늘 약속을 취소했다.",
+      "automaticThought": "친구와 오늘은 만나기 어렵다.",
+      "primaryEmotionCode": "ANXIETY",
+      "primaryIntensity": 7,
+      "beforeBeliefStrength": 75,
+      "contextCategory": "OTHER"
+    },
+    "questionAnswers": [
+      {
+        "questionCode": "EVIDENCE_FOR_001",
+        "questionPurpose": "EVIDENCE_FOR",
+        "semanticRouteType": "DIRECT_WORD_OR_ACTION",
+        "question": "그 생각이 든 직접적인 사실은 무엇인가요?",
+        "answer": "친구가 아파서 취소한다고 말했어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "EVIDENCE_AGAINST_002",
+        "questionPurpose": "EVIDENCE_AGAINST",
+        "semanticRouteType": "CONTRADICTORY_FACT",
+        "question": "확신을 낮추는 사실은 무엇인가요?",
+        "answer": "다음 주에 보자고 먼저 제안했어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "ALTERNATIVE_VIEW_003",
+        "questionPurpose": "ALTERNATIVE_VIEW",
+        "semanticRouteType": "ALTERNATIVE_EXPLANATION",
+        "question": "다른 가능한 관점은 무엇인가요?",
+        "answer": "오늘 쉬고 다음 주에 만날 수 있어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "BALANCED_THOUGHT_004",
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "CERTAINTY_REASSESSMENT",
+        "question": "사실과 추론을 나누면 어떻게 정리할 수 있나요?",
+        "answer": "오늘 만나기 어렵다는 사실만 말한 것이고 관계 전체 평가는 아니에요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      }
+    ],
+    "beforeDistortions": [],
+    "evaluationContext": {
+      "situationFamily": "NO_CLEAR",
+      "vulnerabilityType": "Q7_BOUNDARY",
+      "expectedDecision": "NO_CLEAR_DISTORTION",
+      "allowedQuestionMeanings": [
+        "아직 판단을 바꿀 수 있는 미확인 정보 하나"
+      ],
+      "forbiddenQuestionMeanings": [
+        "이미 답한 의미 반복",
+        "제3자의 실제 숨은 상태 단정"
+      ]
+    }
+  },
+  {
+    "caseId": "Q7D08",
+    "requestType": "TURN",
+    "currentStep": "BALANCED_THOUGHT_004",
+    "record": {
+      "recordId": 7008,
+      "situation": "열차가 15분 지연된다는 안내가 나왔다.",
+      "automaticThought": "약속 장소에 15분쯤 늦을 수 있다.",
+      "primaryEmotionCode": "ANXIETY",
+      "primaryIntensity": 7,
+      "beforeBeliefStrength": 75,
+      "contextCategory": "OTHER"
+    },
+    "questionAnswers": [
+      {
+        "questionCode": "EVIDENCE_FOR_001",
+        "questionPurpose": "EVIDENCE_FOR",
+        "semanticRouteType": "DIRECT_WORD_OR_ACTION",
+        "question": "그 생각이 든 직접적인 사실은 무엇인가요?",
+        "answer": "15분 지연 안내를 봤어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "EVIDENCE_AGAINST_002",
+        "questionPurpose": "EVIDENCE_AGAINST",
+        "semanticRouteType": "CONTRADICTORY_FACT",
+        "question": "확신을 낮추는 사실은 무엇인가요?",
+        "answer": "환승 시간이 조금 남아 있어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "ALTERNATIVE_VIEW_003",
+        "questionPurpose": "ALTERNATIVE_VIEW",
+        "semanticRouteType": "ALTERNATIVE_EXPLANATION",
+        "question": "다른 가능한 관점은 무엇인가요?",
+        "answer": "환승이 빠르면 지연이 줄 수도 있어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "BALANCED_THOUGHT_004",
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "CERTAINTY_REASSESSMENT",
+        "question": "사실과 추론을 나누면 어떻게 정리할 수 있나요?",
+        "answer": "현재 안내로는 15분쯤 늦을 가능성을 생각한 거예요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      }
+    ],
+    "beforeDistortions": [],
+    "evaluationContext": {
+      "situationFamily": "NO_CLEAR",
+      "vulnerabilityType": "Q7_BOUNDARY",
+      "expectedDecision": "NO_CLEAR_DISTORTION",
+      "allowedQuestionMeanings": [
+        "아직 판단을 바꿀 수 있는 미확인 정보 하나"
+      ],
+      "forbiddenQuestionMeanings": [
+        "이미 답한 의미 반복",
+        "제3자의 실제 숨은 상태 단정"
+      ]
+    }
+  },
+  {
+    "caseId": "Q7D09",
+    "requestType": "TURN",
+    "currentStep": "BALANCED_THOUGHT_004",
+    "record": {
+      "recordId": 7009,
+      "situation": "발표 피드백으로 목소리가 작다는 말을 들었다.",
+      "automaticThought": "다음 발표에서는 목소리를 더 크게 내야겠다.",
+      "primaryEmotionCode": "ANXIETY",
+      "primaryIntensity": 7,
+      "beforeBeliefStrength": 75,
+      "contextCategory": "OTHER"
+    },
+    "questionAnswers": [
+      {
+        "questionCode": "EVIDENCE_FOR_001",
+        "questionPurpose": "EVIDENCE_FOR",
+        "semanticRouteType": "DIRECT_WORD_OR_ACTION",
+        "question": "그 생각이 든 직접적인 사실은 무엇인가요?",
+        "answer": "목소리가 작았다는 피드백을 받았어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "EVIDENCE_AGAINST_002",
+        "questionPurpose": "EVIDENCE_AGAINST",
+        "semanticRouteType": "CONTRADICTORY_FACT",
+        "question": "확신을 낮추는 사실은 무엇인가요?",
+        "answer": "내용 구성은 명확하다는 말도 들었어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "ALTERNATIVE_VIEW_003",
+        "questionPurpose": "ALTERNATIVE_VIEW",
+        "semanticRouteType": "ALTERNATIVE_EXPLANATION",
+        "question": "다른 가능한 관점은 무엇인가요?",
+        "answer": "전달 방식 한 부분을 조정하는 피드백이에요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "BALANCED_THOUGHT_004",
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "CERTAINTY_REASSESSMENT",
+        "question": "사실과 추론을 나누면 어떻게 정리할 수 있나요?",
+        "answer": "목소리를 조정한다는 구체적 개선점으로 받아들였어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      }
+    ],
+    "beforeDistortions": [],
+    "evaluationContext": {
+      "situationFamily": "NO_CLEAR",
+      "vulnerabilityType": "Q7_BOUNDARY",
+      "expectedDecision": "NO_CLEAR_DISTORTION",
+      "allowedQuestionMeanings": [
+        "아직 판단을 바꿀 수 있는 미확인 정보 하나"
+      ],
+      "forbiddenQuestionMeanings": [
+        "이미 답한 의미 반복",
+        "제3자의 실제 숨은 상태 단정"
+      ]
+    }
+  },
+  {
+    "caseId": "Q7D10",
+    "requestType": "TURN",
+    "currentStep": "BALANCED_THOUGHT_004",
+    "record": {
+      "recordId": 7010,
+      "situation": "동료가 오늘까지 자료를 보내지 않았다.",
+      "automaticThought": "아직 자료를 받지 못했다.",
+      "primaryEmotionCode": "ANXIETY",
+      "primaryIntensity": 7,
+      "beforeBeliefStrength": 75,
+      "contextCategory": "OTHER"
+    },
+    "questionAnswers": [
+      {
+        "questionCode": "EVIDENCE_FOR_001",
+        "questionPurpose": "EVIDENCE_FOR",
+        "semanticRouteType": "DIRECT_WORD_OR_ACTION",
+        "question": "그 생각이 든 직접적인 사실은 무엇인가요?",
+        "answer": "현재 메일함에 자료가 없어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "EVIDENCE_AGAINST_002",
+        "questionPurpose": "EVIDENCE_AGAINST",
+        "semanticRouteType": "CONTRADICTORY_FACT",
+        "question": "확신을 낮추는 사실은 무엇인가요?",
+        "answer": "동료가 오후에 보내겠다고 했어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "ALTERNATIVE_VIEW_003",
+        "questionPurpose": "ALTERNATIVE_VIEW",
+        "semanticRouteType": "ALTERNATIVE_EXPLANATION",
+        "question": "다른 가능한 관점은 무엇인가요?",
+        "answer": "아직 발송 시간이 되지 않았을 수 있어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "BALANCED_THOUGHT_004",
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "CERTAINTY_REASSESSMENT",
+        "question": "사실과 추론을 나누면 어떻게 정리할 수 있나요?",
+        "answer": "지금 자료가 없다는 관찰만 했고 의도는 판단하지 않았어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      }
+    ],
+    "beforeDistortions": [],
+    "evaluationContext": {
+      "situationFamily": "NO_CLEAR",
+      "vulnerabilityType": "Q7_BOUNDARY",
+      "expectedDecision": "NO_CLEAR_DISTORTION",
+      "allowedQuestionMeanings": [
+        "아직 판단을 바꿀 수 있는 미확인 정보 하나"
+      ],
+      "forbiddenQuestionMeanings": [
+        "이미 답한 의미 반복",
+        "제3자의 실제 숨은 상태 단정"
+      ]
+    }
+  },
+  {
+    "caseId": "Q7D11",
+    "requestType": "TURN",
+    "currentStep": "BALANCED_THOUGHT_004",
+    "record": {
+      "recordId": 7011,
+      "situation": "팀장이 회의에서 잠시 말을 멈췄다.",
+      "automaticThought": "내 제안이 마음에 들지 않은 것 같다.",
+      "primaryEmotionCode": "ANXIETY",
+      "primaryIntensity": 7,
+      "beforeBeliefStrength": 75,
+      "contextCategory": "OTHER"
+    },
+    "questionAnswers": [
+      {
+        "questionCode": "EVIDENCE_FOR_001",
+        "questionPurpose": "EVIDENCE_FOR",
+        "semanticRouteType": "DIRECT_WORD_OR_ACTION",
+        "question": "그 생각이 든 직접적인 사실은 무엇인가요?",
+        "answer": "표정이나 말은 자세히 못 봤어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "EVIDENCE_AGAINST_002",
+        "questionPurpose": "EVIDENCE_AGAINST",
+        "semanticRouteType": "CONTRADICTORY_FACT",
+        "question": "확신을 낮추는 사실은 무엇인가요?",
+        "answer": "반대되는 반응도 확인하지 못했어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "ALTERNATIVE_VIEW_003",
+        "questionPurpose": "ALTERNATIVE_VIEW",
+        "semanticRouteType": "ALTERNATIVE_EXPLANATION",
+        "question": "다른 가능한 관점은 무엇인가요?",
+        "answer": "다른 가능성은 아직 모르겠어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "BALANCED_THOUGHT_004",
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "CERTAINTY_REASSESSMENT",
+        "question": "사실과 추론을 나누면 어떻게 정리할 수 있나요?",
+        "answer": "사실과 추론을 나눌 정보가 아직 부족해요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      }
+    ],
+    "beforeDistortions": [],
+    "evaluationContext": {
+      "situationFamily": "UNCERTAIN",
+      "vulnerabilityType": "Q7_BOUNDARY",
+      "expectedDecision": "QUESTION",
+      "allowedQuestionMeanings": [
+        "아직 판단을 바꿀 수 있는 미확인 정보 하나"
+      ],
+      "forbiddenQuestionMeanings": [
+        "이미 답한 의미 반복",
+        "제3자의 실제 숨은 상태 단정"
+      ]
+    }
+  },
+  {
+    "caseId": "Q7D12",
+    "requestType": "TURN",
+    "currentStep": "BALANCED_THOUGHT_004",
+    "record": {
+      "recordId": 7012,
+      "situation": "친구가 짧게 답장했다.",
+      "automaticThought": "나에게 화가 난 것 같다.",
+      "primaryEmotionCode": "ANXIETY",
+      "primaryIntensity": 7,
+      "beforeBeliefStrength": 75,
+      "contextCategory": "OTHER"
+    },
+    "questionAnswers": [
+      {
+        "questionCode": "EVIDENCE_FOR_001",
+        "questionPurpose": "EVIDENCE_FOR",
+        "semanticRouteType": "DIRECT_WORD_OR_ACTION",
+        "question": "그 생각이 든 직접적인 사실은 무엇인가요?",
+        "answer": "짧은 답장 외에는 확인한 게 없어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "EVIDENCE_AGAINST_002",
+        "questionPurpose": "EVIDENCE_AGAINST",
+        "semanticRouteType": "CONTRADICTORY_FACT",
+        "question": "확신을 낮추는 사실은 무엇인가요?",
+        "answer": "평소와 비교하지 못했어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "ALTERNATIVE_VIEW_003",
+        "questionPurpose": "ALTERNATIVE_VIEW",
+        "semanticRouteType": "ALTERNATIVE_EXPLANATION",
+        "question": "다른 가능한 관점은 무엇인가요?",
+        "answer": "다른 이유는 아직 모르겠어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "BALANCED_THOUGHT_004",
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "CERTAINTY_REASSESSMENT",
+        "question": "사실과 추론을 나누면 어떻게 정리할 수 있나요?",
+        "answer": "화가 났다는 판단을 확인할 정보가 부족해요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      }
+    ],
+    "beforeDistortions": [],
+    "evaluationContext": {
+      "situationFamily": "UNCERTAIN",
+      "vulnerabilityType": "Q7_BOUNDARY",
+      "expectedDecision": "QUESTION",
+      "allowedQuestionMeanings": [
+        "아직 판단을 바꿀 수 있는 미확인 정보 하나"
+      ],
+      "forbiddenQuestionMeanings": [
+        "이미 답한 의미 반복",
+        "제3자의 실제 숨은 상태 단정"
+      ]
+    }
+  },
+  {
+    "caseId": "Q7D13",
+    "requestType": "TURN",
+    "currentStep": "BALANCED_THOUGHT_004",
+    "record": {
+      "recordId": 7013,
+      "situation": "면접관이 메모를 많이 했다.",
+      "automaticThought": "내 답변이 나빴던 것 같다.",
+      "primaryEmotionCode": "ANXIETY",
+      "primaryIntensity": 7,
+      "beforeBeliefStrength": 75,
+      "contextCategory": "OTHER"
+    },
+    "questionAnswers": [
+      {
+        "questionCode": "EVIDENCE_FOR_001",
+        "questionPurpose": "EVIDENCE_FOR",
+        "semanticRouteType": "DIRECT_WORD_OR_ACTION",
+        "question": "그 생각이 든 직접적인 사실은 무엇인가요?",
+        "answer": "무엇을 적었는지는 몰라요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "EVIDENCE_AGAINST_002",
+        "questionPurpose": "EVIDENCE_AGAINST",
+        "semanticRouteType": "CONTRADICTORY_FACT",
+        "question": "확신을 낮추는 사실은 무엇인가요?",
+        "answer": "좋거나 나쁘다는 말은 없었어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "ALTERNATIVE_VIEW_003",
+        "questionPurpose": "ALTERNATIVE_VIEW",
+        "semanticRouteType": "ALTERNATIVE_EXPLANATION",
+        "question": "다른 가능한 관점은 무엇인가요?",
+        "answer": "메모의 다른 의미는 아직 모르겠어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "BALANCED_THOUGHT_004",
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "CERTAINTY_REASSESSMENT",
+        "question": "사실과 추론을 나누면 어떻게 정리할 수 있나요?",
+        "answer": "메모와 평가 사이를 판단할 정보가 없어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      }
+    ],
+    "beforeDistortions": [],
+    "evaluationContext": {
+      "situationFamily": "UNCERTAIN",
+      "vulnerabilityType": "Q7_BOUNDARY",
+      "expectedDecision": "QUESTION",
+      "allowedQuestionMeanings": [
+        "아직 판단을 바꿀 수 있는 미확인 정보 하나"
+      ],
+      "forbiddenQuestionMeanings": [
+        "이미 답한 의미 반복",
+        "제3자의 실제 숨은 상태 단정"
+      ]
+    }
+  },
+  {
+    "caseId": "Q7D14",
+    "requestType": "TURN",
+    "currentStep": "BALANCED_THOUGHT_004",
+    "record": {
+      "recordId": 7014,
+      "situation": "동료가 점심에 혼자 나갔다.",
+      "automaticThought": "나를 피하는 것 같다.",
+      "primaryEmotionCode": "ANXIETY",
+      "primaryIntensity": 7,
+      "beforeBeliefStrength": 75,
+      "contextCategory": "OTHER"
+    },
+    "questionAnswers": [
+      {
+        "questionCode": "EVIDENCE_FOR_001",
+        "questionPurpose": "EVIDENCE_FOR",
+        "semanticRouteType": "DIRECT_WORD_OR_ACTION",
+        "question": "그 생각이 든 직접적인 사실은 무엇인가요?",
+        "answer": "왜 혼자 갔는지 못 물어봤어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "EVIDENCE_AGAINST_002",
+        "questionPurpose": "EVIDENCE_AGAINST",
+        "semanticRouteType": "CONTRADICTORY_FACT",
+        "question": "확신을 낮추는 사실은 무엇인가요?",
+        "answer": "다른 때의 행동도 기억나지 않아요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "ALTERNATIVE_VIEW_003",
+        "questionPurpose": "ALTERNATIVE_VIEW",
+        "semanticRouteType": "ALTERNATIVE_EXPLANATION",
+        "question": "다른 가능한 관점은 무엇인가요?",
+        "answer": "가능한 이유를 아직 생각하지 못했어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "BALANCED_THOUGHT_004",
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "CERTAINTY_REASSESSMENT",
+        "question": "사실과 추론을 나누면 어떻게 정리할 수 있나요?",
+        "answer": "피한다는 결론을 확인할 정보가 부족해요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      }
+    ],
+    "beforeDistortions": [],
+    "evaluationContext": {
+      "situationFamily": "UNCERTAIN",
+      "vulnerabilityType": "Q7_BOUNDARY",
+      "expectedDecision": "QUESTION",
+      "allowedQuestionMeanings": [
+        "아직 판단을 바꿀 수 있는 미확인 정보 하나"
+      ],
+      "forbiddenQuestionMeanings": [
+        "이미 답한 의미 반복",
+        "제3자의 실제 숨은 상태 단정"
+      ]
+    }
+  },
+  {
+    "caseId": "Q7D15",
+    "requestType": "TURN",
+    "currentStep": "BALANCED_THOUGHT_004",
+    "record": {
+      "recordId": 7015,
+      "situation": "교수가 과제에 물음표를 표시했다.",
+      "automaticThought": "과제가 틀렸다는 뜻 같다.",
+      "primaryEmotionCode": "ANXIETY",
+      "primaryIntensity": 7,
+      "beforeBeliefStrength": 75,
+      "contextCategory": "OTHER"
+    },
+    "questionAnswers": [
+      {
+        "questionCode": "EVIDENCE_FOR_001",
+        "questionPurpose": "EVIDENCE_FOR",
+        "semanticRouteType": "DIRECT_WORD_OR_ACTION",
+        "question": "그 생각이 든 직접적인 사실은 무엇인가요?",
+        "answer": "물음표 외의 설명은 없어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "EVIDENCE_AGAINST_002",
+        "questionPurpose": "EVIDENCE_AGAINST",
+        "semanticRouteType": "CONTRADICTORY_FACT",
+        "question": "확신을 낮추는 사실은 무엇인가요?",
+        "answer": "점수도 아직 나오지 않았어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "ALTERNATIVE_VIEW_003",
+        "questionPurpose": "ALTERNATIVE_VIEW",
+        "semanticRouteType": "ALTERNATIVE_EXPLANATION",
+        "question": "다른 가능한 관점은 무엇인가요?",
+        "answer": "무엇을 확인하라는 표시일 수도 있지만 모르겠어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "BALANCED_THOUGHT_004",
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "CERTAINTY_REASSESSMENT",
+        "question": "사실과 추론을 나누면 어떻게 정리할 수 있나요?",
+        "answer": "표시의 의미를 판단할 정보가 아직 부족해요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      }
+    ],
+    "beforeDistortions": [],
+    "evaluationContext": {
+      "situationFamily": "UNCERTAIN",
+      "vulnerabilityType": "Q7_BOUNDARY",
+      "expectedDecision": "QUESTION",
+      "allowedQuestionMeanings": [
+        "아직 판단을 바꿀 수 있는 미확인 정보 하나"
+      ],
+      "forbiddenQuestionMeanings": [
+        "이미 답한 의미 반복",
+        "제3자의 실제 숨은 상태 단정"
+      ]
+    }
+  },
+  {
+    "caseId": "Q7D16",
+    "requestType": "TURN",
+    "currentStep": "BALANCED_THOUGHT_004",
+    "record": {
+      "recordId": 7016,
+      "situation": "프로젝트 마감을 하루 넘겼다.",
+      "automaticThought": "마감을 놓쳤으니 앞으로도 항상 실패할 거야.",
+      "primaryEmotionCode": "ANXIETY",
+      "primaryIntensity": 7,
+      "beforeBeliefStrength": 75,
+      "contextCategory": "OTHER"
+    },
+    "questionAnswers": [
+      {
+        "questionCode": "EVIDENCE_FOR_001",
+        "questionPurpose": "EVIDENCE_FOR",
+        "semanticRouteType": "DIRECT_WORD_OR_ACTION",
+        "question": "그 생각이 든 직접적인 사실은 무엇인가요?",
+        "answer": "이번 마감을 하루 넘긴 건 사실이에요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "EVIDENCE_AGAINST_002",
+        "questionPurpose": "EVIDENCE_AGAINST",
+        "semanticRouteType": "CONTRADICTORY_FACT",
+        "question": "확신을 낮추는 사실은 무엇인가요?",
+        "answer": "이전 마감은 지킨 적이 있어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "ALTERNATIVE_VIEW_003",
+        "questionPurpose": "ALTERNATIVE_VIEW",
+        "semanticRouteType": "ALTERNATIVE_EXPLANATION",
+        "question": "다른 가능한 관점은 무엇인가요?",
+        "answer": "이번 일정 산정에 문제가 있었을 수 있어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "BALANCED_THOUGHT_004",
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "CERTAINTY_REASSESSMENT",
+        "question": "사실과 추론을 나누면 어떻게 정리할 수 있나요?",
+        "answer": "이번 지연은 사실이지만 앞으로 항상 실패한다는 건 확대된 결론이에요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      }
+    ],
+    "beforeDistortions": [],
+    "evaluationContext": {
+      "situationFamily": "TRUE_WITH_SCOPE_DISTORTION",
+      "vulnerabilityType": "Q7_BOUNDARY",
+      "expectedDecision": "DISTORTION_PRESENT",
+      "allowedQuestionMeanings": [
+        "아직 판단을 바꿀 수 있는 미확인 정보 하나"
+      ],
+      "forbiddenQuestionMeanings": [
+        "이미 답한 의미 반복",
+        "제3자의 실제 숨은 상태 단정"
+      ]
+    }
+  },
+  {
+    "caseId": "Q7D17",
+    "requestType": "TURN",
+    "currentStep": "BALANCED_THOUGHT_004",
+    "record": {
+      "recordId": 7017,
+      "situation": "동료가 슬라이드 한 장을 비판했다.",
+      "automaticThought": "한 장이 부족하니 내 발표 전체가 쓸모없어.",
+      "primaryEmotionCode": "ANXIETY",
+      "primaryIntensity": 7,
+      "beforeBeliefStrength": 75,
+      "contextCategory": "OTHER"
+    },
+    "questionAnswers": [
+      {
+        "questionCode": "EVIDENCE_FOR_001",
+        "questionPurpose": "EVIDENCE_FOR",
+        "semanticRouteType": "DIRECT_WORD_OR_ACTION",
+        "question": "그 생각이 든 직접적인 사실은 무엇인가요?",
+        "answer": "한 장의 근거가 약하다는 말을 들었어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "EVIDENCE_AGAINST_002",
+        "questionPurpose": "EVIDENCE_AGAINST",
+        "semanticRouteType": "CONTRADICTORY_FACT",
+        "question": "확신을 낮추는 사실은 무엇인가요?",
+        "answer": "발표 구조는 좋다고 했어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "ALTERNATIVE_VIEW_003",
+        "questionPurpose": "ALTERNATIVE_VIEW",
+        "semanticRouteType": "ALTERNATIVE_EXPLANATION",
+        "question": "다른 가능한 관점은 무엇인가요?",
+        "answer": "그 슬라이드만 보완하면 될 수 있어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "BALANCED_THOUGHT_004",
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "CERTAINTY_REASSESSMENT",
+        "question": "사실과 추론을 나누면 어떻게 정리할 수 있나요?",
+        "answer": "한 장의 문제를 발표 전체 가치로 넓힌 건 제 판단이에요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      }
+    ],
+    "beforeDistortions": [],
+    "evaluationContext": {
+      "situationFamily": "TRUE_WITH_SCOPE_DISTORTION",
+      "vulnerabilityType": "Q7_BOUNDARY",
+      "expectedDecision": "DISTORTION_PRESENT",
+      "allowedQuestionMeanings": [
+        "아직 판단을 바꿀 수 있는 미확인 정보 하나"
+      ],
+      "forbiddenQuestionMeanings": [
+        "이미 답한 의미 반복",
+        "제3자의 실제 숨은 상태 단정"
+      ]
+    }
+  },
+  {
+    "caseId": "Q7D18",
+    "requestType": "TURN",
+    "currentStep": "BALANCED_THOUGHT_004",
+    "record": {
+      "recordId": 7018,
+      "situation": "부모가 오늘 귀가 시간 때문에 화를 냈다.",
+      "automaticThought": "화가 났으니 부모는 다시는 나를 믿지 않을 거야.",
+      "primaryEmotionCode": "ANXIETY",
+      "primaryIntensity": 7,
+      "beforeBeliefStrength": 75,
+      "contextCategory": "OTHER"
+    },
+    "questionAnswers": [
+      {
+        "questionCode": "EVIDENCE_FOR_001",
+        "questionPurpose": "EVIDENCE_FOR",
+        "semanticRouteType": "DIRECT_WORD_OR_ACTION",
+        "question": "그 생각이 든 직접적인 사실은 무엇인가요?",
+        "answer": "오늘 늦은 일로 화를 낸 건 사실이에요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "EVIDENCE_AGAINST_002",
+        "questionPurpose": "EVIDENCE_AGAINST",
+        "semanticRouteType": "CONTRADICTORY_FACT",
+        "question": "확신을 낮추는 사실은 무엇인가요?",
+        "answer": "평소에는 중요한 일을 맡기기도 해요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "ALTERNATIVE_VIEW_003",
+        "questionPurpose": "ALTERNATIVE_VIEW",
+        "semanticRouteType": "ALTERNATIVE_EXPLANATION",
+        "question": "다른 가능한 관점은 무엇인가요?",
+        "answer": "오늘 약속 문제에 대한 반응일 수 있어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "BALANCED_THOUGHT_004",
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "CERTAINTY_REASSESSMENT",
+        "question": "사실과 추론을 나누면 어떻게 정리할 수 있나요?",
+        "answer": "오늘의 화를 앞으로의 신뢰 전체로 확정한 건 제 추론이에요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      }
+    ],
+    "beforeDistortions": [],
+    "evaluationContext": {
+      "situationFamily": "TRUE_WITH_SCOPE_DISTORTION",
+      "vulnerabilityType": "Q7_BOUNDARY",
+      "expectedDecision": "DISTORTION_PRESENT",
+      "allowedQuestionMeanings": [
+        "아직 판단을 바꿀 수 있는 미확인 정보 하나"
+      ],
+      "forbiddenQuestionMeanings": [
+        "이미 답한 의미 반복",
+        "제3자의 실제 숨은 상태 단정"
+      ]
+    }
+  },
+  {
+    "caseId": "Q7D19",
+    "requestType": "TURN",
+    "currentStep": "BALANCED_THOUGHT_004",
+    "record": {
+      "recordId": 7019,
+      "situation": "작성한 코드에서 버그가 발견됐다.",
+      "automaticThought": "버그를 냈으니 나는 개발자 자질이 없어.",
+      "primaryEmotionCode": "ANXIETY",
+      "primaryIntensity": 7,
+      "beforeBeliefStrength": 75,
+      "contextCategory": "OTHER"
+    },
+    "questionAnswers": [
+      {
+        "questionCode": "EVIDENCE_FOR_001",
+        "questionPurpose": "EVIDENCE_FOR",
+        "semanticRouteType": "DIRECT_WORD_OR_ACTION",
+        "question": "그 생각이 든 직접적인 사실은 무엇인가요?",
+        "answer": "내 코드에서 버그가 나온 건 사실이에요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "EVIDENCE_AGAINST_002",
+        "questionPurpose": "EVIDENCE_AGAINST",
+        "semanticRouteType": "CONTRADICTORY_FACT",
+        "question": "확신을 낮추는 사실은 무엇인가요?",
+        "answer": "다른 기능은 테스트를 통과했어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "ALTERNATIVE_VIEW_003",
+        "questionPurpose": "ALTERNATIVE_VIEW",
+        "semanticRouteType": "ALTERNATIVE_EXPLANATION",
+        "question": "다른 가능한 관점은 무엇인가요?",
+        "answer": "수정 가능한 구현 실수일 수 있어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "BALANCED_THOUGHT_004",
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "CERTAINTY_REASSESSMENT",
+        "question": "사실과 추론을 나누면 어떻게 정리할 수 있나요?",
+        "answer": "버그 하나와 개발자 자질 전체 평가는 같은 사실이 아니에요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      }
+    ],
+    "beforeDistortions": [],
+    "evaluationContext": {
+      "situationFamily": "TRUE_WITH_SCOPE_DISTORTION",
+      "vulnerabilityType": "Q7_BOUNDARY",
+      "expectedDecision": "DISTORTION_PRESENT",
+      "allowedQuestionMeanings": [
+        "아직 판단을 바꿀 수 있는 미확인 정보 하나"
+      ],
+      "forbiddenQuestionMeanings": [
+        "이미 답한 의미 반복",
+        "제3자의 실제 숨은 상태 단정"
+      ]
+    }
+  },
+  {
+    "caseId": "Q7D20",
+    "requestType": "TURN",
+    "currentStep": "BALANCED_THOUGHT_004",
+    "record": {
+      "recordId": 7020,
+      "situation": "한 회사 면접에서 탈락했다.",
+      "automaticThought": "이번에 떨어졌으니 나는 절대 취업하지 못할 거야.",
+      "primaryEmotionCode": "ANXIETY",
+      "primaryIntensity": 7,
+      "beforeBeliefStrength": 75,
+      "contextCategory": "OTHER"
+    },
+    "questionAnswers": [
+      {
+        "questionCode": "EVIDENCE_FOR_001",
+        "questionPurpose": "EVIDENCE_FOR",
+        "semanticRouteType": "DIRECT_WORD_OR_ACTION",
+        "question": "그 생각이 든 직접적인 사실은 무엇인가요?",
+        "answer": "이번 회사에서 탈락한 건 사실이에요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "EVIDENCE_AGAINST_002",
+        "questionPurpose": "EVIDENCE_AGAINST",
+        "semanticRouteType": "CONTRADICTORY_FACT",
+        "question": "확신을 낮추는 사실은 무엇인가요?",
+        "answer": "다른 회사 면접 일정이 남아 있어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "ALTERNATIVE_VIEW_003",
+        "questionPurpose": "ALTERNATIVE_VIEW",
+        "semanticRouteType": "ALTERNATIVE_EXPLANATION",
+        "question": "다른 가능한 관점은 무엇인가요?",
+        "answer": "회사와 직무 적합성 결과일 수 있어요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      },
+      {
+        "questionCode": "BALANCED_THOUGHT_004",
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "CERTAINTY_REASSESSMENT",
+        "question": "사실과 추론을 나누면 어떻게 정리할 수 있나요?",
+        "answer": "한 번의 탈락을 취업 전체 미래로 확정한 건 제 결론이에요.",
+        "askedAt": "2026-08-31T00:00:00Z",
+        "answeredAt": "2026-08-31T00:00:10Z"
+      }
+    ],
+    "beforeDistortions": [],
+    "evaluationContext": {
+      "situationFamily": "TRUE_WITH_SCOPE_DISTORTION",
+      "vulnerabilityType": "Q7_BOUNDARY",
+      "expectedDecision": "DISTORTION_PRESENT",
+      "allowedQuestionMeanings": [
+        "아직 판단을 바꿀 수 있는 미확인 정보 하나"
+      ],
+      "forbiddenQuestionMeanings": [
+        "이미 답한 의미 반복",
+        "제3자의 실제 숨은 상태 단정"
+      ]
+    }
+  }
+]

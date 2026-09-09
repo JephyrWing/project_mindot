@@ -2,3 +2,6 @@
 .env
 .idea
 __pycache__
+artifacts
+tests
+.env.*

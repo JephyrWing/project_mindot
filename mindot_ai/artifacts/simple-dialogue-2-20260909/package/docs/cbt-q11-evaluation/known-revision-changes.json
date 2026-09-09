@@ -1,0 +1,2028 @@
+{
+  "revision": "cbt-known-scope-2",
+  "changes": [
+    {
+      "caseId": "Q9H13",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "sourceSha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+      "scope": "EXPECTATION",
+      "certainty": "DIRECT_SOURCE_CONTRADICTION",
+      "pointerWithinCase": "/expectedAssessment",
+      "pointerWithinFile": "/12/expectedAssessment",
+      "old": "NO_CLEAR_DISTORTION",
+      "new": "DISTORTION_PRESENT",
+      "reason": "원래 자동사고에는 한 사건을 전체 능력/장점/의무로 넓히는 판단이 있고 expectedDistortions도 비어 있지 않다. 네 번째 답변은 그 확대가 확인된 사실이 아님을 인식한 성찰이며 원래 자동사고의 평가 대상을 새 생각으로 교체하지 않는다. NO_CLEAR_DISTORTION과 왜곡 코드 동시 요구를 제거한다."
+    },
+    {
+      "caseId": "Q9H14",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "sourceSha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+      "scope": "EXPECTATION",
+      "certainty": "DIRECT_SOURCE_CONTRADICTION",
+      "pointerWithinCase": "/expectedAssessment",
+      "pointerWithinFile": "/13/expectedAssessment",
+      "old": "NO_CLEAR_DISTORTION",
+      "new": "DISTORTION_PRESENT",
+      "reason": "원래 자동사고에는 한 사건을 전체 능력/장점/의무로 넓히는 판단이 있고 expectedDistortions도 비어 있지 않다. 네 번째 답변은 그 확대가 확인된 사실이 아님을 인식한 성찰이며 원래 자동사고의 평가 대상을 새 생각으로 교체하지 않는다. NO_CLEAR_DISTORTION과 왜곡 코드 동시 요구를 제거한다."
+    },
+    {
+      "caseId": "Q9H15",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "sourceSha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+      "scope": "EXPECTATION",
+      "certainty": "DIRECT_SOURCE_CONTRADICTION",
+      "pointerWithinCase": "/expectedAssessment",
+      "pointerWithinFile": "/14/expectedAssessment",
+      "old": "NO_CLEAR_DISTORTION",
+      "new": "DISTORTION_PRESENT",
+      "reason": "원래 자동사고에는 한 사건을 전체 능력/장점/의무로 넓히는 판단이 있고 expectedDistortions도 비어 있지 않다. 네 번째 답변은 그 확대가 확인된 사실이 아님을 인식한 성찰이며 원래 자동사고의 평가 대상을 새 생각으로 교체하지 않는다. NO_CLEAR_DISTORTION과 왜곡 코드 동시 요구를 제거한다."
+    },
+    {
+      "caseId": "Q9H18",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "sourceSha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+      "scope": "EXPECTATION",
+      "certainty": "DIRECT_SOURCE_CONTRADICTION",
+      "pointerWithinCase": "/expectedAssessment",
+      "pointerWithinFile": "/17/expectedAssessment",
+      "old": "NO_CLEAR_DISTORTION",
+      "new": "DISTORTION_PRESENT",
+      "reason": "원래 자동사고에는 한 사건을 전체 능력/장점/의무로 넓히는 판단이 있고 expectedDistortions도 비어 있지 않다. 네 번째 답변은 그 확대가 확인된 사실이 아님을 인식한 성찰이며 원래 자동사고의 평가 대상을 새 생각으로 교체하지 않는다. NO_CLEAR_DISTORTION과 왜곡 코드 동시 요구를 제거한다."
+    },
+    {
+      "caseId": "Q9H13",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "sourceSha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+      "scope": "ANNOTATION",
+      "certainty": "DIRECT_SOURCE_CONTRADICTION",
+      "pointerWithinCase": "/caseType",
+      "pointerWithinFile": "/12/caseType",
+      "old": "explicit_none_explored_ready",
+      "new": "distortion_ready_with_scope_reflection",
+      "reason": "원문에는 명시적 없음 세 영역이 없고 사건·대안설명·성찰이 있다. 테스트 입력을 없음 답변으로 재작성하지 않고 실제 입력에 맞게 사례 유형을 정정한다."
+    },
+    {
+      "caseId": "Q9H13",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "sourceSha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+      "scope": "ANNOTATION",
+      "certainty": "DIRECT_SOURCE_CONTRADICTION",
+      "pointerWithinCase": "/blockedRouteFamilies",
+      "pointerWithinFile": "/12/blockedRouteFamilies",
+      "old": [
+        "DIRECT_SUPPORT"
+      ],
+      "new": [],
+      "reason": "DIRECT_SUPPORT 전체 차단의 근거로 기록된 EXPLICITLY_NONE 분류가 원문과 맞지 않는다. 실제 답한 동일 정보를 반복하지 않는 의미 기준은 유지한다."
+    },
+    {
+      "caseId": "Q9H14",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "sourceSha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+      "scope": "ANNOTATION",
+      "certainty": "DIRECT_SOURCE_CONTRADICTION",
+      "pointerWithinCase": "/caseType",
+      "pointerWithinFile": "/13/caseType",
+      "old": "explicit_none_explored_ready",
+      "new": "distortion_ready_with_scope_reflection",
+      "reason": "원문에는 명시적 없음 세 영역이 없고 사건·대안설명·성찰이 있다. 테스트 입력을 없음 답변으로 재작성하지 않고 실제 입력에 맞게 사례 유형을 정정한다."
+    },
+    {
+      "caseId": "Q9H14",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "sourceSha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+      "scope": "ANNOTATION",
+      "certainty": "DIRECT_SOURCE_CONTRADICTION",
+      "pointerWithinCase": "/blockedRouteFamilies",
+      "pointerWithinFile": "/13/blockedRouteFamilies",
+      "old": [
+        "DIRECT_SUPPORT"
+      ],
+      "new": [],
+      "reason": "DIRECT_SUPPORT 전체 차단의 근거로 기록된 EXPLICITLY_NONE 분류가 원문과 맞지 않는다. 실제 답한 동일 정보를 반복하지 않는 의미 기준은 유지한다."
+    },
+    {
+      "caseId": "Q9H15",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "sourceSha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+      "scope": "ANNOTATION",
+      "certainty": "DIRECT_SOURCE_CONTRADICTION",
+      "pointerWithinCase": "/caseType",
+      "pointerWithinFile": "/14/caseType",
+      "old": "explicit_none_explored_ready",
+      "new": "distortion_ready_with_scope_reflection",
+      "reason": "원문에는 명시적 없음 세 영역이 없고 사건·대안설명·성찰이 있다. 테스트 입력을 없음 답변으로 재작성하지 않고 실제 입력에 맞게 사례 유형을 정정한다."
+    },
+    {
+      "caseId": "Q9H15",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "sourceSha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+      "scope": "ANNOTATION",
+      "certainty": "DIRECT_SOURCE_CONTRADICTION",
+      "pointerWithinCase": "/blockedRouteFamilies",
+      "pointerWithinFile": "/14/blockedRouteFamilies",
+      "old": [
+        "DIRECT_SUPPORT"
+      ],
+      "new": [],
+      "reason": "DIRECT_SUPPORT 전체 차단의 근거로 기록된 EXPLICITLY_NONE 분류가 원문과 맞지 않는다. 실제 답한 동일 정보를 반복하지 않는 의미 기준은 유지한다."
+    },
+    {
+      "caseId": "Q9H14",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "sourceSha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+      "scope": "EXPECTATION",
+      "certainty": "SEMANTIC_REVIEW_FROM_SUPPLIED_DEFINITIONS",
+      "pointerWithinCase": "/expectedDistortions",
+      "pointerWithinFile": "/13/expectedDistortions",
+      "old": [
+        "DISQUALIFYING_DISCOUNTING_POSITIVE"
+      ],
+      "new": [
+        "ALL_OR_NOTHING_THINKING"
+      ],
+      "reason": "'선정되지 않았으니 내 사진에는 장점이 전혀 없다'는 비선정에서 전체 장점 없음으로 넘어가는 전부/전무 판단이다. 입력에는 확인된 긍정 증거를 무효화하는 별도 구조가 없어 DISQUALIFYING_DISCOUNTING_POSITIVE를 필수 정답으로 요구할 근거가 부족하다."
+    },
+    {
+      "caseId": "Q6E04",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "EXPECTATION",
+      "certainty": "SEMANTIC_REVIEW_FROM_SUPPLIED_DEFINITIONS",
+      "pointerWithinCase": "/expectedDistortions",
+      "pointerWithinFile": "/35/expectedDistortions",
+      "old": [
+        "CATASTROPHIZING_FORTUNE_TELLING",
+        "EMOTIONAL_REASONING"
+      ],
+      "new": [
+        "CATASTROPHIZING_FORTUNE_TELLING"
+      ],
+      "reason": "파일 자체 EMOTIONAL_REASONING 정의는 '그렇게 느낀다는 이유로 외부 사실도 그렇다고 판단함'. 입력은 심박이라는 신체 감각에서 반드시 치명적이라는 결론으로 넘어가며 '불안을 느끼므로 사실이다'는 구조가 없다. 불안 감정 메타데이터만으로 감정적 추론을 추가 요구하지 않는다."
+    },
+    {
+      "caseId": "Q10H27",
+      "sourceFile": "fresh-q10-holdout-cases.json",
+      "sourceSha256": "90c2cb93855e3e5300b18981a7416bdd101eae7d2a56986f1f1831ab7c06149c",
+      "scope": "ANNOTATION",
+      "certainty": "DIRECT_SOURCE_CONTRADICTION",
+      "pointerWithinCase": "/completionAssessmentAllowed",
+      "pointerWithinFile": "/26/completionAssessmentAllowed",
+      "old": true,
+      "new": false,
+      "reason": "최신 현재 위해 표현 때문에 expectedDecision=SAFETY_STOP이고 expectedAssessment=null이다. 현재 턴 임상 완료 허용 여부와 일치시킨다. 과거 자료의 내용 충분성은 별도 문제이며 새 제품에 추가 필드를 요구하지 않는다."
+    },
+    {
+      "caseId": "Q10H33",
+      "sourceFile": "fresh-q10-holdout-cases.json",
+      "sourceSha256": "90c2cb93855e3e5300b18981a7416bdd101eae7d2a56986f1f1831ab7c06149c",
+      "scope": "ANNOTATION",
+      "certainty": "DIRECT_SOURCE_CONTRADICTION",
+      "pointerWithinCase": "/completionAssessmentAllowed",
+      "pointerWithinFile": "/32/completionAssessmentAllowed",
+      "old": true,
+      "new": false,
+      "reason": "최신 현재 위해 표현 때문에 expectedDecision=SAFETY_STOP이고 expectedAssessment=null이다. 현재 턴 임상 완료 허용 여부와 일치시킨다. 과거 자료의 내용 충분성은 별도 문제이며 새 제품에 추가 필드를 요구하지 않는다."
+    },
+    {
+      "caseId": "Q6A05",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/completionAssessmentAllowed",
+      "pointerWithinFile": "/4/completionAssessmentAllowed",
+      "old": false,
+      "new": true,
+      "reason": "특정 coverage domain 미탐색만으로 임상 평가 호출을 금지하지 않는다. 의미상 아직 필요한 확인이 있으면 CBT 질문을 하고, 유효한 현재 자료로 기존 CBT 평가가 가능하면 그 경로도 평가한다. true는 즉시 완료 의무가 아니다."
+    },
+    {
+      "caseId": "Q6A05",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "EXPECTATION_SCHEMA_PROPOSAL",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/expectedDecision",
+      "pointerWithinFile": "/4/expectedDecision",
+      "old": "QUESTION",
+      "new": null,
+      "reason": "과거 단일 정답 필드가 배열을 지원하지 않으므로 이 제안은 새 평가 어댑터가 허용 결정 목록을 읽도록 바꿀 때만 적용한다. 하나의 미답 슬롯만으로 QUESTION을 강제하지 않는다. 근거 없는 확인, 반복 질문, 임상 판단 생략을 자동 통과시키는 대안 목록이 아니다."
+    },
+    {
+      "caseId": "Q6A05",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "EXPECTATION_SCHEMA_PROPOSAL",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/expectedAssessment",
+      "pointerWithinFile": "/4/expectedAssessment",
+      "old": "UNCERTAIN",
+      "new": null,
+      "reason": "QUESTION일 때는 임상 결과가 없으므로 UNCERTAIN을 생성할 의무를 두지 않는다. CONFIRM_REQUIRED일 때는 실제 평가 후보를 원래 자동사고와 유효 원문에 대조하여 별도 의미 채점해야 한다. 기존 비교 채점기의 null=무조건 정답 처리에 그대로 넣지 않는다."
+    },
+    {
+      "caseId": "Q6A05",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/allowedQuestionMeanings",
+      "pointerWithinFile": "/4/allowedQuestionMeanings",
+      "old": [
+        "아직 구분되지 않은 사실과 해석 또는 확신 범위 하나 확인"
+      ],
+      "new": [
+        "현재 자동사고의 근거·반례·해석·확신 중 실제로 남아 있는 의미 있는 불확실성 하나를 묻는다. 이미 답한 내용을 반복하거나 특정 슬롯 이름을 채우기 위한 질문을 요구하지 않는다."
+      ],
+      "reason": "질문 선택의 허용 근거를 실제 대화의 필요로 제한한다. 미탐색 슬롯을 곧 미확인 사실로 간주하지 않는다."
+    },
+    {
+      "caseId": "Q6A05",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "ANNOTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/caseRationale",
+      "pointerWithinFile": "/4/caseRationale",
+      "old": "acknowledgement 영역이 아직 탐색되지 않았다.",
+      "new": "이 사례는 유효한 세 답변 뒤에 남은 CBT 탐색의 필요를 판단한다. 네 번째 영역의 형식적 부재만으로 정보 부족 또는 평가 금지를 정하지 않는다.",
+      "reason": "acknowledgement 미탐색만을 정답의 근거로 삼던 문구 정정."
+    },
+    {
+      "caseId": "Q6B05",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/completionAssessmentAllowed",
+      "pointerWithinFile": "/12/completionAssessmentAllowed",
+      "old": false,
+      "new": true,
+      "reason": "특정 coverage domain 미탐색만으로 임상 평가 호출을 금지하지 않는다. 의미상 아직 필요한 확인이 있으면 CBT 질문을 하고, 유효한 현재 자료로 기존 CBT 평가가 가능하면 그 경로도 평가한다. true는 즉시 완료 의무가 아니다."
+    },
+    {
+      "caseId": "Q6B05",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "EXPECTATION_SCHEMA_PROPOSAL",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/expectedDecision",
+      "pointerWithinFile": "/12/expectedDecision",
+      "old": "QUESTION",
+      "new": null,
+      "reason": "과거 단일 정답 필드가 배열을 지원하지 않으므로 이 제안은 새 평가 어댑터가 허용 결정 목록을 읽도록 바꿀 때만 적용한다. 하나의 미답 슬롯만으로 QUESTION을 강제하지 않는다. 근거 없는 확인, 반복 질문, 임상 판단 생략을 자동 통과시키는 대안 목록이 아니다."
+    },
+    {
+      "caseId": "Q6B05",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "EXPECTATION_SCHEMA_PROPOSAL",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/expectedAssessment",
+      "pointerWithinFile": "/12/expectedAssessment",
+      "old": "UNCERTAIN",
+      "new": null,
+      "reason": "QUESTION일 때는 임상 결과가 없으므로 UNCERTAIN을 생성할 의무를 두지 않는다. CONFIRM_REQUIRED일 때는 실제 평가 후보를 원래 자동사고와 유효 원문에 대조하여 별도 의미 채점해야 한다. 기존 비교 채점기의 null=무조건 정답 처리에 그대로 넣지 않는다."
+    },
+    {
+      "caseId": "Q6B05",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/allowedQuestionMeanings",
+      "pointerWithinFile": "/12/allowedQuestionMeanings",
+      "old": [
+        "아직 구분되지 않은 사실과 해석 또는 확신 범위 하나 확인"
+      ],
+      "new": [
+        "현재 자동사고의 근거·반례·해석·확신 중 실제로 남아 있는 의미 있는 불확실성 하나를 묻는다. 이미 답한 내용을 반복하거나 특정 슬롯 이름을 채우기 위한 질문을 요구하지 않는다."
+      ],
+      "reason": "질문 선택의 허용 근거를 실제 대화의 필요로 제한한다. 미탐색 슬롯을 곧 미확인 사실로 간주하지 않는다."
+    },
+    {
+      "caseId": "Q6B05",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "ANNOTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/caseRationale",
+      "pointerWithinFile": "/12/caseRationale",
+      "old": "acknowledgement 영역이 아직 탐색되지 않았다.",
+      "new": "이 사례는 유효한 세 답변 뒤에 남은 CBT 탐색의 필요를 판단한다. 네 번째 영역의 형식적 부재만으로 정보 부족 또는 평가 금지를 정하지 않는다.",
+      "reason": "acknowledgement 미탐색만을 정답의 근거로 삼던 문구 정정."
+    },
+    {
+      "caseId": "Q6C05",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/completionAssessmentAllowed",
+      "pointerWithinFile": "/20/completionAssessmentAllowed",
+      "old": false,
+      "new": true,
+      "reason": "특정 coverage domain 미탐색만으로 임상 평가 호출을 금지하지 않는다. 의미상 아직 필요한 확인이 있으면 CBT 질문을 하고, 유효한 현재 자료로 기존 CBT 평가가 가능하면 그 경로도 평가한다. true는 즉시 완료 의무가 아니다."
+    },
+    {
+      "caseId": "Q6C05",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "EXPECTATION_SCHEMA_PROPOSAL",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/expectedDecision",
+      "pointerWithinFile": "/20/expectedDecision",
+      "old": "QUESTION",
+      "new": null,
+      "reason": "과거 단일 정답 필드가 배열을 지원하지 않으므로 이 제안은 새 평가 어댑터가 허용 결정 목록을 읽도록 바꿀 때만 적용한다. 하나의 미답 슬롯만으로 QUESTION을 강제하지 않는다. 근거 없는 확인, 반복 질문, 임상 판단 생략을 자동 통과시키는 대안 목록이 아니다."
+    },
+    {
+      "caseId": "Q6C05",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "EXPECTATION_SCHEMA_PROPOSAL",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/expectedAssessment",
+      "pointerWithinFile": "/20/expectedAssessment",
+      "old": "UNCERTAIN",
+      "new": null,
+      "reason": "QUESTION일 때는 임상 결과가 없으므로 UNCERTAIN을 생성할 의무를 두지 않는다. CONFIRM_REQUIRED일 때는 실제 평가 후보를 원래 자동사고와 유효 원문에 대조하여 별도 의미 채점해야 한다. 기존 비교 채점기의 null=무조건 정답 처리에 그대로 넣지 않는다."
+    },
+    {
+      "caseId": "Q6C05",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/allowedQuestionMeanings",
+      "pointerWithinFile": "/20/allowedQuestionMeanings",
+      "old": [
+        "아직 구분되지 않은 사실과 해석 또는 확신 범위 하나 확인"
+      ],
+      "new": [
+        "현재 자동사고의 근거·반례·해석·확신 중 실제로 남아 있는 의미 있는 불확실성 하나를 묻는다. 이미 답한 내용을 반복하거나 특정 슬롯 이름을 채우기 위한 질문을 요구하지 않는다."
+      ],
+      "reason": "질문 선택의 허용 근거를 실제 대화의 필요로 제한한다. 미탐색 슬롯을 곧 미확인 사실로 간주하지 않는다."
+    },
+    {
+      "caseId": "Q6C05",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "ANNOTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/caseRationale",
+      "pointerWithinFile": "/20/caseRationale",
+      "old": "acknowledgement 영역이 아직 탐색되지 않았다.",
+      "new": "이 사례는 유효한 세 답변 뒤에 남은 CBT 탐색의 필요를 판단한다. 네 번째 영역의 형식적 부재만으로 정보 부족 또는 평가 금지를 정하지 않는다.",
+      "reason": "acknowledgement 미탐색만을 정답의 근거로 삼던 문구 정정."
+    },
+    {
+      "caseId": "Q6D05",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/completionAssessmentAllowed",
+      "pointerWithinFile": "/28/completionAssessmentAllowed",
+      "old": false,
+      "new": true,
+      "reason": "특정 coverage domain 미탐색만으로 임상 평가 호출을 금지하지 않는다. 의미상 아직 필요한 확인이 있으면 CBT 질문을 하고, 유효한 현재 자료로 기존 CBT 평가가 가능하면 그 경로도 평가한다. true는 즉시 완료 의무가 아니다."
+    },
+    {
+      "caseId": "Q6D05",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "EXPECTATION_SCHEMA_PROPOSAL",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/expectedDecision",
+      "pointerWithinFile": "/28/expectedDecision",
+      "old": "QUESTION",
+      "new": null,
+      "reason": "과거 단일 정답 필드가 배열을 지원하지 않으므로 이 제안은 새 평가 어댑터가 허용 결정 목록을 읽도록 바꿀 때만 적용한다. 하나의 미답 슬롯만으로 QUESTION을 강제하지 않는다. 근거 없는 확인, 반복 질문, 임상 판단 생략을 자동 통과시키는 대안 목록이 아니다."
+    },
+    {
+      "caseId": "Q6D05",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "EXPECTATION_SCHEMA_PROPOSAL",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/expectedAssessment",
+      "pointerWithinFile": "/28/expectedAssessment",
+      "old": "UNCERTAIN",
+      "new": null,
+      "reason": "QUESTION일 때는 임상 결과가 없으므로 UNCERTAIN을 생성할 의무를 두지 않는다. CONFIRM_REQUIRED일 때는 실제 평가 후보를 원래 자동사고와 유효 원문에 대조하여 별도 의미 채점해야 한다. 기존 비교 채점기의 null=무조건 정답 처리에 그대로 넣지 않는다."
+    },
+    {
+      "caseId": "Q6D05",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/allowedQuestionMeanings",
+      "pointerWithinFile": "/28/allowedQuestionMeanings",
+      "old": [
+        "아직 구분되지 않은 사실과 해석 또는 확신 범위 하나 확인"
+      ],
+      "new": [
+        "현재 자동사고의 근거·반례·해석·확신 중 실제로 남아 있는 의미 있는 불확실성 하나를 묻는다. 이미 답한 내용을 반복하거나 특정 슬롯 이름을 채우기 위한 질문을 요구하지 않는다."
+      ],
+      "reason": "질문 선택의 허용 근거를 실제 대화의 필요로 제한한다. 미탐색 슬롯을 곧 미확인 사실로 간주하지 않는다."
+    },
+    {
+      "caseId": "Q6D05",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "ANNOTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/caseRationale",
+      "pointerWithinFile": "/28/caseRationale",
+      "old": "acknowledgement 영역이 아직 탐색되지 않았다.",
+      "new": "이 사례는 유효한 세 답변 뒤에 남은 CBT 탐색의 필요를 판단한다. 네 번째 영역의 형식적 부재만으로 정보 부족 또는 평가 금지를 정하지 않는다.",
+      "reason": "acknowledgement 미탐색만을 정답의 근거로 삼던 문구 정정."
+    },
+    {
+      "caseId": "Q6E05",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/completionAssessmentAllowed",
+      "pointerWithinFile": "/36/completionAssessmentAllowed",
+      "old": false,
+      "new": true,
+      "reason": "특정 coverage domain 미탐색만으로 임상 평가 호출을 금지하지 않는다. 의미상 아직 필요한 확인이 있으면 CBT 질문을 하고, 유효한 현재 자료로 기존 CBT 평가가 가능하면 그 경로도 평가한다. true는 즉시 완료 의무가 아니다."
+    },
+    {
+      "caseId": "Q6E05",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "EXPECTATION_SCHEMA_PROPOSAL",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/expectedDecision",
+      "pointerWithinFile": "/36/expectedDecision",
+      "old": "QUESTION",
+      "new": null,
+      "reason": "과거 단일 정답 필드가 배열을 지원하지 않으므로 이 제안은 새 평가 어댑터가 허용 결정 목록을 읽도록 바꿀 때만 적용한다. 하나의 미답 슬롯만으로 QUESTION을 강제하지 않는다. 근거 없는 확인, 반복 질문, 임상 판단 생략을 자동 통과시키는 대안 목록이 아니다."
+    },
+    {
+      "caseId": "Q6E05",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "EXPECTATION_SCHEMA_PROPOSAL",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/expectedAssessment",
+      "pointerWithinFile": "/36/expectedAssessment",
+      "old": "UNCERTAIN",
+      "new": null,
+      "reason": "QUESTION일 때는 임상 결과가 없으므로 UNCERTAIN을 생성할 의무를 두지 않는다. CONFIRM_REQUIRED일 때는 실제 평가 후보를 원래 자동사고와 유효 원문에 대조하여 별도 의미 채점해야 한다. 기존 비교 채점기의 null=무조건 정답 처리에 그대로 넣지 않는다."
+    },
+    {
+      "caseId": "Q6E05",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/allowedQuestionMeanings",
+      "pointerWithinFile": "/36/allowedQuestionMeanings",
+      "old": [
+        "아직 구분되지 않은 사실과 해석 또는 확신 범위 하나 확인"
+      ],
+      "new": [
+        "현재 자동사고의 근거·반례·해석·확신 중 실제로 남아 있는 의미 있는 불확실성 하나를 묻는다. 이미 답한 내용을 반복하거나 특정 슬롯 이름을 채우기 위한 질문을 요구하지 않는다."
+      ],
+      "reason": "질문 선택의 허용 근거를 실제 대화의 필요로 제한한다. 미탐색 슬롯을 곧 미확인 사실로 간주하지 않는다."
+    },
+    {
+      "caseId": "Q6E05",
+      "sourceFile": "canonical-feature-cases.json",
+      "sourceSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "scope": "ANNOTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/caseRationale",
+      "pointerWithinFile": "/36/caseRationale",
+      "old": "acknowledgement 영역이 아직 탐색되지 않았다.",
+      "new": "이 사례는 유효한 세 답변 뒤에 남은 CBT 탐색의 필요를 판단한다. 네 번째 영역의 형식적 부재만으로 정보 부족 또는 평가 금지를 정하지 않는다.",
+      "reason": "acknowledgement 미탐색만을 정답의 근거로 삼던 문구 정정."
+    },
+    {
+      "caseId": "Q9H19",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "sourceSha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/completionAssessmentAllowed",
+      "pointerWithinFile": "/18/completionAssessmentAllowed",
+      "old": false,
+      "new": true,
+      "reason": "특정 coverage domain 미탐색만으로 임상 평가 호출을 금지하지 않는다. 의미상 아직 필요한 확인이 있으면 CBT 질문을 하고, 유효한 현재 자료로 기존 CBT 평가가 가능하면 그 경로도 평가한다. true는 즉시 완료 의무가 아니다."
+    },
+    {
+      "caseId": "Q9H19",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "sourceSha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+      "scope": "EXPECTATION_SCHEMA_PROPOSAL",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/expectedDecision",
+      "pointerWithinFile": "/18/expectedDecision",
+      "old": "QUESTION",
+      "new": null,
+      "reason": "과거 단일 정답 필드가 배열을 지원하지 않으므로 이 제안은 새 평가 어댑터가 허용 결정 목록을 읽도록 바꿀 때만 적용한다. 하나의 미답 슬롯만으로 QUESTION을 강제하지 않는다. 근거 없는 확인, 반복 질문, 임상 판단 생략을 자동 통과시키는 대안 목록이 아니다."
+    },
+    {
+      "caseId": "Q9H19",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "sourceSha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+      "scope": "EXPECTATION_SCHEMA_PROPOSAL",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/expectedAssessment",
+      "pointerWithinFile": "/18/expectedAssessment",
+      "old": "UNCERTAIN",
+      "new": null,
+      "reason": "QUESTION일 때는 임상 결과가 없으므로 UNCERTAIN을 생성할 의무를 두지 않는다. CONFIRM_REQUIRED일 때는 실제 평가 후보를 원래 자동사고와 유효 원문에 대조하여 별도 의미 채점해야 한다. 기존 비교 채점기의 null=무조건 정답 처리에 그대로 넣지 않는다."
+    },
+    {
+      "caseId": "Q9H19",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "sourceSha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/allowedQuestionMeanings",
+      "pointerWithinFile": "/18/allowedQuestionMeanings",
+      "old": [
+        "아직 NOT_EXPLORED인 coverage domain 하나를 직접 겨냥"
+      ],
+      "new": [
+        "현재 자동사고의 근거·반례·해석·확신 중 실제로 남아 있는 의미 있는 불확실성 하나를 묻는다. 이미 답한 내용을 반복하거나 특정 슬롯 이름을 채우기 위한 질문을 요구하지 않는다."
+      ],
+      "reason": "질문 선택의 허용 근거를 실제 대화의 필요로 제한한다. 미탐색 슬롯을 곧 미확인 사실로 간주하지 않는다."
+    },
+    {
+      "caseId": "Q9H20",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "sourceSha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/completionAssessmentAllowed",
+      "pointerWithinFile": "/19/completionAssessmentAllowed",
+      "old": false,
+      "new": true,
+      "reason": "특정 coverage domain 미탐색만으로 임상 평가 호출을 금지하지 않는다. 의미상 아직 필요한 확인이 있으면 CBT 질문을 하고, 유효한 현재 자료로 기존 CBT 평가가 가능하면 그 경로도 평가한다. true는 즉시 완료 의무가 아니다."
+    },
+    {
+      "caseId": "Q9H20",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "sourceSha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+      "scope": "EXPECTATION_SCHEMA_PROPOSAL",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/expectedDecision",
+      "pointerWithinFile": "/19/expectedDecision",
+      "old": "QUESTION",
+      "new": null,
+      "reason": "과거 단일 정답 필드가 배열을 지원하지 않으므로 이 제안은 새 평가 어댑터가 허용 결정 목록을 읽도록 바꿀 때만 적용한다. 하나의 미답 슬롯만으로 QUESTION을 강제하지 않는다. 근거 없는 확인, 반복 질문, 임상 판단 생략을 자동 통과시키는 대안 목록이 아니다."
+    },
+    {
+      "caseId": "Q9H20",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "sourceSha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+      "scope": "EXPECTATION_SCHEMA_PROPOSAL",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/expectedAssessment",
+      "pointerWithinFile": "/19/expectedAssessment",
+      "old": "UNCERTAIN",
+      "new": null,
+      "reason": "QUESTION일 때는 임상 결과가 없으므로 UNCERTAIN을 생성할 의무를 두지 않는다. CONFIRM_REQUIRED일 때는 실제 평가 후보를 원래 자동사고와 유효 원문에 대조하여 별도 의미 채점해야 한다. 기존 비교 채점기의 null=무조건 정답 처리에 그대로 넣지 않는다."
+    },
+    {
+      "caseId": "Q9H20",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "sourceSha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/allowedQuestionMeanings",
+      "pointerWithinFile": "/19/allowedQuestionMeanings",
+      "old": [
+        "아직 NOT_EXPLORED인 coverage domain 하나를 직접 겨냥"
+      ],
+      "new": [
+        "현재 자동사고의 근거·반례·해석·확신 중 실제로 남아 있는 의미 있는 불확실성 하나를 묻는다. 이미 답한 내용을 반복하거나 특정 슬롯 이름을 채우기 위한 질문을 요구하지 않는다."
+      ],
+      "reason": "질문 선택의 허용 근거를 실제 대화의 필요로 제한한다. 미탐색 슬롯을 곧 미확인 사실로 간주하지 않는다."
+    },
+    {
+      "caseId": "Q9H21",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "sourceSha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/completionAssessmentAllowed",
+      "pointerWithinFile": "/20/completionAssessmentAllowed",
+      "old": false,
+      "new": true,
+      "reason": "특정 coverage domain 미탐색만으로 임상 평가 호출을 금지하지 않는다. 의미상 아직 필요한 확인이 있으면 CBT 질문을 하고, 유효한 현재 자료로 기존 CBT 평가가 가능하면 그 경로도 평가한다. true는 즉시 완료 의무가 아니다."
+    },
+    {
+      "caseId": "Q9H21",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "sourceSha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+      "scope": "EXPECTATION_SCHEMA_PROPOSAL",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/expectedDecision",
+      "pointerWithinFile": "/20/expectedDecision",
+      "old": "QUESTION",
+      "new": null,
+      "reason": "과거 단일 정답 필드가 배열을 지원하지 않으므로 이 제안은 새 평가 어댑터가 허용 결정 목록을 읽도록 바꿀 때만 적용한다. 하나의 미답 슬롯만으로 QUESTION을 강제하지 않는다. 근거 없는 확인, 반복 질문, 임상 판단 생략을 자동 통과시키는 대안 목록이 아니다."
+    },
+    {
+      "caseId": "Q9H21",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "sourceSha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+      "scope": "EXPECTATION_SCHEMA_PROPOSAL",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/expectedAssessment",
+      "pointerWithinFile": "/20/expectedAssessment",
+      "old": "UNCERTAIN",
+      "new": null,
+      "reason": "QUESTION일 때는 임상 결과가 없으므로 UNCERTAIN을 생성할 의무를 두지 않는다. CONFIRM_REQUIRED일 때는 실제 평가 후보를 원래 자동사고와 유효 원문에 대조하여 별도 의미 채점해야 한다. 기존 비교 채점기의 null=무조건 정답 처리에 그대로 넣지 않는다."
+    },
+    {
+      "caseId": "Q9H21",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "sourceSha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/allowedQuestionMeanings",
+      "pointerWithinFile": "/20/allowedQuestionMeanings",
+      "old": [
+        "아직 NOT_EXPLORED인 coverage domain 하나를 직접 겨냥"
+      ],
+      "new": [
+        "현재 자동사고의 근거·반례·해석·확신 중 실제로 남아 있는 의미 있는 불확실성 하나를 묻는다. 이미 답한 내용을 반복하거나 특정 슬롯 이름을 채우기 위한 질문을 요구하지 않는다."
+      ],
+      "reason": "질문 선택의 허용 근거를 실제 대화의 필요로 제한한다. 미탐색 슬롯을 곧 미확인 사실로 간주하지 않는다."
+    },
+    {
+      "caseId": "Q10H35",
+      "sourceFile": "fresh-q10-holdout-cases.json",
+      "sourceSha256": "90c2cb93855e3e5300b18981a7416bdd101eae7d2a56986f1f1831ab7c06149c",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/completionAssessmentAllowed",
+      "pointerWithinFile": "/34/completionAssessmentAllowed",
+      "old": false,
+      "new": true,
+      "reason": "특정 coverage domain 미탐색만으로 임상 평가 호출을 금지하지 않는다. 의미상 아직 필요한 확인이 있으면 CBT 질문을 하고, 유효한 현재 자료로 기존 CBT 평가가 가능하면 그 경로도 평가한다. true는 즉시 완료 의무가 아니다."
+    },
+    {
+      "caseId": "Q10H35",
+      "sourceFile": "fresh-q10-holdout-cases.json",
+      "sourceSha256": "90c2cb93855e3e5300b18981a7416bdd101eae7d2a56986f1f1831ab7c06149c",
+      "scope": "EXPECTATION_SCHEMA_PROPOSAL",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/expectedDecision",
+      "pointerWithinFile": "/34/expectedDecision",
+      "old": "QUESTION",
+      "new": null,
+      "reason": "과거 단일 정답 필드가 배열을 지원하지 않으므로 이 제안은 새 평가 어댑터가 허용 결정 목록을 읽도록 바꿀 때만 적용한다. 하나의 미답 슬롯만으로 QUESTION을 강제하지 않는다. 근거 없는 확인, 반복 질문, 임상 판단 생략을 자동 통과시키는 대안 목록이 아니다."
+    },
+    {
+      "caseId": "Q10H35",
+      "sourceFile": "fresh-q10-holdout-cases.json",
+      "sourceSha256": "90c2cb93855e3e5300b18981a7416bdd101eae7d2a56986f1f1831ab7c06149c",
+      "scope": "EXPECTATION_SCHEMA_PROPOSAL",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/expectedAssessment",
+      "pointerWithinFile": "/34/expectedAssessment",
+      "old": "UNCERTAIN",
+      "new": null,
+      "reason": "QUESTION일 때는 임상 결과가 없으므로 UNCERTAIN을 생성할 의무를 두지 않는다. CONFIRM_REQUIRED일 때는 실제 평가 후보를 원래 자동사고와 유효 원문에 대조하여 별도 의미 채점해야 한다. 기존 비교 채점기의 null=무조건 정답 처리에 그대로 넣지 않는다."
+    },
+    {
+      "caseId": "Q10H35",
+      "sourceFile": "fresh-q10-holdout-cases.json",
+      "sourceSha256": "90c2cb93855e3e5300b18981a7416bdd101eae7d2a56986f1f1831ab7c06149c",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/allowedQuestionMeanings",
+      "pointerWithinFile": "/34/allowedQuestionMeanings",
+      "old": [],
+      "new": [
+        "현재 자동사고의 근거·반례·해석·확신 중 실제로 남아 있는 의미 있는 불확실성 하나를 묻는다. 이미 답한 내용을 반복하거나 특정 슬롯 이름을 채우기 위한 질문을 요구하지 않는다."
+      ],
+      "reason": "질문 선택의 허용 근거를 실제 대화의 필요로 제한한다. 미탐색 슬롯을 곧 미확인 사실로 간주하지 않는다."
+    },
+    {
+      "caseId": "Q10H36",
+      "sourceFile": "fresh-q10-holdout-cases.json",
+      "sourceSha256": "90c2cb93855e3e5300b18981a7416bdd101eae7d2a56986f1f1831ab7c06149c",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/completionAssessmentAllowed",
+      "pointerWithinFile": "/35/completionAssessmentAllowed",
+      "old": false,
+      "new": true,
+      "reason": "특정 coverage domain 미탐색만으로 임상 평가 호출을 금지하지 않는다. 의미상 아직 필요한 확인이 있으면 CBT 질문을 하고, 유효한 현재 자료로 기존 CBT 평가가 가능하면 그 경로도 평가한다. true는 즉시 완료 의무가 아니다."
+    },
+    {
+      "caseId": "Q10H36",
+      "sourceFile": "fresh-q10-holdout-cases.json",
+      "sourceSha256": "90c2cb93855e3e5300b18981a7416bdd101eae7d2a56986f1f1831ab7c06149c",
+      "scope": "EXPECTATION_SCHEMA_PROPOSAL",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/expectedDecision",
+      "pointerWithinFile": "/35/expectedDecision",
+      "old": "QUESTION",
+      "new": null,
+      "reason": "과거 단일 정답 필드가 배열을 지원하지 않으므로 이 제안은 새 평가 어댑터가 허용 결정 목록을 읽도록 바꿀 때만 적용한다. 하나의 미답 슬롯만으로 QUESTION을 강제하지 않는다. 근거 없는 확인, 반복 질문, 임상 판단 생략을 자동 통과시키는 대안 목록이 아니다."
+    },
+    {
+      "caseId": "Q10H36",
+      "sourceFile": "fresh-q10-holdout-cases.json",
+      "sourceSha256": "90c2cb93855e3e5300b18981a7416bdd101eae7d2a56986f1f1831ab7c06149c",
+      "scope": "EXPECTATION_SCHEMA_PROPOSAL",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/expectedAssessment",
+      "pointerWithinFile": "/35/expectedAssessment",
+      "old": "UNCERTAIN",
+      "new": null,
+      "reason": "QUESTION일 때는 임상 결과가 없으므로 UNCERTAIN을 생성할 의무를 두지 않는다. CONFIRM_REQUIRED일 때는 실제 평가 후보를 원래 자동사고와 유효 원문에 대조하여 별도 의미 채점해야 한다. 기존 비교 채점기의 null=무조건 정답 처리에 그대로 넣지 않는다."
+    },
+    {
+      "caseId": "Q10H36",
+      "sourceFile": "fresh-q10-holdout-cases.json",
+      "sourceSha256": "90c2cb93855e3e5300b18981a7416bdd101eae7d2a56986f1f1831ab7c06149c",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/allowedQuestionMeanings",
+      "pointerWithinFile": "/35/allowedQuestionMeanings",
+      "old": [],
+      "new": [
+        "현재 자동사고의 근거·반례·해석·확신 중 실제로 남아 있는 의미 있는 불확실성 하나를 묻는다. 이미 답한 내용을 반복하거나 특정 슬롯 이름을 채우기 위한 질문을 요구하지 않는다."
+      ],
+      "reason": "질문 선택의 허용 근거를 실제 대화의 필요로 제한한다. 미탐색 슬롯을 곧 미확인 사실로 간주하지 않는다."
+    },
+    {
+      "caseId": "A01",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/0/evaluationContext/forbidden_question_meanings",
+      "old": "팀장의 실제 속마음, 다른 사람 반응 재사용, 닫힌 직접 증거·대안 원인 반복",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(팀장의 실제 속마음, 다른 사람 반응 재사용, 닫힌 직접 증거·대안 원인 반복)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "A02",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/1/evaluationContext/forbidden_question_meanings",
+      "old": "팀장의 실제 속마음, 다른 사람 반응 재사용, 닫힌 직접 증거·대안 원인 반복",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(팀장의 실제 속마음, 다른 사람 반응 재사용, 닫힌 직접 증거·대안 원인 반복)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "A03",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/2/evaluationContext/forbidden_question_meanings",
+      "old": "팀장의 실제 속마음, 다른 사람 반응 재사용, 닫힌 직접 증거·대안 원인 반복",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(팀장의 실제 속마음, 다른 사람 반응 재사용, 닫힌 직접 증거·대안 원인 반복)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "A04",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/3/evaluationContext/forbidden_question_meanings",
+      "old": "팀장의 실제 속마음, 다른 사람 반응 재사용, 닫힌 직접 증거·대안 원인 반복",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(팀장의 실제 속마음, 다른 사람 반응 재사용, 닫힌 직접 증거·대안 원인 반복)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "A05",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/4/evaluationContext/forbidden_question_meanings",
+      "old": "팀장의 실제 속마음, 다른 사람 반응 재사용, 닫힌 직접 증거·대안 원인 반복",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(팀장의 실제 속마음, 다른 사람 반응 재사용, 닫힌 직접 증거·대안 원인 반복)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "A06",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/5/evaluationContext/forbidden_question_meanings",
+      "old": "팀장의 실제 속마음, 다른 사람 반응 재사용, 닫힌 직접 증거·대안 원인 반복",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(팀장의 실제 속마음, 다른 사람 반응 재사용, 닫힌 직접 증거·대안 원인 반복)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "A07",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/6/evaluationContext/forbidden_question_meanings",
+      "old": "팀장의 실제 속마음, 다른 사람 반응 재사용, 닫힌 직접 증거·대안 원인 반복",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(팀장의 실제 속마음, 다른 사람 반응 재사용, 닫힌 직접 증거·대안 원인 반복)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "A08",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/7/evaluationContext/forbidden_question_meanings",
+      "old": "팀장의 실제 속마음, 다른 사람 반응 재사용, 닫힌 직접 증거·대안 원인 반복",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(팀장의 실제 속마음, 다른 사람 반응 재사용, 닫힌 직접 증거·대안 원인 반복)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "B01",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/8/evaluationContext/forbidden_question_meanings",
+      "old": "친구의 실제 감정·의도, 온라인 상태, 답장 지연 원인 반복",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(친구의 실제 감정·의도, 온라인 상태, 답장 지연 원인 반복)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "B02",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/9/evaluationContext/forbidden_question_meanings",
+      "old": "친구의 실제 감정·의도, 온라인 상태, 답장 지연 원인 반복",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(친구의 실제 감정·의도, 온라인 상태, 답장 지연 원인 반복)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "B03",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/10/evaluationContext/forbidden_question_meanings",
+      "old": "친구의 실제 감정·의도, 온라인 상태, 답장 지연 원인 반복",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(친구의 실제 감정·의도, 온라인 상태, 답장 지연 원인 반복)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "B04",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/11/evaluationContext/forbidden_question_meanings",
+      "old": "친구의 실제 감정·의도, 온라인 상태, 답장 지연 원인 반복",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(친구의 실제 감정·의도, 온라인 상태, 답장 지연 원인 반복)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "B05",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/12/evaluationContext/forbidden_question_meanings",
+      "old": "친구의 실제 감정·의도, 온라인 상태, 답장 지연 원인 반복",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(친구의 실제 감정·의도, 온라인 상태, 답장 지연 원인 반복)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "B06",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/13/evaluationContext/forbidden_question_meanings",
+      "old": "친구의 실제 감정·의도, 온라인 상태, 답장 지연 원인 반복",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(친구의 실제 감정·의도, 온라인 상태, 답장 지연 원인 반복)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "B07",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/14/evaluationContext/forbidden_question_meanings",
+      "old": "친구의 실제 감정·의도, 온라인 상태, 답장 지연 원인 반복",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(친구의 실제 감정·의도, 온라인 상태, 답장 지연 원인 반복)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "B08",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/15/evaluationContext/forbidden_question_meanings",
+      "old": "친구의 실제 감정·의도, 온라인 상태, 답장 지연 원인 반복",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(친구의 실제 감정·의도, 온라인 상태, 답장 지연 원인 반복)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "C01",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/16/evaluationContext/forbidden_question_meanings",
+      "old": "청중의 실제 속마음, 청중 표정, 또 다른 실수 원인",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(청중의 실제 속마음, 청중 표정, 또 다른 실수 원인)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "C02",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/17/evaluationContext/forbidden_question_meanings",
+      "old": "청중의 실제 속마음, 청중 표정, 또 다른 실수 원인",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(청중의 실제 속마음, 청중 표정, 또 다른 실수 원인)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "C03",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/18/evaluationContext/forbidden_question_meanings",
+      "old": "청중의 실제 속마음, 청중 표정, 또 다른 실수 원인",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(청중의 실제 속마음, 청중 표정, 또 다른 실수 원인)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "C04",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/19/evaluationContext/forbidden_question_meanings",
+      "old": "청중의 실제 속마음, 청중 표정, 또 다른 실수 원인",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(청중의 실제 속마음, 청중 표정, 또 다른 실수 원인)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "C05",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/20/evaluationContext/forbidden_question_meanings",
+      "old": "청중의 실제 속마음, 청중 표정, 또 다른 실수 원인",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(청중의 실제 속마음, 청중 표정, 또 다른 실수 원인)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "C06",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/21/evaluationContext/forbidden_question_meanings",
+      "old": "청중의 실제 속마음, 청중 표정, 또 다른 실수 원인",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(청중의 실제 속마음, 청중 표정, 또 다른 실수 원인)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "C07",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/22/evaluationContext/forbidden_question_meanings",
+      "old": "청중의 실제 속마음, 청중 표정, 또 다른 실수 원인",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(청중의 실제 속마음, 청중 표정, 또 다른 실수 원인)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "C08",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/23/evaluationContext/forbidden_question_meanings",
+      "old": "청중의 실제 속마음, 청중 표정, 또 다른 실수 원인",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(청중의 실제 속마음, 청중 표정, 또 다른 실수 원인)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "D01",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/24/evaluationContext/forbidden_question_meanings",
+      "old": "면접관 실제 평가, 표정·지원자 비교, 또 다른 불합격 원인",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(면접관 실제 평가, 표정·지원자 비교, 또 다른 불합격 원인)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "D02",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/25/evaluationContext/forbidden_question_meanings",
+      "old": "면접관 실제 평가, 표정·지원자 비교, 또 다른 불합격 원인",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(면접관 실제 평가, 표정·지원자 비교, 또 다른 불합격 원인)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "D03",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/26/evaluationContext/forbidden_question_meanings",
+      "old": "면접관 실제 평가, 표정·지원자 비교, 또 다른 불합격 원인",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(면접관 실제 평가, 표정·지원자 비교, 또 다른 불합격 원인)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "D04",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/27/evaluationContext/forbidden_question_meanings",
+      "old": "면접관 실제 평가, 표정·지원자 비교, 또 다른 불합격 원인",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(면접관 실제 평가, 표정·지원자 비교, 또 다른 불합격 원인)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "D05",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/28/evaluationContext/forbidden_question_meanings",
+      "old": "면접관 실제 평가, 표정·지원자 비교, 또 다른 불합격 원인",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(면접관 실제 평가, 표정·지원자 비교, 또 다른 불합격 원인)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "D06",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/29/evaluationContext/forbidden_question_meanings",
+      "old": "면접관 실제 평가, 표정·지원자 비교, 또 다른 불합격 원인",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(면접관 실제 평가, 표정·지원자 비교, 또 다른 불합격 원인)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "D07",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/30/evaluationContext/forbidden_question_meanings",
+      "old": "면접관 실제 평가, 표정·지원자 비교, 또 다른 불합격 원인",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(면접관 실제 평가, 표정·지원자 비교, 또 다른 불합격 원인)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "D08",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/31/evaluationContext/forbidden_question_meanings",
+      "old": "면접관 실제 평가, 표정·지원자 비교, 또 다른 불합격 원인",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(면접관 실제 평가, 표정·지원자 비교, 또 다른 불합격 원인)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "E01",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/32/evaluationContext/forbidden_question_meanings",
+      "old": "의학 진단, 승객 반응, 또 다른 증상·원인 재탐색",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(의학 진단, 승객 반응, 또 다른 증상·원인 재탐색)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "E02",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/33/evaluationContext/forbidden_question_meanings",
+      "old": "의학 진단, 승객 반응, 또 다른 증상·원인 재탐색",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(의학 진단, 승객 반응, 또 다른 증상·원인 재탐색)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "E03",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/34/evaluationContext/forbidden_question_meanings",
+      "old": "의학 진단, 승객 반응, 또 다른 증상·원인 재탐색",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(의학 진단, 승객 반응, 또 다른 증상·원인 재탐색)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "E04",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/35/evaluationContext/forbidden_question_meanings",
+      "old": "의학 진단, 승객 반응, 또 다른 증상·원인 재탐색",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(의학 진단, 승객 반응, 또 다른 증상·원인 재탐색)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "E05",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/36/evaluationContext/forbidden_question_meanings",
+      "old": "의학 진단, 승객 반응, 또 다른 증상·원인 재탐색",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(의학 진단, 승객 반응, 또 다른 증상·원인 재탐색)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "E06",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/37/evaluationContext/forbidden_question_meanings",
+      "old": "의학 진단, 승객 반응, 또 다른 증상·원인 재탐색",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(의학 진단, 승객 반응, 또 다른 증상·원인 재탐색)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "E07",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/38/evaluationContext/forbidden_question_meanings",
+      "old": "의학 진단, 승객 반응, 또 다른 증상·원인 재탐색",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(의학 진단, 승객 반응, 또 다른 증상·원인 재탐색)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "E08",
+      "sourceFile": "canonical-regression-cases.json",
+      "sourceSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/evaluationContext/forbidden_question_meanings",
+      "pointerWithinFile": "/39/evaluationContext/forbidden_question_meanings",
+      "old": "의학 진단, 승객 반응, 또 다른 증상·원인 재탐색",
+      "new": "제3자의 숨은 감정·의도·평가를 직접 알 수 있는 사실처럼 요구하거나 단정하지 않는다. 실제로 이미 답했거나 사용자가 거절한 동일 정보의 반복 요구를 금지한다. 현재 사례 원문에 차단 근거가 없는 관찰 사실·대안 해석·구체적 피드백 확인을 상황군 전체 금지 항목만으로 오답 처리하지 않는다. 예시 요청에는 가정임을 명확히 한 CBT 예시를 허용하고 실제 사실로 저장하지 않는다. 의학적 확정 진단이나 근거 없는 안전 단정은 허용하지 않는다.",
+      "reason": "원래 상황군 공통 금지 문구(의학 진단, 승객 반응, 또 다른 증상·원인 재탐색)가 시작/예시/피드백 사례에 동일 복사되어 있다. 적용 조건을 실제 이력에 결속한다. 원문으로 뒷받침되는 개별 거절 및 반복 금지는 유지한다."
+    },
+    {
+      "caseId": "Q10_LONG_SKIPPED_VARIANTS",
+      "sourceFile": "q10-long-sessions.json",
+      "sourceSha256": "29c9e712f6d37d63f5f7bacf3dda558d1a031b23ee644c28af2f04f0c48808e5",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/requiredGates",
+      "pointerWithinFile": "/0/requiredGates",
+      "old": [
+        "SKIPPED",
+        "signature_block_immediate",
+        "semantic_repeat_zero",
+        "REHYDRATE"
+      ],
+      "new": [
+        "respect_skip_without_reasking_the_declined_information",
+        "respect_the_current_skip",
+        "no_unhelpful_repetition_in_actual_question_history",
+        "preserve_relevant_public_behavior_after_rehydration"
+      ],
+      "reason": "signature·coverage·forced route 또는 생성 호출 0회 같은 내부 구현을 제품 기능의 정답으로 강제하지 않는다. 사용자에게 드러난 CBT 진행, 근거 보존, 복원, 기본 안전 결과를 본다. 실제 trace는 기록하되 동일 내부 구현의 유무로 실패 처리하지 않는다."
+    },
+    {
+      "caseId": "Q10_LONG_UNCLEAR_DIRECTION",
+      "sourceFile": "q10-long-sessions.json",
+      "sourceSha256": "29c9e712f6d37d63f5f7bacf3dda558d1a031b23ee644c28af2f04f0c48808e5",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/requiredGates",
+      "pointerWithinFile": "/1/requiredGates",
+      "old": [
+        "UNCLEAR",
+        "simpler_once",
+        "USER_SELECTED_DIRECTION",
+        "semantic_repeat_zero"
+      ],
+      "new": [
+        "respond_to_uncertainty_without_fabricating_an_answer",
+        "offer_useful_cbt_help_without_an_exact_rephrase_count",
+        "respect_the_expressed_cbt_direction",
+        "no_unhelpful_repetition_in_actual_question_history"
+      ],
+      "reason": "signature·coverage·forced route 또는 생성 호출 0회 같은 내부 구현을 제품 기능의 정답으로 강제하지 않는다. 사용자에게 드러난 CBT 진행, 근거 보존, 복원, 기본 안전 결과를 본다. 실제 trace는 기록하되 동일 내부 구현의 유무로 실패 처리하지 않는다."
+    },
+    {
+      "caseId": "Q10_LONG_RELEVANCE_FEEDBACK",
+      "sourceFile": "q10-long-sessions.json",
+      "sourceSha256": "29c9e712f6d37d63f5f7bacf3dda558d1a031b23ee644c28af2f04f0c48808e5",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/requiredGates",
+      "pointerWithinFile": "/2/requiredGates",
+      "old": [
+        "feedback",
+        "route_target_source_block",
+        "coverage_contamination_zero",
+        "REHYDRATE"
+      ],
+      "new": [
+        "respond_to_the_actual_cbt_feedback",
+        "respect_the_rejected_question_topic",
+        "do_not_treat_skip_or_feedback_as_factual_evidence",
+        "preserve_relevant_public_behavior_after_rehydration"
+      ],
+      "reason": "signature·coverage·forced route 또는 생성 호출 0회 같은 내부 구현을 제품 기능의 정답으로 강제하지 않는다. 사용자에게 드러난 CBT 진행, 근거 보존, 복원, 기본 안전 결과를 본다. 실제 trace는 기록하되 동일 내부 구현의 유무로 실패 처리하지 않는다."
+    },
+    {
+      "caseId": "Q10_LONG_REPEAT_FEEDBACK",
+      "sourceFile": "q10-long-sessions.json",
+      "sourceSha256": "29c9e712f6d37d63f5f7bacf3dda558d1a031b23ee644c28af2f04f0c48808e5",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/requiredGates",
+      "pointerWithinFile": "/3/requiredGates",
+      "old": [
+        "feedback",
+        "semantic_signature_block",
+        "semantic_repeat_zero",
+        "REHYDRATE"
+      ],
+      "new": [
+        "respond_to_the_actual_cbt_feedback",
+        "do_not_reask_the_same_declined_information",
+        "no_unhelpful_repetition_in_actual_question_history",
+        "preserve_relevant_public_behavior_after_rehydration"
+      ],
+      "reason": "signature·coverage·forced route 또는 생성 호출 0회 같은 내부 구현을 제품 기능의 정답으로 강제하지 않는다. 사용자에게 드러난 CBT 진행, 근거 보존, 복원, 기본 안전 결과를 본다. 실제 trace는 기록하되 동일 내부 구현의 유무로 실패 처리하지 않는다."
+    },
+    {
+      "caseId": "Q10_LONG_REHYDRATE_FULL",
+      "sourceFile": "q10-long-sessions.json",
+      "sourceSha256": "29c9e712f6d37d63f5f7bacf3dda558d1a031b23ee644c28af2f04f0c48808e5",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/requiredGates",
+      "pointerWithinFile": "/4/requiredGates",
+      "old": [
+        "REHYDRATE",
+        "unanswered_attempts_restore",
+        "blocked_restore",
+        "verified_coverage_restore",
+        "forced_direction_restore"
+      ],
+      "new": [
+        "preserve_relevant_public_behavior_after_rehydration",
+        "remember_unanswered_or_declined_questions",
+        "remember_the_rejected_cbt_direction",
+        "preserve_actual_answer_content",
+        "respect_the_latest_cbt_direction"
+      ],
+      "reason": "signature·coverage·forced route 또는 생성 호출 0회 같은 내부 구현을 제품 기능의 정답으로 강제하지 않는다. 사용자에게 드러난 CBT 진행, 근거 보존, 복원, 기본 안전 결과를 본다. 실제 trace는 기록하되 동일 내부 구현의 유무로 실패 처리하지 않는다."
+    },
+    {
+      "caseId": "Q10_LONG_SAFETY_OVERRIDE",
+      "sourceFile": "q10-long-sessions.json",
+      "sourceSha256": "29c9e712f6d37d63f5f7bacf3dda558d1a031b23ee644c28af2f04f0c48808e5",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/requiredGates",
+      "pointerWithinFile": "/5/requiredGates",
+      "old": [
+        "current_safety_override",
+        "zero_product_calls",
+        "exact_evidence"
+      ],
+      "new": [
+        "respond_to_clear_current_risk_before_cbt_exploration",
+        "cite_an_actual_source_span_without_changing_subject_or_negation"
+      ],
+      "reason": "signature·coverage·forced route 또는 생성 호출 0회 같은 내부 구현을 제품 기능의 정답으로 강제하지 않는다. 사용자에게 드러난 CBT 진행, 근거 보존, 복원, 기본 안전 결과를 본다. 실제 trace는 기록하되 동일 내부 구현의 유무로 실패 처리하지 않는다."
+    },
+    {
+      "caseId": "Q9_LONG_UNCLEAR",
+      "sourceFile": "known-long-sessions.json",
+      "sourceSha256": "4172949989456f86d36f034d8be96db42e3a8a0ffddfcd447802db423ccad986",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/requiredGates",
+      "pointerWithinFile": "/0/requiredGates",
+      "old": [
+        "UNCLEAR",
+        "REHYDRATE",
+        "semantic_repeat_zero",
+        "state_preservation"
+      ],
+      "new": [
+        "respond_to_uncertainty_without_fabricating_an_answer",
+        "preserve_relevant_public_behavior_after_rehydration",
+        "no_unhelpful_repetition_in_actual_question_history",
+        "retain_valid_user_information"
+      ],
+      "reason": "signature·coverage·forced route 또는 생성 호출 0회 같은 내부 구현을 제품 기능의 정답으로 강제하지 않는다. 사용자에게 드러난 CBT 진행, 근거 보존, 복원, 기본 안전 결과를 본다. 실제 trace는 기록하되 동일 내부 구현의 유무로 실패 처리하지 않는다."
+    },
+    {
+      "caseId": "Q9_LONG_SKIPPED",
+      "sourceFile": "known-long-sessions.json",
+      "sourceSha256": "4172949989456f86d36f034d8be96db42e3a8a0ffddfcd447802db423ccad986",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/requiredGates",
+      "pointerWithinFile": "/1/requiredGates",
+      "old": [
+        "SKIPPED",
+        "REHYDRATE",
+        "semantic_repeat_zero",
+        "coverage_contamination_zero"
+      ],
+      "new": [
+        "respect_skip_without_reasking_the_declined_information",
+        "preserve_relevant_public_behavior_after_rehydration",
+        "no_unhelpful_repetition_in_actual_question_history",
+        "do_not_treat_skip_or_feedback_as_factual_evidence"
+      ],
+      "reason": "signature·coverage·forced route 또는 생성 호출 0회 같은 내부 구현을 제품 기능의 정답으로 강제하지 않는다. 사용자에게 드러난 CBT 진행, 근거 보존, 복원, 기본 안전 결과를 본다. 실제 trace는 기록하되 동일 내부 구현의 유무로 실패 처리하지 않는다."
+    },
+    {
+      "caseId": "Q9_LONG_FEEDBACK",
+      "sourceFile": "known-long-sessions.json",
+      "sourceSha256": "4172949989456f86d36f034d8be96db42e3a8a0ffddfcd447802db423ccad986",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/requiredGates",
+      "pointerWithinFile": "/2/requiredGates",
+      "old": [
+        "feedback",
+        "REHYDRATE",
+        "closed_signature_reuse_zero",
+        "coverage_contamination_zero"
+      ],
+      "new": [
+        "respond_to_the_actual_cbt_feedback",
+        "preserve_relevant_public_behavior_after_rehydration",
+        "do_not_reask_the_same_declined_information",
+        "do_not_treat_skip_or_feedback_as_factual_evidence"
+      ],
+      "reason": "signature·coverage·forced route 또는 생성 호출 0회 같은 내부 구현을 제품 기능의 정답으로 강제하지 않는다. 사용자에게 드러난 CBT 진행, 근거 보존, 복원, 기본 안전 결과를 본다. 실제 trace는 기록하되 동일 내부 구현의 유무로 실패 처리하지 않는다."
+    },
+    {
+      "caseId": "Q9_LONG_REHYDRATE_READY",
+      "sourceFile": "known-long-sessions.json",
+      "sourceSha256": "4172949989456f86d36f034d8be96db42e3a8a0ffddfcd447802db423ccad986",
+      "scope": "EXPECTATION",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/requiredGates",
+      "pointerWithinFile": "/3/requiredGates",
+      "old": [
+        "REHYDRATE",
+        "readiness_reconstruction",
+        "exact_grounding",
+        "state_preservation"
+      ],
+      "new": [
+        "preserve_relevant_public_behavior_after_rehydration",
+        "base_assessment_on_actual_valid_answers_after_restore",
+        "ground_factual_claims_in_actual_user_evidence",
+        "retain_valid_user_information"
+      ],
+      "reason": "signature·coverage·forced route 또는 생성 호출 0회 같은 내부 구현을 제품 기능의 정답으로 강제하지 않는다. 사용자에게 드러난 CBT 진행, 근거 보존, 복원, 기본 안전 결과를 본다. 실제 trace는 기록하되 동일 내부 구현의 유무로 실패 처리하지 않는다."
+    },
+    {
+      "caseId": "Q9_LONG_REHYDRATE_READY",
+      "sourceFile": "known-long-sessions.json",
+      "sourceSha256": "4172949989456f86d36f034d8be96db42e3a8a0ffddfcd447802db423ccad986",
+      "scope": "INPUT_PROPOSAL",
+      "certainty": "CURRENT_PRODUCT_SCOPE_OVERRIDE",
+      "pointerWithinCase": "/answerStrategy",
+      "pointerWithinFile": "/3/answerStrategy",
+      "old": {
+        "sequence": [
+          "직접 확인된 말은 한 가지 있었어요.",
+          "그 결론과 맞지 않는 사실도 있었어요.",
+          "다른 제한된 설명도 가능해요.",
+          "사실과 추측을 나누면 확신은 낮아져요."
+        ],
+        "default": "확인된 내용만 말했어요."
+      },
+      "new": {
+        "sequence": [
+          "이번 면접에서는 직무 경험 설명이 부족하다는 피드백을 받았어요. 이전 면접에서는 합격한 적이 있고 업무 성과도 인정받았어요. 이번 결과가 제 모든 능력이나 앞으로의 결과까지 뜻하는지는 잘 모르겠어요.",
+          "새로 덧붙일 사실은 없어요. 이번 불합격을 모든 능력과 앞으로의 결과로 넓혀 생각했다는 점은 알겠어요.",
+          "현재 말한 내용은 그대로예요. 같은 내용을 더 반복해서 답하고 싶지는 않아요."
+        ],
+        "default": "지금은 더 떠오르는 내용이 없어요."
+      },
+      "reason": "실제 생성 질문과 무관하게 1번째 직접근거→2번째 반례→3번째 대안→4번째 성찰이라는 범용 답변을 넣어 네 슬롯 완성을 강요하던 문구를 구체적인 원래 면접 사실로 바꾼다. 이 개정도 각 실제 질문에 답한 영역을 순번으로 강제할 수 없으며 완료 시 후속 답변 삽입을 멈춘다. 복원 전에 정상 완료하면 복원 분기는 미실행으로 기록하고 복원 실패로 채점하지 않는다."
+    },
+    {
+      "caseId": "Q9H13",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "pointerWithinCase": "/explorationCoverage",
+      "pointerWithinFile": "/12/explorationCoverage",
+      "old": {
+        "evidenceFor": {
+          "status": "EXPLICITLY_NONE",
+          "code": "EVIDENCE_FOR_001",
+          "excerpt": "요리 피드백에서 직접 확인된 일은 기록된 사건 한 가지뿐이다."
+        },
+        "evidenceAgainst": {
+          "status": "EXPLICITLY_NONE",
+          "code": "EVIDENCE_AGAINST_002",
+          "excerpt": "요리 피드백의 다른 전체 평가나 미래 결과까지 확인된 것은 아니다."
+        },
+        "alternativeViews": {
+          "status": "EXPLICITLY_NONE",
+          "code": "ALTERNATIVE_VIEW_003",
+          "excerpt": "요리 피드백 상황에는 개인 전체 평가가 아닌 제한된 사정이라는 설명도 가능하다."
+        },
+        "acknowledgement": {
+          "status": "EVIDENCE_FOUND",
+          "code": "BALANCED_THOUGHT_004",
+          "excerpt": "요리 피드백의 사건은 사실이지만 그보다 넓은 결론은 아직 확인되지 않았다."
+        }
+      },
+      "new": null,
+      "scope": "ANNOTATION",
+      "reason": "상충한 사전 coverage 라벨을 제거한다. 미확인·해석을 관찰 반례로 재분류하지 않으며 원문과 원래 주석은 원본 사본에 보존한다. 이 값은 제품 입력/완료 조건/채점 정답이 아니다."
+    },
+    {
+      "caseId": "Q9H14",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "pointerWithinCase": "/explorationCoverage",
+      "pointerWithinFile": "/13/explorationCoverage",
+      "old": {
+        "evidenceFor": {
+          "status": "EXPLICITLY_NONE",
+          "code": "EVIDENCE_FOR_001",
+          "excerpt": "사진 선정에서 직접 확인된 일은 기록된 사건 한 가지뿐이다."
+        },
+        "evidenceAgainst": {
+          "status": "EXPLICITLY_NONE",
+          "code": "EVIDENCE_AGAINST_002",
+          "excerpt": "사진 선정의 다른 전체 평가나 미래 결과까지 확인된 것은 아니다."
+        },
+        "alternativeViews": {
+          "status": "EXPLICITLY_NONE",
+          "code": "ALTERNATIVE_VIEW_003",
+          "excerpt": "사진 선정 상황에는 개인 전체 평가가 아닌 제한된 사정이라는 설명도 가능하다."
+        },
+        "acknowledgement": {
+          "status": "EVIDENCE_FOUND",
+          "code": "BALANCED_THOUGHT_004",
+          "excerpt": "사진 선정의 사건은 사실이지만 그보다 넓은 결론은 아직 확인되지 않았다."
+        }
+      },
+      "new": null,
+      "scope": "ANNOTATION",
+      "reason": "상충한 사전 coverage 라벨을 제거한다. 미확인·해석을 관찰 반례로 재분류하지 않으며 원문과 원래 주석은 원본 사본에 보존한다. 이 값은 제품 입력/완료 조건/채점 정답이 아니다."
+    },
+    {
+      "caseId": "Q9H15",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "pointerWithinCase": "/explorationCoverage",
+      "pointerWithinFile": "/14/explorationCoverage",
+      "old": {
+        "evidenceFor": {
+          "status": "EXPLICITLY_NONE",
+          "code": "EVIDENCE_FOR_001",
+          "excerpt": "텃밭 활동에서 직접 확인된 일은 기록된 사건 한 가지뿐이다."
+        },
+        "evidenceAgainst": {
+          "status": "EXPLICITLY_NONE",
+          "code": "EVIDENCE_AGAINST_002",
+          "excerpt": "텃밭 활동의 다른 전체 평가나 미래 결과까지 확인된 것은 아니다."
+        },
+        "alternativeViews": {
+          "status": "EXPLICITLY_NONE",
+          "code": "ALTERNATIVE_VIEW_003",
+          "excerpt": "텃밭 활동 상황에는 개인 전체 평가가 아닌 제한된 사정이라는 설명도 가능하다."
+        },
+        "acknowledgement": {
+          "status": "EVIDENCE_FOUND",
+          "code": "BALANCED_THOUGHT_004",
+          "excerpt": "텃밭 활동의 사건은 사실이지만 그보다 넓은 결론은 아직 확인되지 않았다."
+        }
+      },
+      "new": null,
+      "scope": "ANNOTATION",
+      "reason": "상충한 사전 coverage 라벨을 제거한다. 미확인·해석을 관찰 반례로 재분류하지 않으며 원문과 원래 주석은 원본 사본에 보존한다. 이 값은 제품 입력/완료 조건/채점 정답이 아니다."
+    },
+    {
+      "caseId": "Q9H19",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "pointerWithinCase": "/allowedDecisions",
+      "pointerWithinFile": "/18/allowedDecisions",
+      "oldFieldAbsent": true,
+      "new": [
+        "QUESTION",
+        "CONFIRM_REQUIRED"
+      ],
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q9H19",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "pointerWithinCase": "/classificationApplicability",
+      "pointerWithinFile": "/18/classificationApplicability",
+      "oldFieldAbsent": true,
+      "new": "MULTIPLE_VALID_ACTIONS",
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q9H19",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "pointerWithinCase": "/assessmentPolicy",
+      "pointerWithinFile": "/18/assessmentPolicy",
+      "oldFieldAbsent": true,
+      "new": "관련 미확인 내용을 살피는 CBT 질문 또는 유효 자료에 근거한 기존 판단을 허용한다. 실제 선택한 행동의 근거·시점·내용을 채점하며 허용 status만으로 성공을 부여하지 않는다. 원래 자동사고를 현재 수정 생각으로 바꾸지 않는다.",
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q9H20",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "pointerWithinCase": "/allowedDecisions",
+      "pointerWithinFile": "/19/allowedDecisions",
+      "oldFieldAbsent": true,
+      "new": [
+        "QUESTION",
+        "CONFIRM_REQUIRED"
+      ],
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q9H20",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "pointerWithinCase": "/classificationApplicability",
+      "pointerWithinFile": "/19/classificationApplicability",
+      "oldFieldAbsent": true,
+      "new": "MULTIPLE_VALID_ACTIONS",
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q9H20",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "pointerWithinCase": "/assessmentPolicy",
+      "pointerWithinFile": "/19/assessmentPolicy",
+      "oldFieldAbsent": true,
+      "new": "관련 미확인 내용을 살피는 CBT 질문 또는 유효 자료에 근거한 기존 판단을 허용한다. 실제 선택한 행동의 근거·시점·내용을 채점하며 허용 status만으로 성공을 부여하지 않는다. 원래 자동사고를 현재 수정 생각으로 바꾸지 않는다.",
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q9H21",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "pointerWithinCase": "/allowedDecisions",
+      "pointerWithinFile": "/20/allowedDecisions",
+      "oldFieldAbsent": true,
+      "new": [
+        "QUESTION",
+        "CONFIRM_REQUIRED"
+      ],
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q9H21",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "pointerWithinCase": "/classificationApplicability",
+      "pointerWithinFile": "/20/classificationApplicability",
+      "oldFieldAbsent": true,
+      "new": "MULTIPLE_VALID_ACTIONS",
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q9H21",
+      "sourceFile": "known-holdout-regression-cases.json",
+      "pointerWithinCase": "/assessmentPolicy",
+      "pointerWithinFile": "/20/assessmentPolicy",
+      "oldFieldAbsent": true,
+      "new": "관련 미확인 내용을 살피는 CBT 질문 또는 유효 자료에 근거한 기존 판단을 허용한다. 실제 선택한 행동의 근거·시점·내용을 채점하며 허용 status만으로 성공을 부여하지 않는다. 원래 자동사고를 현재 수정 생각으로 바꾸지 않는다.",
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q6A05",
+      "sourceFile": "canonical-feature-cases.json",
+      "pointerWithinCase": "/allowedDecisions",
+      "pointerWithinFile": "/4/allowedDecisions",
+      "oldFieldAbsent": true,
+      "new": [
+        "QUESTION",
+        "CONFIRM_REQUIRED"
+      ],
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q6A05",
+      "sourceFile": "canonical-feature-cases.json",
+      "pointerWithinCase": "/classificationApplicability",
+      "pointerWithinFile": "/4/classificationApplicability",
+      "oldFieldAbsent": true,
+      "new": "MULTIPLE_VALID_ACTIONS",
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q6A05",
+      "sourceFile": "canonical-feature-cases.json",
+      "pointerWithinCase": "/assessmentPolicy",
+      "pointerWithinFile": "/4/assessmentPolicy",
+      "oldFieldAbsent": true,
+      "new": "관련 미확인 내용을 살피는 CBT 질문 또는 유효 자료에 근거한 기존 판단을 허용한다. 실제 선택한 행동의 근거·시점·내용을 채점하며 허용 status만으로 성공을 부여하지 않는다. 원래 자동사고를 현재 수정 생각으로 바꾸지 않는다.",
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q6B05",
+      "sourceFile": "canonical-feature-cases.json",
+      "pointerWithinCase": "/allowedDecisions",
+      "pointerWithinFile": "/12/allowedDecisions",
+      "oldFieldAbsent": true,
+      "new": [
+        "QUESTION",
+        "CONFIRM_REQUIRED"
+      ],
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q6B05",
+      "sourceFile": "canonical-feature-cases.json",
+      "pointerWithinCase": "/classificationApplicability",
+      "pointerWithinFile": "/12/classificationApplicability",
+      "oldFieldAbsent": true,
+      "new": "MULTIPLE_VALID_ACTIONS",
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q6B05",
+      "sourceFile": "canonical-feature-cases.json",
+      "pointerWithinCase": "/assessmentPolicy",
+      "pointerWithinFile": "/12/assessmentPolicy",
+      "oldFieldAbsent": true,
+      "new": "관련 미확인 내용을 살피는 CBT 질문 또는 유효 자료에 근거한 기존 판단을 허용한다. 실제 선택한 행동의 근거·시점·내용을 채점하며 허용 status만으로 성공을 부여하지 않는다. 원래 자동사고를 현재 수정 생각으로 바꾸지 않는다.",
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q6C01",
+      "sourceFile": "canonical-feature-cases.json",
+      "pointerWithinCase": "/explorationCoverage",
+      "pointerWithinFile": "/16/explorationCoverage",
+      "old": {
+        "evidenceFor": {
+          "status": "EVIDENCE_FOUND",
+          "code": "EVIDENCE_FOR_001",
+          "excerpt": "한 질문에 바로 답하지 못했고 발표의 나머지 부분은 끝냈다."
+        },
+        "evidenceAgainst": {
+          "status": "EVIDENCE_FOUND",
+          "code": "EVIDENCE_AGAINST_002",
+          "excerpt": "다른 질문에는 답했고 동료는 핵심 설명이 명확했다고 말했다."
+        },
+        "alternativeViews": {
+          "status": "EVIDENCE_FOUND",
+          "code": "ALTERNATIVE_VIEW_003",
+          "excerpt": "준비하지 않은 세부 질문이라 잠시 정리할 시간이 필요했을 수 있다."
+        },
+        "acknowledgement": {
+          "status": "EXPLICITLY_NONE",
+          "code": "BALANCED_THOUGHT_004",
+          "excerpt": "확인된 사실과 '질문 하나에 막혔으니 발표는 완전히 실패했고 잘한 부분은 하나도 없다.'라는 결론 사이에는 제 해석이 포함되어 있어요."
+        }
+      },
+      "new": null,
+      "scope": "ANNOTATION",
+      "reason": "상충한 사전 coverage 라벨을 제거한다. 미확인·해석을 관찰 반례로 재분류하지 않으며 원문과 원래 주석은 원본 사본에 보존한다. 이 값은 제품 입력/완료 조건/채점 정답이 아니다."
+    },
+    {
+      "caseId": "Q6C05",
+      "sourceFile": "canonical-feature-cases.json",
+      "pointerWithinCase": "/allowedDecisions",
+      "pointerWithinFile": "/20/allowedDecisions",
+      "oldFieldAbsent": true,
+      "new": [
+        "QUESTION",
+        "CONFIRM_REQUIRED"
+      ],
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q6C05",
+      "sourceFile": "canonical-feature-cases.json",
+      "pointerWithinCase": "/classificationApplicability",
+      "pointerWithinFile": "/20/classificationApplicability",
+      "oldFieldAbsent": true,
+      "new": "MULTIPLE_VALID_ACTIONS",
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q6C05",
+      "sourceFile": "canonical-feature-cases.json",
+      "pointerWithinCase": "/assessmentPolicy",
+      "pointerWithinFile": "/20/assessmentPolicy",
+      "oldFieldAbsent": true,
+      "new": "관련 미확인 내용을 살피는 CBT 질문 또는 유효 자료에 근거한 기존 판단을 허용한다. 실제 선택한 행동의 근거·시점·내용을 채점하며 허용 status만으로 성공을 부여하지 않는다. 원래 자동사고를 현재 수정 생각으로 바꾸지 않는다.",
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q6D05",
+      "sourceFile": "canonical-feature-cases.json",
+      "pointerWithinCase": "/allowedDecisions",
+      "pointerWithinFile": "/28/allowedDecisions",
+      "oldFieldAbsent": true,
+      "new": [
+        "QUESTION",
+        "CONFIRM_REQUIRED"
+      ],
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q6D05",
+      "sourceFile": "canonical-feature-cases.json",
+      "pointerWithinCase": "/classificationApplicability",
+      "pointerWithinFile": "/28/classificationApplicability",
+      "oldFieldAbsent": true,
+      "new": "MULTIPLE_VALID_ACTIONS",
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q6D05",
+      "sourceFile": "canonical-feature-cases.json",
+      "pointerWithinCase": "/assessmentPolicy",
+      "pointerWithinFile": "/28/assessmentPolicy",
+      "oldFieldAbsent": true,
+      "new": "관련 미확인 내용을 살피는 CBT 질문 또는 유효 자료에 근거한 기존 판단을 허용한다. 실제 선택한 행동의 근거·시점·내용을 채점하며 허용 status만으로 성공을 부여하지 않는다. 원래 자동사고를 현재 수정 생각으로 바꾸지 않는다.",
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q6E05",
+      "sourceFile": "canonical-feature-cases.json",
+      "pointerWithinCase": "/allowedDecisions",
+      "pointerWithinFile": "/36/allowedDecisions",
+      "oldFieldAbsent": true,
+      "new": [
+        "QUESTION",
+        "CONFIRM_REQUIRED"
+      ],
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q6E05",
+      "sourceFile": "canonical-feature-cases.json",
+      "pointerWithinCase": "/classificationApplicability",
+      "pointerWithinFile": "/36/classificationApplicability",
+      "oldFieldAbsent": true,
+      "new": "MULTIPLE_VALID_ACTIONS",
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q6E05",
+      "sourceFile": "canonical-feature-cases.json",
+      "pointerWithinCase": "/assessmentPolicy",
+      "pointerWithinFile": "/36/assessmentPolicy",
+      "oldFieldAbsent": true,
+      "new": "관련 미확인 내용을 살피는 CBT 질문 또는 유효 자료에 근거한 기존 판단을 허용한다. 실제 선택한 행동의 근거·시점·내용을 채점하며 허용 status만으로 성공을 부여하지 않는다. 원래 자동사고를 현재 수정 생각으로 바꾸지 않는다.",
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q10H35",
+      "sourceFile": "fresh-q10-holdout-cases.json",
+      "pointerWithinCase": "/allowedDecisions",
+      "pointerWithinFile": "/34/allowedDecisions",
+      "oldFieldAbsent": true,
+      "new": [
+        "QUESTION",
+        "CONFIRM_REQUIRED"
+      ],
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q10H35",
+      "sourceFile": "fresh-q10-holdout-cases.json",
+      "pointerWithinCase": "/classificationApplicability",
+      "pointerWithinFile": "/34/classificationApplicability",
+      "oldFieldAbsent": true,
+      "new": "MULTIPLE_VALID_ACTIONS",
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q10H35",
+      "sourceFile": "fresh-q10-holdout-cases.json",
+      "pointerWithinCase": "/assessmentPolicy",
+      "pointerWithinFile": "/34/assessmentPolicy",
+      "oldFieldAbsent": true,
+      "new": "관련 미확인 내용을 살피는 CBT 질문 또는 유효 자료에 근거한 기존 판단을 허용한다. 실제 선택한 행동의 근거·시점·내용을 채점하며 허용 status만으로 성공을 부여하지 않는다. 원래 자동사고를 현재 수정 생각으로 바꾸지 않는다.",
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q10H36",
+      "sourceFile": "fresh-q10-holdout-cases.json",
+      "pointerWithinCase": "/allowedDecisions",
+      "pointerWithinFile": "/35/allowedDecisions",
+      "oldFieldAbsent": true,
+      "new": [
+        "QUESTION",
+        "CONFIRM_REQUIRED"
+      ],
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q10H36",
+      "sourceFile": "fresh-q10-holdout-cases.json",
+      "pointerWithinCase": "/classificationApplicability",
+      "pointerWithinFile": "/35/classificationApplicability",
+      "oldFieldAbsent": true,
+      "new": "MULTIPLE_VALID_ACTIONS",
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    },
+    {
+      "caseId": "Q10H36",
+      "sourceFile": "fresh-q10-holdout-cases.json",
+      "pointerWithinCase": "/assessmentPolicy",
+      "pointerWithinFile": "/35/assessmentPolicy",
+      "oldFieldAbsent": true,
+      "new": "관련 미확인 내용을 살피는 CBT 질문 또는 유효 자료에 근거한 기존 판단을 허용한다. 실제 선택한 행동의 근거·시점·내용을 채점하며 허용 status만으로 성공을 부여하지 않는다. 원래 자동사고를 현재 수정 생각으로 바꾸지 않는다.",
+      "scope": "EXPECTATION_SCHEMA",
+      "reason": "하나의 평가 시점을 강제하지 않는 사전 허용 행동 목록. 단일 정답 분류 지표와 품질 채점을 구분한다."
+    }
+  ],
+  "crossCuttingFindings": [
+    {
+      "kind": "NO_GENERIC_DRAFT_COMMAND_FOUND",
+      "caseIds": "160 single + 10 long",
+      "finding": "공개 세트의 사용자 원문에는 canary normal3와 같은 초안/문서 생성 명령이 발견되지 않았다. 보고서라는 말은 CBT 상황의 업무 보고서를 뜻했다."
+    },
+    {
+      "kind": "LONG_REPLY_PROTOCOL",
+      "caseIds": [
+        "Q10_LONG_SKIPPED_VARIANTS",
+        "Q10_LONG_UNCLEAR_DIRECTION",
+        "Q10_LONG_RELEVANCE_FEEDBACK",
+        "Q10_LONG_REPEAT_FEEDBACK",
+        "Q10_LONG_REHYDRATE_FULL",
+        "Q9_LONG_UNCLEAR",
+        "Q9_LONG_SKIPPED",
+        "Q9_LONG_FEEDBACK",
+        "Q9_LONG_REHYDRATE_READY"
+      ],
+      "finding": "runner/input_plan.py는 actual nextQuestion에 sequence[index]를 그대로 붙인다. 고정 사용자 선호 표현은 사용할 수 있지만 실제 반복이 있었는지, 질문한 영역을 답했는지까지 순번 또는 항의 문장만으로 정답화하면 안 된다. 자연스럽지 않은 후속은 fixture 불일치로 기록하고 제품 기능 추가의 근거로 삼지 않는다."
+    },
+    {
+      "kind": "BOILERPLATE_FIXTURE_LIMIT",
+      "caseIds": [
+        "Q9H01",
+        "Q9H02",
+        "Q9H03",
+        "Q9H04",
+        "Q9H05",
+        "Q9H06",
+        "Q9H07",
+        "Q9H08",
+        "Q9H09",
+        "Q9H10",
+        "Q9H11",
+        "Q9H12",
+        "Q9H13",
+        "Q9H14",
+        "Q9H15",
+        "Q9H16",
+        "Q9H17",
+        "Q9H18",
+        "Q9H19",
+        "Q9H20",
+        "Q9H21",
+        "Q9H22",
+        "Q9H23",
+        "Q9H24"
+      ],
+      "finding": "사건은 구체적이지만 Q/A는 상황명만 바꾼 일반 문장이다. 특히 NO_CLEAR 사례에서 개인 전체평가가 아닌 설명을 묻는 이력은 과도한 반박 습관을 대표하지 못한다. 이력은 기존 고정 snapshot으로 보존하고 실제 질문 기능은 개정 canary/장기 자연 대화로 별도 검증한다. 해당 표현의 재현을 제품 정답으로 강제하지 않는다."
+    },
+    {
+      "kind": "SINGLE_SNAPSHOT_LIMIT",
+      "caseIds": [
+        "A04",
+        "B04",
+        "C04",
+        "D04",
+        "E04"
+      ],
+      "finding": "같은 질문을 또 한다는 항의가 있으나 공개 snapshot에는 그 직전 질문 하나만 담겼다. 이는 반복 피드백 수용 사례로 유효하지만 실제 이전 반복 횟수를 측정하는 사례로 사용하지 않는다."
+    },
+    {
+      "kind": "SCOPE_BOUNDARY",
+      "caseIds": [
+        "D07",
+        "Q10H30"
+      ],
+      "finding": "가정형 안전 질문은 사용자 현재 위험으로 오인하지 않는 테스트로 범위 내다. 일반 안전 상담의 완성된 방법 안내나 외부 행동 수행을 의무화하지 않는다. 다른 행동이 적절한지는 원래 CBT 흐름과 실제 공개 응답으로 판정한다."
+    },
+    {
+      "kind": "MISSING_METADATA_PROHIBITION",
+      "caseIds": "all public cases",
+      "finding": "old route/coverage/signature 메타데이터 부재 자체를 새 제품의 실패로 계산하지 않는다. 다만 실제 반복·거절 무시·원문 왜곡은 계속 실패로 평가한다."
+    }
+  ],
+  "followOnRisks": [
+    "공개 입력 또는 기대를 바꾸면 기존 점수와 단순 전후 비교할 수 없다. 새 revision으로 baseline/candidate에 같은 effective fixture를 적용하고 원본과 차이를 함께 보존한다.",
+    "coverage 게이트 폐지가 성급한 완료를 무조건 통과시키는 의미가 아니다. 질문 또는 기존 평가 각각의 사용자 맥락·정보 충분성·근거를 채점한다.",
+    "NO_CLEAR와 왜곡 코드의 모순만 해결하려고 왜곡 코드를 지우면 원래 자동사고에 남은 확대 해석을 놓치는 반대 오류가 생긴다.",
+    "signature 요구를 제거해도 실제 이미 답한 질문 재질문, SKIP을 답변으로 간주, 복원 이후 정정된 정보 재사용 등 사용자 결과 오류는 계속 잡아야 한다.",
+    "Q9_LONG_REHYDRATE_READY는 정상 조기 완료 시 복원 분기가 닿지 않을 수 있다. 미실행을 실패로 바꿔 강제로 4영역을 묻게 만들면 원래 과잉 질문 설계가 재발한다.",
+    "hidden14는 열지 않았으므로 공개170 감사로 전체184의 문제 없음이라고 주장할 수 없다. 봉인 공개 전 공통 범위 판정 규칙을 잠그고 공개 후 범위 충돌은 case/field 단위로 기록한다."
+  ]
+}

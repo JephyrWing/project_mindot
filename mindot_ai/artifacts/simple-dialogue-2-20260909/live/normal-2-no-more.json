@@ -1,0 +1,16 @@
+{
+  "caseId": "normal-2-no-more",
+  "status": "NOT_RUN",
+  "executionOutcome": "NOT_RUN",
+  "acceptanceOutcome": "BLOCKED_BY_PARENT",
+  "confirmationAncestor": null,
+  "parentConfirmationRequiresFunctionReview": false,
+  "request": null,
+  "response": null,
+  "error": null,
+  "functionReview": {
+    "observation": "NOT_OBSERVED_LIVE",
+    "reason": "normal-1-start has no committed nextQuestion. No fabricated follow-up or paid retry.",
+    "method": "CODEx_POST_RUN_DIRECT_RAW_REVIEW_NO_GRADER_API"
+  }
+}

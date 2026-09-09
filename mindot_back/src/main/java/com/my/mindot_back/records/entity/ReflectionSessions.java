@@ -369,6 +369,11 @@ public class ReflectionSessions {
      * thoughtAwareEmbedding:
      * 자동사고까지 포함한 더 구체적인 검색 벡터
      */
+    public void invalidateEmbedding() {
+        this.contextEmbedding = null;
+        this.thoughtAwareEmbedding = null;
+    }
+
     public void applyEmbedding(
             float[] contextEmbedding,
             float[] thoughtAwareEmbedding
@@ -387,6 +392,48 @@ public class ReflectionSessions {
 
         // 자동사고를 포함한 유사 사례 검색용 벡터 저장
         this.thoughtAwareEmbedding = thoughtAwareEmbedding;
+    }
+
+    // New CBT metadata is isolated in existing ai_meta; legacy fields are retained.
+    @SuppressWarnings("unchecked")
+    public Map<String,Object> insight() {
+        Object value = aiMeta.get("insight");
+        return value instanceof Map<?,?> ? new java.util.LinkedHashMap<>((Map<String,Object>)value) : new java.util.LinkedHashMap<>();
+    }
+    public void replaceInsight(Map<String,Object> value) {
+        Map<String,Object> next = new java.util.LinkedHashMap<>(aiMeta);
+        next.put("insight", new java.util.LinkedHashMap<>(value));
+        this.aiMeta = next;
+    }
+    public void appendInsightMessage(Map<String,Object> message) {
+        this.questionAnswers = new ArrayList<>(questionAnswers);
+        this.questionAnswers.add(new java.util.LinkedHashMap<>(message));
+    }
+    @SuppressWarnings("unchecked")
+    public Map<String,Object> confirmedInsight() {
+        Object value=insight().get("confirmedResult");
+        return status==ReflectionSessionStatus.COMPLETED && Boolean.TRUE.equals(userConfirmed) && value instanceof Map<?,?>
+                ? new java.util.LinkedHashMap<>((Map<String,Object>)value) : null;
+    }
+    @SuppressWarnings("unchecked")
+    public List<String> confirmedInsightCodes() {
+        Map<String,Object> result=confirmedInsight();
+        if(result==null)return List.of();
+        return ((List<Map<String,Object>>)result.getOrDefault("reviews",List.of())).stream()
+            .filter(r -> "CONFIRMED".equals(r.get("reviewStatus"))).map(r -> (String)r.get("code")).toList();
+    }
+    public String confirmedBeforeText() {
+        Map<String,Object> result=confirmedInsight();
+        return result==null ? emotionRecord.getAutomaticThought() : (String)result.get("beforeText");
+    }
+    public void confirmInsight(Map<String,Object> result, Short before, Short after, Short intensity, Short helpfulness) {
+        this.evidenceForText=(String)result.get("evidenceForText");
+        this.evidenceAgainstText=(String)result.get("evidenceAgainstText");
+        this.alternativeThoughtText=(String)result.get("afterText");
+        this.beforeBeliefStrength=before;this.afterBeliefStrength=after;
+        this.finalEmotionIntensity=intensity;this.helpfulnessScore=helpfulness;
+        this.userConfirmed=true;this.status=ReflectionSessionStatus.COMPLETED;
+        this.currentStep="COMPLETED";this.completedAt=Instant.now();
     }
 
     // DB에 처음 저장되기전 한번 실행

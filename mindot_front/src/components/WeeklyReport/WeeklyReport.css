@@ -111,6 +111,26 @@
   cursor: not-allowed;
 }
 
+/* 선택한 주의 감정 그래프 화면으로 이동하는 버튼 설정. */
+.weekly-report-graph-button {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  margin-top: 12px;
+  color: #ffffff;
+  font-weight: 700;
+  background: var(--mindot-primary);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 감정 그래프 이동 버튼 위의 진한 파란색 강조. */
+.weekly-report-graph-button:hover {
+  border-color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-strong);
+}
+
 /* 날짜와 포함 범위를 지정하는 PDF 내보내기 영역의 구분선 설정. */
 .weekly-report-export {
   margin-top: 30px;

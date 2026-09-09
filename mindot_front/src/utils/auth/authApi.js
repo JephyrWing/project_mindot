@@ -1,5 +1,9 @@
 import httpClient from '../api/httpClient.js'
-import { clearAccessToken, setAccessToken } from './tokenStorage.js'
+import {
+  clearAuthSession,
+  setAccessToken,
+  setUserRole,
+} from './tokenStorage.js'
 
 export const createAuthApi = (client) => ({
   // 입력받은 회원 정보를 백엔드 회원가입 API로 전달하는 처리.
@@ -21,6 +25,7 @@ export const createAuthApi = (client) => ({
     )
 
     setAccessToken(data.accessToken)
+    setUserRole(data.userRole)
     return data
   },
 
@@ -28,7 +33,7 @@ export const createAuthApi = (client) => ({
     try {
       await client.post('/api/auth/logout', null, { skipAuth: true })
     } finally {
-      clearAccessToken()
+      clearAuthSession()
     }
   },
 })

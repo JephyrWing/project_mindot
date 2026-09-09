@@ -1,0 +1,257 @@
+{
+  "contractVersion": "cbt-insight-1",
+  "tools": [
+    {
+      "name": "write_turn",
+      "description": "현재 CBT 질문 또는 도움·기존 제안 설명을 작성한다.",
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "QUESTION",
+              "HELP",
+              "EXPLAIN_PROPOSAL"
+            ]
+          },
+          "goal": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "mode",
+          "goal"
+        ]
+      }
+    },
+    {
+      "name": "assess_completion",
+      "description": "사용자가 초기 판단의 잘못을 알아차리고 수정했을 때 AFTER와 유형 후보를 작성한다.",
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "respond_control",
+      "description": "질문을 멈추고 기존 이어하기·완전 종료 버튼을 안내한다.",
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "respond_safety",
+      "description": "현재 문맥의 기본 안전 확인 또는 중단에 대응한다.",
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "CLARIFY",
+              "STOP"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "action",
+          "reason"
+        ]
+      }
+    }
+  ],
+  "writerOutput": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "text": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "text"
+    ]
+  },
+  "assessorOutput": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "beforeCorrection": {
+        "anyOf": [
+          {
+            "type": "null"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "evidence": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "messageNumber": {
+                    "type": "integer"
+                  },
+                  "quote": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "messageNumber",
+                  "quote"
+                ]
+              }
+            },
+            "required": [
+              "text",
+              "evidence"
+            ]
+          }
+        ]
+      },
+      "afterText": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "afterEvidence": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "messageNumber": {
+              "type": "integer"
+            },
+            "quote": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "messageNumber",
+            "quote"
+          ]
+        }
+      },
+      "assessmentType": {
+        "type": "string",
+        "enum": [
+          "DISTORTION_SUGGESTED",
+          "NO_CLEAR_DISTORTION",
+          "UNDETERMINED"
+        ]
+      },
+      "suggestions": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "code": {
+              "type": "string",
+              "enum": [
+                "ALL_OR_NOTHING_THINKING",
+                "CATASTROPHIZING_FORTUNE_TELLING",
+                "DISQUALIFYING_DISCOUNTING_POSITIVE",
+                "EMOTIONAL_REASONING",
+                "LABELING",
+                "MAGNIFICATION_MINIMIZATION",
+                "MENTAL_FILTER_SELECTIVE_ABSTRACTION",
+                "MIND_READING",
+                "OVERGENERALIZATION",
+                "PERSONALIZATION",
+                "SHOULD_MUST_STATEMENTS",
+                "TUNNEL_VISION"
+              ]
+            },
+            "explanation": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "explanation"
+          ]
+        }
+      },
+      "comparisonExplanation": {
+        "type": "string"
+      },
+      "evidenceForText": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "evidenceAgainstText": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
+    "required": [
+      "beforeCorrection",
+      "afterText",
+      "afterEvidence",
+      "assessmentType",
+      "suggestions",
+      "comparisonExplanation",
+      "evidenceForText",
+      "evidenceAgainstText"
+    ]
+  },
+  "assessmentReviewOutput": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "accept": {
+        "type": "boolean"
+      },
+      "reason": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "accept",
+      "reason"
+    ]
+  },
+  "writerRepairOutput": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "text": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "text"
+    ]
+  },
+  "serverOnlyRules": [
+    "nonempty displayed text/goal",
+    "EXPLAIN_PROPOSAL requires an active proposal",
+    "non-null afterText requires USER evidence",
+    "null afterText -> empty evidence and suggestions + UNDETERMINED; not approvable",
+    "NO_CLEAR_DISTORTION or UNDETERMINED -> suggestions empty",
+    "DISTORTION_SUGGESTED -> at least one unique existing code",
+    "evidence quote is substring of the referenced USER content",
+    "proposalId/revision/phase/assessment eligibility semantics are not model-generated ledgers"
+  ]
+}

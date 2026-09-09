@@ -21,17 +21,9 @@ from records_agent import (
     RecordAnalysis,
     analyze_record
 )
-from cbt_agent import (
-    CbtStartRequest,
-    CbtTurnRequest,
-    CbtTurnResponse,
-)
-from cbt_session_agent import (
-    CbtAgentIdempotencyError,
-    close_agent_cbt_session,
-    generate_agent_cbt_start,
-    generate_agent_cbt_turn,
-)
+from cbt_simple.contracts import Start as CbtStartRequest, Turn as CbtTurnRequest, Result as CbtTurnResponse, ProtocolError
+from cbt_session_agent import close_agent_cbt_session, generate_agent_cbt_start, generate_agent_cbt_turn
+
 
 
 logger = logging.getLogger(__name__)
@@ -115,21 +107,21 @@ async def _run_cbt_start(request: CbtStartRequest) -> CbtTurnResponse:
 
     try:
         return await generate_agent_cbt_start(request)
-    except CbtAgentIdempotencyError as exc:
+    except ProtocolError as exc:
         raise HTTPException(
-            status_code=409,
-            detail="requestId was reused with a different CBT Agent payload.",
+            status_code=409 if exc.code in ('RESYNC_REQUIRED','REQUEST_CONFLICT','IN_PROGRESS') else 502,
+            detail={'code':exc.code},
         ) from exc
     except Exception as exc:
         # 검증 예외에는 모델 출력이 포함될 수 있으므로 traceback도 남기지 않습니다.
         logger.error(
             "CBT start generation failed: requestId=%s error=%s",
-            request.request_id,
+            request.pendingJob.requestId if isinstance(request,CbtStartRequest) and request.pendingJob else getattr(request,"requestId",None),
             type(exc).__name__,
         )
         raise HTTPException(
             status_code=502,
-            detail="The AI CBT start request failed.",
+            detail={"code":"GENERATION_FAILED"},
         ) from exc
 
 
@@ -138,20 +130,20 @@ async def _run_cbt_turn(request: CbtTurnRequest) -> CbtTurnResponse:
 
     try:
         return await generate_agent_cbt_turn(request)
-    except CbtAgentIdempotencyError as exc:
+    except ProtocolError as exc:
         raise HTTPException(
-            status_code=409,
-            detail="requestId was reused with a different CBT Agent payload.",
+            status_code=409 if exc.code in ('RESYNC_REQUIRED','REQUEST_CONFLICT','IN_PROGRESS') else 502,
+            detail={'code':exc.code},
         ) from exc
     except Exception as exc:
         logger.error(
             "CBT turn generation failed: requestId=%s error=%s",
-            request.request_id,
+            request.pendingJob.requestId if isinstance(request,CbtStartRequest) and request.pendingJob else getattr(request,"requestId",None),
             type(exc).__name__,
         )
         raise HTTPException(
             status_code=502,
-            detail="The AI CBT turn request failed.",
+            detail={"code":"GENERATION_FAILED"},
         ) from exc
 
 
@@ -200,9 +192,16 @@ async def run_cbt_turn(request: CbtTurnRequest) -> CbtTurnResponse:
 async def stop_cbt_session(
     session_id: int = ApiPath(gt=0),
 ) -> Response:
-    """사용자가 CBT를 중단했을 때 인메모리 Q4R Agent를 종료합니다."""
+    """사용자가 CBT를 중단했을 때 Agent를 종료합니다."""
     await close_agent_cbt_session(session_id)
     return Response(status_code=204)
+
+
+from pattern_explanation import PatternRequest, explain as explain_pattern
+
+@app.post("/internal/ai/patterns/explain")
+async def run_pattern_explanation(request: PatternRequest) -> dict:
+    return explain_pattern(request)
 
 
 if __name__ == "__main__":

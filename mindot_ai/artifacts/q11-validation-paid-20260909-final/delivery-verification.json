@@ -1,0 +1,62 @@
+{
+  "recordedAt": "2026-09-08T16:28:22Z",
+  "status": "DEVELOPMENT_BLOCKED",
+  "formalEvaluation": {
+    "planned": 368,
+    "executed": 0,
+    "status": "NOT_RUN"
+  },
+  "archive": {
+    "localPath": "D:/project_mindot/mindot_ai/artifacts/q11-validation-paid-20260909-final/Mindot-Q11-Final-Attempt-Full-Audit-20260908T162158Z.zip",
+    "bytes": 11574036,
+    "sha256": "2d357abb4d6d56cd045386c1715a837f52f8c7f9309500109120e64dd4812d89",
+    "entries": 2168,
+    "manifestSha256": "67e1531f1c1db1d6341b0ff86e1bcf53f4dda46ed59d7ac3649ebe7985d9d852",
+    "localCopyVerified": true,
+    "internalMemberVerification": true
+  },
+  "upload": {
+    "success": true,
+    "readbackVerified": true,
+    "metadata": {
+      "id": "1icms7SgFamUlm3jXHA3v2vjRewbuUIEe",
+      "title": "Mindot-Q11-Final-Attempt-Full-Audit-20260908T162158Z.zip",
+      "mime_type": "application/zip",
+      "size": "11574036",
+      "url": "https://drive.google.com/file/d/1icms7SgFamUlm3jXHA3v2vjRewbuUIEe/view?usp=drivesdk",
+      "file_or_folder": "file",
+      "created_time": null,
+      "modified_time": null,
+      "parent_ids": [
+        "1kQ8MriKCP1afqw7jpLFlHzaKAPuDGmgW"
+      ],
+      "drive_id": null,
+      "current_user_can_share": null,
+      "has_augmented_permissions": null,
+      "shared": null,
+      "permissions": null,
+      "source_visibility_status": "access_not_verified"
+    },
+    "remoteChecksumAvailable": false,
+    "permissionsChanged": false
+  },
+  "processCheck": {
+    "at": "2026-09-08T16:28:22Z",
+    "matchingTaskWorkers": 0,
+    "commandExitCode": 0
+  },
+  "shutdown": {
+    "authorized": true,
+    "command": "shutdown.exe /s /t 0",
+    "force": false,
+    "executedAtRecordTime": false,
+    "physicalPowerOffVerified": false
+  },
+  "retry": {
+    "required": false,
+    "source": "D:/project_mindot/mindot_ai/artifacts/q11-validation-paid-20260909-final/Mindot-Q11-Final-Attempt-Full-Audit-20260908T162158Z.zip",
+    "parentFolderId": "1kQ8MriKCP1afqw7jpLFlHzaKAPuDGmgW",
+    "preserveOriginal": true
+  },
+  "modelCallsThisResumption": 0
+}

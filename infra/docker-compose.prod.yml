@@ -27,6 +27,7 @@ services:
     networks:
       - app
       - data
+      - ai
 
   frontend:
     image: ${FRONTEND_IMAGE}
@@ -47,7 +48,7 @@ services:
     expose:
       - "8000"
     networks:
-      - app
+      - ai
     restart: unless-stopped
     healthcheck:
       test:
@@ -104,6 +105,7 @@ services:
 
 networks:
   app:
+  ai:
   data:
 
 volumes:
