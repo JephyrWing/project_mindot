@@ -1,0 +1,70 @@
+/* 공통 브랜드 팔레트를 사용하는 3분 호흡 전용 화면 배경 설정. */
+.breathing-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  color: var(--mindot-text);
+  background: var(--mindot-page);
+}
+
+/* 전용 화면 내용을 모바일에서도 읽기 좋은 너비로 중앙 배치. */
+.breathing-main {
+  width: min(100%, 720px);
+  margin: 0 auto;
+  padding: 32px max(24px, env(safe-area-inset-right, 0px))
+    calc(48px + env(safe-area-inset-bottom, 0px))
+    max(24px, env(safe-area-inset-left, 0px));
+}
+
+/* 이전 화면 이동 버튼의 충분한 터치 영역과 단순한 텍스트 형태 설정. */
+.breathing-back-button {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  padding: 0;
+  color: var(--mindot-text-secondary);
+  font-weight: 600;
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 이전 화면 이동 화살표의 명확한 크기 설정. */
+.breathing-back-button span {
+  color: var(--mindot-primary-strong);
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+/* 이전 화면 이동 버튼 위의 브랜드 색상 강조 설정. */
+.breathing-back-button:hover {
+  color: var(--mindot-primary-strong);
+}
+
+/* 3분 호흡의 제목과 안내 문구 영역 설정. */
+.breathing-content {
+  margin-top: 36px;
+}
+
+/* 3분 호흡 화면 제목의 정보 단계와 여백 설정. */
+.breathing-content h1 {
+  margin: 0;
+}
+
+/* 화면 목적을 알려 주는 간단한 본문 설정. */
+.breathing-content p {
+  margin: 12px 0 0;
+  color: var(--mindot-text-secondary);
+}
+
+/* 작은 모바일 화면의 본문 위쪽 간격 조정. */
+@media (max-width: 480px) {
+  .breathing-main {
+    padding-top: 22px;
+  }
+
+  .breathing-content {
+    margin-top: 28px;
+  }
+}

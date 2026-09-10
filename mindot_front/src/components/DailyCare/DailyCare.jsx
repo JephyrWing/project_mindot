@@ -13,13 +13,6 @@ import './DailyCare.css'
 // 마음 돌봄 추천 만족도를 브라우저에 보관하기 위한 저장소 키 설정.
 const dailyCareFeedbackStorageKey = 'mindot_daily_care_feedback'
 
-// 사용자가 바로 따라 할 수 있는 짧은 명상 안내문 설정.
-const meditationGuide = [
-  '편안한 자세를 잡고 어깨의 힘을 천천히 풀어 주세요.',
-  '숨이 들어오고 나가는 감각을 판단하지 않고 바라봐 주세요.',
-  '떠오르는 생각이 있다면 알아차린 뒤 다시 호흡으로 돌아와 주세요.',
-]
-
 // 백엔드 감정 코드를 사용자에게 표시할 한국어 이름으로 변환하기 위한 목록 설정.
 const emotionCodeLabels = {
   ANXIETY: '불안',
@@ -79,27 +72,6 @@ const formatRecordDate = (occurredAt) => {
     hour: '2-digit',
     minute: '2-digit',
   }).format(recordDate)
-}
-
-// 남은 호흡 시간을 분과 초 형식으로 변환.
-const formatRemainingTime = (remainingSeconds) => {
-  const minutes = Math.floor(remainingSeconds / 60)
-  const seconds = String(remainingSeconds % 60).padStart(2, '0')
-
-  return `${minutes}:${seconds}`
-}
-
-// 현재 호흡 시간에 맞춰 들이마시기와 내쉬기 안내 문구 반환.
-const getBreathingPhase = (remainingSeconds) => {
-  if (remainingSeconds === 0) return '3분 호흡을 마쳤습니다.'
-
-  const elapsedSeconds = 180 - remainingSeconds
-  const phaseSeconds = elapsedSeconds % 10
-
-  if (phaseSeconds < 4) return '코로 천천히 숨을 들이마셔요.'
-  if (phaseSeconds < 6) return '잠시 편안하게 머물러요.'
-
-  return '입으로 길게 숨을 내쉬어요.'
 }
 
 // 최신 감정 기록의 대표 감정과 강도에 맞는 기본 활동 제안 생성.
@@ -162,6 +134,8 @@ function DailyCare({
   onEmotionRecord,
   onCBT,
   onReflectionResume,
+  onBreathing,
+  onMeditation,
 }) {
   // 백엔드에서 조회한 로그인 사용자의 감정 기록 목록 상태 설정.
   const [emotionRecords, setEmotionRecords] = useState([])
@@ -183,16 +157,6 @@ function DailyCare({
   const [isOpeningCbt, setIsOpeningCbt] = useState(false)
   // CBT 시작 또는 이어하기 실패 안내 상태 설정.
   const [cbtError, setCbtError] = useState('')
-  // 사용자가 현재 펼쳐 본 호흡 또는 명상 활동 상태 설정.
-  const [activeActivity, setActiveActivity] = useState('')
-  // 3분 호흡 활동의 남은 초 상태 설정.
-  const [remainingBreathingSeconds, setRemainingBreathingSeconds] = useState(180)
-  // 3분 호흡 타이머 동작 여부 상태 설정.
-  const [isBreathingActive, setIsBreathingActive] = useState(false)
-  // 브라우저 명상 음성 안내 재생 여부 상태 설정.
-  const [isMeditationPlaying, setIsMeditationPlaying] = useState(false)
-  // 브라우저 명상 음성 안내 상태 문구 설정.
-  const [meditationStatus, setMeditationStatus] = useState('')
   // 사용자가 선택한 추천 만족도 상태 설정.
   const [selectedFeedback, setSelectedFeedback] = useState('')
   // 사용자 시간대에서 오늘을 포함한 최근 7일의 서버 전체 건수.
@@ -255,22 +219,6 @@ function DailyCare({
       isActive = false
     }
   }, [reloadCount])
-
-  // 호흡 타이머 실행 중 다음 일 초의 감소 작업만 예약하는 처리.
-  useEffect(() => {
-    if (!isBreathingActive || remainingBreathingSeconds === 0) return undefined
-
-    const timerId = window.setTimeout(() => {
-      setRemainingBreathingSeconds((currentSeconds) => Math.max(currentSeconds - 1, 0))
-    }, 1000)
-
-    return () => window.clearTimeout(timerId)
-  }, [isBreathingActive, remainingBreathingSeconds])
-
-  // 화면 이탈 시 현재 브라우저 음성 안내를 정리하는 처리.
-  useEffect(() => () => {
-    window.speechSynthesis?.cancel()
-  }, [])
 
   // 응답 목록을 감정 발생 시각 기준 최신순으로 정렬한 결과 생성.
   const sortedEmotionRecords = useMemo(() => [...emotionRecords].sort(
@@ -368,71 +316,6 @@ function DailyCare({
     } finally {
       setIsOpeningCbt(false)
     }
-  }
-
-  // 선택한 마음 돌봄 활동을 펼치고 다른 음성 안내를 정리하는 처리.
-  const handleActivityOpen = (activityName) => {
-    if (activityName !== 'meditation') {
-      window.speechSynthesis?.cancel()
-      setIsMeditationPlaying(false)
-      setMeditationStatus('')
-    }
-
-    setActiveActivity(activityName)
-  }
-
-  // 3분 호흡 타이머 시작과 일시 정지 및 완료 후 재시작 처리.
-  const handleBreathingToggle = () => {
-    setActiveActivity('breathing')
-
-    if (remainingBreathingSeconds === 0) {
-      setRemainingBreathingSeconds(180)
-      setIsBreathingActive(true)
-      return
-    }
-
-    setIsBreathingActive((currentState) => !currentState)
-  }
-
-  // 3분 호흡 타이머를 처음 상태로 되돌리는 처리.
-  const handleBreathingReset = () => {
-    setRemainingBreathingSeconds(180)
-    setIsBreathingActive(false)
-  }
-
-  // 브라우저 음성 합성 기능을 이용한 짧은 명상 안내 시작과 중단 처리.
-  const handleMeditationPlayback = () => {
-    setActiveActivity('meditation')
-
-    if (!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) {
-      setMeditationStatus('이 브라우저에서는 음성 안내를 지원하지 않습니다. 화면의 안내문을 따라 해 주세요.')
-      return
-    }
-
-    if (isMeditationPlaying) {
-      window.speechSynthesis.cancel()
-      setIsMeditationPlaying(false)
-      setMeditationStatus('음성 안내를 중단했습니다.')
-      return
-    }
-
-    const utterance = new window.SpeechSynthesisUtterance(meditationGuide.join(' '))
-
-    utterance.lang = 'ko-KR'
-    utterance.rate = 0.85
-    utterance.onend = () => {
-      setIsMeditationPlaying(false)
-      setMeditationStatus('짧은 명상 안내를 마쳤습니다.')
-    }
-    utterance.onerror = () => {
-      setIsMeditationPlaying(false)
-      setMeditationStatus('음성 안내를 재생하지 못했습니다. 안내문을 따라 천천히 진행해 주세요.')
-    }
-
-    window.speechSynthesis.cancel()
-    window.speechSynthesis.speak(utterance)
-    setIsMeditationPlaying(true)
-    setMeditationStatus('짧은 명상 안내를 재생하고 있습니다.')
   }
 
   // 추천 만족도를 브라우저에 보관하고 현재 선택 상태를 갱신하는 처리.
@@ -571,7 +454,7 @@ function DailyCare({
             <button
               className="daily-care-primary-button"
               type="button"
-              onClick={() => handleActivityOpen('breathing')}
+              onClick={onBreathing}
             >
               시작하기
             </button>
@@ -582,7 +465,7 @@ function DailyCare({
               <h2>짧은 명상</h2>
               <p>브라우저 음성 안내와 함께 현재의 감각을 차분히 살펴봐요.</p>
             </div>
-            <button type="button" onClick={() => handleActivityOpen('meditation')}>
+            <button type="button" onClick={onMeditation}>
               명상 열기
             </button>
           </article>
@@ -610,45 +493,6 @@ function DailyCare({
           </article>
           {cbtError && <p className="daily-care-message is-error" role="alert">{cbtError}</p>}
         </section>
-
-        {/* 사용자가 선택한 3분 호흡 활동의 타이머와 단계 안내 영역. */}
-        {activeActivity === 'breathing' && (
-          <section className="daily-care-tool" aria-labelledby="daily-care-breathing-title">
-            <h2 id="daily-care-breathing-title">3분 호흡 안내</h2>
-            <strong className="daily-care-timer" aria-live="polite">
-              {formatRemainingTime(remainingBreathingSeconds)}
-            </strong>
-            <p>{getBreathingPhase(remainingBreathingSeconds)}</p>
-            <div className="daily-care-tool-actions">
-              <button type="button" onClick={handleBreathingToggle}>
-                {remainingBreathingSeconds === 0
-                  ? '다시 시작'
-                  : isBreathingActive
-                    ? '일시 정지'
-                    : '호흡 시작'}
-              </button>
-              <button type="button" onClick={handleBreathingReset}>처음부터</button>
-            </div>
-          </section>
-        )}
-
-        {/* 사용자가 선택한 짧은 명상 활동의 안내문과 음성 재생 영역. */}
-        {activeActivity === 'meditation' && (
-          <section className="daily-care-tool" aria-labelledby="daily-care-meditation-title">
-            <h2 id="daily-care-meditation-title">짧은 명상 안내</h2>
-            <ol className="daily-care-meditation-steps">
-              {meditationGuide.map((guide) => <li key={guide}>{guide}</li>)}
-            </ol>
-            <button
-              className="daily-care-tool-wide-button"
-              type="button"
-              onClick={handleMeditationPlayback}
-            >
-              {isMeditationPlaying ? '음성 안내 중단' : '음성 안내 듣기'}
-            </button>
-            {meditationStatus && <p className="daily-care-message" aria-live="polite">{meditationStatus}</p>}
-          </section>
-        )}
 
         {!latestRecord && !isLoading && (
           <button className="daily-care-record-button" type="button" onClick={onEmotionRecord}>

@@ -5,6 +5,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
+
+import java.net.http.HttpClient;
+import java.time.Duration;
 
 @org.springframework.scheduling.annotation.EnableAsync
 @Configuration
@@ -22,13 +26,36 @@ public class FastApiClientConfig {
     public RestClient fastApiRestClient(RestClient.Builder builder) {
         return builder
                 .baseUrl(fastApiProperties.baseUrl())
+                .requestFactory(requestFactory(Duration.ofSeconds(60)))
                 .build();
     }
+
     @Bean("cbtRestClient")
     public RestClient cbtRestClient(RestClient.Builder builder) {
         var factory=new org.springframework.http.client.JdkClientHttpRequestFactory(
             java.net.http.HttpClient.newBuilder().connectTimeout(java.time.Duration.ofSeconds(5)).build());
         factory.setReadTimeout(java.time.Duration.ofSeconds(195));
         return builder.baseUrl(fastApiProperties.baseUrl()).requestFactory(factory).build();
+    }
+
+    // 외부 서버 연결과 응답 대기 시간을 API별로 적용하기 위한 공통 생성 메서드
+    private JdkClientHttpRequestFactory requestFactory(Duration readTimeout) {
+        HttpClient httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
+
+        JdkClientHttpRequestFactory factory =
+                new JdkClientHttpRequestFactory(httpClient);
+
+        factory.setReadTimeout(readTimeout);
+
+        return factory;
+    }
+
+    @Bean("oauthRestClient")
+    public RestClient oauthRestClient(RestClient.Builder builder) {
+        return builder
+                .requestFactory(requestFactory(Duration.ofSeconds(15)))
+                .build();
     }
 }

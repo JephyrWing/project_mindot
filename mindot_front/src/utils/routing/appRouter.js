@@ -54,6 +54,8 @@ export const readAppRoute = () => {
     }
   }
   if (pathname === '/centers') return { page: 'center' }
+  if (pathname === '/daily-care/breathing') return { page: 'breathing' }
+  if (pathname === '/daily-care/meditation') return { page: 'meditation' }
   if (pathname === '/daily-care') return { page: 'daily-care' }
   if (pathname === '/admin') return { page: 'admin' }
 
@@ -85,6 +87,8 @@ export const createAppPath = (page, parameters = {}) => {
     return `/reflections/${reflectionSessionId}`
   }
   if (page === 'center') return '/centers'
+  if (page === 'breathing') return '/daily-care/breathing'
+  if (page === 'meditation') return '/daily-care/meditation'
   if (page === 'daily-care') return '/daily-care'
   if (page === 'admin') return '/admin'
 
