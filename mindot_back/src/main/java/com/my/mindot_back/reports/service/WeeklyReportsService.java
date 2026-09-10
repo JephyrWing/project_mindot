@@ -900,8 +900,8 @@ public class WeeklyReportsService {
         // 월요일 시작일인지 검증
         validateWeekStart(weekStart);
 
-        // 리포트에 연결할 사용자 조회
-        Users user = usersRepository.findById(userId)
+        // 같은 사용자의 동일 시점 리포트 생성 요청을 직렬화해 중복 INSERT를 막음
+        Users user = usersRepository.findLockedById(userId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "사용자를 찾을 수 없습니다."

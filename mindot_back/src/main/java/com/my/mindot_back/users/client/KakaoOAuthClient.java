@@ -4,7 +4,6 @@ package com.my.mindot_back.users.client;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.my.mindot_back.common.config.KakaoOAuthProperties;
 import com.my.mindot_back.users.dto.OAuthUserInfoDto;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -13,13 +12,21 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 @Component
-@RequiredArgsConstructor
 public class KakaoOAuthClient {
 
-    private final RestClient.Builder restClientBuilder;
+    private final RestClient oauthRestClient;
     private final KakaoOAuthProperties kakaoOAuthProperties;
+
+    public KakaoOAuthClient(
+            @Qualifier("oauthRestClient") RestClient oauthRestClient,
+            KakaoOAuthProperties kakaoOAuthProperties
+    ) {
+        this.oauthRestClient = oauthRestClient;
+        this.kakaoOAuthProperties = kakaoOAuthProperties;
+    }
 
     // 프론트가 전달한 인가 코드로 카카오 사용자 정보를 조회
     public OAuthUserInfoDto getUserInfo(
@@ -61,7 +68,7 @@ public class KakaoOAuthClient {
         }
 
         try {
-            KakaoTokenResponse response = restClientBuilder.build()
+            KakaoTokenResponse response = oauthRestClient
                     .post()
                     .uri("https://kauth.kakao.com/oauth/token")
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -88,7 +95,7 @@ public class KakaoOAuthClient {
     // 카카오 access token으로 서비스 사용자 번호와 동의한 정보를 조회
     private KakaoUserResponse requestUserInfo(String accessToken) {
         try {
-            KakaoUserResponse response = restClientBuilder.build()
+            KakaoUserResponse response = oauthRestClient
                     .get()
                     .uri("https://kapi.kakao.com/v2/user/me")
                     .header("Authorization", "Bearer " + accessToken)
