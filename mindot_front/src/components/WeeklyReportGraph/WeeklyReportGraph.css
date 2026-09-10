@@ -44,19 +44,82 @@
   color: var(--mindot-text-muted);
 }
 
-/* 이후 그래프를 추가할 기본 표시 영역 설정. */
-.weekly-report-graph-placeholder {
+/* 요일별 감정 강도 그래프 영역의 구분선과 간격 설정. */
+.weekly-report-graph-chart {
   margin-top: 28px;
   border-top: 1px solid var(--mindot-border);
   border-bottom: 1px solid var(--mindot-border);
-  padding: 30px 0;
+  padding: 24px 0;
+}
+
+/* 그래프 제목과 점수 기준의 양쪽 배치. */
+.weekly-report-graph-chart-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* 그래프 영역 제목 크기와 여백 설정. */
+.weekly-report-graph-chart-heading h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+/* 그래프 점수 기준의 보조 정보 설정. */
+.weekly-report-graph-chart-heading span {
+  color: var(--mindot-text-muted);
+  font-size: 13px;
+}
+
+/* 일곱 개 요일 막대의 같은 간격 배치. */
+.weekly-report-graph-bars {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(28px, 1fr));
+  gap: 12px;
+  height: 220px;
+  margin-top: 18px;
+}
+
+/* 각 요일의 점수와 막대 및 요일 이름의 세로 배치. */
+.weekly-report-graph-item {
+  display: grid;
+  grid-template-rows: 24px 1fr 24px;
+  gap: 8px;
+  min-width: 0;
+  color: var(--mindot-text-secondary);
+  font-size: 13px;
   text-align: center;
 }
 
-/* 그래프 예정 영역 안내 문구 설정. */
-.weekly-report-graph-placeholder p {
-  margin: 8px 0 0;
+/* 요일별 감정 강도 값의 강조 설정. */
+.weekly-report-graph-value {
+  font-weight: 600;
+}
+
+/* 감정 강도 막대가 채워질 기준 영역 설정. */
+.weekly-report-graph-track {
+  display: flex;
+  min-height: 0;
+  align-items: flex-end;
+  overflow: hidden;
+  border-radius: 6px 6px 2px 2px;
+  background: var(--mindot-surface-muted);
+}
+
+/* 감정 강도 값에 비례하여 채워지는 브랜드 색상 막대 설정. */
+.weekly-report-graph-track span {
+  display: block;
+  width: 100%;
+  background: var(--mindot-primary);
+}
+
+/* 예시 데이터임을 알리는 안내 문구 설정. */
+.weekly-report-graph-note {
+  margin: 18px 0 0;
   color: var(--mindot-text-muted);
+  font-size: 12px;
+  text-align: center;
 }
 
 /* 기존 주간 리포트 화면으로 돌아가는 버튼 설정. */
@@ -90,5 +153,10 @@
   .weekly-report-graph-card {
     border-radius: 12px;
     padding: 28px 20px;
+  }
+
+  .weekly-report-graph-bars {
+    gap: 6px;
+    height: 190px;
   }
 }
