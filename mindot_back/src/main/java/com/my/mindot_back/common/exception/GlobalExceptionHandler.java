@@ -4,6 +4,7 @@ import com.my.mindot_back.common.auth.RefreshTokenCookieManager;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -87,6 +88,18 @@ public class GlobalExceptionHandler {
                                 .message(exception.getReason())
                                 .build()
                 );
+    }
+
+    // 이메일, 소셜 계정,리포트 등의 DB unique 제약 충돌을 409 응답으로 반환
+    @ExceptionHandler (DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleDataIntegrityViolation(
+            DataIntegrityViolationException exception
+    ){
+        return ErrorResponse.builder()
+                .status(HttpStatus.CONFLICT.value())
+                .message("이미 처리되었거나 중복된 요청입니다.")
+                .build();
     }
 
     // 예상하지 못한 서버 오류는 내부 원인을 노출하지 않고 공통 JSON으로 반환

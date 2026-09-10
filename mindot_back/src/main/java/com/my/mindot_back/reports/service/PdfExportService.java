@@ -24,6 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.ByteArrayOutputStream;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.io.IOException;
 import java.io.InputStream;
@@ -79,16 +80,31 @@ public class PdfExportService {
                 );
             }
 
+            if (ChronoUnit.DAYS.between(dto.startDate(), dto.endDate()) + 1 > 31){
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "PDF는 최대 31일까지 내보낼 수 있습니다."
+                );
+            }
+
             return dto.startDate()
                     .datesUntil(dto.endDate().plusDays(1))
                     .toList();
         }
+
         if (hasDirectionSelection) {
             List<LocalDate> selectedDates = dto.selectedDates().stream()
                     .filter(Objects::nonNull)
                     .distinct()
                     .sorted()
                     .toList();
+
+            if (selectedDates.size() > 31) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "PDF에 직접 선택할 수 있는 날짜는 최대 31개입니다."
+                );
+            }
 
             if (!selectedDates.isEmpty()){
                 return selectedDates;
@@ -223,7 +239,7 @@ public class PdfExportService {
                     );
                 }
 
-                // 사용자가 CBT 결과 포함으 선택한 경우에만 본문 작성
+                // 사용자가 CBT 결과 포함으로 선택한 경우에만 본문 작성
                 if (dto.contentType() != ExportContentType.EMOTION_RECORDS) {
                     writeReflectionSessionsSection(
                             writer,
