@@ -6,6 +6,7 @@ import com.my.mindot_back.records.dto.InsightDtos.*;
 import com.my.mindot_back.records.entity.*;
 import com.my.mindot_back.records.repository.*;
 import com.my.mindot_back.distortions.repository.DistortionTypesRepository;
+import com.my.mindot_back.reports.service.ReportCacheInvalidationService;
 import com.my.mindot_back.safety.service.SafetyEventsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,9 @@ public class InsightTransactions {
     private final SessionDistortionsRepository distortions;
     private final DistortionTypesRepository types;
     private final SafetyEventsService safety;
+    // CBT 최종 확정으로 바뀐 점수·인지왜곡 통계의 리포트 캐시를 무효화
+    private final ReportCacheInvalidationService reportCacheInvalidationService;
+
 
     private static ResponseStatusException conflict(String reason) { return new ResponseStatusException(HttpStatus.CONFLICT,reason); }
     private ReflectionSessions owned(Long user,Long sid) {
@@ -236,6 +240,12 @@ public class InsightTransactions {
         confirmed.put("finalEmotionIntensity",body.finalEmotionIntensity());confirmed.put("helpfulnessScore",body.helpfulnessScore());
         confirmed.put("confirmedAt",Instant.now().toString());confirmed.put("userConfirmed",true);
         s.confirmInsight(confirmed,body.beforeBeliefStrength(),body.afterBeliefStrength(),body.finalEmotionIntensity(),body.helpfulnessScore());
+        // 확정 CBT의 완료 수·도움 점수·인지왜곡 통계가 반영되도록
+        // 연결된 감정 기록 날짜의 리포트 캐시만 무효화
+        reportCacheInvalidationService.invalidateByOccurredAt(
+                user,
+                s.getEmotionRecord().getOccurredAt()
+        );
         state.put("confirmedResult",confirmed);state.put("currentProposal",null);state.put("phase",null);state.put("revision",number(state.get("revision"))+1);s.replaceInsight(state);
         var receipt=job(s,key,"CONFIRM:"+body,object(),(short)1);receipt.complete(null,"cbt-insight-1");receipt.cacheInsight(object("view",viewMap(view(s))));
         return view(s);
