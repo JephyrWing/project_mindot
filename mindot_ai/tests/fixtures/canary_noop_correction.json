@@ -1,0 +1,78 @@
+{
+  "sourceRun": "Mindot-AI-Evaluation-20260910T030612Z",
+  "sourceNode": "live-3",
+  "candidate": {
+    "beforeCorrection": {
+      "text": "한 번 실수했으니 나는 일을 전혀 못하는 사람이야.",
+      "evidence": {
+        "messageNumber": 1,
+        "quote": "한 번 실수했으니 나는 일을 전혀 못하는 사람이야."
+      }
+    },
+    "afterText": "이번 실수만 고치면 되겠고, 다른 부분은 잘했다고 들었으니 제 능력 전체를 판단하는 것은 성급한 생각이었어요.",
+    "afterEvidence": [
+      {
+        "messageNumber": 4,
+        "quote": "다시 생각해 보니 숫자 하나 틀린 걸로 제 능력 전체를 판단한 게 성급했네요."
+      }
+    ],
+    "assessmentType": "DISTORTION_SUGGESTED",
+    "suggestions": [
+      {
+        "code": "OVERGENERALIZATION",
+        "explanation": "한 번의 실수로 자신의 전체 능력을 평가하는 것은 과잉일반화입니다."
+      },
+      {
+        "code": "ALL_OR_NOTHING_THINKING",
+        "explanation": "한 번의 실수로 모든 것을 못한다고 생각하는 것은 흑백논리입니다."
+      }
+    ],
+    "comparisonExplanation": "처음에는 한 번의 실수로 자신의 능력을 전혀 못한다고 판단했으나, 이후에는 이번 실수만 고치면 된다고 생각을 수정함으로써 더 균형 잡힌 시각을 가지게 되었습니다.",
+    "evidenceForText": null,
+    "evidenceAgainstText": null
+  },
+  "snapshot": {
+    "mode": "RESTORE",
+    "sessionId": 10001,
+    "revision": 4,
+    "record": {
+      "recordId": 10001,
+      "situation": "보고서의 숫자 한 곳이 틀려 팀장이 수정을 요청했다.",
+      "automaticThought": "한 번 실수했으니 나는 일을 전혀 못하는 사람이야.",
+      "primaryEmotionCode": "ANXIETY",
+      "primaryIntensity": null,
+      "beforeBeliefStrength": null,
+      "contextCategory": "WORK"
+    },
+    "messages": [
+      {
+        "messageNumber": 1,
+        "role": "ASSISTANT",
+        "content": "이 생각이 포함하고 있는 인지왜곡은 무엇일까요? 예를 들어, \"한 번 실수했으니 나는 일을 전혀 못하는 사람이야.\"라는 생각은 과잉일반화나 흑백논리와 같은 왜곡을 포함할 수 있습니다. 이 생각을 수정하기 위해 어떤 다른 관점을 고려할 수 있을까요?",
+        "createdAt": "2026-09-10T03:06:22.190218Z"
+      },
+      {
+        "messageNumber": 2,
+        "role": "USER",
+        "content": "방금 질문의 뜻이 어려워요. 예를 하나 들어 줄래요?",
+        "createdAt": "2026-09-10T03:06:22.197219Z"
+      },
+      {
+        "messageNumber": 3,
+        "role": "ASSISTANT",
+        "content": "물론입니다. 예를 들어, 직장에서 한 번 실수로 보고서의 숫자를 잘못 기입했다고 가정해봅시다. 이때 \"나는 일을 전혀 못하는 사람이야.\"라고 생각하는 것은 과잉일반화의 예입니다. 왜냐하면 한 번의 실수로 자신의 전체 능력을 평가하는 것이기 때문입니다. 대신, \"이번에 실수했지만, 다음에는 더 주의해서 잘할 수 있어.\"라고 생각하는 것이 더 긍정적이고 현실적인 접근이 될 수 있습니다.",
+        "createdAt": "2026-09-10T03:06:27.313200Z"
+      },
+      {
+        "messageNumber": 4,
+        "role": "USER",
+        "content": "다시 생각해 보니 숫자 하나 틀린 걸로 제 능력 전체를 판단한 게 성급했네요. 다른 부분은 잘했다고 들었고, 이번 실수만 고치면 되겠어요.",
+        "createdAt": "2026-09-10T03:06:27.327201Z"
+      }
+    ],
+    "phase": "DIALOGUE",
+    "currentProposal": null,
+    "historicalTypeReviews": [],
+    "pendingJob": null
+  }
+}

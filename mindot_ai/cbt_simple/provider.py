@@ -147,8 +147,11 @@ class Provider:
         if value.status!='USABLE':
             if value.status=='PARSE_ERROR': raise WriterFormatError('json_structure')
             raise CompletionTechnicalError(phase+'_'+value.status)
-        try: validate_schema(value.output,wire['response_format']['json_schema']['schema'])
-        except ValueError as exc: raise WriterFormatError(str(exc)) from exc
+        # Assessor schema validation is performed once by graph.assess_completion,
+        # after preserving the raw candidate and before normalization/citation checks.
+        if phase!='ASSESSOR':
+            try: validate_schema(value.output,wire['response_format']['json_schema']['schema'])
+            except ValueError as exc: raise WriterFormatError(str(exc)) from exc
         return value.output
     async def review(self,messages):
         self.capture.phase='ASSESSMENT_REVIEW'

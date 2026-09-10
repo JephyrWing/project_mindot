@@ -48,7 +48,7 @@
     },
     {
       "name": "respond_safety",
-      "description": "현재 문맥의 기본 안전 확인 또는 중단에 대응한다.",
+      "description": "명확한 현재 즉시 위험은 STOP, 현재성·주체 등 필요한 사실이 불분명할 때만 CLARIFY. 이미 명시한 위험을 반복 확인하지 않는다.",
       "parameters": {
         "type": "object",
         "additionalProperties": false,

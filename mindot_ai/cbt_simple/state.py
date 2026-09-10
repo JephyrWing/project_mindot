@@ -1,5 +1,6 @@
 """Ephemeral execution memory; Spring is the durable authority."""
 import asyncio
+from copy import deepcopy
 from dataclasses import dataclass,field
 from time import monotonic
 from .contracts import ProtocolError
@@ -29,15 +30,22 @@ class Registry:
 def require(value,code):
     if not value:raise ProtocolError(code)
 
-def candidate_boundary(candidate,snapshot):
-    """One structural/USER-quotation boundary; meaning stays with the models."""
-    from .schema import validate,assessor_schema
-    validate(candidate,assessor_schema())
+def candidate_boundary(candidate,snapshot,diagnostics):
+    """Copy a schema-validated Assessor result; return the processed candidate and eligibility.
+
+    graph.assess_completion validates the raw schema once before this boundary.
+    Only an exact no-op BEFORE correction is removed, before USER citation checks.
+    """
+    candidate=deepcopy(candidate)
+    correction=candidate['beforeCorrection']
+    if correction is not None and correction['text']==snapshot['record']['automaticThought']:
+        candidate['beforeCorrection']=None
+        diagnostics.emit('candidate_normalized',normalizedFields=['beforeCorrection'])
     after=candidate['afterText'];evidence=candidate['afterEvidence'];suggestions=candidate['suggestions']
     require(after is None or bool(after.strip()),'blank_after')
     if after is None:
         require(not evidence and not suggestions and candidate['assessmentType']=='UNDETERMINED','null_after_shape')
-        return False
+        return candidate,False
     require(bool(evidence),'missing_user_evidence')
     codes=[s['code'] for s in suggestions]
     require(len(codes)==len(set(codes)),'duplicate_suggestion')
@@ -50,7 +58,7 @@ def candidate_boundary(candidate,snapshot):
     for p in citations:
         m=messages.get(p['messageNumber'])
         require(m and m['role']=='USER' and p['quote'].strip() and p['quote'] in m['content'],'invalid_user_quote')
-    return True
+    return candidate,True
 
 def render(proposal):
     text=f"처음 생각: {proposal['beforeText']}\n알아차리고 수정한 생각: {proposal['afterText']}\n{proposal['comparisonExplanation']}"

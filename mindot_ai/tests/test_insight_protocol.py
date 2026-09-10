@@ -1,5 +1,6 @@
 """Prepared for post-ChatGPT review only; no provider/network/server fixture."""
 import unittest
+from datetime import datetime
 from copy import deepcopy
 from unittest.mock import patch
 from langchain_core.messages import AIMessage
@@ -75,7 +76,14 @@ class InsightProtocol(unittest.IsolatedAsyncioTestCase):
         result = await service.start(Start(**snapshot), registry=self.registry)
         self.assertEqual(result.outcome, 'RESTORED')
         self.assertEqual(FakeProvider.calls, [])
-        self.assertEqual(self.registry.sessions[1].snapshot['messages'], snapshot['messages'])
+        restored = deepcopy(self.registry.sessions[1].snapshot)
+        # Pydantic serializes UTC as Z; compare instants while preserving every
+        # other snapshot/message field, including content, role and sequence.
+        self.assertEqual(len(restored['messages']), len(snapshot['messages']))
+        for before, after in zip(snapshot['messages'], restored['messages']):
+            self.assertEqual(datetime.fromisoformat(before['createdAt']), datetime.fromisoformat(after['createdAt']))
+            after['createdAt'] = before['createdAt']
+        self.assertEqual(restored, snapshot)
 
     async def test_cache_replay_rebinds_attempt_without_regeneration_or_append(self):
         await self.new()
@@ -126,6 +134,13 @@ class InsightProtocol(unittest.IsolatedAsyncioTestCase):
             userMessage=dict(messageNumber=4, role='USER', content='쉽게 설명해 주세요.', createdAt=STAMP))
         result = await service.turn(explanation, registry=self.registry)
         self.assertEqual(result.currentProposal, proposal)
+        snapshot = deepcopy(self.registry.sessions[1].snapshot)
+        FakeProvider.calls.clear()
+        self.registry.remove(1)
+        restored = await service.start(Start(**snapshot), registry=self.registry)
+        self.assertEqual(restored.currentProposal, proposal)
+        self.assertEqual(FakeProvider.calls, [])
+        self.assertEqual(self.registry.sessions[1].snapshot['currentProposal'], proposal)
         FakeProvider.selection = ('write_turn', dict(mode='QUESTION', goal='사용자의 철회를 반영'))
         withdrawal = Turn(sessionId=1, requestId='withdraw', attemptNo=1, baseRevision=5, inputRevision=6,
             userMessage=dict(messageNumber=6, role='USER', content='생각이 바뀐 것은 아니에요.', createdAt=STAMP))
