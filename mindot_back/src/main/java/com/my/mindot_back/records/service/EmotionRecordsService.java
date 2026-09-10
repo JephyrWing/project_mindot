@@ -16,7 +16,7 @@ import com.my.mindot_back.records.repository.EmotionRecordsRepository;
 import com.my.mindot_back.records.repository.EmotionRecordsSpecifications;
 import com.my.mindot_back.records.repository.ReflectionSessionsRepository;
 import com.my.mindot_back.records.repository.SessionDistortionsRepository;
-import com.my.mindot_back.reports.repository.ReportsRepository;
+import com.my.mindot_back.reports.service.ReportCacheInvalidationService;
 import com.my.mindot_back.safety.dto.SafetyNoticeResponseDto;
 import com.my.mindot_back.safety.service.SafetyEventsService;
 import com.my.mindot_back.users.entity.Users;
@@ -60,8 +60,8 @@ public class EmotionRecordsService {
     // 감정 기록에 연결된 CBT 성찰 세션 조회
     private final ReflectionSessionsRepository reflectionSessionsRepository;
 
-    // 감정 기록 변경 시 사용자 리포트 캐시 전체를 무효화
-    private final ReportsRepository reportsRepository;
+    // 감정 기록 변경 시 해당 날짜와 겹치는 리포트 캐시만 무효화
+    private final ReportCacheInvalidationService reportCacheInvalidationService;
 
     // 완료된 CBT 임베딩을 기반으로 유사사례 검색
     private final RagUtils ragUtils;
@@ -78,28 +78,71 @@ public class EmotionRecordsService {
     private final SafetyEventsService  safetyEventsService;
 
     public EmotionRecordsQuickCreateResponseDto createQuickRecord(
-            Long userId, EmotionRecordsQuickCreateRequestDto dto, String key) {
-        var context = emotionRecordAiTransactionService.createQuickRecordAndStartAiJob(userId, dto, key);
-        analyzeSavedRecord(context);
-        return emotionRecordAiTransactionService.savedResponse(userId, context.emotionRecordId());
+            Long userId,
+            EmotionRecordsQuickCreateRequestDto dto,
+            String key
+    ) {
+        var context = emotionRecordAiTransactionService
+                .createQuickRecordAndStartAiJob(userId, dto, key);
+
+        // 새 기록이 실제로 생성된 경우에만 해당 날짜 리포트 캐시 삭제
+        // 같은 Idempotency-Key 재요청(dispatch=false)은 새 기록이 아니므로 삭제하지 않음
+        if (context.dispatch()) {
+            reportCacheInvalidationService.invalidateByOccurredAt(
+                    userId,
+                    dto.occurredAt()
+            );
+        }
+
+        analyzeSavedRecord(userId, context);
+
+        return emotionRecordAiTransactionService
+                .savedResponse(userId, context.emotionRecordId());
     }
 
     public EmotionRecordsDetailResponseDto reanalyzeEmotionRecord(Long userId, Long emotionRecordId) {
         var context = emotionRecordAiTransactionService.startReanalysis(userId, emotionRecordId);
-        analyzeSavedRecord(context);
+        analyzeSavedRecord(userId, context);
         return getEmotionRecordsDetail(userId, emotionRecordId);
     }
 
-    private void analyzeSavedRecord(EmotionRecordAiJobContext context) {
-        if (!context.dispatch()) return;
+    private void analyzeSavedRecord(
+            Long userId,
+            EmotionRecordAiJobContext context
+    ) {
+        // 이미 처리된 같은 요청은 외부 AI를 다시 호출하지 않음
+        if (!context.dispatch()) {
+            return;
+        }
+
         String failureCode = "FAST_API_ANALYSIS_FAILED";
+
         try {
-            var analysis = fastApiRecordAnalysisClient.analyze(context.rawText());
+            var analysis = fastApiRecordAnalysisClient.analyze(
+                    context.rawText()
+            );
+
             failureCode = "ANALYSIS_COMMIT_FAILED";
-            emotionRecordAiTransactionService.completeAiAnalysis(context.emotionRecordId(), context.aiJobId(), analysis);
+
+            EmotionRecords analyzedRecord =
+                    emotionRecordAiTransactionService.completeAiAnalysis(
+                            context.emotionRecordId(),
+                            context.aiJobId(),
+                            analysis
+                    );
+
+            // AI 분석으로 감정·상황·강도 값이 채워졌으므로 같은 기간 리포트만 삭제
+            reportCacheInvalidationService.invalidateByOccurredAt(
+                    userId,
+                    analyzedRecord.getOccurredAt()
+            );
         } catch (RuntimeException error) {
-            // Includes commit/validation failures; raw storage has already committed.
-            emotionRecordAiTransactionService.failAiAnalysis(context.emotionRecordId(), context.aiJobId(), failureCode);
+            // AI 실패해도 원문 기록은 이미 저장되어 있으므로 작업 실패 상태만 저장
+            emotionRecordAiTransactionService.failAiAnalysis(
+                    context.emotionRecordId(),
+                    context.aiJobId(),
+                    failureCode
+            );
         }
     }
 
@@ -283,8 +326,9 @@ public class EmotionRecordsService {
         // 사용자 최종값 반영 후 PARTIAL에서 COMPLETE로 변경
         emotionRecord.confirm(dto);
 
-        // 확정한 감정, 상황, 강도가 기존 주간 리포트 집계에 반영되도록 캐시 무효화
-        reportsRepository.deleteByUser_Id(userId);
+        // 확정한 감정, 상황, 강도가 반영되도록 해당 날짜 리포트 캐시만 무효화
+        reportCacheInvalidationService
+                .invalidateByOccurredAt(userId, emotionRecord.getOccurredAt());
 
         // JPA Dirty Checking으로 변경 내용을 저장하고 상세 응답 반환
         return EmotionRecordsDetailResponseDto.from(emotionRecord);
@@ -308,14 +352,18 @@ public class EmotionRecordsService {
 
         // 발생 시각 수정과 함께 시간대·평일/주말 값 재계산
         var previousBucket = emotionRecord.getTimeBucket();
+        Instant previousOccurredAt = emotionRecord.getOccurredAt();
         emotionRecord.updateOccurredAt(dto.occurredAt());
         if (previousBucket != emotionRecord.getTimeBucket()) {
             Long sessionId = embeddingTransactions.invalidateForRecord(userId, emotionRecordId);
             if (sessionId != null) events.publishEvent(new EmbeddingRefreshRequested(userId, sessionId));
         }
 
-        // 발생 시각 변경으로 주간 리포트 대상 기간이 달라질 수 있어 캐시 무효화
-        reportsRepository.deleteByUser_Id(userId);
+        reportCacheInvalidationService.invalidateByOccurredAt(
+                userId,
+                previousOccurredAt,
+                emotionRecord.getOccurredAt()
+        );
 
         // JPA Dirty Checking으로 수정값 저장 후 상세 응답 반환
         return EmotionRecordsDetailResponseDto.from(emotionRecord);
@@ -355,8 +403,9 @@ public class EmotionRecordsService {
                 emotionRecord.getId()
         );
 
-        // 감정 기록 삭제 후 통계·반복 패턴이 오래되지 않도록 리포트 캐시 전체 무효화
-        reportsRepository.deleteByUser_Id(userId);
+        // 삭제되는 기록 날짜의 통계·반복 패턴을 갱신하도록 해당 기간 리포트만 무효화
+        reportCacheInvalidationService
+                .invalidateByOccurredAt(userId, emotionRecord.getOccurredAt());
 
         // DB cascade로 CBT 세션, 인지왜곡 라벨, 안전 이벤트 모두 삭제
         emotionRecordsRepository.delete(emotionRecord);

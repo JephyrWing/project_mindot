@@ -30,6 +30,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.threeten.bp.DateTimeUtils.toInstant;
+
 @Service
 @RequiredArgsConstructor
 public class WeeklyReportsService {
@@ -741,16 +743,9 @@ public class WeeklyReportsService {
                 continue;
             }
 
-            Instant occurredAt = null;
-
-            if (rawMap.get("occurredAt")
-                    instanceof String occurredAtText) {
-                try {
-                    occurredAt = Instant.parse(occurredAtText);
-                } catch (RuntimeException ignored) {
-                    // 날짜 형식이 올바르지 않은 근거 데이터는 null로 변환
-                }
-            }
+            Instant occurredAt = toInstant(
+                    rawMap.get("occurredAt")
+            );
 
             Short primaryIntensity =
                     rawMap.get("primaryIntensity")
@@ -786,6 +781,43 @@ public class WeeklyReportsService {
             ));
         }
         return evidences;
+    }
+
+    // JSONB에서 다시 읽은 발생 시각을 Instant로 안전하게 변환
+    private Instant toInstant(
+            Object value
+    ) {
+        if (value instanceof Instant instant) {
+            return instant;
+        }
+
+        if (value instanceof String text) {
+            try {
+                return Instant.parse(text);
+            } catch (RuntimeException ignored) {
+                return null;
+            }
+        }
+
+        // Hibernate JSONB는 Instant를 epoch 초 단위 숫자로 읽어올 수 있음
+        if (value instanceof Number number) {
+            try {
+                java.math.BigDecimal epochSeconds =
+                        new java.math.BigDecimal(number.toString());
+
+                long seconds = epochSeconds.longValue();
+                long nanos = epochSeconds
+                        .subtract(java.math.BigDecimal.valueOf(seconds))
+                        .movePointRight(9)
+                        .longValue();
+
+                return Instant.ofEpochSecond(seconds, nanos);
+            } catch (RuntimeException ignored) {
+                return null;
+            }
+        }
+
+        return null;
     }
 
     // JSONB에 저장된 완료 CBT 근거 목록을 응답 DTO로 변환
