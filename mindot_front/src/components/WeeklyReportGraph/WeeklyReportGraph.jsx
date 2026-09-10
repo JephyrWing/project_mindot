@@ -2,6 +2,17 @@ import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Navbar from '../Navbar/Navbar.jsx'
 import './WeeklyReportGraph.css'
 
+// 실제 API 연결 전 그래프 화면 구성을 확인하기 위한 요일별 예시 값 설정.
+const weeklyGraphItems = [
+  { day: '월', value: 4 },
+  { day: '화', value: 6 },
+  { day: '수', value: 5 },
+  { day: '목', value: 7 },
+  { day: '금', value: 3 },
+  { day: '토', value: 5 },
+  { day: '일', value: 8 },
+]
+
 // 주간 감정 그래프 기능을 단계적으로 추가하기 위한 기본 화면 정의.
 function WeeklyReportGraph({
   isAuthenticated,
@@ -38,10 +49,35 @@ function WeeklyReportGraph({
             한 주 동안의 감정 변화를 그래프로 확인하는 공간입니다.
           </p>
 
-          {/* 이후 실제 주간 리포트 그래프를 추가할 기본 영역 배치. */}
-          <section className="weekly-report-graph-placeholder" aria-label="주간 감정 그래프 영역">
-            <strong>주간 감정 변화</strong>
-            <p>그래프가 이곳에 표시됩니다.</p>
+          {/* 월요일부터 일요일까지 감정 강도를 비교하는 막대그래프 기본 구조 배치. */}
+          <section
+            className="weekly-report-graph-chart"
+            aria-labelledby="weekly-report-graph-chart-title"
+          >
+            <header className="weekly-report-graph-chart-heading">
+              <h2 id="weekly-report-graph-chart-title">요일별 감정 강도</h2>
+              <span>0~10점</span>
+            </header>
+
+            <div className="weekly-report-graph-bars">
+              {weeklyGraphItems.map((item) => (
+                <div
+                  className="weekly-report-graph-item"
+                  key={item.day}
+                  aria-label={`${item.day}요일 감정 강도 ${item.value}점`}
+                >
+                  <span className="weekly-report-graph-value">{item.value}</span>
+                  <div className="weekly-report-graph-track" aria-hidden="true">
+                    <span style={{ height: `${item.value * 10}%` }} />
+                  </div>
+                  <strong>{item.day}</strong>
+                </div>
+              ))}
+            </div>
+
+            <p className="weekly-report-graph-note">
+              현재 그래프는 화면 구성 확인을 위한 예시 값입니다.
+            </p>
           </section>
 
           <button className="weekly-report-graph-back" type="button" onClick={onBack}>
