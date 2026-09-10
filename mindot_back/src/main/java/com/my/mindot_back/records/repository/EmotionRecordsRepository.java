@@ -12,6 +12,10 @@ import java.util.Optional;
 public interface EmotionRecordsRepository
         extends JpaRepository<EmotionRecords, Long>,
         JpaSpecificationExecutor<EmotionRecords> {
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("select e from EmotionRecords e where e.id = :id")
+    java.util.Optional<EmotionRecords> findLockedById(@org.springframework.data.repository.query.Param("id") Long id);
+
 
     // 로그인한 사용자의 감정 기록을 발생 시각 최신순으로 조회
     List<EmotionRecords> findAllByUser_IdOrderByOccurredAtDesc(

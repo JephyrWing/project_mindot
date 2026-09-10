@@ -1,0 +1,243 @@
+{
+  "executionSourceHash": "32d42d03965c6882393a673b1a1f163a68644ed4900adfe8aa8fc2447b378aaf",
+  "actualProductSourceHash": "5db654ea8aa383935171a20261e4707caaf5c56d0c23528609691a1d71608329",
+  "productFiles": [
+    {
+      "path": "app.py",
+      "bytes": 7277,
+      "sha256": "f77e218a5edb67a7772703053585434a6ccb7a6d3d1b448b15a49795239a27ee"
+    },
+    {
+      "path": "cbt_agent.py",
+      "bytes": 105203,
+      "sha256": "ee8f742d7ae90a0a23846f867382fc04991ba4244075b6a460d8a3fd42b2b613"
+    },
+    {
+      "path": "cbt_q11\\__init__.py",
+      "bytes": 82,
+      "sha256": "b924c80eea341758dd2d2649649429c66164307b88b6e13fb62d37fe8159ba9c"
+    },
+    {
+      "path": "cbt_q11\\agent_graph.py",
+      "bytes": 10137,
+      "sha256": "7b867abccc5763e598739e8b2a805d94236c7b8d9a8e8f3278f4a9176cc52ff5"
+    },
+    {
+      "path": "cbt_q11\\assessment_target.py",
+      "bytes": 6238,
+      "sha256": "fe32d3a987807001029b8f636b0d62d72421cb459b202ad34832280f64efe635"
+    },
+    {
+      "path": "cbt_q11\\capacity.py",
+      "bytes": 3587,
+      "sha256": "1251a7c1802360848acf6715912abc49d6e05c654c32696a60054ad2aa731c51"
+    },
+    {
+      "path": "cbt_q11\\checkpoint.py",
+      "bytes": 7404,
+      "sha256": "23b0a4a4be265aadb7fb381e7208e6010d6d5325bf7bc62812aaa81eecc5afca"
+    },
+    {
+      "path": "cbt_q11\\completion.py",
+      "bytes": 8932,
+      "sha256": "75f84d634700d063618b84ce1a190e6961b47a5b579d68e9a3475f260773ff59"
+    },
+    {
+      "path": "cbt_q11\\contracts.py",
+      "bytes": 3874,
+      "sha256": "daf0c581b36e76c7b59acf7777f063f3ddf07c428b7cc1e6961482840d25c2ca"
+    },
+    {
+      "path": "cbt_q11\\diagnostics.py",
+      "bytes": 2021,
+      "sha256": "8c178cd645a294eac684e5b3b63575e57a574450969733be1b9e89ad013fccba"
+    },
+    {
+      "path": "cbt_q11\\gaps.py",
+      "bytes": 24546,
+      "sha256": "48f571dbb700b87c51aa2675bab56901419b19625043eb9d0abf00ae6c19fe69"
+    },
+    {
+      "path": "cbt_q11\\goals.py",
+      "bytes": 8156,
+      "sha256": "80d74034a2295ffc3051d3b53ea235b7771a6b2225fd3a89d90306a8c977a4a8"
+    },
+    {
+      "path": "cbt_q11\\llm.py",
+      "bytes": 15811,
+      "sha256": "e5ca36ee39535b98ccceb87b42dd189addd76d05e4af31e9dfb8cce2a3567957"
+    },
+    {
+      "path": "cbt_q11\\memory.py",
+      "bytes": 6502,
+      "sha256": "a5da98e50dc4377afcb53d2ef5b7abc1d2d4e302f780fc61ea30f66ad610b1d5"
+    },
+    {
+      "path": "cbt_q11\\phases.py",
+      "bytes": 7017,
+      "sha256": "b5d9674425f9e52b2ed2a8fda79a97cd66e32cab9b577374ef5963b04ba732c7"
+    },
+    {
+      "path": "cbt_q11\\planner.py",
+      "bytes": 11839,
+      "sha256": "906d4efc79ad43485e1d3d9bb2888e01fdf5db317d695ecbac10820399504d76"
+    },
+    {
+      "path": "cbt_q11\\policy.py",
+      "bytes": 11879,
+      "sha256": "f9b75b734dc1156c49226a31b152d72ce6105be951d2bc30c0e54e397f3ef843"
+    },
+    {
+      "path": "cbt_q11\\prompts.py",
+      "bytes": 31153,
+      "sha256": "5f1d9a0ea3cf6fe9766108620f3fa8cb9f0485d0a188b8e9c521973ac18b5f9d"
+    },
+    {
+      "path": "cbt_q11\\provider.py",
+      "bytes": 14484,
+      "sha256": "e2867dc5958528de6914e669036f7bec0ff3f9a8b14e15d018b980941e57c3e4"
+    },
+    {
+      "path": "cbt_q11\\provider_schemas.py",
+      "bytes": 23030,
+      "sha256": "80b422419afa3ce8e9dc71263d63425b6b2f266a64bce09817be58a262123e2a"
+    },
+    {
+      "path": "cbt_q11\\rendering.py",
+      "bytes": 8812,
+      "sha256": "ee4b653c5b4e0ee608133c507ff8928d727ce05db8305ddb371f84acf1dbd4a3"
+    },
+    {
+      "path": "cbt_q11\\requests.py",
+      "bytes": 36206,
+      "sha256": "1f54c651b42e882cde1caa7e99684b067559a796a120688e6fd8743ca015bf8e"
+    },
+    {
+      "path": "cbt_q11\\review.py",
+      "bytes": 11457,
+      "sha256": "fc3d09335865e1b832aee8bea469e87f0c1b44ecf0a3b1476d21fa573a220b8c"
+    },
+    {
+      "path": "cbt_q11\\safety.py",
+      "bytes": 20817,
+      "sha256": "847358f72024086ce34ceaf1d6a00ea3be167c0ffe0724dbafe167ba218cdefa"
+    },
+    {
+      "path": "cbt_q11\\service.py",
+      "bytes": 22969,
+      "sha256": "831ac168140190e95c7f2dbce005e2b1b4faae58c144574726abef97f37fa590"
+    },
+    {
+      "path": "cbt_q11\\signals.py",
+      "bytes": 624,
+      "sha256": "075c4aa7e556f384e3d8d4ecc74f1b390619ba1953d6b7152712aab9a5af7e12"
+    },
+    {
+      "path": "cbt_q11\\state.py",
+      "bytes": 36128,
+      "sha256": "e18b731132c875043524770ee3bf5ac4e356ed3c5d51a60245e4cddc621e9151"
+    },
+    {
+      "path": "cbt_q11\\tools.py",
+      "bytes": 16373,
+      "sha256": "38aecc5342a23353ae884c77d7c933b925b01b6fe32872b90d1269d52ed3548e"
+    },
+    {
+      "path": "cbt_q11\\validity.py",
+      "bytes": 43794,
+      "sha256": "d243d540b1e4c61ce7630145c0d54c7c28e6387ecc614a7ec351c6265f66c05b"
+    },
+    {
+      "path": "cbt_q11\\views.py",
+      "bytes": 4812,
+      "sha256": "198b738312920cf90ca435710aaf36e1b67b9ae53d58e2f1799895aa845a2306"
+    },
+    {
+      "path": "cbt_q11\\wire_ids.py",
+      "bytes": 18407,
+      "sha256": "72ddf54cca7580b3406945b2b59581d89c3c0c80a47491ff6b12298ccfa77bf1"
+    },
+    {
+      "path": "cbt_q11\\writer.py",
+      "bytes": 11091,
+      "sha256": "5f28aeedb206cb200f8a266e4c42ccd2d7a47cb66dc1536f00fe10d492850165"
+    },
+    {
+      "path": "cbt_session_agent.py",
+      "bytes": 1748,
+      "sha256": "5475bff19a65e93953c4937e0ded6c494fd233104259e67339e9aaf005c11a38"
+    },
+    {
+      "path": "cbt_simple\\__init__.py",
+      "bytes": 80,
+      "sha256": "e933c533394739623ea5177254a47d491f852bdb6e909481231472bf459bed45"
+    },
+    {
+      "path": "cbt_simple\\graph.py",
+      "bytes": 16777,
+      "sha256": "b04dd5694dba50d11f284dec760221e24b060d6bad4a8cb1d1263ae5dccec830"
+    },
+    {
+      "path": "cbt_simple\\prompts\\agent.txt",
+      "bytes": 4506,
+      "sha256": "819c7aad1c7e426749acea1d19c17abaff5ca9911a4e52469b8ed2caf1c595a4"
+    },
+    {
+      "path": "cbt_simple\\prompts\\assessment-review.txt",
+      "bytes": 919,
+      "sha256": "61e2c7ef1d10f5910f2b85b6afac6a2244ae2af4e112e684cdc63b63a79c2b7c"
+    },
+    {
+      "path": "cbt_simple\\prompts\\assessor.txt",
+      "bytes": 3213,
+      "sha256": "af67be1938c86c96adcf108b2787b8c41454e1f9a07e588d00777bdd9f4eb861"
+    },
+    {
+      "path": "cbt_simple\\prompts\\writer-repair.txt",
+      "bytes": 592,
+      "sha256": "b557c6b5ad76c53af2d5be9817bab71c20498b781bf0a0e121e67e09cda4d81a"
+    },
+    {
+      "path": "cbt_simple\\prompts\\writer.txt",
+      "bytes": 1761,
+      "sha256": "4bf636131c30312d27d5fa7eee0e7ca537fbd9a58a7844f6c627bebd5d7a4c99"
+    },
+    {
+      "path": "cbt_simple\\provider.py",
+      "bytes": 9876,
+      "sha256": "8833ada372e3bed9e0c6f37fb9fc40af4505e27ea30c73c2d6fdae84688f5462"
+    },
+    {
+      "path": "cbt_simple\\schema.py",
+      "bytes": 11370,
+      "sha256": "12a72dcd194ca6929ca21cab63bccee02694947ab817d9dd0d3db95bf12afb88"
+    },
+    {
+      "path": "cbt_simple\\service.py",
+      "bytes": 11744,
+      "sha256": "8dca81b7ae30d3c42e3c50d45cc29983e442357fdaef023753133a298b8d865a"
+    },
+    {
+      "path": "cbt_simple\\state.py",
+      "bytes": 17813,
+      "sha256": "b78926178f144932253529bb0d90986aca334cd46e1acaaa9fabd4835fa6f58c"
+    },
+    {
+      "path": "records_agent.py",
+      "bytes": 15919,
+      "sha256": "d3322b4a3fb1157ffd350b57e4f6dd4c4264037f64a90979f917b27ab8c51e41"
+    },
+    {
+      "path": "requirements.txt",
+      "bytes": 3168,
+      "sha256": "f610bd67950cbd46de0ffaa9dd537e84dcd0f82098612ba1f90de4798e11937b"
+    },
+    {
+      "path": "tests\\test_simple_dialogue.py",
+      "bytes": 19624,
+      "sha256": "f8ea9d9ad2116cdcf124a91c8f8d75fcece39d918fb9e6275c9c784848e22634"
+    }
+  ],
+  "originalProductSourceHashLabelIncorrect": true,
+  "explanation": "Original productSourceHash equals the complete execution source set due to Windows path separators. All original bytes/hashes remain immutable and verified. This sidecar corrects only the label/scope; no product, prompt, input, runner or provider output changed."
+}

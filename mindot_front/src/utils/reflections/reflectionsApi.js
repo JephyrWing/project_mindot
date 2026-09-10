@@ -1,86 +1,18 @@
 import httpClient from '../api/httpClient.js'
-
-// CBT 성찰 API 호출 함수를 생성하는 팩토리 정의.
-export const createReflectionsApi = (client) => ({
-  // 저장된 감정 기록을 기반으로 CBT 성찰 세션을 시작하는 처리.
-  startReflection: async (emotionRecordId) => {
-    const { data } = await client.post(
-      `/api/reflections/start/${emotionRecordId}`,
-    )
-
-    return data
-  },
-
-  // 현재 CBT 질문에 대한 사용자 답변을 같은 성찰 세션으로 전달하는 처리.
-  submitReflectionAnswer: async (sessionId, answer) => {
-    const { data } = await client.post(
-      `/api/reflections/${sessionId}/turn`,
-      { answer },
-    )
-
-    return data
-  },
-
-  // 첫 CBT 질문 생성에 실패한 OPEN 세션의 첫 질문 재생성 요청 처리.
-  retryFirstReflectionQuestion: async (sessionId) => {
-    const { data } = await client.post(
-      `/api/reflections/${sessionId}/retry-first-question`,
-    )
-
-    return data
-  },
-
-  // 저장된 답변 이후 다음 CBT 질문 생성에 실패한 세션의 재생성 요청 처리.
-  retryNextReflectionQuestion: async (sessionId) => {
-    const { data } = await client.post(
-      `/api/reflections/${sessionId}/retry-next-question`,
-    )
-
-    return data
-  },
-
-  // 진행 중인 CBT 성찰 세션을 취소하여 다시 재개할 수 없게 하는 처리.
-  cancelReflection: async (sessionId) => {
-    await client.post(`/api/reflections/${sessionId}/cancel`)
-  },
-
-  // 로그인 사용자의 진행 중인 OPEN CBT 성찰 세션 목록 조회 처리.
-  getOpenReflectionSessions: async () => {
-    const { data } = await client.get('/api/reflections/open')
-
-    return data
-  },
-
-  // 사용자가 선택한 CBT 성찰 세션의 질문과 답변 이력 상세 조회 처리.
-  getReflectionSessionDetail: async (sessionId) => {
-    const { data } = await client.get(`/api/reflections/${sessionId}`)
-
-    return data
-  },
-
-  // 사용자가 검토한 CBT 성찰 결과를 최종 확정하는 처리.
-  confirmReflection: async (sessionId, confirmation) => {
-    await client.post(
-      `/api/reflections/${sessionId}/confirm`,
-      confirmation,
-    )
-  },
-
-  // 완료된 CBT 성찰의 임베딩 생성 실패 작업 재시도 처리.
-  retryReflectionEmbedding: async (sessionId) => {
-    await client.post(`/api/reflections/${sessionId}/retry-embedding`)
-  },
+export const newRequestKey = () => crypto.randomUUID()
+const options = (key, revision) => ({
+  timeout: 240000,
+  headers: { 'Idempotency-Key': key, ...(revision == null ? {} : { 'If-Match': String(revision) }) },
 })
-
-// 공통 인증 HTTP 클라이언트를 사용하는 CBT 성찰 API 함수 제공.
-export const {
-  startReflection,
-  submitReflectionAnswer,
-  retryFirstReflectionQuestion,
-  retryNextReflectionQuestion,
-  cancelReflection,
-  getOpenReflectionSessions,
-  getReflectionSessionDetail,
-  confirmReflection,
-  retryReflectionEmbedding,
-} = createReflectionsApi(httpClient)
+export const createReflectionsApi = (client) => ({
+  openReflection: async (target, key, revision) => (await client.post('/api/reflections/open', target, options(key, revision))).data,
+  submitReflectionAnswer: async (id, answer, key, revision) => (await client.post(`/api/reflections/${id}/turn`, { answer }, options(key, revision))).data,
+  retryReflection: async (id, key, revision) => (await client.post(`/api/reflections/${id}/retry`, null, options(key, revision))).data,
+  confirmReflection: async (id, body, key, revision) => (await client.post(`/api/reflections/${id}/confirm`, body, options(key, revision))).data,
+  cancelReflection: async (id, key, revision) => (await client.post(`/api/reflections/${id}/cancel`, null, options(key, revision))).data,
+  getOpenReflectionSessions: async () => (await client.get('/api/reflections/open')).data,
+  getReflectionSessionDetail: async (id) => (await client.get(`/api/reflections/${id}`)).data,
+  retryReflectionEmbedding: async (id) => client.post(`/api/reflections/${id}/retry-embedding`, null, { timeout: 240000 }),
+})
+export const { openReflection, submitReflectionAnswer, retryReflection, confirmReflection, cancelReflection,
+  getOpenReflectionSessions, getReflectionSessionDetail, retryReflectionEmbedding } = createReflectionsApi(httpClient)

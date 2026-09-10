@@ -177,6 +177,12 @@ public class SessionDistortions {
         return sessionDistortion;
     }
 
+    public static SessionDistortions createInsightProposal(ReflectionSessions session, DistortionTypes type) {
+        SessionDistortions item=new SessionDistortions();
+        item.session=session;item.distortionType=type;item.phase=DistortionPhase.BEFORE;
+        return item;
+    }
+
     // 사용자가 AI가 제안한 인지왜곡 라벨을 확인하거나 거절한 결과 반영
     public void applyUserReview(
             DistortionReviewStatus reviewStatus

@@ -1,0 +1,257 @@
+{
+  "status": "READ_ONLY_CATALOG_CONFIRMED",
+  "constraints": [
+    {
+      "schema": "public",
+      "table_name": "ai_jobs",
+      "conname": "ai_jobs_entity_type_check",
+      "contype": "c",
+      "definition": "CHECK (((entity_type)::text = ANY ((ARRAY['EMOTION_RECORD'::character varying, 'REFLECTION'::character varying, 'REPORT'::character varying])::text[])))",
+      "convalidated": true
+    },
+    {
+      "schema": "public",
+      "table_name": "ai_jobs",
+      "conname": "ai_jobs_operation_check",
+      "contype": "c",
+      "definition": "CHECK ((((operation)::text = ANY (ARRAY[('STRUCTURE'::character varying)::text, ('QUESTION'::character varying)::text, ('DISTORTION_CLASSIFY'::character varying)::text, ('EMBED'::character varying)::text, ('PATTERN_RAG'::character varying)::text, ('REPORT_GENERATE'::character varying)::text, ('SAFETY_CHECK'::character varying)::text])) OR ((operation)::text = 'CBT_COMMAND'::text)))",
+      "convalidated": true
+    },
+    {
+      "schema": "public",
+      "table_name": "ai_jobs",
+      "conname": "ai_jobs_pkey",
+      "contype": "p",
+      "definition": "PRIMARY KEY (id)",
+      "convalidated": true
+    },
+    {
+      "schema": "public",
+      "table_name": "ai_jobs",
+      "conname": "ai_jobs_status_check",
+      "contype": "c",
+      "definition": "CHECK (((status)::text = ANY ((ARRAY['PENDING'::character varying, 'PROCESSING'::character varying, 'COMPLETED'::character varying, 'FAILED'::character varying])::text[])))",
+      "convalidated": true
+    },
+    {
+      "schema": "public",
+      "table_name": "ai_jobs",
+      "conname": "chk_ai_jobs_status_and_attempt",
+      "contype": "c",
+      "definition": "CHECK (((attempt_no >= 1) AND (((status)::text <> 'FAILED'::text) OR (error_code IS NOT NULL)) AND (((status)::text <> ALL ((ARRAY['COMPLETED'::character varying, 'FAILED'::character varying])::text[])) OR (completed_at IS NOT NULL))))",
+      "convalidated": true
+    },
+    {
+      "schema": "public",
+      "table_name": "ai_jobs",
+      "conname": "fkenjv3hj7kdi81t08k1ki6ctfr",
+      "contype": "f",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
+      "convalidated": true
+    },
+    {
+      "schema": "public",
+      "table_name": "ai_jobs",
+      "conname": "uk_ai_jobs_entity_operation_idempotency_attempt",
+      "contype": "u",
+      "definition": "UNIQUE (entity_type, entity_id, operation, idempotency_key, attempt_no)",
+      "convalidated": true
+    },
+    {
+      "schema": "public",
+      "table_name": "emotion_records",
+      "conname": "chk_emotion_records_primary_intensity",
+      "contype": "c",
+      "definition": "CHECK (((primary_intensity >= 0) AND (primary_intensity <= 10)))",
+      "convalidated": true
+    },
+    {
+      "schema": "public",
+      "table_name": "emotion_records",
+      "conname": "emotion_records_completion_status_check",
+      "contype": "c",
+      "definition": "CHECK (((completion_status)::text = ANY ((ARRAY['QUICK'::character varying, 'PARTIAL'::character varying, 'COMPLETE'::character varying])::text[])))",
+      "convalidated": true
+    },
+    {
+      "schema": "public",
+      "table_name": "emotion_records",
+      "conname": "emotion_records_input_type_check",
+      "contype": "c",
+      "definition": "CHECK (((input_type)::text = ANY ((ARRAY['TEXT'::character varying, 'VOICE_STT'::character varying])::text[])))",
+      "convalidated": true
+    },
+    {
+      "schema": "public",
+      "table_name": "emotion_records",
+      "conname": "emotion_records_pkey",
+      "contype": "p",
+      "definition": "PRIMARY KEY (id)",
+      "convalidated": true
+    },
+    {
+      "schema": "public",
+      "table_name": "emotion_records",
+      "conname": "emotion_records_time_bucket_check",
+      "contype": "c",
+      "definition": "CHECK (((time_bucket)::text = ANY ((ARRAY['DAWN'::character varying, 'MORNING'::character varying, 'AFTERNOON'::character varying, 'EVENING'::character varying, 'NIGHT'::character varying])::text[])))",
+      "convalidated": true
+    },
+    {
+      "schema": "public",
+      "table_name": "emotion_records",
+      "conname": "emotion_records_weekday_type_check",
+      "contype": "c",
+      "definition": "CHECK (((weekday_type)::text = ANY ((ARRAY['WEEKDAY'::character varying, 'WEEKEND'::character varying])::text[])))",
+      "convalidated": true
+    },
+    {
+      "schema": "public",
+      "table_name": "emotion_records",
+      "conname": "fkj2gdj5jt9xvewtp9mdck04w5v",
+      "contype": "f",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
+      "convalidated": true
+    },
+    {
+      "schema": "public",
+      "table_name": "reflection_sessions",
+      "conname": "chk_reflection_sessions_score_range",
+      "contype": "c",
+      "definition": "CHECK ((((before_belief_strength >= 0) AND (before_belief_strength <= 100)) AND ((after_belief_strength >= 0) AND (after_belief_strength <= 100)) AND ((final_emotion_intensity >= 0) AND (final_emotion_intensity <= 10)) AND ((helpfulness_score >= 0) AND (helpfulness_score <= 5)) AND (((status)::text <> 'COMPLETED'::text) OR (completed_at IS NOT NULL))))",
+      "convalidated": true
+    },
+    {
+      "schema": "public",
+      "table_name": "reflection_sessions",
+      "conname": "fkeiopws3ei9efkuq66c7qyw226",
+      "contype": "f",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE",
+      "convalidated": true
+    },
+    {
+      "schema": "public",
+      "table_name": "reflection_sessions",
+      "conname": "fkexcv6xs38nf7drvt5gc7gmnxa",
+      "contype": "f",
+      "definition": "FOREIGN KEY (emotion_record_id) REFERENCES emotion_records(id) ON DELETE CASCADE",
+      "convalidated": true
+    },
+    {
+      "schema": "public",
+      "table_name": "reflection_sessions",
+      "conname": "reflection_sessions_pkey",
+      "contype": "p",
+      "definition": "PRIMARY KEY (id)",
+      "convalidated": true
+    },
+    {
+      "schema": "public",
+      "table_name": "reflection_sessions",
+      "conname": "reflection_sessions_status_check",
+      "contype": "c",
+      "definition": "CHECK (((status)::text = ANY ((ARRAY['OPEN'::character varying, 'COMPLETED'::character varying, 'CANCELLED'::character varying])::text[])))",
+      "convalidated": true
+    },
+    {
+      "schema": "public",
+      "table_name": "reflection_sessions",
+      "conname": "ukbfudo8c1voqfj93vf6kh1elra",
+      "contype": "u",
+      "definition": "UNIQUE (emotion_record_id)",
+      "convalidated": true
+    },
+    {
+      "schema": "public",
+      "table_name": "users",
+      "conname": "uk6dotkott2kjsp8vw4d0m25fb7",
+      "contype": "u",
+      "definition": "UNIQUE (email)",
+      "convalidated": true
+    },
+    {
+      "schema": "public",
+      "table_name": "users",
+      "conname": "uke5sl76jgcyrl1a9jsio8l87kc",
+      "contype": "u",
+      "definition": "UNIQUE (kakao_account_link)",
+      "convalidated": true
+    },
+    {
+      "schema": "public",
+      "table_name": "users",
+      "conname": "ukhosgphd5ufegji474rby8xphj",
+      "contype": "u",
+      "definition": "UNIQUE (google_account_link)",
+      "convalidated": true
+    },
+    {
+      "schema": "public",
+      "table_name": "users",
+      "conname": "users_pkey",
+      "contype": "p",
+      "definition": "PRIMARY KEY (id)",
+      "convalidated": true
+    },
+    {
+      "schema": "public",
+      "table_name": "users",
+      "conname": "users_status_check",
+      "contype": "c",
+      "definition": "CHECK (((status)::text = ANY ((ARRAY['ACTIVE'::character varying, 'SUSPENDED'::character varying, 'WITHDRAWN'::character varying])::text[])))",
+      "convalidated": true
+    },
+    {
+      "schema": "public",
+      "table_name": "users",
+      "conname": "users_user_role_check",
+      "contype": "c",
+      "definition": "CHECK (((user_role)::text = ANY ((ARRAY['ROLE_USER'::character varying, 'ROLE_ADMIN'::character varying])::text[])))",
+      "convalidated": true
+    }
+  ],
+  "columns": [
+    {
+      "table_schema": "public",
+      "table_name": "ai_jobs",
+      "column_name": "attempt_deadline",
+      "data_type": "timestamp with time zone",
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "ai_jobs",
+      "column_name": "operation",
+      "data_type": "character varying",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "ai_jobs",
+      "column_name": "request_payload",
+      "data_type": "jsonb",
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "ai_jobs",
+      "column_name": "response_payload",
+      "data_type": "jsonb",
+      "is_nullable": "YES"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "ai_jobs",
+      "column_name": "status",
+      "data_type": "character varying",
+      "is_nullable": "NO"
+    },
+    {
+      "table_schema": "public",
+      "table_name": "reflection_sessions",
+      "column_name": "status",
+      "data_type": "character varying",
+      "is_nullable": "NO"
+    }
+  ]
+}

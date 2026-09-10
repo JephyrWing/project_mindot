@@ -156,7 +156,8 @@ public class SecurityConfig {
         ));
         configuration.setAllowedHeaders(List.of(
                 HttpHeaders.AUTHORIZATION,
-                HttpHeaders.CONTENT_TYPE
+                HttpHeaders.CONTENT_TYPE,
+                "Idempotency-Key", "If-Match"
         ));
         configuration.setAllowCredentials(true);
 

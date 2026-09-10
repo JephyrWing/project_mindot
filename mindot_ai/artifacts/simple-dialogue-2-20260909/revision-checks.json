@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "actualLiveCalls": 0,
+  "multiActionCases": 10,
+  "nullableSharedExports": 20,
+  "knownCases": 170,
+  "fixedSingleGoldCount": 150,
+  "goldSafetyCount": 15,
+  "parentConfirmationDeferredUntilFunctionReview": true,
+  "promptSchemaBytesExact": true,
+  "runnerSyntaxValid": true
+}

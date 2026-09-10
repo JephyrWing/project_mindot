@@ -1,3 +1,4 @@
+import { distortionLabels } from '../CBT/InsightResult.jsx'
 import { useEffect, useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Navbar from '../Navbar/Navbar.jsx'
@@ -380,8 +381,8 @@ function WeeklyReport({
     {
       label: '평균 강도',
       value: Number.isFinite(report.averageIntensity)
-        ? `${report.averageIntensity.toFixed(1)}/5`
-        : '-',
+        ? `${report.averageIntensity.toFixed(1)}/10`
+        : '기록 없음',
     },
     { label: '완료 CBT', value: `${report.completedCbtCount}회` },
     {
@@ -426,6 +427,7 @@ function WeeklyReport({
           <BrandLogo className="weekly-report-logo" onClick={onHome} />
 
           <h1 id="weekly-report-title">주간 리포트</h1>
+          <p>감정 통계는 감정 발생일, CBT 통계는 성찰 완료일 기준입니다. PDF는 감정 발생일로 선택한 기록과 연결된 CBT를 포함합니다.</p>
           <p className="weekly-report-description">
             선택한 주의 감정 기록과 CBT 성찰 흐름을 확인하는 공간입니다.
           </p>
@@ -723,6 +725,14 @@ function WeeklyReport({
                 </div>
               </section>
 
+              <section className="weekly-report-patterns">
+                <h2>성찰에서 수락한 인지왜곡 유형</h2>
+                <p>확인한 수정 생각과 함께 사용자가 수락한 유형의 횟수입니다.</p>
+                {Object.entries(report.distortionChangeCounts?.CONFIRMED_INSIGHT ?? {}).length ? <ul>
+                  {Object.entries(report.distortionChangeCounts.CONFIRMED_INSIGHT).map(([code, count]) => <li key={code}>{distortionLabels[code] ?? code}: {count}회</li>)}
+                </ul> : <p>새 형식의 성찰에서 수락한 유형이 없습니다.</p>}
+              </section>
+
               <section
                 className="weekly-report-patterns"
                 aria-labelledby="weekly-report-patterns-title"
@@ -765,7 +775,7 @@ function WeeklyReport({
                               ?? evidence.primaryEmotionCode
                               ?? '분석 전'}
                             {Number.isFinite(evidence.primaryIntensity)
-                              ? ` · 강도 ${evidence.primaryIntensity}/5`
+                              ? ` · 강도 ${evidence.primaryIntensity}/10`
                               : ''}
                           </strong>
                           <time dateTime={evidence.occurredAt}>
@@ -799,14 +809,15 @@ function WeeklyReport({
                     {report.completedCbtEvidences.map((evidence) => (
                       <article key={evidence.sessionId}>
                         <header>
-                          <strong>대안적 사고</strong>
+                          <strong>{evidence.confirmedResult ? '확인한 수정 생각' : '대안적 사고 (기존 결과)'}</strong>
                           <span>
                             {Number.isFinite(evidence.helpfulnessScore)
                               ? `도움 정도 ${evidence.helpfulnessScore}/5`
                               : '도움 정도 미입력'}
                           </span>
                         </header>
-                        <p>{evidence.alternativeThoughtText || '정리된 대안적 사고가 없습니다.'}</p>
+                        <p>{evidence.confirmedResult?.afterText ?? evidence.alternativeThoughtText ?? '저장된 생각이 없습니다.'}</p>
+                        {evidence.confirmedResult && <><p>처음 생각: {evidence.confirmedResult.beforeText}</p><p>{evidence.confirmedResult.comparisonExplanation}</p></>}
                         {onCompletedReflection && (
                           /* 완료된 CBT 세션 식별자를 결과 상세 화면으로 전달하는 버튼 배치. */
                           <button

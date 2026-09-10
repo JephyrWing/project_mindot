@@ -1,0 +1,948 @@
+{
+  "caseId": "help-2-correction",
+  "status": "NO_RESPONSE",
+  "executionOutcome": "NO_RESPONSE",
+  "acceptanceOutcome": "FAIL",
+  "request": {
+    "requestId": "8b034fb3-9fe4-5e2d-8770-ef31b26e7121",
+    "sessionId": 11901,
+    "currentStep": "SD_85E76216348A377758AE25A8",
+    "record": {
+      "recordId": 11901,
+      "situation": "검토 중 보고서에 오류가 있었다는 말을 들었다.",
+      "automaticThought": "보고서에 오류가 있었다는 말을 들으니 나는 일을 제대로 못하는 사람이다.",
+      "primaryEmotionCode": null,
+      "primaryIntensity": null,
+      "beforeBeliefStrength": null,
+      "contextCategory": null
+    },
+    "questionAnswers": [
+      {
+        "questionCode": "B_HELP_1",
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "BALANCED_CONCLUSION",
+        "question": "보고서의 구체적인 오류와 본인의 능력 전체에 대한 판단을 구분해 보면 어떤 차이가 있나요?",
+        "answer": "제가 숫자 하나를 잘못 적었다고 생각했고 다른 항목은 문제없었어요. 그런데 구체적 사실과 능력 전체에 대한 판단을 구분한다는 게 무슨 뜻인지 잘 모르겠어요. 방금 질문을 쉽게 설명해 주세요.",
+        "askedAt": "2026-09-09T00:00:00Z",
+        "answeredAt": "2026-09-09T00:01:00Z"
+      },
+      {
+        "questionCode": "SD_85E76216348A377758AE25A8",
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "BALANCED_CONCLUSION",
+        "question": "보고서의 오류와 본인의 능력을 구분한다는 것은, 예를 들어 숫자를 잘못 적은 것은 특정한 실수이고, 그 실수가 당신의 전체 능력을 반영하지는 않는다는 뜻입니다. 즉, 하나의 오류가 당신이 일을 잘하지 못한다는 판단으로 이어지지 않도록 하는 것이 중요합니다. 이렇게 구분하면 더 균형 잡힌 시각을 가질 수 있습니다.",
+        "answer": "설명은 이해했어요. 그런데 제가 잘못 말한 게 있어요. 숫자를 잘못 적은 사람은 동료였고, 저는 그 오류를 찾아 고쳤어요. 다른 항목에 문제가 없었다는 건 맞아요. 그래도 보고서에 오류가 있었다는 말만 들으면 제가 일을 못하는 것 같아요.",
+        "askedAt": "2026-09-09T01:00:00Z",
+        "answeredAt": "2026-09-09T01:01:00+00:00"
+      }
+    ],
+    "beforeDistortions": []
+  },
+  "response": null,
+  "error": {
+    "type": "CompletionTechnicalError",
+    "reason": "correction_must_follow_target"
+  },
+  "acceptanceChecks": [
+    "no_committed_response"
+  ],
+  "elapsedSeconds": 4.416472599999906,
+  "acceptedState": {
+    "corrections": [],
+    "current": {
+      "record:11901:automaticThought": "S2",
+      "record:11901:situation": "S1",
+      "session:11901:record:11901:answer:B_HELP_1": "S3"
+    },
+    "currentInput": {
+      "currentQuestionCode": "B_HELP_1",
+      "source": "COLD_PUBLIC_CURRENT_STEP",
+      "sourceIds": [
+        "S3"
+      ]
+    },
+    "events": [
+      {
+        "note": "사용자가 질문을 쉽게 설명해 달라고 요청함.",
+        "questionCode": "B_HELP_1",
+        "sourceId": "S3",
+        "status": "NONE",
+        "type": "GOAL"
+      }
+    ],
+    "gap": null,
+    "goals": {
+      "B_HELP_1": {
+        "dependency": {
+          "end": 106,
+          "sourceId": "S3",
+          "start": 0
+        },
+        "invalidated": false,
+        "note": "사용자가 질문을 쉽게 설명해 달라고 요청함.",
+        "questionCode": "B_HELP_1",
+        "status": "NONE"
+      },
+      "SD_85E76216348A377758AE25A8": {
+        "focus": "보고서의 구체적인 오류와 본인의 능력 전체에 대한 판단을 구분해 보면 어떤 차이가 있나요?",
+        "questionCode": "SD_85E76216348A377758AE25A8",
+        "status": "OPEN"
+      }
+    },
+    "history": [
+      {
+        "answerSourceId": "S3",
+        "answeredAt": "2026-09-09T00:01:00Z",
+        "askedAt": "2026-09-09T00:00:00Z",
+        "questionCode": "B_HELP_1"
+      }
+    ],
+    "identity": [
+      11901,
+      11901
+    ],
+    "legacySnapshot": null,
+    "pendingQuestion": "SD_85E76216348A377758AE25A8",
+    "questions": {
+      "B_HELP_1": {
+        "question": "보고서의 구체적인 오류와 본인의 능력 전체에 대한 판단을 구분해 보면 어떤 차이가 있나요?",
+        "questionCode": "B_HELP_1",
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "BALANCED_CONCLUSION"
+      },
+      "SD_85E76216348A377758AE25A8": {
+        "control": null,
+        "episodeId": null,
+        "focus": "보고서의 구체적인 오류와 본인의 능력 전체에 대한 판단을 구분해 보면 어떤 차이가 있나요?",
+        "gapId": null,
+        "mode": "EXPLANATION",
+        "move": "USER_DIRECTION",
+        "question": "보고서의 오류와 본인의 능력을 구분한다는 것은, 예를 들어 숫자를 잘못 적은 것은 특정한 실수이고, 그 실수가 당신의 전체 능력을 반영하지는 않는다는 뜻입니다. 즉, 하나의 오류가 당신이 일을 잘하지 못한다는 판단으로 이어지지 않도록 하는 것이 중요합니다. 이렇게 구분하면 더 균형 잡힌 시각을 가질 수 있습니다.",
+        "questionCode": "SD_85E76216348A377758AE25A8",
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "BALANCED_CONCLUSION",
+        "targetQuestionCode": "B_HELP_1"
+      }
+    },
+    "record": {
+      "automaticThoughtSourceId": "S2",
+      "beforeBeliefStrength": null,
+      "contextCategory": null,
+      "primaryEmotionCode": null,
+      "primaryIntensity": null,
+      "recordId": 11901,
+      "situationSourceId": "S1"
+    },
+    "rejectedCodes": [],
+    "requests": {
+      "R1": {
+        "deliveries": [
+          {
+            "attemptId": "8b08d528-14a0-5cf0-89fa-e1a786bb66d7",
+            "mode": "EXPLANATION",
+            "questionCode": "SD_85E76216348A377758AE25A8"
+          }
+        ],
+        "kind": "EXPLANATION",
+        "origin": {
+          "end": 106,
+          "sourceId": "S3",
+          "start": 42
+        },
+        "requestId": "R1",
+        "status": "FULFILLED",
+        "targetQuestionCode": "B_HELP_1"
+      }
+    },
+    "restoration": "COLD_PUBLIC_ONLY",
+    "revision": "simple-dialogue-2",
+    "safety": {},
+    "sources": {
+      "S1": {
+        "address": "record:11901:situation",
+        "field": "situation",
+        "key": "record:11901:situation@df7e5408165eba2ffdf7fd22b080123be9d26456716ac9ae26fe329984bfe8c2",
+        "kind": "USER_RECORD",
+        "ordinal": 1,
+        "revision": "df7e5408165eba2ffdf7fd22b080123be9d26456716ac9ae26fe329984bfe8c2",
+        "sourceId": "S1",
+        "text": "검토 중 보고서에 오류가 있었다는 말을 들었다."
+      },
+      "S2": {
+        "address": "record:11901:automaticThought",
+        "field": "automaticThought",
+        "key": "record:11901:automaticThought@48d22326fae727997fb045420029fb4d93ca60f115bcd9c13283b6b65f3dac79",
+        "kind": "USER_RECORD",
+        "ordinal": 2,
+        "revision": "48d22326fae727997fb045420029fb4d93ca60f115bcd9c13283b6b65f3dac79",
+        "sourceId": "S2",
+        "text": "보고서에 오류가 있었다는 말을 들으니 나는 일을 제대로 못하는 사람이다."
+      },
+      "S3": {
+        "address": "session:11901:record:11901:answer:B_HELP_1",
+        "key": "session:11901:record:11901:answer:B_HELP_1@988425e179ce17bca50147462fef23bb7ccacd9c3daef4f2966f18d0fb2c55ef",
+        "kind": "USER_ANSWER",
+        "ordinal": 3,
+        "questionCode": "B_HELP_1",
+        "revision": "988425e179ce17bca50147462fef23bb7ccacd9c3daef4f2966f18d0fb2c55ef",
+        "sourceId": "S3",
+        "text": "제가 숫자 하나를 잘못 적었다고 생각했고 다른 항목은 문제없었어요. 그런데 구체적 사실과 능력 전체에 대한 판단을 구분한다는 게 무슨 뜻인지 잘 모르겠어요. 방금 질문을 쉽게 설명해 주세요."
+      }
+    },
+    "stop": null,
+    "terminal": null,
+    "withdrawn": {}
+  },
+  "generationDispatches": 1,
+  "moderationDispatches": 1,
+  "export": {
+    "blindPayload": {
+      "identity": {
+        "case_id": "c_00000001",
+        "response_id": "r_00000001",
+        "anonymous_version": "A",
+        "turn_index": 0,
+        "suite": "DEVELOPMENT",
+        "caseType": "CANARY",
+        "syntheticContext": {
+          "situation": "검토 중 보고서에 오류가 있었다는 말을 들었다.",
+          "primaryEmotionCode": null,
+          "contextCategory": null
+        }
+      },
+      "input": {
+        "situation_family": null,
+        "vulnerability_type": null,
+        "automaticThought": "보고서에 오류가 있었다는 말을 들으니 나는 일을 제대로 못하는 사람이다.",
+        "latestInteraction": {
+          "questionRef": "q_00000001",
+          "questionPurpose": "BALANCED_THOUGHT",
+          "semanticRouteType": "BALANCED_CONCLUSION",
+          "question": "보고서의 오류와 본인의 능력을 구분한다는 것은, 예를 들어 숫자를 잘못 적은 것은 특정한 실수이고, 그 실수가 당신의 전체 능력을 반영하지는 않는다는 뜻입니다. 즉, 하나의 오류가 당신이 일을 잘하지 못한다는 판단으로 이어지지 않도록 하는 것이 중요합니다. 이렇게 구분하면 더 균형 잡힌 시각을 가질 수 있습니다.",
+          "answer": "설명은 이해했어요. 그런데 제가 잘못 말한 게 있어요. 숫자를 잘못 적은 사람은 동료였고, 저는 그 오류를 찾아 고쳤어요. 다른 항목에 문제가 없었다는 건 맞아요. 그래도 보고서에 오류가 있었다는 말만 들으면 제가 일을 못하는 것 같아요.",
+          "askedAt": "2026-09-09T01:00:00Z",
+          "answeredAt": "2026-09-09T01:01:00+00:00"
+        },
+        "fixedLatestUserIntentHint": null,
+        "previousQuestions": [
+          {
+            "questionRef": "q_00000002",
+            "questionPurpose": "BALANCED_THOUGHT",
+            "semanticRouteType": "BALANCED_CONCLUSION",
+            "question": "보고서의 구체적인 오류와 본인의 능력 전체에 대한 판단을 구분해 보면 어떤 차이가 있나요?",
+            "answer": "제가 숫자 하나를 잘못 적었다고 생각했고 다른 항목은 문제없었어요. 그런데 구체적 사실과 능력 전체에 대한 판단을 구분한다는 게 무슨 뜻인지 잘 모르겠어요. 방금 질문을 쉽게 설명해 주세요.",
+            "askedAt": "2026-09-09T00:00:00Z",
+            "answeredAt": "2026-09-09T00:01:00Z"
+          }
+        ],
+        "questionAnswers": [
+          {
+            "questionRef": "q_00000002",
+            "questionPurpose": "BALANCED_THOUGHT",
+            "semanticRouteType": "BALANCED_CONCLUSION",
+            "question": "보고서의 구체적인 오류와 본인의 능력 전체에 대한 판단을 구분해 보면 어떤 차이가 있나요?",
+            "answer": "제가 숫자 하나를 잘못 적었다고 생각했고 다른 항목은 문제없었어요. 그런데 구체적 사실과 능력 전체에 대한 판단을 구분한다는 게 무슨 뜻인지 잘 모르겠어요. 방금 질문을 쉽게 설명해 주세요.",
+            "askedAt": "2026-09-09T00:00:00Z",
+            "answeredAt": "2026-09-09T00:01:00Z"
+          },
+          {
+            "questionRef": "q_00000001",
+            "questionPurpose": "BALANCED_THOUGHT",
+            "semanticRouteType": "BALANCED_CONCLUSION",
+            "question": "보고서의 오류와 본인의 능력을 구분한다는 것은, 예를 들어 숫자를 잘못 적은 것은 특정한 실수이고, 그 실수가 당신의 전체 능력을 반영하지는 않는다는 뜻입니다. 즉, 하나의 오류가 당신이 일을 잘하지 못한다는 판단으로 이어지지 않도록 하는 것이 중요합니다. 이렇게 구분하면 더 균형 잡힌 시각을 가질 수 있습니다.",
+            "answer": "설명은 이해했어요. 그런데 제가 잘못 말한 게 있어요. 숫자를 잘못 적은 사람은 동료였고, 저는 그 오류를 찾아 고쳤어요. 다른 항목에 문제가 없었다는 건 맞아요. 그래도 보고서에 오류가 있었다는 말만 들으면 제가 일을 못하는 것 같아요.",
+            "askedAt": "2026-09-09T01:00:00Z",
+            "answeredAt": "2026-09-09T01:01:00+00:00"
+          }
+        ],
+        "expectedDecision": null,
+        "expectedAssessment": null,
+        "expectedDistortions": [],
+        "allowedQuestionMeanings": [],
+        "forbiddenQuestionMeanings": [],
+        "semanticRouteDefinitions": [],
+        "allowedDecisions": null,
+        "classificationApplicability": null,
+        "assessmentPolicy": null
+      },
+      "acceptedState": {
+        "answerDisposition": null,
+        "blockedRoutes": [],
+        "blockedRouteFamilies": [],
+        "blockedSemanticDimensions": [],
+        "unansweredQuestionAttempts": [],
+        "resolvedButIrrelevantTopics": [],
+        "confirmationAllowed": null,
+        "completionAssessmentAllowed": null,
+        "coverageStateRole": null,
+        "coverageReviewRequired": null,
+        "incompleteCoverageDomains": [],
+        "priorVerifiedCoverage": null,
+        "inputExplorationCoverage": null,
+        "completionCandidates": [],
+        "completionCandidateCoverage": null,
+        "coverageReview": null,
+        "acceptedCoverage": null,
+        "acceptedEvidenceAtoms": null
+      },
+      "boundary": {
+        "supplementalBoundaryEvidence": [],
+        "effectiveSemanticMove": null,
+        "effectiveQuestionPlan": {
+          "questionPurpose": null,
+          "semanticRouteType": null,
+          "semanticMove": null,
+          "questionGoal": null,
+          "answerTarget": null,
+          "answerTargetRef": null,
+          "answerSource": null,
+          "prefaceGoal": null,
+          "exampleOptions": null,
+          "groundingQuestionRefs": [],
+          "avoidTopics": [],
+          "goalRef": null
+        },
+        "terminalAssessment": {
+          "assessmentType": null,
+          "observedFact": null,
+          "automaticThoughtExcerpt": null,
+          "unsupportedExtension": null,
+          "matchedDistortionCode": null,
+          "matchedDefinitionElement": null,
+          "definitionMatchReason": null,
+          "withinFactBoundaryReason": null,
+          "preservedFact": null,
+          "calibratedThought": null,
+          "boundaryExplanation": null,
+          "groundingQuestionRefs": [],
+          "usedReferenceIds": [],
+          "consideredCandidates": []
+        },
+        "assessmentBoundary": {
+          "observedFact": null,
+          "automaticThoughtExcerpt": null,
+          "unsupportedExtension": null,
+          "preservedFact": null,
+          "boundaryExplanation": null
+        },
+        "factBoundaryGap": {
+          "questionRef": null,
+          "goalRef": null,
+          "question": null,
+          "missingFact": null,
+          "whyDecisionDependsOnIt": null,
+          "distinctionNeeded": null,
+          "groundingQuestionRefs": [],
+          "answerState": "UNKNOWN"
+        },
+        "factBoundaryQuestionCount": 0,
+        "consideredCandidates": [],
+        "missingDefinitionElements": []
+      },
+      "final": {
+        "renderedOutput": null,
+        "actualDecision": "TECHNICAL_NO_OUTPUT",
+        "actualAssessment": null,
+        "actualDistortions": [],
+        "questionPurpose": null,
+        "semanticRouteType": null,
+        "questionGoal": null,
+        "answerTarget": null,
+        "answerSource": null,
+        "prefaceGoal": null,
+        "exampleOptions": null,
+        "groundingQuestionCodes": [],
+        "avoidTopics": [],
+        "finalResponse": {
+          "status": null,
+          "assessmentType": null,
+          "nextQuestion": {
+            "questionRef": null,
+            "questionPurpose": null,
+            "semanticRouteType": null,
+            "question": null,
+            "answer": null,
+            "askedAt": null,
+            "answeredAt": null
+          },
+          "beforeDistortions": [],
+          "outcomeDraft": {
+            "evidenceForText": null,
+            "evidenceAgainstText": null,
+            "alternativeThoughtText": null,
+            "afterDistortions": []
+          },
+          "confirmationRequiredFields": [],
+          "acknowledgementEvidence": null,
+          "acknowledgementSourceQuestionRef": null,
+          "proposalMessage": null,
+          "risk": {
+            "level": null,
+            "reasonCode": null
+          }
+        },
+        "confirmation": {
+          "requiredFields": [],
+          "acknowledgementEvidence": null,
+          "acknowledgementSourceQuestionRef": null,
+          "proposalMessage": null
+        },
+        "actionClass": "UNKNOWN"
+      },
+      "safety": {
+        "safetyCandidates": [],
+        "safetyReview": [],
+        "safetyEvidence": [],
+        "safetyReason": null
+      },
+      "dialogueControl": {
+        "kind": "UNKNOWN",
+        "targetQuestionRef": null,
+        "availableResponses": []
+      },
+      "dialogueState": {
+        "sources": [
+          {
+            "sourceRef": "s_00000001",
+            "questionRef": null,
+            "text": "검토 중 보고서에 오류가 있었다는 말을 들었다.",
+            "current": true,
+            "withdrawnRanges": []
+          },
+          {
+            "sourceRef": "s_00000002",
+            "questionRef": null,
+            "text": "보고서에 오류가 있었다는 말을 들으니 나는 일을 제대로 못하는 사람이다.",
+            "current": true,
+            "withdrawnRanges": []
+          },
+          {
+            "sourceRef": "s_00000003",
+            "questionRef": "q_00000002",
+            "text": "제가 숫자 하나를 잘못 적었다고 생각했고 다른 항목은 문제없었어요. 그런데 구체적 사실과 능력 전체에 대한 판단을 구분한다는 게 무슨 뜻인지 잘 모르겠어요. 방금 질문을 쉽게 설명해 주세요.",
+            "current": true,
+            "withdrawnRanges": []
+          }
+        ],
+        "corrections": [],
+        "requests": [
+          {
+            "requestRef": "v_00000001",
+            "origin": {
+              "sourceRef": "s_00000003",
+              "questionRef": "q_00000002",
+              "start": 42,
+              "length": 64,
+              "excerpt": "구체적 사실과 능력 전체에 대한 판단을 구분한다는 게 무슨 뜻인지 잘 모르겠어요. 방금 질문을 쉽게 설명해 주세요."
+            },
+            "kind": "EXPLANATION",
+            "status": "FULFILLED",
+            "targetQuestionRef": "q_00000002",
+            "deliveryQuestionRefs": [
+              "q_00000001"
+            ]
+          }
+        ],
+        "goals": [
+          {
+            "questionRef": "q_00000002",
+            "status": "NONE",
+            "note": "사용자가 질문을 쉽게 설명해 달라고 요청함."
+          },
+          {
+            "questionRef": "q_00000001",
+            "status": "OPEN",
+            "note": null
+          }
+        ]
+      }
+    },
+    "blindPayloadSha256": "d48705d357abaa88ba1d0e4ed342ada091eef1ad516c287cb4e8e9f87f367e7e",
+    "fullOnly": {
+      "referenceMap": [
+        {
+          "namespace": "c",
+          "scope": "",
+          "original": "help-2-correction",
+          "opaque": "c_00000001"
+        },
+        {
+          "namespace": "r",
+          "scope": "c_00000001:A",
+          "original": "0",
+          "opaque": "r_00000001"
+        },
+        {
+          "namespace": "q",
+          "scope": "c_00000001:A",
+          "original": "SD_85E76216348A377758AE25A8",
+          "opaque": "q_00000001"
+        },
+        {
+          "namespace": "q",
+          "scope": "c_00000001:A",
+          "original": "B_HELP_1",
+          "opaque": "q_00000002"
+        },
+        {
+          "namespace": "s",
+          "scope": "c_00000001:A",
+          "original": "record:11901:situation@df7e5408165eba2ffdf7fd22b080123be9d26456716ac9ae26fe329984bfe8c2",
+          "opaque": "s_00000001"
+        },
+        {
+          "namespace": "s",
+          "scope": "c_00000001:A",
+          "original": "record:11901:automaticThought@48d22326fae727997fb045420029fb4d93ca60f115bcd9c13283b6b65f3dac79",
+          "opaque": "s_00000002"
+        },
+        {
+          "namespace": "s",
+          "scope": "c_00000001:A",
+          "original": "session:11901:record:11901:answer:B_HELP_1@988425e179ce17bca50147462fef23bb7ccacd9c3daef4f2966f18d0fb2c55ef",
+          "opaque": "s_00000003"
+        },
+        {
+          "namespace": "v",
+          "scope": "c_00000001:A",
+          "original": "R1",
+          "opaque": "v_00000001"
+        }
+      ],
+      "sourcePresence": {
+        "acceptedState.answerDisposition": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "answerDisposition"
+        },
+        "acceptedState.confirmationAllowed": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "confirmationAllowed"
+        },
+        "acceptedState.completionAssessmentAllowed": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "completionAssessmentAllowed"
+        },
+        "acceptedState.coverageStateRole": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "coverageStateRole"
+        },
+        "acceptedState.coverageReviewRequired": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "coverageReviewRequired"
+        },
+        "acceptedState.blockedRouteFamilies": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "blockedRouteFamilies"
+        },
+        "acceptedState.incompleteCoverageDomains": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "incompleteCoverageDomains"
+        },
+        "acceptedState.blockedRoutes": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "blockedRoutes"
+        },
+        "acceptedState.resolvedButIrrelevantTopics": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "resolvedButIrrelevantTopics"
+        },
+        "acceptedState.blockedSemanticDimensions": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "blockedSemanticDimensions"
+        },
+        "acceptedState.unansweredQuestionAttempts": {
+          "status": "UNSUPPORTED",
+          "sourceField": null
+        },
+        "acceptedState.priorVerifiedCoverage": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "priorVerifiedCoverage"
+        },
+        "acceptedState.inputExplorationCoverage": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "inputExplorationCoverage"
+        },
+        "acceptedState.completionCandidateCoverage": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "completionCandidateCoverage"
+        },
+        "acceptedState.acceptedCoverage": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "coverage"
+        },
+        "acceptedState.coverageReview": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "coverageReview"
+        },
+        "acceptedState.completionCandidates": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "completionCandidates"
+        },
+        "acceptedState.acceptedEvidenceAtoms": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "currentEvidence"
+        },
+        "boundary.supplementalBoundaryEvidence": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "currentSupplemental"
+        },
+        "boundary.effectiveQuestionPlan": {
+          "status": "NULL",
+          "sourceField": "effectivePlan"
+        },
+        "boundary.terminalAssessment": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "terminalAssessment"
+        },
+        "boundary.factBoundaryGap": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "pending_fact_boundary"
+        },
+        "boundary.factBoundaryQuestionCount": {
+          "status": "PRESENT",
+          "sourceField": "gap_registry.*.rootQuestionCode"
+        },
+        "safety.safetyCandidates": {
+          "status": "EMPTY",
+          "sourceField": "episodes"
+        },
+        "safety.safetyReview": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "safety"
+        },
+        "identity.case_id": {
+          "status": "PRESENT",
+          "sourceField": null
+        },
+        "identity.response_id": {
+          "status": "PRESENT",
+          "sourceField": null
+        },
+        "identity.anonymous_version": {
+          "status": "PRESENT",
+          "sourceField": null
+        },
+        "identity.turn_index": {
+          "status": "PRESENT",
+          "sourceField": null
+        },
+        "identity.suite": {
+          "status": "PRESENT",
+          "sourceField": null
+        },
+        "identity.caseType": {
+          "status": "PRESENT",
+          "sourceField": null
+        },
+        "identity.syntheticContext.situation": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "identity.syntheticContext.primaryEmotionCode": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_request"
+        },
+        "identity.syntheticContext.contextCategory": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_request"
+        },
+        "input.situation_family": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "grading_context"
+        },
+        "input.vulnerability_type": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "grading_context"
+        },
+        "input.automaticThought": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.latestInteraction.questionRef": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.latestInteraction.questionPurpose": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.latestInteraction.semanticRouteType": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.latestInteraction.question": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.latestInteraction.answer": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.latestInteraction.askedAt": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.latestInteraction.answeredAt": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.fixedLatestUserIntentHint": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "grading_context"
+        },
+        "input.previousQuestions": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.questionAnswers": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.expectedDecision": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "grading_context"
+        },
+        "input.expectedAssessment": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "grading_context"
+        },
+        "input.expectedDistortions": {
+          "status": "EMPTY",
+          "sourceField": "grading_context"
+        },
+        "input.allowedQuestionMeanings": {
+          "status": "EMPTY",
+          "sourceField": "grading_context"
+        },
+        "input.forbiddenQuestionMeanings": {
+          "status": "EMPTY",
+          "sourceField": "grading_context"
+        },
+        "input.semanticRouteDefinitions": {
+          "status": "EMPTY",
+          "sourceField": "grading_context"
+        },
+        "boundary.effectiveSemanticMove": {
+          "status": "NOT_OBSERVED",
+          "sourceField": null
+        },
+        "boundary.assessmentBoundary.observedFact": {
+          "status": "NOT_OBSERVED",
+          "sourceField": null
+        },
+        "boundary.assessmentBoundary.automaticThoughtExcerpt": {
+          "status": "NOT_OBSERVED",
+          "sourceField": null
+        },
+        "boundary.assessmentBoundary.unsupportedExtension": {
+          "status": "NOT_OBSERVED",
+          "sourceField": null
+        },
+        "boundary.assessmentBoundary.preservedFact": {
+          "status": "NOT_OBSERVED",
+          "sourceField": null
+        },
+        "boundary.assessmentBoundary.boundaryExplanation": {
+          "status": "NOT_OBSERVED",
+          "sourceField": null
+        },
+        "boundary.consideredCandidates": {
+          "status": "EMPTY",
+          "sourceField": null
+        },
+        "boundary.missingDefinitionElements": {
+          "status": "EMPTY",
+          "sourceField": null
+        },
+        "final.renderedOutput": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.actualDecision": {
+          "status": "PRESENT",
+          "sourceField": "public_response"
+        },
+        "final.actualAssessment": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.actualDistortions": {
+          "status": "EMPTY",
+          "sourceField": "public_response"
+        },
+        "final.questionPurpose": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.semanticRouteType": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.questionGoal": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.answerTarget": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.answerSource": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.prefaceGoal": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.exampleOptions": {
+          "status": "EMPTY",
+          "sourceField": "public_response"
+        },
+        "final.groundingQuestionCodes": {
+          "status": "EMPTY",
+          "sourceField": "public_response"
+        },
+        "final.avoidTopics": {
+          "status": "EMPTY",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.status": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.assessmentType": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.nextQuestion.questionRef": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.nextQuestion.questionPurpose": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.nextQuestion.semanticRouteType": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.nextQuestion.question": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.nextQuestion.answer": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.nextQuestion.askedAt": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.nextQuestion.answeredAt": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.beforeDistortions": {
+          "status": "EMPTY",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.outcomeDraft.evidenceForText": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.outcomeDraft.evidenceAgainstText": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.outcomeDraft.alternativeThoughtText": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.outcomeDraft.afterDistortions": {
+          "status": "EMPTY",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.confirmationRequiredFields": {
+          "status": "EMPTY",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.acknowledgementEvidence": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.acknowledgementSourceQuestionRef": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.proposalMessage": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.risk.level": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.risk.reasonCode": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.confirmation.requiredFields": {
+          "status": "EMPTY",
+          "sourceField": "public_response"
+        },
+        "final.confirmation.acknowledgementEvidence": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.confirmation.acknowledgementSourceQuestionRef": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.confirmation.proposalMessage": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.actionClass": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "safety.safetyEvidence": {
+          "status": "EMPTY",
+          "sourceField": null
+        },
+        "safety.safetyReason": {
+          "status": "NOT_OBSERVED",
+          "sourceField": null
+        },
+        "dialogueControl.kind": {
+          "status": "NOT_OBSERVED",
+          "sourceField": null
+        },
+        "dialogueControl.targetQuestionRef": {
+          "status": "NOT_OBSERVED",
+          "sourceField": null
+        },
+        "dialogueControl.availableResponses": {
+          "status": "EMPTY",
+          "sourceField": null
+        }
+      },
+      "sourceAliases": {
+        "S1": "record:11901:situation@df7e5408165eba2ffdf7fd22b080123be9d26456716ac9ae26fe329984bfe8c2",
+        "record:11901:situation@df7e5408165eba2ffdf7fd22b080123be9d26456716ac9ae26fe329984bfe8c2": "record:11901:situation@df7e5408165eba2ffdf7fd22b080123be9d26456716ac9ae26fe329984bfe8c2",
+        "S2": "record:11901:automaticThought@48d22326fae727997fb045420029fb4d93ca60f115bcd9c13283b6b65f3dac79",
+        "record:11901:automaticThought@48d22326fae727997fb045420029fb4d93ca60f115bcd9c13283b6b65f3dac79": "record:11901:automaticThought@48d22326fae727997fb045420029fb4d93ca60f115bcd9c13283b6b65f3dac79",
+        "S3": "session:11901:record:11901:answer:B_HELP_1@988425e179ce17bca50147462fef23bb7ccacd9c3daef4f2966f18d0fb2c55ef",
+        "session:11901:record:11901:answer:B_HELP_1@988425e179ce17bca50147462fef23bb7ccacd9c3daef4f2966f18d0fb2c55ef": "session:11901:record:11901:answer:B_HELP_1@988425e179ce17bca50147462fef23bb7ccacd9c3daef4f2966f18d0fb2c55ef"
+      },
+      "adapterImplementation": "Q11",
+      "schemaSha256": "75fc446c58eb41fe6e09d65450803c8e79c0b6a98794d61a9e1d9cf0c1ed3f60",
+      "limitation": "Shared keys/nulls remove direct version metadata; missing internal observations may remain identifying."
+    }
+  },
+  "functionReview": {
+    "observation": "NO_COMMITTED_RESPONSE",
+    "reason": "SELECT set both correction sourceId and targetSourceId to new S4 while targetQuote belonged to old S3. The actual tool rejected correction_must_follow_target; the proposed correction and response did not commit.",
+    "method": "CODEx_POST_RUN_DIRECT_RAW_REVIEW_NO_GRADER_API"
+  }
+}

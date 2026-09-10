@@ -1,0 +1,703 @@
+{
+  "revision": "simple-dialogue-2",
+  "knownRevision": "cbt-known-scope-2",
+  "rubricVersion": "1.12",
+  "createdAt": "2026-09-09T05:45:19.180843+00:00",
+  "files": [
+    {
+      "path": "app.py",
+      "bytes": 7277,
+      "sha256": "f77e218a5edb67a7772703053585434a6ccb7a6d3d1b448b15a49795239a27ee"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/baseline/app.py",
+      "bytes": 7294,
+      "sha256": "d11f23c3e23ff588c838ad319b5dc2acc9109fc2bafff3b3095ac08f1de12c00"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/baseline/cbt_agent.py",
+      "bytes": 105203,
+      "sha256": "ee8f742d7ae90a0a23846f867382fc04991ba4244075b6a460d8a3fd42b2b613"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/baseline/cbt_session_agent.py",
+      "bytes": 159173,
+      "sha256": "e359c881ac8a544955800372e6db3b84e657ea5d0ebd55b81cb0118ef31e6d5d"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/baseline/records_agent.py",
+      "bytes": 15919,
+      "sha256": "d3322b4a3fb1157ffd350b57e4f6dd4c4264037f64a90979f917b27ab8c51e41"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/baseline/requirements.txt",
+      "bytes": 3168,
+      "sha256": "f610bd67950cbd46de0ffaa9dd537e84dcd0f82098612ba1f90de4798e11937b"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/grader-hash-only.txt",
+      "bytes": 141290,
+      "sha256": "883fe7c7e1d69f81dd2682ea230899fa1e5030422074fbbb619669c1a2f50390"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/known/canonical-boundary-cases.json",
+      "bytes": 51889,
+      "sha256": "74f6220e5fbdeba7a260f2b49b2479ec1355b901e29d441411d516a5fe7f3762"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/known/canonical-feature-cases.json",
+      "bytes": 287170,
+      "sha256": "6fc929743423c6ccc3fa707637249940577c67b61f5faa74809772402b7fb66c"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/known/canonical-regression-cases.json",
+      "bytes": 369167,
+      "sha256": "8438b0d5c25d1e8ad1e340bc3ad144428a46ba8cd08d3e9322162bdd3f9bca88"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/known/fresh-q10-holdout-cases.json",
+      "bytes": 267510,
+      "sha256": "0e181749ecfadbc84846588b4a450b67894773b5294e5d988a2a1b4e5dbe275f"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/known/known-holdout-regression-cases.json",
+      "bytes": 184538,
+      "sha256": "8121a9a64d95e79507a08329e95881ce504d2377684cc0be91d70cc662da6200"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/known/known-long-sessions.json",
+      "bytes": 3621,
+      "sha256": "4184da0e757bf371b3580b16d962a1034ccbe73565e0973662bdccec861557c3"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/known/q10-long-sessions.json",
+      "bytes": 4300,
+      "sha256": "e59e6e89ed7e8ca381d8931f8d28f25dabde5b039a59268a6bc0f5a1feeb7fb6"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/offline-receipt.json",
+      "bytes": 5818,
+      "sha256": "cbde144f9df16641307c30aadbc6718a2cbc872891a9c2b90aa24791402a2535"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/openapi.json",
+      "bytes": 20783,
+      "sha256": "27b96486bd1f060dc45dba19d2899a6401fc09870894b82e1cc9ea9fb4f07ba5"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-evaluation/asset-index.json",
+      "bytes": 10972,
+      "sha256": "fd84974e0c69df707dc9d12a4fec1425e367bc282185029a189bfaaf2cb53544"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-evaluation/execution-contract.md",
+      "bytes": 14807,
+      "sha256": "c04d8e82dbd69d1e26d3b90dd7d71b9120b4a9505d898f2ffe6d36abcb3739af"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-evaluation/holdout-manifest.json",
+      "bytes": 2322,
+      "sha256": "76ef2e931f97b798ab0ffd64cbdfd520f487a547f72bb67533962d1b0cff882a"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-evaluation/known/canonical-boundary-cases.json",
+      "bytes": 51889,
+      "sha256": "74f6220e5fbdeba7a260f2b49b2479ec1355b901e29d441411d516a5fe7f3762"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-evaluation/known/canonical-feature-cases.json",
+      "bytes": 287170,
+      "sha256": "6fc929743423c6ccc3fa707637249940577c67b61f5faa74809772402b7fb66c"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-evaluation/known/canonical-regression-cases.json",
+      "bytes": 369167,
+      "sha256": "8438b0d5c25d1e8ad1e340bc3ad144428a46ba8cd08d3e9322162bdd3f9bca88"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-evaluation/known/fresh-q10-holdout-cases.json",
+      "bytes": 267510,
+      "sha256": "0e181749ecfadbc84846588b4a450b67894773b5294e5d988a2a1b4e5dbe275f"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-evaluation/known/known-holdout-regression-cases.json",
+      "bytes": 184538,
+      "sha256": "8121a9a64d95e79507a08329e95881ce504d2377684cc0be91d70cc662da6200"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-evaluation/known/known-long-sessions.json",
+      "bytes": 3621,
+      "sha256": "4184da0e757bf371b3580b16d962a1034ccbe73565e0973662bdccec861557c3"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-evaluation/known/q10-long-sessions.json",
+      "bytes": 4300,
+      "sha256": "e59e6e89ed7e8ca381d8931f8d28f25dabde5b039a59268a6bc0f5a1feeb7fb6"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-evaluation/known-input-lock.json",
+      "bytes": 2547,
+      "sha256": "f6015981d7d84c8468f54c74375ee88a7a8a0919bc8fd68e356f2115f73e278c"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-evaluation/known-original/canonical-boundary-cases.json",
+      "bytes": 51889,
+      "sha256": "74f6220e5fbdeba7a260f2b49b2479ec1355b901e29d441411d516a5fe7f3762"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-evaluation/known-original/canonical-feature-cases.json",
+      "bytes": 284373,
+      "sha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-evaluation/known-original/canonical-regression-cases.json",
+      "bytes": 357002,
+      "sha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-evaluation/known-original/fresh-q10-holdout-cases.json",
+      "bytes": 273016,
+      "sha256": "90c2cb93855e3e5300b18981a7416bdd101eae7d2a56986f1f1831ab7c06149c"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-evaluation/known-original/known-holdout-regression-cases.json",
+      "bytes": 185432,
+      "sha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-evaluation/known-original/known-long-sessions.json",
+      "bytes": 2802,
+      "sha256": "4172949989456f86d36f034d8be96db42e3a8a0ffddfcd447802db423ccad986"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-evaluation/known-original/q10-long-sessions.json",
+      "bytes": 3847,
+      "sha256": "29c9e712f6d37d63f5f7bacf3dda558d1a031b23ee644c28af2f04f0c48808e5"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-evaluation/known-revision-changes.json",
+      "bytes": 144912,
+      "sha256": "32202a59b3bf311021a9bcbd57c7fb65ec3fa33305bcd0cd44ecc8869acfd0ee"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-evaluation/known-revision-contract.md",
+      "bytes": 4354,
+      "sha256": "a80057e53369eaa94cd09886bb59437654b25263eb2330c64b0cbc9b8e5f609d"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-evaluation/known-revision-manifest.json",
+      "bytes": 3733,
+      "sha256": "9efda83cb19e2dfdf370d4578cef9586e0a748a638eeaa06f6ee5510a8c97505"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-evaluation/Mindot-CBT-Q11-Hidden-Holdout-Sealed.tar.enc",
+      "bytes": 51232,
+      "sha256": "a5de742651891641fd1ce78a65aa0c6c7d11a4fd1e4ac79250133706b916f99e"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-evaluation/q10-source-lock.json",
+      "bytes": 8051,
+      "sha256": "5b322d44cbcd04c89c92bd910c97108d4848a5d89b863d88b4cc9a8c9cf8fb5f"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-evaluation/raw-export-contract.md",
+      "bytes": 9966,
+      "sha256": "db5e0371fa69337b56d2b7c7d6a717f4dffd001b07ef829b15adfdae050babe4"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-simple/artifact-checks.json",
+      "bytes": 1077,
+      "sha256": "5755858ccd66c8b8024643137120dc0a32dde726a0a0486ddf65e8ca889771d0"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-simple/canary-plan.json",
+      "bytes": 37283,
+      "sha256": "cbef856a9766d8fd5222f2c593422261b4612fdcf9bc69f3775badffb5ad5bcf"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-simple/design-and-contract.md",
+      "bytes": 29028,
+      "sha256": "b7fd79923ea7570e4775fcb6709efd34f4331c2d877f93cba403ff7012f66830"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-simple/implementation-base-manifest.json",
+      "bytes": 7953,
+      "sha256": "d92d0a500aaa7115f5426c1fc7feb2abc5d90225938174f48e249de594c7bc37"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-simple/input-capacity-decision.md",
+      "bytes": 5856,
+      "sha256": "7a0369f0d55d5f725fd6dd049d33cdd62fbe986613c325201843c35fd827d42b"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-simple/iteration-log-snapshot.md",
+      "bytes": 1393,
+      "sha256": "7f19d2d58b65efcccd2b2f0a87a56ea6d8bcf1de514ed264414a8b309629b917"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-simple/offline-checks.md",
+      "bytes": 9885,
+      "sha256": "f02874e97eab5479b1f14151f4d8d41eb82af307777272506f6d113120efe298"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-simple/package-review.md",
+      "bytes": 2468,
+      "sha256": "37b5ac6d4a00b4d1a95aa6081d3e9b247e75da6fd103c9cf13b297a14a612bd4"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-simple/product-scope-and-test-policy.md",
+      "bytes": 4886,
+      "sha256": "767b5d194c27fb3562f5a3911fae5794c60ec74df591df81ac313109911ff637"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-simple/prompts/agent.txt",
+      "bytes": 4504,
+      "sha256": "a2e3c98cbc802e3d15f6fbbae957dec00eecc73131369da5a0a45065d0c9aed5"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-simple/prompts/assessment-review.txt",
+      "bytes": 919,
+      "sha256": "61e2c7ef1d10f5910f2b85b6afac6a2244ae2af4e112e684cdc63b63a79c2b7c"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-simple/prompts/assessor.txt",
+      "bytes": 3213,
+      "sha256": "af67be1938c86c96adcf108b2787b8c41454e1f9a07e588d00777bdd9f4eb861"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-simple/prompts/writer-repair.txt",
+      "bytes": 592,
+      "sha256": "b557c6b5ad76c53af2d5be9817bab71c20498b781bf0a0e121e67e09cda4d81a"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-simple/prompts/writer.txt",
+      "bytes": 2036,
+      "sha256": "18c5420ed4b6a73a36fa0ccb376b6bded5c6d5ccbbe390e6244b205778d6093f"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/docs/cbt-q11-simple/schema.py",
+      "bytes": 11654,
+      "sha256": "441f818924eaaf2d388de276fbdbfe96cf051f47d7c6307584989c6fca3bb1c4"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/manifest.json",
+      "bytes": 7870,
+      "sha256": "1b64dea2c29566ac215103eb139b81feccb61978fffd3ae76dd6f56be3913c6a"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/Mindot-Q11-Question-First-Codex-Prompt.md",
+      "bytes": 7174,
+      "sha256": "06a010634d0ce459855e2270a85da3b716d0a68652ca05f36fea5b8810a34ec6"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/package/README.md",
+      "bytes": 1679,
+      "sha256": "785bf5726aeaf34f5d7c4bb0a5ce157845b7964b6060266feb273e96b2b804da"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/review.md",
+      "bytes": 6688,
+      "sha256": "d7340bddedbf057ce7963179d2ab50fe0fdda0964d9c3d837d37d1aa2c67e1a2"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/revision-checks.json",
+      "bytes": 311,
+      "sha256": "230859fa6e53a635eb0e4900d4d4c3bc535f371fdf890600d587093e0ec8e159"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/runner/formal.py",
+      "bytes": 7240,
+      "sha256": "dcb22d2d7db58cb81bc5e523cfdfc3d49925f262aa62ed8617d41543ade5d0fd"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/runner/formal_worker.py",
+      "bytes": 7442,
+      "sha256": "57445a412c207aa977a8dec7a90069849653915b95eecdc5fb0bf6a75d9d5ca9"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/runner/input_plan.py",
+      "bytes": 25479,
+      "sha256": "b4a59793a643c30d97346584a05a0f7aba463a79e240749d46b137d5112f7834"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/runner/legacy_export.py",
+      "bytes": 44933,
+      "sha256": "a5e46a31401226cacf454bd4fdf66162296c32958fb625e226811730e7930c0c"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/runner/neutral.py",
+      "bytes": 9189,
+      "sha256": "6d1680d63ed10d311ad03e0a2071c070603cc18b41bb3681d242ed86cad6f2d1"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/runner/offline.py",
+      "bytes": 2955,
+      "sha256": "b52ef86d46c659b72615926c650d0786f845d8900004cf0b4e3cf31a1ea01ba7"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/runner/offline_q10.py",
+      "bytes": 3152,
+      "sha256": "31ffbbb1111881ea00f0e5fc58dfe2e585d8a2f96286b350e7b17d0e95c9a3a9"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/runner/package_results.py",
+      "bytes": 6301,
+      "sha256": "b1e9378cbf08ec5d95622b50469b2d6a422362e7fc7414c6134c30adf879e603"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/runner/q10_adapter.py",
+      "bytes": 16587,
+      "sha256": "d02f3cfde986daefb781f6df474bd07beb1854c7ba544799fedcf0db9cad4244"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/runner/release.py",
+      "bytes": 5355,
+      "sha256": "9f46ac230ee1b5b0a44e53cf988860adfcd6b343d7864bd3dda276d8ef515fe8"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/runner/revision_checks.py",
+      "bytes": 2151,
+      "sha256": "b38d865fe12f90225b150f02a9ba6e95d0e76d5c0b2fe5f0e4c9dfb0896c7c60"
+    },
+    {
+      "path": "artifacts/simple-dialogue-2-20260909/runner/run.py",
+      "bytes": 12116,
+      "sha256": "cf4baa4045159b75674b88e4826a3e868dd94a5adad7554cb9e8c7aa0671535a"
+    },
+    {
+      "path": "cbt_agent.py",
+      "bytes": 105203,
+      "sha256": "ee8f742d7ae90a0a23846f867382fc04991ba4244075b6a460d8a3fd42b2b613"
+    },
+    {
+      "path": "cbt_q11/__init__.py",
+      "bytes": 82,
+      "sha256": "b924c80eea341758dd2d2649649429c66164307b88b6e13fb62d37fe8159ba9c"
+    },
+    {
+      "path": "cbt_q11/agent_graph.py",
+      "bytes": 10137,
+      "sha256": "7b867abccc5763e598739e8b2a805d94236c7b8d9a8e8f3278f4a9176cc52ff5"
+    },
+    {
+      "path": "cbt_q11/assessment_target.py",
+      "bytes": 6238,
+      "sha256": "fe32d3a987807001029b8f636b0d62d72421cb459b202ad34832280f64efe635"
+    },
+    {
+      "path": "cbt_q11/capacity.py",
+      "bytes": 3587,
+      "sha256": "1251a7c1802360848acf6715912abc49d6e05c654c32696a60054ad2aa731c51"
+    },
+    {
+      "path": "cbt_q11/checkpoint.py",
+      "bytes": 7404,
+      "sha256": "23b0a4a4be265aadb7fb381e7208e6010d6d5325bf7bc62812aaa81eecc5afca"
+    },
+    {
+      "path": "cbt_q11/completion.py",
+      "bytes": 8932,
+      "sha256": "75f84d634700d063618b84ce1a190e6961b47a5b579d68e9a3475f260773ff59"
+    },
+    {
+      "path": "cbt_q11/contracts.py",
+      "bytes": 3874,
+      "sha256": "daf0c581b36e76c7b59acf7777f063f3ddf07c428b7cc1e6961482840d25c2ca"
+    },
+    {
+      "path": "cbt_q11/diagnostics.py",
+      "bytes": 2021,
+      "sha256": "8c178cd645a294eac684e5b3b63575e57a574450969733be1b9e89ad013fccba"
+    },
+    {
+      "path": "cbt_q11/gaps.py",
+      "bytes": 24546,
+      "sha256": "48f571dbb700b87c51aa2675bab56901419b19625043eb9d0abf00ae6c19fe69"
+    },
+    {
+      "path": "cbt_q11/goals.py",
+      "bytes": 8156,
+      "sha256": "80d74034a2295ffc3051d3b53ea235b7771a6b2225fd3a89d90306a8c977a4a8"
+    },
+    {
+      "path": "cbt_q11/llm.py",
+      "bytes": 15811,
+      "sha256": "e5ca36ee39535b98ccceb87b42dd189addd76d05e4af31e9dfb8cce2a3567957"
+    },
+    {
+      "path": "cbt_q11/memory.py",
+      "bytes": 6502,
+      "sha256": "a5da98e50dc4377afcb53d2ef5b7abc1d2d4e302f780fc61ea30f66ad610b1d5"
+    },
+    {
+      "path": "cbt_q11/phases.py",
+      "bytes": 7017,
+      "sha256": "b5d9674425f9e52b2ed2a8fda79a97cd66e32cab9b577374ef5963b04ba732c7"
+    },
+    {
+      "path": "cbt_q11/planner.py",
+      "bytes": 11839,
+      "sha256": "906d4efc79ad43485e1d3d9bb2888e01fdf5db317d695ecbac10820399504d76"
+    },
+    {
+      "path": "cbt_q11/policy.py",
+      "bytes": 11879,
+      "sha256": "f9b75b734dc1156c49226a31b152d72ce6105be951d2bc30c0e54e397f3ef843"
+    },
+    {
+      "path": "cbt_q11/prompts.py",
+      "bytes": 31153,
+      "sha256": "5f1d9a0ea3cf6fe9766108620f3fa8cb9f0485d0a188b8e9c521973ac18b5f9d"
+    },
+    {
+      "path": "cbt_q11/provider.py",
+      "bytes": 14484,
+      "sha256": "e2867dc5958528de6914e669036f7bec0ff3f9a8b14e15d018b980941e57c3e4"
+    },
+    {
+      "path": "cbt_q11/provider_schemas.py",
+      "bytes": 23030,
+      "sha256": "80b422419afa3ce8e9dc71263d63425b6b2f266a64bce09817be58a262123e2a"
+    },
+    {
+      "path": "cbt_q11/rendering.py",
+      "bytes": 8812,
+      "sha256": "ee4b653c5b4e0ee608133c507ff8928d727ce05db8305ddb371f84acf1dbd4a3"
+    },
+    {
+      "path": "cbt_q11/requests.py",
+      "bytes": 36206,
+      "sha256": "1f54c651b42e882cde1caa7e99684b067559a796a120688e6fd8743ca015bf8e"
+    },
+    {
+      "path": "cbt_q11/review.py",
+      "bytes": 11457,
+      "sha256": "fc3d09335865e1b832aee8bea469e87f0c1b44ecf0a3b1476d21fa573a220b8c"
+    },
+    {
+      "path": "cbt_q11/safety.py",
+      "bytes": 20817,
+      "sha256": "847358f72024086ce34ceaf1d6a00ea3be167c0ffe0724dbafe167ba218cdefa"
+    },
+    {
+      "path": "cbt_q11/service.py",
+      "bytes": 22969,
+      "sha256": "831ac168140190e95c7f2dbce005e2b1b4faae58c144574726abef97f37fa590"
+    },
+    {
+      "path": "cbt_q11/signals.py",
+      "bytes": 624,
+      "sha256": "075c4aa7e556f384e3d8d4ecc74f1b390619ba1953d6b7152712aab9a5af7e12"
+    },
+    {
+      "path": "cbt_q11/state.py",
+      "bytes": 36128,
+      "sha256": "e18b731132c875043524770ee3bf5ac4e356ed3c5d51a60245e4cddc621e9151"
+    },
+    {
+      "path": "cbt_q11/tools.py",
+      "bytes": 16373,
+      "sha256": "38aecc5342a23353ae884c77d7c933b925b01b6fe32872b90d1269d52ed3548e"
+    },
+    {
+      "path": "cbt_q11/validity.py",
+      "bytes": 43794,
+      "sha256": "d243d540b1e4c61ce7630145c0d54c7c28e6387ecc614a7ec351c6265f66c05b"
+    },
+    {
+      "path": "cbt_q11/views.py",
+      "bytes": 4812,
+      "sha256": "198b738312920cf90ca435710aaf36e1b67b9ae53d58e2f1799895aa845a2306"
+    },
+    {
+      "path": "cbt_q11/wire_ids.py",
+      "bytes": 18407,
+      "sha256": "72ddf54cca7580b3406945b2b59581d89c3c0c80a47491ff6b12298ccfa77bf1"
+    },
+    {
+      "path": "cbt_q11/writer.py",
+      "bytes": 11091,
+      "sha256": "5f28aeedb206cb200f8a266e4c42ccd2d7a47cb66dc1536f00fe10d492850165"
+    },
+    {
+      "path": "cbt_session_agent.py",
+      "bytes": 1748,
+      "sha256": "bded02f6090f3394f45a35788c8b0720b69ba48d5f4bba3fd5b50a4ccd73f99e"
+    },
+    {
+      "path": "cbt_simple/__init__.py",
+      "bytes": 80,
+      "sha256": "e933c533394739623ea5177254a47d491f852bdb6e909481231472bf459bed45"
+    },
+    {
+      "path": "cbt_simple/graph.py",
+      "bytes": 16507,
+      "sha256": "ad2ea17fc4b2d5697112b60245767697df9a9d7e6ab25f04b9cfcba720e921c2"
+    },
+    {
+      "path": "cbt_simple/prompts/agent.txt",
+      "bytes": 4504,
+      "sha256": "a2e3c98cbc802e3d15f6fbbae957dec00eecc73131369da5a0a45065d0c9aed5"
+    },
+    {
+      "path": "cbt_simple/prompts/assessment-review.txt",
+      "bytes": 919,
+      "sha256": "61e2c7ef1d10f5910f2b85b6afac6a2244ae2af4e112e684cdc63b63a79c2b7c"
+    },
+    {
+      "path": "cbt_simple/prompts/assessor.txt",
+      "bytes": 3213,
+      "sha256": "af67be1938c86c96adcf108b2787b8c41454e1f9a07e588d00777bdd9f4eb861"
+    },
+    {
+      "path": "cbt_simple/prompts/writer-repair.txt",
+      "bytes": 592,
+      "sha256": "b557c6b5ad76c53af2d5be9817bab71c20498b781bf0a0e121e67e09cda4d81a"
+    },
+    {
+      "path": "cbt_simple/prompts/writer.txt",
+      "bytes": 2036,
+      "sha256": "18c5420ed4b6a73a36fa0ccb376b6bded5c6d5ccbbe390e6244b205778d6093f"
+    },
+    {
+      "path": "cbt_simple/provider.py",
+      "bytes": 10805,
+      "sha256": "9eeb93274953b8c16b92c19787fb3d45afd0bbbae4f20f33dfd0a0094c059051"
+    },
+    {
+      "path": "cbt_simple/schema.py",
+      "bytes": 11654,
+      "sha256": "441f818924eaaf2d388de276fbdbfe96cf051f47d7c6307584989c6fca3bb1c4"
+    },
+    {
+      "path": "cbt_simple/service.py",
+      "bytes": 11744,
+      "sha256": "8dca81b7ae30d3c42e3c50d45cc29983e442357fdaef023753133a298b8d865a"
+    },
+    {
+      "path": "cbt_simple/state.py",
+      "bytes": 19788,
+      "sha256": "3e7ed187e8f386fcb8f3f334c78965ca8380254db08b76ffac6e23a28fad36e7"
+    },
+    {
+      "path": "records_agent.py",
+      "bytes": 15919,
+      "sha256": "d3322b4a3fb1157ffd350b57e4f6dd4c4264037f64a90979f917b27ab8c51e41"
+    },
+    {
+      "path": "requirements.txt",
+      "bytes": 3168,
+      "sha256": "f610bd67950cbd46de0ffaa9dd537e84dcd0f82098612ba1f90de4798e11937b"
+    },
+    {
+      "path": "tests/test_simple_dialogue.py",
+      "bytes": 22901,
+      "sha256": "14217c49a0b57ce7835350bfb1bcc0bccd5bcaa5b61b29bba10b66b0020b3246"
+    }
+  ],
+  "sourceHash": "58d3dbb939a9747209eb2979d078257d1cbbc747c0f573eec64df4949270a701",
+  "model": "gpt-4o-mini",
+  "temperatures": {
+    "agent": 0,
+    "assessor": 0,
+    "writer": 0.3
+  },
+  "phaseOutputCaps": {
+    "SELECT": 8192,
+    "WRITER": 650,
+    "ASSESSOR": 1800,
+    "ASSESSMENT_REVIEW": 1200,
+    "WRITER_REPAIR": 650
+  },
+  "inputTokens": 48000,
+  "inputBytes": 196608,
+  "inputReservationFactor": 1.75,
+  "modelContext": 128000,
+  "modelContextSource": "https://developers.openai.com/api/docs/models/gpt-4o-mini",
+  "providerTimeoutSeconds": 30,
+  "productTimeoutSeconds": 180,
+  "checkpointTTLSeconds": 600,
+  "canaryTokenCap": 1750000,
+  "generationCap": 36,
+  "moderationCap": 12,
+  "productRequestCap": 12,
+  "prompts": {
+    "SELECT": {
+      "sha256": "e7beab355414dedbe2faa4bb5e943677adf48fb4f160027bec98e52368f55f34",
+      "codepoints": 2050
+    },
+    "WRITER": {
+      "sha256": "4ea5f728cd6b51557f9c522ad2877089267b997f2a94f6ddb3386a01badd9570",
+      "codepoints": 889
+    },
+    "ASSESSOR": {
+      "sha256": "2af8efc8abf5799e4ff42419f91e6ab103af39c1e24af59c7cec01fffeb28462",
+      "codepoints": 1499
+    },
+    "ASSESSMENT_REVIEW": {
+      "sha256": "2c29514876ee22a382076d2030730f82dce17797850df9ff2bade4451e2d6dd8",
+      "codepoints": 415
+    },
+    "WRITER_REPAIR": {
+      "sha256": "e25a2cc1af6415b2214fd7ea089933ef41200352f30f19147ca8351d4e5eaffc",
+      "codepoints": 266
+    }
+  },
+  "schemaSha256": "0d65583b76db3aaefca3986a310b021a588f21153580d808b0b54fa9a821cca8",
+  "neutralSchemaSha256": "75fc446c58eb41fe6e09d65450803c8e79c0b6a98794d61a9e1d9cf0c1ed3f60",
+  "python": "D:\\project_mindot\\mindot_ai\\.venv\\Scripts\\python.exe",
+  "pythonVersion": "3.12.9 (tags/v3.12.9:fdb8142, Feb  4 2025, 15:27:58) [MSC v.1942 64 bit (AMD64)]",
+  "dependencies": {
+    "openai": "2.53.0",
+    "langchain-openai": "1.4.1",
+    "langchain-core": "1.5.3",
+    "langgraph": "1.2.9",
+    "pydantic": "2.13.4",
+    "tiktoken": "0.13.0",
+    "fastapi": "0.139.2"
+  },
+  "officialPreReleaseFormula": "known220 + hiddenSingle12 + sum(hiddenLong.maxTurns) per version",
+  "knownCeilings": {
+    "caseVersionRecords": 340,
+    "productRequestsPerVersion": 220,
+    "longSessionDeadlines": {
+      "known:Q10_LONG_REHYDRATE_FULL": 1470,
+      "known:Q9_LONG_REHYDRATE_READY": 930,
+      "known:Q10_LONG_UNCLEAR_DIRECTION": 1290,
+      "known:Q10_LONG_SKIPPED_VARIANTS": 1290,
+      "known:Q10_LONG_RELEVANCE_FEEDBACK": 1290,
+      "known:Q9_LONG_SKIPPED": 1110,
+      "known:Q10_LONG_SAFETY_OVERRIDE": 210,
+      "known:Q9_LONG_FEEDBACK": 1110,
+      "known:Q10_LONG_REPEAT_FEEDBACK": 1290,
+      "known:Q9_LONG_UNCLEAR": 1110
+    },
+    "versions": {
+      "Q10": {
+        "productRequests": 220,
+        "genericLogicalInvocations": 880,
+        "physicalGenericAttempts": 2640,
+        "moderationCalls": 0
+      },
+      "Q11": {
+        "productRequests": 220,
+        "genericLogicalInvocations": 660,
+        "physicalGenericAttempts": 660,
+        "moderationCalls": 220
+      }
+    },
+    "formula": "single_count + sum(long.maxTurns); Q10 generic4/physical12; Q11 generic3/physical3+moderation1",
+    "perRequestDeadlineSeconds": 180,
+    "cleanupMarginSeconds": 30,
+    "maximumConcurrentProductRequests": 2,
+    "maximumConcurrentPerVersion": 1
+  },
+  "knownScheduleSha256": "e5450cb764e3ccea0f83cba494d86112bd43e3edb7db06e97cd9f4c9a7314c70",
+  "classificationSidecarSha256": "c1ce8174c5b967ec88564d2c7acba9a76e51f62e44ba4448b2f30b35eb87f26c",
+  "formalSeed": 20260908,
+  "modelSeed": "NOT_APPLIED_BOTH_VERSIONS",
+  "hiddenKeyRead": false,
+  "officialResults": 0,
+  "productSourceHash": "e5d382d6abdfdd1242b6bbf5d3e892cccb5a7ec4aeffcde27eea79efdf7c7f52",
+  "sourceHashScope": "All locked product, runner, baseline, supplied input/expectation and audit files; productSourceHash separately identifies product files."
+}

@@ -1,0 +1,78 @@
+{
+  "baseCommit": "085fe587afa7365e513c241073849cb69bcbe280",
+  "branch": "fix/CBTAI",
+  "status": "READY_FOR_GPT_FULL_BRANCH_REVIEW",
+  "tests": "NOT_RUN_PENDING_GPT_FULL_BRANCH_REVIEW",
+  "modelCalls": 0,
+  "serverStarts": 0,
+  "ddlExecutions": 0,
+  "catalogSelects": 1,
+  "catalogSha256": "f5ce3cb99e536870c318752dab9be3c72810ec2bd808e6ac997bf67fd5f2545c",
+  "checks": {
+    "java": "compileJava compileTestJava -x test --offline --no-daemon: BUILD SUCCESSFUL 26s",
+    "frontend": "Vite bundle: 129 modules; success",
+    "javascript": "node --check: automaticThought.js, recordsApi.js",
+    "whitespace": "git diff --check: no errors"
+  },
+  "unchangedSinceBase": [
+    "mindot_ai",
+    "mindot_front/src/utils/reflections/confirmThoughtForOpen.js",
+    "mindot_back/src/main/java/com/my/mindot_back/records/service/InsightTransactions.java",
+    "mindot_back/src/main/java/com/my/mindot_back/records/service/LegacyReflectionRetry.java",
+    "mindot_back/src/main/java/com/my/mindot_back/records/dto/PatternSimilarCaseDto.java"
+  ],
+  "findings": [
+    {
+      "id": "F5",
+      "status": "수정",
+      "runtimeVerification": "재리뷰 후 확인"
+    },
+    {
+      "id": "F6",
+      "status": "수정",
+      "runtimeVerification": "재리뷰 후 확인",
+      "database": "실제 카탈로그 확인; SAFETY_STOPPED 확장 코드의 실행은 보류"
+    },
+    {
+      "id": "F7",
+      "status": "수정",
+      "runtimeVerification": "재리뷰 후 확인"
+    },
+    {
+      "id": "F8",
+      "status": "수정",
+      "runtimeVerification": "재리뷰 후 확인"
+    },
+    {
+      "id": "F9",
+      "status": "수정",
+      "runtimeVerification": "재리뷰 후 확인"
+    },
+    {
+      "id": "F10",
+      "status": "수정",
+      "runtimeVerification": "재리뷰 후 확인"
+    },
+    {
+      "id": "F11",
+      "status": "수정",
+      "runtimeVerification": "재리뷰 후 확인"
+    },
+    {
+      "id": "F12",
+      "status": "수정",
+      "runtimeVerification": "재리뷰 후 확인"
+    },
+    {
+      "id": "F13",
+      "status": "수정",
+      "runtimeVerification": "재리뷰 후 확인"
+    },
+    {
+      "id": "F14",
+      "status": "수정",
+      "runtimeVerification": "재리뷰 후 확인"
+    }
+  ],
+  "scope": "Source correction and static checks only. Catalog observations do not prove runtime flow correctness."
+}

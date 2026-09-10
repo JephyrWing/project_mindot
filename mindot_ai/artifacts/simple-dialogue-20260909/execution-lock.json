@@ -1,0 +1,524 @@
+{
+  "revision": "simple-dialogue-1",
+  "createdAt": "2026-09-09T04:20:42.250497+00:00",
+  "files": [
+    {
+      "path": "app.py",
+      "bytes": 7277,
+      "sha256": "f77e218a5edb67a7772703053585434a6ccb7a6d3d1b448b15a49795239a27ee"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\baseline\\app.py",
+      "bytes": 7294,
+      "sha256": "d11f23c3e23ff588c838ad319b5dc2acc9109fc2bafff3b3095ac08f1de12c00"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\baseline\\cbt_agent.py",
+      "bytes": 105203,
+      "sha256": "ee8f742d7ae90a0a23846f867382fc04991ba4244075b6a460d8a3fd42b2b613"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\baseline\\cbt_session_agent.py",
+      "bytes": 159173,
+      "sha256": "e359c881ac8a544955800372e6db3b84e657ea5d0ebd55b81cb0118ef31e6d5d"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\baseline\\records_agent.py",
+      "bytes": 15919,
+      "sha256": "d3322b4a3fb1157ffd350b57e4f6dd4c4264037f64a90979f917b27ab8c51e41"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\baseline\\requirements.txt",
+      "bytes": 3168,
+      "sha256": "f610bd67950cbd46de0ffaa9dd537e84dcd0f82098612ba1f90de4798e11937b"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\grader-hash-only.txt",
+      "bytes": 136063,
+      "sha256": "2bdfd89a6ecf7bc7c74aa0b21f47bc3a8e7f2288467290868d40af91b3fb620f"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\known\\canonical-boundary-cases.json",
+      "bytes": 51889,
+      "sha256": "74f6220e5fbdeba7a260f2b49b2479ec1355b901e29d441411d516a5fe7f3762"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\known\\canonical-feature-cases.json",
+      "bytes": 284373,
+      "sha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\known\\canonical-regression-cases.json",
+      "bytes": 357002,
+      "sha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\known\\fresh-q10-holdout-cases.json",
+      "bytes": 273016,
+      "sha256": "90c2cb93855e3e5300b18981a7416bdd101eae7d2a56986f1f1831ab7c06149c"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\known\\known-holdout-regression-cases.json",
+      "bytes": 185432,
+      "sha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\known\\known-long-sessions.json",
+      "bytes": 2802,
+      "sha256": "4172949989456f86d36f034d8be96db42e3a8a0ffddfcd447802db423ccad986"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\known\\q10-long-sessions.json",
+      "bytes": 3847,
+      "sha256": "29c9e712f6d37d63f5f7bacf3dda558d1a031b23ee644c28af2f04f0c48808e5"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\offline-receipt.json",
+      "bytes": 5192,
+      "sha256": "bfe55b753f83b0af1d27bab56e19dcc3716b391d8d045497c78c8df36a0fe4f7"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\openapi.json",
+      "bytes": 20783,
+      "sha256": "27b96486bd1f060dc45dba19d2899a6401fc09870894b82e1cc9ea9fb4f07ba5"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\package\\docs\\cbt-q11-evaluation\\asset-index.json",
+      "bytes": 8180,
+      "sha256": "b8b55375cb031e84a0f5a36d5acb01c74fd4d82c8dab46da74e327d882e9b10e"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\package\\docs\\cbt-q11-evaluation\\execution-contract.md",
+      "bytes": 13529,
+      "sha256": "17a1991833f097980dce1d59441b5ef55549e904b6b09b10168f52594c260b88"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\package\\docs\\cbt-q11-evaluation\\holdout-manifest.json",
+      "bytes": 2322,
+      "sha256": "76ef2e931f97b798ab0ffd64cbdfd520f487a547f72bb67533962d1b0cff882a"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\package\\docs\\cbt-q11-evaluation\\known-input-lock.json",
+      "bytes": 2547,
+      "sha256": "f6015981d7d84c8468f54c74375ee88a7a8a0919bc8fd68e356f2115f73e278c"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\package\\docs\\cbt-q11-evaluation\\Mindot-CBT-Q11-Hidden-Holdout-Sealed.tar.enc",
+      "bytes": 51232,
+      "sha256": "a5de742651891641fd1ce78a65aa0c6c7d11a4fd1e4ac79250133706b916f99e"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\package\\docs\\cbt-q11-evaluation\\q10-source-lock.json",
+      "bytes": 8051,
+      "sha256": "5b322d44cbcd04c89c92bd910c97108d4848a5d89b863d88b4cc9a8c9cf8fb5f"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\package\\docs\\cbt-q11-evaluation\\raw-export-contract.md",
+      "bytes": 9171,
+      "sha256": "c48203c9236839586e7af9c155122ecc89704aca4c70fc57e1b50e4110260f67"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\package\\docs\\cbt-q11-simple\\canary-plan.json",
+      "bytes": 39540,
+      "sha256": "b6883a4d6f2fd5b5c575e4371e5787291c2d6f5918338ca2c4d129b3a2227df5"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\package\\manifest.json",
+      "bytes": 4294,
+      "sha256": "48c7cf8ec71d670fc829e800a56dec65f1ee77e41ae9e6400bc843799bfddb8b"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\review.md",
+      "bytes": 5719,
+      "sha256": "5c83a66ac9942bcd31ad1be1f05fbbcaffa67054e64c5b2be0adb5172384d833"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\runner\\formal.py",
+      "bytes": 5320,
+      "sha256": "80f0fb7251dc24ed9bda226dec6c01851b4436a1ce85404307d2ecff90474944"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\runner\\formal_worker.py",
+      "bytes": 6993,
+      "sha256": "7cb337f76234b4355ad260831df60d6446c3777b79ef94cfa0bffc00a15b3f52"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\runner\\input_plan.py",
+      "bytes": 23573,
+      "sha256": "8b43d7718773b986c25783d0ee6e0d030e834ead4ed674835d290c045dc3771b"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\runner\\legacy_export.py",
+      "bytes": 44933,
+      "sha256": "a5e46a31401226cacf454bd4fdf66162296c32958fb625e226811730e7930c0c"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\runner\\neutral.py",
+      "bytes": 8747,
+      "sha256": "d068f6643212d1c3a7238e4ca2cc0dccbf16886177c205e172c87e87b183dcbd"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\runner\\offline.py",
+      "bytes": 2955,
+      "sha256": "b52ef86d46c659b72615926c650d0786f845d8900004cf0b4e3cf31a1ea01ba7"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\runner\\offline_q10.py",
+      "bytes": 3152,
+      "sha256": "31ffbbb1111881ea00f0e5fc58dfe2e585d8a2f96286b350e7b17d0e95c9a3a9"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\runner\\package_results.py",
+      "bytes": 6240,
+      "sha256": "d63b282d5cbc0ba6ae8a46073324d05cc30142f8291982347bf3fbf560927c35"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\runner\\q10_adapter.py",
+      "bytes": 16587,
+      "sha256": "d02f3cfde986daefb781f6df474bd07beb1854c7ba544799fedcf0db9cad4244"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\runner\\release.py",
+      "bytes": 5355,
+      "sha256": "9f46ac230ee1b5b0a44e53cf988860adfcd6b343d7864bd3dda276d8ef515fe8"
+    },
+    {
+      "path": "artifacts\\simple-dialogue-20260909\\runner\\run.py",
+      "bytes": 11208,
+      "sha256": "26746f86aabf483414b8a5140017578a57a3ca5393f6c4f83e7a8d9a1ae0c2aa"
+    },
+    {
+      "path": "cbt_agent.py",
+      "bytes": 105203,
+      "sha256": "ee8f742d7ae90a0a23846f867382fc04991ba4244075b6a460d8a3fd42b2b613"
+    },
+    {
+      "path": "cbt_q11\\__init__.py",
+      "bytes": 82,
+      "sha256": "b924c80eea341758dd2d2649649429c66164307b88b6e13fb62d37fe8159ba9c"
+    },
+    {
+      "path": "cbt_q11\\agent_graph.py",
+      "bytes": 10137,
+      "sha256": "7b867abccc5763e598739e8b2a805d94236c7b8d9a8e8f3278f4a9176cc52ff5"
+    },
+    {
+      "path": "cbt_q11\\assessment_target.py",
+      "bytes": 6238,
+      "sha256": "fe32d3a987807001029b8f636b0d62d72421cb459b202ad34832280f64efe635"
+    },
+    {
+      "path": "cbt_q11\\capacity.py",
+      "bytes": 3587,
+      "sha256": "1251a7c1802360848acf6715912abc49d6e05c654c32696a60054ad2aa731c51"
+    },
+    {
+      "path": "cbt_q11\\checkpoint.py",
+      "bytes": 7404,
+      "sha256": "23b0a4a4be265aadb7fb381e7208e6010d6d5325bf7bc62812aaa81eecc5afca"
+    },
+    {
+      "path": "cbt_q11\\completion.py",
+      "bytes": 8932,
+      "sha256": "75f84d634700d063618b84ce1a190e6961b47a5b579d68e9a3475f260773ff59"
+    },
+    {
+      "path": "cbt_q11\\contracts.py",
+      "bytes": 3874,
+      "sha256": "daf0c581b36e76c7b59acf7777f063f3ddf07c428b7cc1e6961482840d25c2ca"
+    },
+    {
+      "path": "cbt_q11\\diagnostics.py",
+      "bytes": 2021,
+      "sha256": "8c178cd645a294eac684e5b3b63575e57a574450969733be1b9e89ad013fccba"
+    },
+    {
+      "path": "cbt_q11\\gaps.py",
+      "bytes": 24546,
+      "sha256": "48f571dbb700b87c51aa2675bab56901419b19625043eb9d0abf00ae6c19fe69"
+    },
+    {
+      "path": "cbt_q11\\goals.py",
+      "bytes": 8156,
+      "sha256": "80d74034a2295ffc3051d3b53ea235b7771a6b2225fd3a89d90306a8c977a4a8"
+    },
+    {
+      "path": "cbt_q11\\llm.py",
+      "bytes": 15811,
+      "sha256": "e5ca36ee39535b98ccceb87b42dd189addd76d05e4af31e9dfb8cce2a3567957"
+    },
+    {
+      "path": "cbt_q11\\memory.py",
+      "bytes": 6502,
+      "sha256": "a5da98e50dc4377afcb53d2ef5b7abc1d2d4e302f780fc61ea30f66ad610b1d5"
+    },
+    {
+      "path": "cbt_q11\\phases.py",
+      "bytes": 7017,
+      "sha256": "b5d9674425f9e52b2ed2a8fda79a97cd66e32cab9b577374ef5963b04ba732c7"
+    },
+    {
+      "path": "cbt_q11\\planner.py",
+      "bytes": 11839,
+      "sha256": "906d4efc79ad43485e1d3d9bb2888e01fdf5db317d695ecbac10820399504d76"
+    },
+    {
+      "path": "cbt_q11\\policy.py",
+      "bytes": 11879,
+      "sha256": "f9b75b734dc1156c49226a31b152d72ce6105be951d2bc30c0e54e397f3ef843"
+    },
+    {
+      "path": "cbt_q11\\prompts.py",
+      "bytes": 31153,
+      "sha256": "5f1d9a0ea3cf6fe9766108620f3fa8cb9f0485d0a188b8e9c521973ac18b5f9d"
+    },
+    {
+      "path": "cbt_q11\\provider.py",
+      "bytes": 14484,
+      "sha256": "e2867dc5958528de6914e669036f7bec0ff3f9a8b14e15d018b980941e57c3e4"
+    },
+    {
+      "path": "cbt_q11\\provider_schemas.py",
+      "bytes": 23030,
+      "sha256": "80b422419afa3ce8e9dc71263d63425b6b2f266a64bce09817be58a262123e2a"
+    },
+    {
+      "path": "cbt_q11\\rendering.py",
+      "bytes": 8812,
+      "sha256": "ee4b653c5b4e0ee608133c507ff8928d727ce05db8305ddb371f84acf1dbd4a3"
+    },
+    {
+      "path": "cbt_q11\\requests.py",
+      "bytes": 36206,
+      "sha256": "1f54c651b42e882cde1caa7e99684b067559a796a120688e6fd8743ca015bf8e"
+    },
+    {
+      "path": "cbt_q11\\review.py",
+      "bytes": 11457,
+      "sha256": "fc3d09335865e1b832aee8bea469e87f0c1b44ecf0a3b1476d21fa573a220b8c"
+    },
+    {
+      "path": "cbt_q11\\safety.py",
+      "bytes": 20817,
+      "sha256": "847358f72024086ce34ceaf1d6a00ea3be167c0ffe0724dbafe167ba218cdefa"
+    },
+    {
+      "path": "cbt_q11\\service.py",
+      "bytes": 22969,
+      "sha256": "831ac168140190e95c7f2dbce005e2b1b4faae58c144574726abef97f37fa590"
+    },
+    {
+      "path": "cbt_q11\\signals.py",
+      "bytes": 624,
+      "sha256": "075c4aa7e556f384e3d8d4ecc74f1b390619ba1953d6b7152712aab9a5af7e12"
+    },
+    {
+      "path": "cbt_q11\\state.py",
+      "bytes": 36128,
+      "sha256": "e18b731132c875043524770ee3bf5ac4e356ed3c5d51a60245e4cddc621e9151"
+    },
+    {
+      "path": "cbt_q11\\tools.py",
+      "bytes": 16373,
+      "sha256": "38aecc5342a23353ae884c77d7c933b925b01b6fe32872b90d1269d52ed3548e"
+    },
+    {
+      "path": "cbt_q11\\validity.py",
+      "bytes": 43794,
+      "sha256": "d243d540b1e4c61ce7630145c0d54c7c28e6387ecc614a7ec351c6265f66c05b"
+    },
+    {
+      "path": "cbt_q11\\views.py",
+      "bytes": 4812,
+      "sha256": "198b738312920cf90ca435710aaf36e1b67b9ae53d58e2f1799895aa845a2306"
+    },
+    {
+      "path": "cbt_q11\\wire_ids.py",
+      "bytes": 18407,
+      "sha256": "72ddf54cca7580b3406945b2b59581d89c3c0c80a47491ff6b12298ccfa77bf1"
+    },
+    {
+      "path": "cbt_q11\\writer.py",
+      "bytes": 11091,
+      "sha256": "5f28aeedb206cb200f8a266e4c42ccd2d7a47cb66dc1536f00fe10d492850165"
+    },
+    {
+      "path": "cbt_session_agent.py",
+      "bytes": 1748,
+      "sha256": "5475bff19a65e93953c4937e0ded6c494fd233104259e67339e9aaf005c11a38"
+    },
+    {
+      "path": "cbt_simple\\__init__.py",
+      "bytes": 80,
+      "sha256": "e933c533394739623ea5177254a47d491f852bdb6e909481231472bf459bed45"
+    },
+    {
+      "path": "cbt_simple\\graph.py",
+      "bytes": 16777,
+      "sha256": "b04dd5694dba50d11f284dec760221e24b060d6bad4a8cb1d1263ae5dccec830"
+    },
+    {
+      "path": "cbt_simple\\prompts\\agent.txt",
+      "bytes": 4506,
+      "sha256": "819c7aad1c7e426749acea1d19c17abaff5ca9911a4e52469b8ed2caf1c595a4"
+    },
+    {
+      "path": "cbt_simple\\prompts\\assessment-review.txt",
+      "bytes": 919,
+      "sha256": "61e2c7ef1d10f5910f2b85b6afac6a2244ae2af4e112e684cdc63b63a79c2b7c"
+    },
+    {
+      "path": "cbt_simple\\prompts\\assessor.txt",
+      "bytes": 3213,
+      "sha256": "af67be1938c86c96adcf108b2787b8c41454e1f9a07e588d00777bdd9f4eb861"
+    },
+    {
+      "path": "cbt_simple\\prompts\\writer-repair.txt",
+      "bytes": 592,
+      "sha256": "b557c6b5ad76c53af2d5be9817bab71c20498b781bf0a0e121e67e09cda4d81a"
+    },
+    {
+      "path": "cbt_simple\\prompts\\writer.txt",
+      "bytes": 1761,
+      "sha256": "4bf636131c30312d27d5fa7eee0e7ca537fbd9a58a7844f6c627bebd5d7a4c99"
+    },
+    {
+      "path": "cbt_simple\\provider.py",
+      "bytes": 9876,
+      "sha256": "8833ada372e3bed9e0c6f37fb9fc40af4505e27ea30c73c2d6fdae84688f5462"
+    },
+    {
+      "path": "cbt_simple\\schema.py",
+      "bytes": 11370,
+      "sha256": "12a72dcd194ca6929ca21cab63bccee02694947ab817d9dd0d3db95bf12afb88"
+    },
+    {
+      "path": "cbt_simple\\service.py",
+      "bytes": 11744,
+      "sha256": "8dca81b7ae30d3c42e3c50d45cc29983e442357fdaef023753133a298b8d865a"
+    },
+    {
+      "path": "cbt_simple\\state.py",
+      "bytes": 17813,
+      "sha256": "b78926178f144932253529bb0d90986aca334cd46e1acaaa9fabd4835fa6f58c"
+    },
+    {
+      "path": "records_agent.py",
+      "bytes": 15919,
+      "sha256": "d3322b4a3fb1157ffd350b57e4f6dd4c4264037f64a90979f917b27ab8c51e41"
+    },
+    {
+      "path": "requirements.txt",
+      "bytes": 3168,
+      "sha256": "f610bd67950cbd46de0ffaa9dd537e84dcd0f82098612ba1f90de4798e11937b"
+    },
+    {
+      "path": "tests\\test_simple_dialogue.py",
+      "bytes": 19624,
+      "sha256": "f8ea9d9ad2116cdcf124a91c8f8d75fcece39d918fb9e6275c9c784848e22634"
+    }
+  ],
+  "sourceHash": "32d42d03965c6882393a673b1a1f163a68644ed4900adfe8aa8fc2447b378aaf",
+  "model": "gpt-4o-mini",
+  "temperatures": {
+    "agent": 0,
+    "assessor": 0,
+    "writer": 0.3
+  },
+  "phaseOutputCaps": {
+    "SELECT": 8192,
+    "WRITER": 650,
+    "ASSESSOR": 1800,
+    "ASSESSMENT_REVIEW": 1200,
+    "WRITER_REPAIR": 650
+  },
+  "inputTokens": 48000,
+  "inputBytes": 196608,
+  "inputReservationFactor": 1.75,
+  "modelContext": 128000,
+  "modelContextSource": "https://developers.openai.com/api/docs/models/gpt-4o-mini",
+  "providerTimeoutSeconds": 30,
+  "productTimeoutSeconds": 180,
+  "checkpointTTLSeconds": 600,
+  "canaryTokenCap": 1750000,
+  "generationCap": 36,
+  "moderationCap": 12,
+  "productRequestCap": 12,
+  "prompts": {
+    "SELECT": {
+      "sha256": "5a3fef5b003a3a45945d0f5e645a5010635a4b7725035333c5f31b1d7dbad52c",
+      "codepoints": 2054
+    },
+    "WRITER": {
+      "sha256": "5dca17ba0430b1f446aff8c2558220e4f649212d33784bdae5788626646c8991",
+      "codepoints": 773
+    },
+    "ASSESSOR": {
+      "sha256": "2af8efc8abf5799e4ff42419f91e6ab103af39c1e24af59c7cec01fffeb28462",
+      "codepoints": 1499
+    },
+    "ASSESSMENT_REVIEW": {
+      "sha256": "2c29514876ee22a382076d2030730f82dce17797850df9ff2bade4451e2d6dd8",
+      "codepoints": 415
+    },
+    "WRITER_REPAIR": {
+      "sha256": "e25a2cc1af6415b2214fd7ea089933ef41200352f30f19147ca8351d4e5eaffc",
+      "codepoints": 266
+    }
+  },
+  "schemaSha256": "fe5bd072d7d21678884ca7c5dd885c3da9a1623fed11d99d71471199508d6f87",
+  "neutralSchemaSha256": "d7cc075fdee244a26f908221a20174829eaf293a0a4960c444ab072f1b1fa8a5",
+  "python": "D:\\project_mindot\\mindot_ai\\.venv\\Scripts\\python.exe",
+  "pythonVersion": "3.12.9 (tags/v3.12.9:fdb8142, Feb  4 2025, 15:27:58) [MSC v.1942 64 bit (AMD64)]",
+  "dependencies": {
+    "openai": "2.53.0",
+    "langchain-openai": "1.4.1",
+    "langchain-core": "1.5.3",
+    "langgraph": "1.2.9",
+    "pydantic": "2.13.4",
+    "tiktoken": "0.13.0",
+    "fastapi": "0.139.2"
+  },
+  "officialPreReleaseFormula": "known220 + hiddenSingle12 + sum(hiddenLong.maxTurns) per version",
+  "knownCeilings": {
+    "caseVersionRecords": 340,
+    "productRequestsPerVersion": 220,
+    "longSessionDeadlines": {
+      "known:Q10_LONG_REHYDRATE_FULL": 1470,
+      "known:Q9_LONG_REHYDRATE_READY": 930,
+      "known:Q10_LONG_UNCLEAR_DIRECTION": 1290,
+      "known:Q10_LONG_SKIPPED_VARIANTS": 1290,
+      "known:Q10_LONG_RELEVANCE_FEEDBACK": 1290,
+      "known:Q9_LONG_SKIPPED": 1110,
+      "known:Q10_LONG_SAFETY_OVERRIDE": 210,
+      "known:Q9_LONG_FEEDBACK": 1110,
+      "known:Q10_LONG_REPEAT_FEEDBACK": 1290,
+      "known:Q9_LONG_UNCLEAR": 1110
+    },
+    "versions": {
+      "Q10": {
+        "productRequests": 220,
+        "genericLogicalInvocations": 880,
+        "physicalGenericAttempts": 2640,
+        "moderationCalls": 0
+      },
+      "Q11": {
+        "productRequests": 220,
+        "genericLogicalInvocations": 660,
+        "physicalGenericAttempts": 660,
+        "moderationCalls": 220
+      }
+    },
+    "formula": "single_count + sum(long.maxTurns); Q10 generic4/physical12; Q11 generic3/physical3+moderation1",
+    "perRequestDeadlineSeconds": 180,
+    "cleanupMarginSeconds": 30,
+    "maximumConcurrentProductRequests": 2,
+    "maximumConcurrentPerVersion": 1
+  },
+  "formalSeed": 20260908,
+  "modelSeed": "NOT_APPLIED_BOTH_VERSIONS",
+  "hiddenKeyRead": false,
+  "officialResults": 0,
+  "productSourceHash": "32d42d03965c6882393a673b1a1f163a68644ed4900adfe8aa8fc2447b378aaf",
+  "sourceHashScope": "All locked product, runner, baseline, supplied input/expectation and audit files; productSourceHash separately identifies product files."
+}

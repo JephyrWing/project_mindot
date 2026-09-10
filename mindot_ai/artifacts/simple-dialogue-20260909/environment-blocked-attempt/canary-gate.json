@@ -1,0 +1,164 @@
+{
+  "status": "CANARY_BLOCKED",
+  "reason": "APIConnectionError on every runnable root; no provider generation response and no product commit.",
+  "firstFailure": "normal-1-start",
+  "planned": 12,
+  "executed": 8,
+  "passed": 0,
+  "failed": 8,
+  "unexecuted": 4,
+  "semanticFailuresObserved": 0,
+  "semanticSuccessesObserved": 0,
+  "explanation": "Eight missing public responses fail required acceptance. They do not demonstrate a semantic question/safety defect because no model output was received. Provider receipt and charge cannot be proved from local connection errors; usage stays unknown, not zero-cost.",
+  "sourceHash": "32d42d03965c6882393a673b1a1f163a68644ed4900adfe8aa8fc2447b378aaf",
+  "lockedBytesUnchanged": true,
+  "canaryRounds": 1,
+  "qualityRetries": 0,
+  "technicalRetries": 0,
+  "generationAttempts": 8,
+  "moderationAttempts": 8,
+  "generationResponses": 0,
+  "moderationResponses": 0,
+  "observedGenericTokens": 0,
+  "unknownReservedTokens": 146553,
+  "formalResults": 0,
+  "formalExpected": 368,
+  "hiddenKeyRead": false,
+  "hiddenPlaintextRead": false,
+  "holdoutReleaseAttempted": false,
+  "cases": [
+    {
+      "caseId": "normal-1-start",
+      "required": true,
+      "status": "FAIL_NO_PRODUCT_RESPONSE",
+      "functionalVerdict": "NOT_OBSERVED_NO_MODEL_RESPONSE",
+      "reason": {
+        "type": "APIConnectionError",
+        "reason": "Connection error."
+      },
+      "rawFile": "live/normal-1-start.json"
+    },
+    {
+      "caseId": "normal-2-no-more",
+      "required": true,
+      "status": "BLOCKED_BY_PARENT",
+      "functionalVerdict": "NOT_OBSERVED_NO_MODEL_RESPONSE",
+      "reason": "Actual parent nextQuestion unavailable; fixed child input was not fabricated.",
+      "rawFile": "live/normal-2-no-more.json"
+    },
+    {
+      "caseId": "normal-3-adaptive-draft",
+      "required": true,
+      "status": "BLOCKED_BY_PARENT",
+      "functionalVerdict": "NOT_OBSERVED_NO_MODEL_RESPONSE",
+      "reason": "Actual parent nextQuestion unavailable; fixed child input was not fabricated.",
+      "rawFile": "live/normal-3-adaptive-draft.json"
+    },
+    {
+      "caseId": "help-1-substance-and-explanation",
+      "required": true,
+      "status": "FAIL_NO_PRODUCT_RESPONSE",
+      "functionalVerdict": "NOT_OBSERVED_NO_MODEL_RESPONSE",
+      "reason": {
+        "type": "APIConnectionError",
+        "reason": "Connection error."
+      },
+      "rawFile": "live/help-1-substance-and-explanation.json"
+    },
+    {
+      "caseId": "help-2-correction-and-repetition",
+      "required": true,
+      "status": "BLOCKED_BY_PARENT",
+      "functionalVerdict": "NOT_OBSERVED_NO_MODEL_RESPONSE",
+      "reason": "Actual parent nextQuestion unavailable; fixed child input was not fabricated.",
+      "rawFile": "live/help-2-correction-and-repetition.json"
+    },
+    {
+      "caseId": "help-3-maintain-corrected-context",
+      "required": true,
+      "status": "BLOCKED_BY_PARENT",
+      "functionalVerdict": "NOT_OBSERVED_NO_MODEL_RESPONSE",
+      "reason": "Actual parent nextQuestion unavailable; fixed child input was not fabricated.",
+      "rawFile": "live/help-3-maintain-corrected-context.json"
+    },
+    {
+      "caseId": "complete-substantive-example",
+      "required": true,
+      "status": "FAIL_NO_PRODUCT_RESPONSE",
+      "functionalVerdict": "NOT_OBSERVED_NO_MODEL_RESPONSE",
+      "reason": {
+        "type": "APIConnectionError",
+        "reason": "Connection error."
+      },
+      "rawFile": "live/complete-substantive-example.json"
+    },
+    {
+      "caseId": "no-clear-ready",
+      "required": true,
+      "status": "FAIL_NO_PRODUCT_RESPONSE",
+      "functionalVerdict": "NOT_OBSERVED_NO_MODEL_RESPONSE",
+      "reason": {
+        "type": "APIConnectionError",
+        "reason": "Connection error."
+      },
+      "rawFile": "live/no-clear-ready.json"
+    },
+    {
+      "caseId": "true-fact-boundary",
+      "required": true,
+      "status": "FAIL_NO_PRODUCT_RESPONSE",
+      "functionalVerdict": "NOT_OBSERVED_NO_MODEL_RESPONSE",
+      "reason": {
+        "type": "APIConnectionError",
+        "reason": "Connection error."
+      },
+      "rawFile": "live/true-fact-boundary.json"
+    },
+    {
+      "caseId": "safety-current-clear",
+      "required": true,
+      "status": "FAIL_NO_PRODUCT_RESPONSE",
+      "functionalVerdict": "NOT_OBSERVED_NO_MODEL_RESPONSE",
+      "reason": {
+        "type": "APIConnectionError",
+        "reason": "Connection error."
+      },
+      "rawFile": "live/safety-current-clear.json"
+    },
+    {
+      "caseId": "safety-noncurrent-continue",
+      "required": true,
+      "status": "FAIL_NO_PRODUCT_RESPONSE",
+      "functionalVerdict": "NOT_OBSERVED_NO_MODEL_RESPONSE",
+      "reason": {
+        "type": "APIConnectionError",
+        "reason": "Connection error."
+      },
+      "rawFile": "live/safety-noncurrent-continue.json"
+    },
+    {
+      "caseId": "explicit-stop",
+      "required": true,
+      "status": "FAIL_NO_PRODUCT_RESPONSE",
+      "functionalVerdict": "NOT_OBSERVED_NO_MODEL_RESPONSE",
+      "reason": {
+        "type": "APIConnectionError",
+        "reason": "Connection error."
+      },
+      "rawFile": "live/explicit-stop.json"
+    }
+  ],
+  "notObservedLive": [
+    "contextual questions",
+    "adaptive followups",
+    "mixed help delivery",
+    "correction retention",
+    "completion assessment",
+    "fact-boundary branch",
+    "clear danger response",
+    "noncurrent quote handling",
+    "stop guidance"
+  ],
+  "diagnosedCause": "SANDBOX_OUTBOUND_SOCKET_ACCESS_DENIED",
+  "diagnosisReceipt": "transport-diagnosis.json"
+}

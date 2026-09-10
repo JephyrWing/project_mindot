@@ -1,0 +1,67 @@
+{
+  "contract": "simple-dialogue-1",
+  "prompts": {
+    "agent.txt": {
+      "characters": 2054,
+      "sha256": "819c7aad1c7e426749acea1d19c17abaff5ca9911a4e52469b8ed2caf1c595a4"
+    },
+    "assessment-review.txt": {
+      "characters": 415,
+      "sha256": "61e2c7ef1d10f5910f2b85b6afac6a2244ae2af4e112e684cdc63b63a79c2b7c"
+    },
+    "assessor.txt": {
+      "characters": 1499,
+      "sha256": "af67be1938c86c96adcf108b2787b8c41454e1f9a07e588d00777bdd9f4eb861"
+    },
+    "writer-repair.txt": {
+      "characters": 266,
+      "sha256": "b557c6b5ad76c53af2d5be9817bab71c20498b781bf0a0e121e67e09cda4d81a"
+    },
+    "writer.txt": {
+      "characters": 773,
+      "sha256": "4bf636131c30312d27d5fa7eee0e7ca537fbd9a58a7844f6c627bebd5d7a4c99"
+    }
+  },
+  "canaryNodes": 12,
+  "actualChainedFollowups": 4,
+  "staticSelectBytes": 15779,
+  "preservedAssets": [
+    {
+      "name": "q10-source-lock.json",
+      "sha256": "5b322d44cbcd04c89c92bd910c97108d4848a5d89b863d88b4cc9a8c9cf8fb5f"
+    },
+    {
+      "name": "known-input-lock.json",
+      "sha256": "f6015981d7d84c8468f54c74375ee88a7a8a0919bc8fd68e356f2115f73e278c"
+    },
+    {
+      "name": "holdout-manifest.json",
+      "sha256": "76ef2e931f97b798ab0ffd64cbdfd520f487a547f72bb67533962d1b0cff882a"
+    },
+    {
+      "name": "Mindot-CBT-Q11-Hidden-Holdout-Sealed.tar.enc",
+      "sha256": "a5de742651891641fd1ce78a65aa0c6c7d11a4fd1e4ac79250133706b916f99e"
+    }
+  ],
+  "productTestsExecuted": false,
+  "paidCallsExecuted": 0,
+  "formalRecords": 0,
+  "gradingRubricSha256": "2bdfd89a6ecf7bc7c74aa0b21f47bc3a8e7f2288467290868d40af91b3fb620f",
+  "capacityPolicyRevision": "capacity-policy-1",
+  "capacityDefaults": {
+    "inputTokens": 48000,
+    "inputBytes": 196608
+  },
+  "aggregateCanaryTokens": 1750000,
+  "defaultCanaryBudgetFundsAllMaxSizePaths": false,
+  "capacityDecision": {
+    "document": "input-capacity-decision.md",
+    "decision": "retain 48000 estimated input tokens and 196608 serialized bytes",
+    "oldUnitMaxInputEstimate": 36238,
+    "oldUnitMaxBytes": 139404,
+    "newWholeRuntimeInputMeasured": false,
+    "verifiedModelContextTokens": 128000,
+    "reservationFactor": 1.75,
+    "contextReservationAtDefaultsAndMaxOutput": 92192
+  }
+}

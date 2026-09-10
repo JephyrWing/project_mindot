@@ -1,0 +1,99 @@
+{
+  "revision": "cbt-known-scope-2",
+  "createdAt": "2026-09-09",
+  "status": "REVISED_BEFORE_NEW_PRODUCT_RUN",
+  "logicalCases": 170,
+  "singleCases": 160,
+  "longCases": 10,
+  "originalsPreserved": true,
+  "hiddenKeyOrPlaintextRead": false,
+  "productModelOutputsUsedToChooseKnownLabels": false,
+  "changedLogicalCases": 68,
+  "changes": 144,
+  "multiActionCaseIds": [
+    "Q9H19",
+    "Q9H20",
+    "Q9H21",
+    "Q6A05",
+    "Q6B05",
+    "Q6C05",
+    "Q6D05",
+    "Q6E05",
+    "Q10H35",
+    "Q10H36"
+  ],
+  "files": [
+    {
+      "path": "known/canonical-boundary-cases.json",
+      "originalPath": "known-original/canonical-boundary-cases.json",
+      "recordCount": 20,
+      "bytes": 51889,
+      "sha256": "74f6220e5fbdeba7a260f2b49b2479ec1355b901e29d441411d516a5fe7f3762",
+      "originalBytes": 51889,
+      "originalSha256": "74f6220e5fbdeba7a260f2b49b2479ec1355b901e29d441411d516a5fe7f3762",
+      "contentChanged": false
+    },
+    {
+      "path": "known/known-holdout-regression-cases.json",
+      "originalPath": "known-original/known-holdout-regression-cases.json",
+      "recordCount": 24,
+      "bytes": 184538,
+      "sha256": "8121a9a64d95e79507a08329e95881ce504d2377684cc0be91d70cc662da6200",
+      "originalBytes": 185432,
+      "originalSha256": "2a0d9917198e5f7a5e51bb8769573b01029531ffdebf461f80460679e80508ce",
+      "contentChanged": true
+    },
+    {
+      "path": "known/canonical-feature-cases.json",
+      "originalPath": "known-original/canonical-feature-cases.json",
+      "recordCount": 40,
+      "bytes": 287170,
+      "sha256": "6fc929743423c6ccc3fa707637249940577c67b61f5faa74809772402b7fb66c",
+      "originalBytes": 284373,
+      "originalSha256": "394f57655774afad81803548807095a05e6426722ce1e321e260399ca2e62b8a",
+      "contentChanged": true
+    },
+    {
+      "path": "known/q10-long-sessions.json",
+      "originalPath": "known-original/q10-long-sessions.json",
+      "recordCount": 6,
+      "bytes": 4300,
+      "sha256": "e59e6e89ed7e8ca381d8931f8d28f25dabde5b039a59268a6bc0f5a1feeb7fb6",
+      "originalBytes": 3847,
+      "originalSha256": "29c9e712f6d37d63f5f7bacf3dda558d1a031b23ee644c28af2f04f0c48808e5",
+      "contentChanged": true
+    },
+    {
+      "path": "known/fresh-q10-holdout-cases.json",
+      "originalPath": "known-original/fresh-q10-holdout-cases.json",
+      "recordCount": 36,
+      "bytes": 267510,
+      "sha256": "0e181749ecfadbc84846588b4a450b67894773b5294e5d988a2a1b4e5dbe275f",
+      "originalBytes": 273016,
+      "originalSha256": "90c2cb93855e3e5300b18981a7416bdd101eae7d2a56986f1f1831ab7c06149c",
+      "contentChanged": true
+    },
+    {
+      "path": "known/known-long-sessions.json",
+      "originalPath": "known-original/known-long-sessions.json",
+      "recordCount": 4,
+      "bytes": 3621,
+      "sha256": "4184da0e757bf371b3580b16d962a1034ccbe73565e0973662bdccec861557c3",
+      "originalBytes": 2802,
+      "originalSha256": "4172949989456f86d36f034d8be96db42e3a8a0ffddfcd447802db423ccad986",
+      "contentChanged": true
+    },
+    {
+      "path": "known/canonical-regression-cases.json",
+      "originalPath": "known-original/canonical-regression-cases.json",
+      "recordCount": 40,
+      "bytes": 369167,
+      "sha256": "8438b0d5c25d1e8ad1e340bc3ad144428a46ba8cd08d3e9322162bdd3f9bca88",
+      "originalBytes": 357002,
+      "originalSha256": "7a780ca3205577f1dbdfa62aacbe84124916b6bd9377aa19145b4dcc467de0f0",
+      "contentChanged": true
+    }
+  ],
+  "changeLog": "known-revision-changes.json",
+  "execution": "Use only known/ as current fixtures. known-original/ is read-only historical evidence; never merge old expectations into revised ones. All expected/allowed/classification/coverage/gates metadata is excluded from product input."
+}

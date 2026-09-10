@@ -195,10 +195,8 @@ function DailyCare({
   const [meditationStatus, setMeditationStatus] = useState('')
   // 사용자가 선택한 추천 만족도 상태 설정.
   const [selectedFeedback, setSelectedFeedback] = useState('')
-  // 화면 진입 시점을 기준으로 최근 칠 일 범위를 일정하게 유지하는 기준 시각 설정.
-  const [recentPeriodStartTime] = useState(
-    () => Date.now() - (7 * 24 * 60 * 60 * 1000),
-  )
+  // 사용자 시간대에서 오늘을 포함한 최근 7일의 서버 전체 건수.
+  const [recentRecordCount, setRecentRecordCount] = useState(0)
 
   // 화면 진입과 재조회 요청 시 감정 기록과 진행 중 CBT 목록 병렬 조회.
   useEffect(() => {
@@ -210,18 +208,21 @@ function DailyCare({
       setPatternExplanation(null)
       setPatternError('')
 
-      const [recordsResult, reflectionsResult] = await Promise.allSettled([
-        getEmotionRecords(),
+      const [recordsResult, recentResult, reflectionsResult] = await Promise.allSettled([
+        getEmotionRecords({ period: 'ALL', sort: 'LATEST', page: 0, size: 1 }),
+        getEmotionRecords({ period: 'RECENT_7_DAYS', page: 0, size: 1 }),
         getOpenReflectionSessions(),
       ])
 
       if (!isActive) return
 
       if (recordsResult.status === 'fulfilled') {
-        setEmotionRecords(Array.isArray(recordsResult.value) ? recordsResult.value : [])
+        setEmotionRecords(recordsResult.value.content)
       } else {
         setEmotionRecords([])
       }
+
+      setRecentRecordCount(recentResult.status === 'fulfilled' ? recentResult.value.totalElements : null)
 
       if (reflectionsResult.status === 'fulfilled') {
         setOpenReflections(
@@ -233,6 +234,7 @@ function DailyCare({
 
       const failedResult = recordsResult.status === 'rejected'
         ? recordsResult
+        : recentResult.status === 'rejected' ? recentResult
         : reflectionsResult.status === 'rejected'
           ? reflectionsResult
           : null
@@ -280,11 +282,6 @@ function DailyCare({
 
   // 감정 기록 중 현재 마음 돌봄 기준으로 사용할 최신 기록 탐색.
   const latestRecord = sortedEmotionRecords[0] ?? null
-
-  // 최근 칠 일 이내에 작성된 실제 감정 기록 목록 계산.
-  const recentSevenDayRecords = sortedEmotionRecords.filter((record) => (
-    new Date(record.occurredAt).getTime() >= recentPeriodStartTime
-  ))
 
   // OPEN CBT 목록 중 가장 최근에 생성된 세션 탐색.
   const latestOpenReflection = useMemo(() => [...openReflections].sort(
@@ -487,7 +484,7 @@ function DailyCare({
           <dl className="daily-care-basis">
             <div>
               <dt>최근 7일 기록</dt>
-              <dd>{isLoading ? '-' : `${recentSevenDayRecords.length}개`}</dd>
+              <dd>{isLoading || recentRecordCount === null ? '-' : `${recentRecordCount}개`}</dd>
             </div>
             <div>
               <dt>최근 감정</dt>
@@ -499,7 +496,7 @@ function DailyCare({
                 {isLoading
                   ? '-'
                   : Number.isFinite(latestRecord?.primaryIntensity)
-                    ? `${latestRecord.primaryIntensity}/5`
+                    ? `${latestRecord.primaryIntensity}/10`
                     : '분석 전'}
               </dd>
             </div>

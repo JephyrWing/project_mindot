@@ -1,0 +1,892 @@
+{
+  "caseId": "normal-2-no-more",
+  "status": "REQUIRES_FUNCTION_REVIEW",
+  "request": {
+    "requestId": "abb03026-45b6-5c48-95cb-182d2af73b22",
+    "sessionId": 11900,
+    "record": {
+      "recordId": 11900,
+      "situation": "회의에서 준비한 설명의 중간에 말을 잠시 멈췄다.",
+      "automaticThought": "잠깐 말을 멈췄으니 나는 발표를 전혀 못하는 사람이다.",
+      "primaryEmotionCode": null,
+      "primaryIntensity": null,
+      "beforeBeliefStrength": null,
+      "contextCategory": null
+    },
+    "currentStep": "SD_45655097C4812D288C05AC97",
+    "questionAnswers": [
+      {
+        "questionCode": "SD_45655097C4812D288C05AC97",
+        "questionPurpose": "EVIDENCE_AGAINST",
+        "semanticRouteType": "CONTRADICTORY_FACT",
+        "question": "발표 중 잠시 멈춘 상황에서 느낀 생각을 재구성해보면, \"잠깐 말을 멈췄다고 해서 내가 발표를 전혀 못하는 사람이라는 것은 아니다\"라고 생각할 수 있습니다. 이와 같은 생각이 어떤 도움이 될까요?",
+        "answer": "이어서 제가 확인한 장면을 더 말하면 이거예요. 설명하다 십 초쯤 멈췄지만 메모를 보고 끝까지 설명했어요. 발표를 전혀 못한다는 생각을 뒷받침하는 다른 사건은 더 떠오르지 않아요. 그 장면의 세부 내용을 더 찾기보다, 이 한 번의 멈춤이 제 발표 능력 전체를 뜻하는지 살펴보고 싶어요.",
+        "askedAt": "2026-09-09T01:00:00Z",
+        "answeredAt": "2026-09-09T01:01:00+00:00"
+      }
+    ],
+    "beforeDistortions": []
+  },
+  "response": {
+    "requestId": "abb03026-45b6-5c48-95cb-182d2af73b22",
+    "status": "CONTINUE",
+    "assessmentType": null,
+    "nextQuestion": {
+      "questionCode": "SD_434A42E8DE6A11D33AD4D26D",
+      "questionPurpose": "BALANCED_THOUGHT",
+      "semanticRouteType": "BALANCED_CONCLUSION",
+      "question": "발표 중 잠시 멈춘 상황에 대해, \"잠깐 말을 멈췄다고 해서 내가 발표를 전혀 못하는 사람이라는 것은 아니다\"라는 생각을 해보는 것이 도움이 될 수 있습니다. 이 생각이 어떤 방식으로 도움이 될지 궁금하신가요?"
+    },
+    "beforeDistortions": [],
+    "outcomeDraft": null,
+    "confirmationRequiredFields": [],
+    "acknowledgementEvidence": null,
+    "acknowledgementSourceQuestionCode": null,
+    "proposalMessage": null,
+    "risk": {
+      "level": "NONE",
+      "reasonCode": null
+    },
+    "meta": {
+      "model": "gpt-4o-mini",
+      "promptVersion": "simple-dialogue-1"
+    }
+  },
+  "error": null,
+  "technicalFailures": [],
+  "elapsedSeconds": 5.273214800001369,
+  "acceptedState": {
+    "corrections": [],
+    "current": {
+      "record:11900:automaticThought": "S2",
+      "record:11900:situation": "S1",
+      "session:11900:record:11900:answer:SD_45655097C4812D288C05AC97": "S3"
+    },
+    "events": [
+      {
+        "note": "사용자가 발표 중 잠시 멈춘 상황에서 느낀 생각을 재구성하여, 그 멈춤이 발표 능력 전체를 의미하지 않는다는 점을 확인함.",
+        "questionCode": "SD_45655097C4812D288C05AC97",
+        "sourceId": "S3",
+        "status": "ANSWERED",
+        "type": "GOAL"
+      }
+    ],
+    "gap": null,
+    "goals": {
+      "SD_434A42E8DE6A11D33AD4D26D": {
+        "focus": "발표 중 잠시 멈춘 상황에 대한 생각을 재구성하기",
+        "questionCode": "SD_434A42E8DE6A11D33AD4D26D",
+        "status": "OPEN"
+      },
+      "SD_45655097C4812D288C05AC97": {
+        "dependency": {
+          "end": 159,
+          "sourceId": "S3",
+          "start": 0
+        },
+        "focus": "사용자가 발표 중 잠시 멈춘 상황에 대한 생각을 재구성하기",
+        "invalidated": false,
+        "note": "사용자가 발표 중 잠시 멈춘 상황에서 느낀 생각을 재구성하여, 그 멈춤이 발표 능력 전체를 의미하지 않는다는 점을 확인함.",
+        "questionCode": "SD_45655097C4812D288C05AC97",
+        "status": "ANSWERED"
+      }
+    },
+    "history": [
+      {
+        "answerSourceId": "S3",
+        "answeredAt": "2026-09-09T01:01:00Z",
+        "askedAt": "2026-09-09T01:00:00Z",
+        "questionCode": "SD_45655097C4812D288C05AC97"
+      }
+    ],
+    "identity": [
+      11900,
+      11900
+    ],
+    "legacySnapshot": null,
+    "pendingQuestion": "SD_434A42E8DE6A11D33AD4D26D",
+    "questions": {
+      "SD_434A42E8DE6A11D33AD4D26D": {
+        "control": null,
+        "episodeId": null,
+        "focus": "발표 중 잠시 멈춘 상황에 대한 생각을 재구성하기",
+        "gapId": null,
+        "mode": "NORMAL",
+        "move": "BALANCED_SYNTHESIS",
+        "question": "발표 중 잠시 멈춘 상황에 대해, \"잠깐 말을 멈췄다고 해서 내가 발표를 전혀 못하는 사람이라는 것은 아니다\"라는 생각을 해보는 것이 도움이 될 수 있습니다. 이 생각이 어떤 방식으로 도움이 될지 궁금하신가요?",
+        "questionCode": "SD_434A42E8DE6A11D33AD4D26D",
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "BALANCED_CONCLUSION",
+        "targetQuestionCode": null
+      },
+      "SD_45655097C4812D288C05AC97": {
+        "control": null,
+        "episodeId": null,
+        "focus": "사용자가 발표 중 잠시 멈춘 상황에 대한 생각을 재구성하기",
+        "gapId": null,
+        "mode": "NORMAL",
+        "move": "COUNTEREVIDENCE",
+        "question": "발표 중 잠시 멈춘 상황에서 느낀 생각을 재구성해보면, \"잠깐 말을 멈췄다고 해서 내가 발표를 전혀 못하는 사람이라는 것은 아니다\"라고 생각할 수 있습니다. 이와 같은 생각이 어떤 도움이 될까요?",
+        "questionCode": "SD_45655097C4812D288C05AC97",
+        "questionPurpose": "EVIDENCE_AGAINST",
+        "semanticRouteType": "CONTRADICTORY_FACT",
+        "targetQuestionCode": null
+      }
+    },
+    "record": {
+      "automaticThoughtSourceId": "S2",
+      "beforeBeliefStrength": null,
+      "contextCategory": null,
+      "primaryEmotionCode": null,
+      "primaryIntensity": null,
+      "recordId": 11900,
+      "situationSourceId": "S1"
+    },
+    "rejectedCodes": [],
+    "requests": {},
+    "restoration": "CHECKPOINT",
+    "revision": "simple-dialogue-1",
+    "safety": {},
+    "sources": {
+      "S1": {
+        "address": "record:11900:situation",
+        "field": "situation",
+        "key": "record:11900:situation@e61ed46a065f2d3f5a91fc0e036ce0704a0bf8726688f75f9b830fc9eb04fecd",
+        "kind": "USER_RECORD",
+        "ordinal": 1,
+        "revision": "e61ed46a065f2d3f5a91fc0e036ce0704a0bf8726688f75f9b830fc9eb04fecd",
+        "sourceId": "S1",
+        "text": "회의에서 준비한 설명의 중간에 말을 잠시 멈췄다."
+      },
+      "S2": {
+        "address": "record:11900:automaticThought",
+        "field": "automaticThought",
+        "key": "record:11900:automaticThought@d0e46823be0a36e5627356681c7b0e322a9f3911fad68b07c01323f9aab1cf12",
+        "kind": "USER_RECORD",
+        "ordinal": 2,
+        "revision": "d0e46823be0a36e5627356681c7b0e322a9f3911fad68b07c01323f9aab1cf12",
+        "sourceId": "S2",
+        "text": "잠깐 말을 멈췄으니 나는 발표를 전혀 못하는 사람이다."
+      },
+      "S3": {
+        "address": "session:11900:record:11900:answer:SD_45655097C4812D288C05AC97",
+        "key": "session:11900:record:11900:answer:SD_45655097C4812D288C05AC97@7de7643d76e90b66f44eb058bc96080fe8a6e5a17e5dd5cd8b4b21f1cc32dcea",
+        "kind": "USER_ANSWER",
+        "ordinal": 3,
+        "questionCode": "SD_45655097C4812D288C05AC97",
+        "revision": "7de7643d76e90b66f44eb058bc96080fe8a6e5a17e5dd5cd8b4b21f1cc32dcea",
+        "sourceId": "S3",
+        "text": "이어서 제가 확인한 장면을 더 말하면 이거예요. 설명하다 십 초쯤 멈췄지만 메모를 보고 끝까지 설명했어요. 발표를 전혀 못한다는 생각을 뒷받침하는 다른 사건은 더 떠오르지 않아요. 그 장면의 세부 내용을 더 찾기보다, 이 한 번의 멈춤이 제 발표 능력 전체를 뜻하는지 살펴보고 싶어요."
+      }
+    },
+    "stop": null,
+    "terminal": null,
+    "withdrawn": {}
+  },
+  "generationDispatches": 2,
+  "moderationDispatches": 1,
+  "export": {
+    "blindPayload": {
+      "identity": {
+        "case_id": "c_00000001",
+        "response_id": "r_00000001",
+        "anonymous_version": "A",
+        "turn_index": 0,
+        "suite": "DEVELOPMENT",
+        "caseType": "CANARY",
+        "syntheticContext": {
+          "situation": "회의에서 준비한 설명의 중간에 말을 잠시 멈췄다.",
+          "primaryEmotionCode": null,
+          "contextCategory": null
+        }
+      },
+      "input": {
+        "situation_family": null,
+        "vulnerability_type": null,
+        "automaticThought": "잠깐 말을 멈췄으니 나는 발표를 전혀 못하는 사람이다.",
+        "latestInteraction": {
+          "questionRef": "q_00000001",
+          "questionPurpose": "EVIDENCE_AGAINST",
+          "semanticRouteType": "CONTRADICTORY_FACT",
+          "question": "발표 중 잠시 멈춘 상황에서 느낀 생각을 재구성해보면, \"잠깐 말을 멈췄다고 해서 내가 발표를 전혀 못하는 사람이라는 것은 아니다\"라고 생각할 수 있습니다. 이와 같은 생각이 어떤 도움이 될까요?",
+          "answer": "이어서 제가 확인한 장면을 더 말하면 이거예요. 설명하다 십 초쯤 멈췄지만 메모를 보고 끝까지 설명했어요. 발표를 전혀 못한다는 생각을 뒷받침하는 다른 사건은 더 떠오르지 않아요. 그 장면의 세부 내용을 더 찾기보다, 이 한 번의 멈춤이 제 발표 능력 전체를 뜻하는지 살펴보고 싶어요.",
+          "askedAt": "2026-09-09T01:00:00Z",
+          "answeredAt": "2026-09-09T01:01:00+00:00"
+        },
+        "fixedLatestUserIntentHint": null,
+        "previousQuestions": [],
+        "questionAnswers": [
+          {
+            "questionRef": "q_00000001",
+            "questionPurpose": "EVIDENCE_AGAINST",
+            "semanticRouteType": "CONTRADICTORY_FACT",
+            "question": "발표 중 잠시 멈춘 상황에서 느낀 생각을 재구성해보면, \"잠깐 말을 멈췄다고 해서 내가 발표를 전혀 못하는 사람이라는 것은 아니다\"라고 생각할 수 있습니다. 이와 같은 생각이 어떤 도움이 될까요?",
+            "answer": "이어서 제가 확인한 장면을 더 말하면 이거예요. 설명하다 십 초쯤 멈췄지만 메모를 보고 끝까지 설명했어요. 발표를 전혀 못한다는 생각을 뒷받침하는 다른 사건은 더 떠오르지 않아요. 그 장면의 세부 내용을 더 찾기보다, 이 한 번의 멈춤이 제 발표 능력 전체를 뜻하는지 살펴보고 싶어요.",
+            "askedAt": "2026-09-09T01:00:00Z",
+            "answeredAt": "2026-09-09T01:01:00+00:00"
+          }
+        ],
+        "expectedDecision": null,
+        "expectedAssessment": null,
+        "expectedDistortions": [],
+        "allowedQuestionMeanings": [],
+        "forbiddenQuestionMeanings": [],
+        "semanticRouteDefinitions": []
+      },
+      "acceptedState": {
+        "answerDisposition": null,
+        "blockedRoutes": [],
+        "blockedRouteFamilies": [],
+        "blockedSemanticDimensions": [],
+        "unansweredQuestionAttempts": [],
+        "resolvedButIrrelevantTopics": [],
+        "confirmationAllowed": null,
+        "completionAssessmentAllowed": null,
+        "coverageStateRole": null,
+        "coverageReviewRequired": null,
+        "incompleteCoverageDomains": [],
+        "priorVerifiedCoverage": null,
+        "inputExplorationCoverage": null,
+        "completionCandidates": [],
+        "completionCandidateCoverage": null,
+        "coverageReview": null,
+        "acceptedCoverage": null,
+        "acceptedEvidenceAtoms": null
+      },
+      "boundary": {
+        "supplementalBoundaryEvidence": [],
+        "effectiveSemanticMove": "BALANCED_SYNTHESIS",
+        "effectiveQuestionPlan": {
+          "questionPurpose": null,
+          "semanticRouteType": null,
+          "semanticMove": "BALANCED_SYNTHESIS",
+          "questionGoal": "발표 중 잠시 멈춘 상황에 대한 생각을 재구성하기",
+          "answerTarget": null,
+          "answerTargetRef": null,
+          "answerSource": null,
+          "prefaceGoal": null,
+          "exampleOptions": null,
+          "groundingQuestionRefs": [
+            "q_00000001"
+          ],
+          "avoidTopics": [],
+          "goalRef": null
+        },
+        "terminalAssessment": {
+          "assessmentType": null,
+          "observedFact": null,
+          "automaticThoughtExcerpt": null,
+          "unsupportedExtension": null,
+          "matchedDistortionCode": null,
+          "matchedDefinitionElement": null,
+          "definitionMatchReason": null,
+          "withinFactBoundaryReason": null,
+          "preservedFact": null,
+          "calibratedThought": null,
+          "boundaryExplanation": null,
+          "groundingQuestionRefs": [],
+          "usedReferenceIds": [],
+          "consideredCandidates": []
+        },
+        "assessmentBoundary": {
+          "observedFact": null,
+          "automaticThoughtExcerpt": null,
+          "unsupportedExtension": null,
+          "preservedFact": null,
+          "boundaryExplanation": null
+        },
+        "factBoundaryGap": {
+          "questionRef": null,
+          "goalRef": null,
+          "question": null,
+          "missingFact": null,
+          "whyDecisionDependsOnIt": null,
+          "distinctionNeeded": null,
+          "groundingQuestionRefs": [],
+          "answerState": "NOT_ASKED"
+        },
+        "factBoundaryQuestionCount": 0,
+        "consideredCandidates": [],
+        "missingDefinitionElements": []
+      },
+      "final": {
+        "renderedOutput": "발표 중 잠시 멈춘 상황에 대해, \"잠깐 말을 멈췄다고 해서 내가 발표를 전혀 못하는 사람이라는 것은 아니다\"라는 생각을 해보는 것이 도움이 될 수 있습니다. 이 생각이 어떤 방식으로 도움이 될지 궁금하신가요?",
+        "actualDecision": "QUESTION",
+        "actualAssessment": null,
+        "actualDistortions": [],
+        "questionPurpose": "BALANCED_THOUGHT",
+        "semanticRouteType": "BALANCED_CONCLUSION",
+        "questionGoal": "발표 중 잠시 멈춘 상황에 대한 생각을 재구성하기",
+        "answerTarget": null,
+        "answerSource": null,
+        "prefaceGoal": null,
+        "exampleOptions": null,
+        "groundingQuestionCodes": [
+          "q_00000001"
+        ],
+        "avoidTopics": [],
+        "finalResponse": {
+          "status": "CONTINUE",
+          "assessmentType": null,
+          "nextQuestion": {
+            "questionRef": "q_00000002",
+            "questionPurpose": "BALANCED_THOUGHT",
+            "semanticRouteType": "BALANCED_CONCLUSION",
+            "question": "발표 중 잠시 멈춘 상황에 대해, \"잠깐 말을 멈췄다고 해서 내가 발표를 전혀 못하는 사람이라는 것은 아니다\"라는 생각을 해보는 것이 도움이 될 수 있습니다. 이 생각이 어떤 방식으로 도움이 될지 궁금하신가요?",
+            "answer": null,
+            "askedAt": null,
+            "answeredAt": null
+          },
+          "beforeDistortions": [],
+          "outcomeDraft": {
+            "evidenceForText": null,
+            "evidenceAgainstText": null,
+            "alternativeThoughtText": null,
+            "afterDistortions": []
+          },
+          "confirmationRequiredFields": [],
+          "acknowledgementEvidence": null,
+          "acknowledgementSourceQuestionRef": null,
+          "proposalMessage": null,
+          "risk": {
+            "level": "NONE",
+            "reasonCode": null
+          }
+        },
+        "confirmation": {
+          "requiredFields": [],
+          "acknowledgementEvidence": null,
+          "acknowledgementSourceQuestionRef": null,
+          "proposalMessage": null
+        },
+        "actionClass": "UNKNOWN"
+      },
+      "safety": {
+        "safetyCandidates": [],
+        "safetyReview": [],
+        "safetyEvidence": [],
+        "safetyReason": null
+      },
+      "dialogueControl": {
+        "kind": "NONE",
+        "targetQuestionRef": null,
+        "availableResponses": []
+      },
+      "dialogueState": {
+        "sources": [
+          {
+            "sourceRef": "s_00000001",
+            "questionRef": null,
+            "text": "회의에서 준비한 설명의 중간에 말을 잠시 멈췄다.",
+            "current": true,
+            "withdrawnRanges": []
+          },
+          {
+            "sourceRef": "s_00000002",
+            "questionRef": null,
+            "text": "잠깐 말을 멈췄으니 나는 발표를 전혀 못하는 사람이다.",
+            "current": true,
+            "withdrawnRanges": []
+          },
+          {
+            "sourceRef": "s_00000003",
+            "questionRef": "q_00000001",
+            "text": "이어서 제가 확인한 장면을 더 말하면 이거예요. 설명하다 십 초쯤 멈췄지만 메모를 보고 끝까지 설명했어요. 발표를 전혀 못한다는 생각을 뒷받침하는 다른 사건은 더 떠오르지 않아요. 그 장면의 세부 내용을 더 찾기보다, 이 한 번의 멈춤이 제 발표 능력 전체를 뜻하는지 살펴보고 싶어요.",
+            "current": true,
+            "withdrawnRanges": []
+          }
+        ],
+        "corrections": [],
+        "requests": [],
+        "goals": [
+          {
+            "questionRef": "q_00000002",
+            "status": "OPEN",
+            "note": null
+          },
+          {
+            "questionRef": "q_00000001",
+            "status": "ANSWERED",
+            "note": "사용자가 발표 중 잠시 멈춘 상황에서 느낀 생각을 재구성하여, 그 멈춤이 발표 능력 전체를 의미하지 않는다는 점을 확인함."
+          }
+        ]
+      }
+    },
+    "blindPayloadSha256": "686633f9425c2faa72ad7bfc8a32e2fe3fc3a4dbec23ce092ee2b5e667550a5c",
+    "fullOnly": {
+      "referenceMap": [
+        {
+          "namespace": "c",
+          "scope": "",
+          "original": "normal-2-no-more",
+          "opaque": "c_00000001"
+        },
+        {
+          "namespace": "r",
+          "scope": "c_00000001:A",
+          "original": "0",
+          "opaque": "r_00000001"
+        },
+        {
+          "namespace": "q",
+          "scope": "c_00000001:A",
+          "original": "SD_45655097C4812D288C05AC97",
+          "opaque": "q_00000001"
+        },
+        {
+          "namespace": "q",
+          "scope": "c_00000001:A",
+          "original": "SD_434A42E8DE6A11D33AD4D26D",
+          "opaque": "q_00000002"
+        },
+        {
+          "namespace": "s",
+          "scope": "c_00000001:A",
+          "original": "record:11900:situation@e61ed46a065f2d3f5a91fc0e036ce0704a0bf8726688f75f9b830fc9eb04fecd",
+          "opaque": "s_00000001"
+        },
+        {
+          "namespace": "s",
+          "scope": "c_00000001:A",
+          "original": "record:11900:automaticThought@d0e46823be0a36e5627356681c7b0e322a9f3911fad68b07c01323f9aab1cf12",
+          "opaque": "s_00000002"
+        },
+        {
+          "namespace": "s",
+          "scope": "c_00000001:A",
+          "original": "session:11900:record:11900:answer:SD_45655097C4812D288C05AC97@7de7643d76e90b66f44eb058bc96080fe8a6e5a17e5dd5cd8b4b21f1cc32dcea",
+          "opaque": "s_00000003"
+        }
+      ],
+      "sourcePresence": {
+        "acceptedState.answerDisposition": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "answerDisposition"
+        },
+        "acceptedState.confirmationAllowed": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "confirmationAllowed"
+        },
+        "acceptedState.completionAssessmentAllowed": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "completionAssessmentAllowed"
+        },
+        "acceptedState.coverageStateRole": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "coverageStateRole"
+        },
+        "acceptedState.coverageReviewRequired": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "coverageReviewRequired"
+        },
+        "acceptedState.blockedRouteFamilies": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "blockedRouteFamilies"
+        },
+        "acceptedState.incompleteCoverageDomains": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "incompleteCoverageDomains"
+        },
+        "acceptedState.blockedRoutes": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "blockedRoutes"
+        },
+        "acceptedState.resolvedButIrrelevantTopics": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "resolvedButIrrelevantTopics"
+        },
+        "acceptedState.blockedSemanticDimensions": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "blockedSemanticDimensions"
+        },
+        "acceptedState.unansweredQuestionAttempts": {
+          "status": "UNSUPPORTED",
+          "sourceField": null
+        },
+        "acceptedState.priorVerifiedCoverage": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "priorVerifiedCoverage"
+        },
+        "acceptedState.inputExplorationCoverage": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "inputExplorationCoverage"
+        },
+        "acceptedState.completionCandidateCoverage": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "completionCandidateCoverage"
+        },
+        "acceptedState.acceptedCoverage": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "coverage"
+        },
+        "acceptedState.coverageReview": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "coverageReview"
+        },
+        "acceptedState.completionCandidates": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "completionCandidates"
+        },
+        "acceptedState.acceptedEvidenceAtoms": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "currentEvidence"
+        },
+        "boundary.supplementalBoundaryEvidence": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "currentSupplemental"
+        },
+        "boundary.effectiveQuestionPlan": {
+          "status": "PRESENT",
+          "sourceField": "effectivePlan"
+        },
+        "boundary.terminalAssessment": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "terminalAssessment"
+        },
+        "boundary.factBoundaryGap": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "pending_fact_boundary"
+        },
+        "boundary.factBoundaryQuestionCount": {
+          "status": "PRESENT",
+          "sourceField": "gap_registry.*.rootQuestionCode"
+        },
+        "safety.safetyCandidates": {
+          "status": "EMPTY",
+          "sourceField": "episodes"
+        },
+        "safety.safetyReview": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "safety"
+        },
+        "identity.case_id": {
+          "status": "PRESENT",
+          "sourceField": null
+        },
+        "identity.response_id": {
+          "status": "PRESENT",
+          "sourceField": null
+        },
+        "identity.anonymous_version": {
+          "status": "PRESENT",
+          "sourceField": null
+        },
+        "identity.turn_index": {
+          "status": "PRESENT",
+          "sourceField": null
+        },
+        "identity.suite": {
+          "status": "PRESENT",
+          "sourceField": null
+        },
+        "identity.caseType": {
+          "status": "PRESENT",
+          "sourceField": null
+        },
+        "identity.syntheticContext.situation": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "identity.syntheticContext.primaryEmotionCode": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_request"
+        },
+        "identity.syntheticContext.contextCategory": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_request"
+        },
+        "input.situation_family": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "grading_context"
+        },
+        "input.vulnerability_type": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "grading_context"
+        },
+        "input.automaticThought": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.latestInteraction.questionRef": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.latestInteraction.questionPurpose": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.latestInteraction.semanticRouteType": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.latestInteraction.question": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.latestInteraction.answer": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.latestInteraction.askedAt": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.latestInteraction.answeredAt": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.fixedLatestUserIntentHint": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "grading_context"
+        },
+        "input.previousQuestions": {
+          "status": "EMPTY",
+          "sourceField": "public_request"
+        },
+        "input.questionAnswers": {
+          "status": "PRESENT",
+          "sourceField": "public_request"
+        },
+        "input.expectedDecision": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "grading_context"
+        },
+        "input.expectedAssessment": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "grading_context"
+        },
+        "input.expectedDistortions": {
+          "status": "EMPTY",
+          "sourceField": "grading_context"
+        },
+        "input.allowedQuestionMeanings": {
+          "status": "EMPTY",
+          "sourceField": "grading_context"
+        },
+        "input.forbiddenQuestionMeanings": {
+          "status": "EMPTY",
+          "sourceField": "grading_context"
+        },
+        "input.semanticRouteDefinitions": {
+          "status": "EMPTY",
+          "sourceField": "grading_context"
+        },
+        "boundary.effectiveSemanticMove": {
+          "status": "PRESENT",
+          "sourceField": null
+        },
+        "boundary.assessmentBoundary.observedFact": {
+          "status": "NOT_OBSERVED",
+          "sourceField": null
+        },
+        "boundary.assessmentBoundary.automaticThoughtExcerpt": {
+          "status": "NOT_OBSERVED",
+          "sourceField": null
+        },
+        "boundary.assessmentBoundary.unsupportedExtension": {
+          "status": "NOT_OBSERVED",
+          "sourceField": null
+        },
+        "boundary.assessmentBoundary.preservedFact": {
+          "status": "NOT_OBSERVED",
+          "sourceField": null
+        },
+        "boundary.assessmentBoundary.boundaryExplanation": {
+          "status": "NOT_OBSERVED",
+          "sourceField": null
+        },
+        "boundary.consideredCandidates": {
+          "status": "EMPTY",
+          "sourceField": null
+        },
+        "boundary.missingDefinitionElements": {
+          "status": "EMPTY",
+          "sourceField": null
+        },
+        "final.renderedOutput": {
+          "status": "PRESENT",
+          "sourceField": "public_response"
+        },
+        "final.actualDecision": {
+          "status": "PRESENT",
+          "sourceField": "public_response"
+        },
+        "final.actualAssessment": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.actualDistortions": {
+          "status": "EMPTY",
+          "sourceField": "public_response"
+        },
+        "final.questionPurpose": {
+          "status": "PRESENT",
+          "sourceField": "public_response"
+        },
+        "final.semanticRouteType": {
+          "status": "PRESENT",
+          "sourceField": "public_response"
+        },
+        "final.questionGoal": {
+          "status": "PRESENT",
+          "sourceField": "public_response"
+        },
+        "final.answerTarget": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.answerSource": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.prefaceGoal": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.exampleOptions": {
+          "status": "EMPTY",
+          "sourceField": "public_response"
+        },
+        "final.groundingQuestionCodes": {
+          "status": "PRESENT",
+          "sourceField": "public_response"
+        },
+        "final.avoidTopics": {
+          "status": "EMPTY",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.status": {
+          "status": "PRESENT",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.assessmentType": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.nextQuestion.questionRef": {
+          "status": "PRESENT",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.nextQuestion.questionPurpose": {
+          "status": "PRESENT",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.nextQuestion.semanticRouteType": {
+          "status": "PRESENT",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.nextQuestion.question": {
+          "status": "PRESENT",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.nextQuestion.answer": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.nextQuestion.askedAt": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.nextQuestion.answeredAt": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.beforeDistortions": {
+          "status": "EMPTY",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.outcomeDraft.evidenceForText": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.outcomeDraft.evidenceAgainstText": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.outcomeDraft.alternativeThoughtText": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.outcomeDraft.afterDistortions": {
+          "status": "EMPTY",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.confirmationRequiredFields": {
+          "status": "EMPTY",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.acknowledgementEvidence": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.acknowledgementSourceQuestionRef": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.proposalMessage": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.risk.level": {
+          "status": "PRESENT",
+          "sourceField": "public_response"
+        },
+        "final.finalResponse.risk.reasonCode": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.confirmation.requiredFields": {
+          "status": "EMPTY",
+          "sourceField": "public_response"
+        },
+        "final.confirmation.acknowledgementEvidence": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.confirmation.acknowledgementSourceQuestionRef": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.confirmation.proposalMessage": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "final.actionClass": {
+          "status": "NOT_OBSERVED",
+          "sourceField": "public_response"
+        },
+        "safety.safetyEvidence": {
+          "status": "EMPTY",
+          "sourceField": null
+        },
+        "safety.safetyReason": {
+          "status": "NOT_OBSERVED",
+          "sourceField": null
+        },
+        "dialogueControl.kind": {
+          "status": "NOT_OBSERVED",
+          "sourceField": null
+        },
+        "dialogueControl.targetQuestionRef": {
+          "status": "NOT_OBSERVED",
+          "sourceField": null
+        },
+        "dialogueControl.availableResponses": {
+          "status": "EMPTY",
+          "sourceField": null
+        }
+      },
+      "sourceAliases": {
+        "S1": "record:11900:situation@e61ed46a065f2d3f5a91fc0e036ce0704a0bf8726688f75f9b830fc9eb04fecd",
+        "record:11900:situation@e61ed46a065f2d3f5a91fc0e036ce0704a0bf8726688f75f9b830fc9eb04fecd": "record:11900:situation@e61ed46a065f2d3f5a91fc0e036ce0704a0bf8726688f75f9b830fc9eb04fecd",
+        "S2": "record:11900:automaticThought@d0e46823be0a36e5627356681c7b0e322a9f3911fad68b07c01323f9aab1cf12",
+        "record:11900:automaticThought@d0e46823be0a36e5627356681c7b0e322a9f3911fad68b07c01323f9aab1cf12": "record:11900:automaticThought@d0e46823be0a36e5627356681c7b0e322a9f3911fad68b07c01323f9aab1cf12",
+        "S3": "session:11900:record:11900:answer:SD_45655097C4812D288C05AC97@7de7643d76e90b66f44eb058bc96080fe8a6e5a17e5dd5cd8b4b21f1cc32dcea",
+        "session:11900:record:11900:answer:SD_45655097C4812D288C05AC97@7de7643d76e90b66f44eb058bc96080fe8a6e5a17e5dd5cd8b4b21f1cc32dcea": "session:11900:record:11900:answer:SD_45655097C4812D288C05AC97@7de7643d76e90b66f44eb058bc96080fe8a6e5a17e5dd5cd8b4b21f1cc32dcea"
+      },
+      "adapterImplementation": "Q11",
+      "schemaSha256": "d7cc075fdee244a26f908221a20174829eaf293a0a4960c444ab072f1b1fa8a5",
+      "limitation": "Shared keys/nulls remove direct version metadata; missing internal observations may remain identifying."
+    }
+  }
+}

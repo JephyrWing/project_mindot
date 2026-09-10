@@ -407,6 +407,7 @@ public class WeeklyReportsService {
 
         // 선택 주간의 완료 CBT 세션 ID 목록 생성
         List<Long> sessionIds = reflectionSessions.stream()
+                .filter(s -> s.confirmedInsight()==null)
                 .map(ReflectionSessions::getId)
                 .toList();
 
@@ -474,6 +475,9 @@ public class WeeklyReportsService {
         distortionChangeCounts.put("REMOVED", removedCounts);
         distortionChangeCounts.put("PERSISTED", persistedCounts);
         distortionChangeCounts.put("NEW", newCounts);
+        Map<String,Long> insightCounts=new LinkedHashMap<>();
+        for(var session:reflectionSessions)for(var code:session.confirmedInsightCodes())insightCounts.merge(code,1L,Long::sum);
+        distortionChangeCounts.put("CONFIRMED_INSIGHT",insightCounts);
 
         return distortionChangeCounts;
     }
@@ -828,7 +832,10 @@ public class WeeklyReportsService {
                     sessionId.longValue(),
                     emotionRecordId.longValue(),
                     alternativeThoughtText,
-                    helpfulnessScore
+                    helpfulnessScore,
+                    rawMap.get("resultFormatVersion") instanceof String format?format:"legacy",
+                    rawMap.get("confirmedResult") instanceof Map<?,?> result
+                        ?com.my.mindot_back.records.service.InsightMapping.map(result):null
             ));
         }
 
@@ -916,10 +923,10 @@ public class WeeklyReportsService {
                 );
 
         // 기록이 없는 주에는 리포트 생성 불가
-        if (emotionRecords.isEmpty()) {
+        if (emotionRecords.isEmpty() && reflectionSessions.isEmpty()) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "선택한 주에 감정 기록이 없어 리포트를 생성할 수 없습니다."
+                    "선택한 주에 감정 기록과 완료된 CBT 성찰이 없습니다."
             );
         }
 

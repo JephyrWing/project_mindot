@@ -1,0 +1,31 @@
+{
+  "cause": "SANDBOX_OUTBOUND_SOCKET_ACCESS_DENIED",
+  "insideSandbox": {
+    "endpointHost": "api.openai.com",
+    "httpMethod": "GET",
+    "path": "/v1/models",
+    "authenticationSent": false,
+    "generationRequested": false,
+    "error": "httpx.ConnectError",
+    "osError": "WinError 10013",
+    "message": "An attempt was made to access a socket in a way forbidden by its access permissions."
+  },
+  "outsideSandbox": {
+    "endpointHost": "api.openai.com",
+    "httpMethod": "GET",
+    "path": "/v1/models",
+    "authenticationSent": false,
+    "generationRequested": false,
+    "httpStatus": 401,
+    "interpretation": "Expected unauthenticated response demonstrates server connectivity."
+  },
+  "effectiveProductEnvironment": {
+    "apiHost": "api.openai.com",
+    "proxyConfigured": false
+  },
+  "attribution": "Executor started the canary in the restricted sandbox without first checking network access. This is an execution-environment error, not evidence of model/CBT semantic failure.",
+  "additionalModelCalls": 0,
+  "canaryRerun": false,
+  "formalResults": 0,
+  "usageTreatment": "Original failed-attempt usage remains unknown/reserved because per-attempt provider receipt was not captured; the separate connectivity check is not a provider usage receipt."
+}

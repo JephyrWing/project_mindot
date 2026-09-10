@@ -4,6 +4,7 @@ package com.my.mindot_back.records.service;
 public record EmotionRecordAiJobContext(
         Long emotionRecordId,
         Long aiJobId,
-        String rawText
+        String rawText,
+        boolean dispatch
 ) {
 }

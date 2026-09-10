@@ -1,0 +1,124 @@
+{
+  "packageId": "q11-simple-dialogue-1",
+  "capacityPolicyRevision": "capacity-policy-1",
+  "createdAt": "2026-09-09",
+  "status": "DESIGN_NOT_PRODUCT_TEST_PASS",
+  "files": [
+    {
+      "path": "Mindot-Q11-Question-First-Codex-Prompt.md",
+      "bytes": 7650,
+      "sha256": "26e6d24945b7a44210c58d6776a7f5eb93af162c5bc5b3719acce0737ab799e1"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3052,
+      "sha256": "16a60f486a6d924e18f716ffc4dcb8d07715d59180dff2e12f3a1d8c54cbd514"
+    },
+    {
+      "path": "docs/cbt-q11-evaluation/Mindot-CBT-Q11-Hidden-Holdout-Sealed.tar.enc",
+      "bytes": 51232,
+      "sha256": "a5de742651891641fd1ce78a65aa0c6c7d11a4fd1e4ac79250133706b916f99e"
+    },
+    {
+      "path": "docs/cbt-q11-evaluation/asset-index.json",
+      "bytes": 8180,
+      "sha256": "b8b55375cb031e84a0f5a36d5acb01c74fd4d82c8dab46da74e327d882e9b10e"
+    },
+    {
+      "path": "docs/cbt-q11-evaluation/execution-contract.md",
+      "bytes": 13529,
+      "sha256": "17a1991833f097980dce1d59441b5ef55549e904b6b09b10168f52594c260b88"
+    },
+    {
+      "path": "docs/cbt-q11-evaluation/holdout-manifest.json",
+      "bytes": 2322,
+      "sha256": "76ef2e931f97b798ab0ffd64cbdfd520f487a547f72bb67533962d1b0cff882a"
+    },
+    {
+      "path": "docs/cbt-q11-evaluation/known-input-lock.json",
+      "bytes": 2547,
+      "sha256": "f6015981d7d84c8468f54c74375ee88a7a8a0919bc8fd68e356f2115f73e278c"
+    },
+    {
+      "path": "docs/cbt-q11-evaluation/q10-source-lock.json",
+      "bytes": 8051,
+      "sha256": "5b322d44cbcd04c89c92bd910c97108d4848a5d89b863d88b4cc9a8c9cf8fb5f"
+    },
+    {
+      "path": "docs/cbt-q11-evaluation/raw-export-contract.md",
+      "bytes": 9171,
+      "sha256": "c48203c9236839586e7af9c155122ecc89704aca4c70fc57e1b50e4110260f67"
+    },
+    {
+      "path": "docs/cbt-q11-simple/artifact-checks.json",
+      "bytes": 2212,
+      "sha256": "99995c4169bd0ec8ce14fa4eb61293390a198aaa4a84726ff1f1f43c595c2270"
+    },
+    {
+      "path": "docs/cbt-q11-simple/canary-plan.json",
+      "bytes": 39540,
+      "sha256": "b6883a4d6f2fd5b5c575e4371e5787291c2d6f5918338ca2c4d129b3a2227df5"
+    },
+    {
+      "path": "docs/cbt-q11-simple/design-and-contract.md",
+      "bytes": 23978,
+      "sha256": "2528c75727bf7ee6581d4d0ef55f39ed7b40dadb7a722858174155338d63085f"
+    },
+    {
+      "path": "docs/cbt-q11-simple/implementation-base-manifest.json",
+      "bytes": 8151,
+      "sha256": "751fd1116b6b7e2abc0a4a09c6bd957b3ac7dd5ecc0255b1448e03abde6c1eb8"
+    },
+    {
+      "path": "docs/cbt-q11-simple/input-capacity-decision.md",
+      "bytes": 5377,
+      "sha256": "571dda06b69236ce9e64cc8c47e1d5326fc711ac9352b5a3a0fb825535098d84"
+    },
+    {
+      "path": "docs/cbt-q11-simple/iteration-log-snapshot.md",
+      "bytes": 9577,
+      "sha256": "81227508b9d7cad29390aef8e7fcc9f7d7ae66e9cedc1e0f40cb2ad18b1575af"
+    },
+    {
+      "path": "docs/cbt-q11-simple/offline-checks.md",
+      "bytes": 8829,
+      "sha256": "795e9c9d308dd4557c7ef4b27ddf9aa4881391a8ec863d7ac34379f946314bd7"
+    },
+    {
+      "path": "docs/cbt-q11-simple/package-review.md",
+      "bytes": 6512,
+      "sha256": "870f8be837138277466218ecd14de8ee5ff10638cc512922db64d486e2e9413a"
+    },
+    {
+      "path": "docs/cbt-q11-simple/prompts/agent.txt",
+      "bytes": 4506,
+      "sha256": "819c7aad1c7e426749acea1d19c17abaff5ca9911a4e52469b8ed2caf1c595a4"
+    },
+    {
+      "path": "docs/cbt-q11-simple/prompts/assessment-review.txt",
+      "bytes": 919,
+      "sha256": "61e2c7ef1d10f5910f2b85b6afac6a2244ae2af4e112e684cdc63b63a79c2b7c"
+    },
+    {
+      "path": "docs/cbt-q11-simple/prompts/assessor.txt",
+      "bytes": 3213,
+      "sha256": "af67be1938c86c96adcf108b2787b8c41454e1f9a07e588d00777bdd9f4eb861"
+    },
+    {
+      "path": "docs/cbt-q11-simple/prompts/writer-repair.txt",
+      "bytes": 592,
+      "sha256": "b557c6b5ad76c53af2d5be9817bab71c20498b781bf0a0e121e67e09cda4d81a"
+    },
+    {
+      "path": "docs/cbt-q11-simple/prompts/writer.txt",
+      "bytes": 1761,
+      "sha256": "4bf636131c30312d27d5fa7eee0e7ca537fbd9a58a7844f6c627bebd5d7a4c99"
+    },
+    {
+      "path": "docs/cbt-q11-simple/schema.py",
+      "bytes": 11370,
+      "sha256": "12a72dcd194ca6929ca21cab63bccee02694947ab817d9dd0d3db95bf12afb88"
+    }
+  ],
+  "handoffMode": "FIRST_DELIVERY_OF_REDESIGN"
+}

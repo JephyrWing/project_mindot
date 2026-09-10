@@ -1,0 +1,24 @@
+{
+  "planned": 12,
+  "executed": 9,
+  "committed": 7,
+  "unexecuted": 3,
+  "usage": {
+    "generationDispatches": 14,
+    "moderationDispatches": 9,
+    "observedGenericTokens": 48840,
+    "observedPlusUnknownReservations": 48840,
+    "unknownReservedTokens": 0
+  },
+  "sourceHash": "58d3dbb939a9747209eb2979d078257d1cbbc747c0f573eec64df4949270a701",
+  "formalResults": 0,
+  "status": "CANARY_BLOCKED",
+  "acceptanceCounts": {
+    "PASS": 6,
+    "FAIL": 3,
+    "UNRESOLVED": 0,
+    "TEST_INVALID": 0,
+    "BLOCKED_BY_PARENT": 3,
+    "NOT_APPLICABLE_PARENT_CONFIRMATION": 0
+  }
+}

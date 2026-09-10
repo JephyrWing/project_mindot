@@ -1,0 +1,16 @@
+{
+  "planned": 12,
+  "executed": 8,
+  "committed": 0,
+  "unexecuted": 4,
+  "usage": {
+    "generationDispatches": 8,
+    "moderationDispatches": 8,
+    "observedGenericTokens": 0,
+    "observedPlusUnknownReservations": 146553,
+    "unknownReservedTokens": 146553
+  },
+  "sourceHash": "32d42d03965c6882393a673b1a1f163a68644ed4900adfe8aa8fc2447b378aaf",
+  "formalResults": 0,
+  "status": "CANARY_BLOCKED"
+}

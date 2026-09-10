@@ -1,1326 +1,210 @@
-import { useEffect, useState } from 'react'
+import { automaticThoughtError, MAX_AUTOMATIC_THOUGHT_LENGTH } from '../../utils/reflections/automaticThought.js'
+import { useEffect, useRef, useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Navbar from '../Navbar/Navbar.jsx'
-import SafetyNoticeModal from '../SafetyNoticeModal/SafetyNoticeModal.jsx'
-import {
-  cancelReflection,
-  confirmReflection,
-  getReflectionSessionDetail,
-  getOpenReflectionSessions,
-  retryReflectionEmbedding,
-  retryFirstReflectionQuestion,
-  retryNextReflectionQuestion,
-  startReflection,
-  submitReflectionAnswer,
-} from '../../utils/reflections/reflectionsApi.js'
-import {
-  confirmEmotionRecord,
-  getEmotionRecordDetail,
-} from '../../utils/records/recordsApi.js'
+import InsightResult from './InsightResult.jsx'
+import { newRequestKey, openReflection, submitReflectionAnswer, retryReflection, confirmReflection,
+  cancelReflection, getReflectionSessionDetail, retryReflectionEmbedding } from '../../utils/reflections/reflectionsApi.js'
+import { confirmEmotionRecord, getEmotionRecordDetail } from '../../utils/records/recordsApi.js'
+import { acceptSessionView } from '../../utils/reflections/sessionView.js'
+import { confirmThoughtForOpen } from '../../utils/reflections/confirmThoughtForOpen.js'
 import './CBT.css'
 
-// CBT 답변의 백엔드 최대 허용 글자 수 설정.
-const maxAnswerLength = 4000
-
-// 백엔드 인지왜곡 코드를 사용자에게 표시할 한국어 이름으로 변환하기 위한 목록 설정.
-const distortionCodeLabels = {
-  ALL_OR_NOTHING_THINKING: '흑백논리',
-  CATASTROPHIZING_FORTUNE_TELLING: '파국화·미래예측',
-  DISQUALIFYING_DISCOUNTING_POSITIVE: '긍정적인 면 무시',
-  EMOTIONAL_REASONING: '감정적 추론',
-  LABELING: '낙인찍기',
-  MAGNIFICATION_MINIMIZATION: '과장·축소',
-  MENTAL_FILTER_SELECTIVE_ABSTRACTION: '정신적 여과',
-  MIND_READING: '독심술',
-  OVERGENERALIZATION: '과잉일반화',
-  PERSONALIZATION: '개인화',
-  SHOULD_MUST_STATEMENTS: '당위적 사고',
-  TUNNEL_VISION: '터널 시야',
-}
-
-// CBT 최종 결과 입력값의 초기 상태 설정.
-const initialConfirmationForm = {
-  evidenceForText: '',
-  evidenceAgainstText: '',
-  alternativeThoughtText: '',
-  beforeBeliefStrength: '',
-  afterBeliefStrength: '',
-  finalEmotionIntensity: '',
-  helpfulnessScore: '',
-}
-
-// 상세 조회 응답의 저장된 최종 결과 초안을 사용자 확인 입력값으로 변환.
-const createResumedConfirmationForm = (resumeSession) => {
-  const savedOutcome = resumeSession?.outcomeDraft ?? resumeSession?.outcome ?? {}
-
-  return {
-    ...initialConfirmationForm,
-    evidenceForText: savedOutcome.evidenceForText ?? '',
-    evidenceAgainstText: savedOutcome.evidenceAgainstText ?? '',
-    alternativeThoughtText: savedOutcome.alternativeThoughtText ?? '',
-    beforeBeliefStrength: savedOutcome.beforeBeliefStrength ?? '',
-    afterBeliefStrength: savedOutcome.afterBeliefStrength ?? '',
-    finalEmotionIntensity: savedOutcome.finalEmotionIntensity ?? '',
-    helpfulnessScore: savedOutcome.helpfulnessScore ?? '',
-  }
-}
-
-// 상세 조회 응답의 인지왜곡 제안을 사용자 검토 상태 목록으로 변환.
-const createResumedDistortions = (distortions = []) => (
-  distortions.map((distortion) => ({
-    code: distortion.code,
-    reviewStatus: ['CONFIRMED', 'REJECTED'].includes(distortion.reviewStatus)
-      ? distortion.reviewStatus
-      : '',
-  }))
+const scoreFields = [
+  ['beforeBeliefStrength', '처음 자동적 생각을 성찰 전에 믿었던 정도', 100],
+  ['afterBeliefStrength', '같은 처음 자동적 생각을 지금 믿는 정도', 100],
+  ['finalEmotionIntensity', '지금 감정의 강도', 10], ['helpfulnessScore', '성찰이 도움이 된 정도', 5],
+]
+const pending = (v) => ['PROCESSING', 'PENDING'].includes(v?.job?.status)
+const errorMessage = (e) => e.userMessage || (typeof e.response?.data?.detail === 'string' ? e.response.data.detail
+  : e.response?.data?.message || '요청 결과를 확인하지 못했습니다. 작성한 내용을 유지하고 다시 확인해 주세요.'
 )
 
-// AI 질문 생성 실패 후 호출할 재시도 API 유형 설정.
-const questionRetryTypes = {
-  FIRST: 'FIRST',
-  NEXT: 'NEXT',
-}
-
-// CBT API 오류가 AI 질문 생성 재처리가 가능한 서버 오류인지 확인.
-const isQuestionGenerationError = (error) => {
-  const status = error.response?.status
-
-  return Number.isInteger(status) && status >= 500
-}
-
-// CBT API 오류 응답을 사용자가 이해할 수 있는 문구로 변환.
-const getReflectionErrorMessage = (error, fallbackMessage) => {
-  if (!error.response) {
-    return '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
+export default function CBT(props) {
+  const { emotionRecordId, resumeSession, resumeSessionId, onSessionStarted, onEmotionHistory, onHome } = props
+  const [view, setView] = useState(null)
+  const current = useRef(null)
+  const requests = useRef(new Map())
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const [answer, setAnswer] = useState('')
+  const [record, setRecord] = useState(null)
+  const [confirmedRecord, setConfirmedRecord] = useState(null)
+  const [thought, setThought] = useState('')
+  const [reviews, setReviews] = useState({})
+  const [scores, setScores] = useState({})
+  const [reload, setReload] = useState(0)
+  const [embeddingMessage, setEmbeddingMessage] = useState('')
+  const apply = (next) => {
+    if (!acceptSessionView(current.current, next)) return
+    current.current = next
+    setView(next)
   }
-  if (error.response.status === 401) {
-    return '로그인 정보가 만료되었습니다. 다시 로그인해 주세요.'
-  }
-  if (error.response.status >= 500) {
-    return fallbackMessage
-  }
-
-  return error.response.data?.message
-    || error.response.data?.detail
-    || fallbackMessage
-}
-
-// CBT 최종 확정 API 오류 상태에 따른 사용자 안내 문구 반환.
-const getConfirmationErrorMessage = (error) => {
-  if (!error.response) {
-    return '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
-  }
-  if (error.response.status === 400) {
-    return '입력한 성찰 결과를 다시 확인해 주세요.'
-  }
-  if (error.response.status === 401) {
-    return '로그인 정보가 만료되었습니다. 다시 로그인해 주세요.'
-  }
-  if (error.response.status === 404) {
-    return '확정할 CBT 성찰 세션을 찾을 수 없습니다.'
-  }
-  if (error.response.status === 409) {
-    return '이미 완료되었거나 아직 확정할 수 없는 CBT 성찰입니다.'
-  }
-
-  return error.response.data?.message
-    || error.response.data?.detail
-    || 'CBT 성찰 결과를 확정하지 못했습니다. 잠시 후 다시 시도해 주세요.'
-}
-
-// CBT 임베딩 재시도 API 오류 상태에 따른 사용자 안내 문구 반환.
-const getEmbeddingRetryErrorMessage = (error) => {
-  if (!error.response) {
-    return '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
-  }
-  if (error.response.status === 401) {
-    return '로그인 정보가 만료되었습니다. 다시 로그인해 주세요.'
-  }
-  if (error.response.status === 404) {
-    return '임베딩을 다시 만들 CBT 성찰을 찾을 수 없습니다.'
-  }
-  if (error.response.status === 409) {
-    return '이미 임베딩이 생성되었거나 재시도할 수 없는 CBT 성찰입니다.'
-  }
-
-  return error.response.data?.message
-    || error.response.data?.detail
-    || '임베딩을 다시 만들지 못했습니다. 잠시 후 다시 시도해 주세요.'
-}
-
-// CBT API 응답 상태에 맞는 AI 안내 문구 반환.
-const getResponseMessage = (response) => {
-  if (response.safetyNotice?.actionCode === 'SHOW_CRISIS_NOTICE') {
-    return '안전을 위해 CBT 답변 입력을 중단했습니다. 안전 안내의 연락 수단을 먼저 확인해 주세요.'
-  }
-  if (response.nextQuestion?.question) {
-    return response.nextQuestion.question
-  }
-  if (response.proposalMessage) {
-    return response.proposalMessage
-  }
-  if (
-    response.status === 'CONFIRM_REQUIRED'
-    && response.assessmentType === 'NO_CLEAR_DISTORTION'
-  ) {
-    return '대화를 살펴본 결과, 현재 생각에서 명확한 인지왜곡은 확인되지 않았습니다.'
-  }
-  if (response.status === 'CONFIRM_REQUIRED') {
-    return '대화를 바탕으로 성찰 결과가 준비되었습니다.'
-  }
-  if (response.status === 'SAFETY_STOP') {
-    return '안전을 위해 CBT 대화를 잠시 중단합니다. 즉각적인 도움이 필요하면 112 또는 119에 연락해 주세요.'
-  }
-
-  return 'CBT 성찰 대화가 마무리되었습니다.'
-}
-
-// 저장된 질문과 답변 배열을 CBT 대화창에서 사용할 순서형 메시지 목록으로 변환.
-const createResumedChatMessages = (resumeSession) => (
-  (resumeSession?.questionAnswers ?? []).flatMap((questionAnswer, index) => {
-    const messages = [{
-      id: `ai-${resumeSession.sessionId}-history-${index}`,
-      sender: 'ai',
-      text: questionAnswer.question || '질문 내용이 없습니다.',
-    }]
-
-    if (questionAnswer.answer?.trim()) {
-      messages.push({
-        id: `user-${resumeSession.sessionId}-history-${index}`,
-        sender: 'user',
-        text: questionAnswer.answer,
-      })
+  const send = async (kind, body, method, revision = current.current?.revision) => {
+    const signature = `${kind}:${JSON.stringify(body)}`
+    let receipt = requests.current.get(signature)
+    if (!receipt) {
+      receipt = { key: newRequestKey(), revision }
+      requests.current.set(signature, receipt)
     }
-
-    return messages
-  })
-)
-
-// 백엔드 세션 상태와 현재 질문 단계를 CBT 화면 상태로 변환.
-const resolveReflectionStatus = (reflectionSession) => {
-  if (!reflectionSession) return 'IDLE'
-
-  if (reflectionSession.status === 'COMPLETED') return 'COMPLETED'
-  if (reflectionSession.status === 'CANCELLED') return 'CANCELLED'
-  if (reflectionSession.status === 'SAFETY_STOPPED') return 'SAFETY_STOP'
-
-  if (reflectionSession.status === 'OPEN') {
-    return reflectionSession.currentStep === 'CONFIRM_REQUIRED'
-      ? 'CONFIRM_REQUIRED'
-      : 'CONTINUE'
+    try {
+      const result = await method(receipt.key, receipt.revision)
+      requests.current.delete(signature)
+      apply(result)
+      return result
+    } catch (e) {
+      // A transport retry keeps the same body/key/revision; no new logical answer.
+      if (kind !== 'OPEN' && e.response && e.response.status < 500) requests.current.delete(signature)
+      throw e
+    }
   }
-
-  return 'IDLE'
-}
-
-// 감정 기록을 바탕으로 생각을 돌아보는 기본 CBT 성찰 화면 컴포넌트 정의.
-function CBT({
-  emotionRecordId,
-  resumeSession,
-  resumeSessionId,
-  onSessionStarted,
-  isAuthenticated,
-  isLoggingOut,
-  onLogin,
-  onLogout,
-  onSignUp,
-  onEmotionHistory,
-  onCenter,
-  onDailyCare,
-  onHome,
-}) {
-  // CBT AI 대화창 시작 여부 상태 관리.
-  const [isChatStarted, setIsChatStarted] = useState(
-    () => Boolean(resumeSession?.sessionId && resumeSession?.currentStep),
-  )
-  // 사용자가 작성 중인 답변 내용 상태 관리.
-  const [message, setMessage] = useState('')
-  // API에서 주고받은 AI 질문과 사용자 답변 목록 상태 관리.
-  const [chatMessages, setChatMessages] = useState(
-    () => createResumedChatMessages(resumeSession),
-  )
-  // 백엔드가 생성한 CBT 성찰 세션 식별자 상태 관리.
-  const [sessionId, setSessionId] = useState(
-    () => resumeSession?.sessionId ?? null,
-  )
-  // CBT 세션 시작 요청 진행 여부 상태 관리.
-  const [isStarting, setIsStarting] = useState(false)
-  // CBT 답변 전송 요청 진행 여부 상태 관리.
-  const [isSending, setIsSending] = useState(false)
-  // AI 질문 생성 재시도 요청 진행 여부 상태 관리.
-  const [isRetryingQuestion, setIsRetryingQuestion] = useState(false)
-  // 첫 질문 또는 다음 질문 재시도 유형 상태 관리.
-  const [questionRetryType, setQuestionRetryType] = useState(
-    () => (
-      resumeSession?.sessionId && !resumeSession?.currentStep
-        ? questionRetryTypes.FIRST
-        : ''
-    ),
-  )
-  // CBT API 요청 실패 안내 문구 상태 관리.
-  const [apiError, setApiError] = useState('')
-  // CBT 시작 전 자동 사고 보완이 필요한 감정 기록 상세 정보 상태 관리.
-  const [recordForCbt, setRecordForCbt] = useState(null)
-  // CBT 시작에 필요한 사용자의 자동 사고 입력값 상태 관리.
-  const [automaticThought, setAutomaticThought] = useState('')
-  // 자동 사고 보완 입력 영역 표시 여부 상태 관리.
-  const [isAutomaticThoughtRequired, setIsAutomaticThoughtRequired] = useState(false)
-  // CBT 대화 계속 여부를 판단하기 위한 백엔드 응답 상태 관리.
-  const [reflectionStatus, setReflectionStatus] = useState(
-    () => resolveReflectionStatus(resumeSession),
-  )
-  // CONFIRM_REQUIRED 결과의 인지왜곡 판정 유형 상태 관리.
-  const [assessmentType, setAssessmentType] = useState(
-    () => resumeSession?.assessmentType ?? '',
-  )
-  // AI가 제안한 CBT 최종 결과와 사용자의 수정값 상태 관리.
-  const [confirmationForm, setConfirmationForm] = useState(
-    () => createResumedConfirmationForm(resumeSession),
-  )
-  // 성찰 전 AI 제안 인지왜곡의 사용자 검토 상태 관리.
-  const [beforeDistortions, setBeforeDistortions] = useState(
-    () => createResumedDistortions(resumeSession?.beforeDistortions),
-  )
-  // 성찰 후 AI 제안 인지왜곡의 사용자 검토 상태 관리.
-  const [afterDistortions, setAfterDistortions] = useState(
-    () => createResumedDistortions(
-      resumeSession?.outcomeDraft?.afterDistortions
-        ?? resumeSession?.afterDistortions,
-    ),
-  )
-  // CBT 최종 결과 확정 요청 진행 여부 상태 관리.
-  const [isConfirming, setIsConfirming] = useState(false)
-  // CBT 최종 결과 확정 완료 여부 상태 관리.
-  const [isConfirmed, setIsConfirmed] = useState(false)
-  // CBT 최종 결과 검증 또는 API 오류 안내 문구 상태 관리.
-  const [confirmationError, setConfirmationError] = useState('')
-  // CBT 최종 확정 후 임베딩 재시도 필요 여부 상태 관리.
-  const [isEmbeddingRetryRequired, setIsEmbeddingRetryRequired] = useState(false)
-  // CBT 임베딩 재시도 요청 진행 여부 상태 관리.
-  const [isRetryingEmbedding, setIsRetryingEmbedding] = useState(false)
-  // CBT 임베딩 재시도 실패 안내 문구 상태 관리.
-  const [embeddingRetryError, setEmbeddingRetryError] = useState('')
-  // CBT 임베딩 재시도 완료 안내 문구 상태 관리.
-  const [embeddingRetrySuccess, setEmbeddingRetrySuccess] = useState('')
-  // CBT 성찰 세션 취소 요청 진행 여부 상태 관리.
-  const [isCancelling, setIsCancelling] = useState(false)
-  // CBT 성찰 세션 이동 또는 취소 오류 안내 문구 상태 관리.
-  const [sessionActionError, setSessionActionError] = useState('')
-  // CBT 시작 또는 답변 응답에서 반환된 안전 안내 모달 정보 상태 관리.
-  const [safetyNotice, setSafetyNotice] = useState(null)
-  // 위기 안전 안내 이후 CBT 답변 입력을 계속 차단하기 위한 상태 관리.
-  const [isCrisisBlocked, setIsCrisisBlocked] = useState(false)
-  // URL로 직접 진입한 CBT 세션 상세 조회 진행 여부 상태 관리.
-  const [isResumeLoading, setIsResumeLoading] = useState(
-    () => Boolean(resumeSessionId && !resumeSession),
-  )
-  // URL로 직접 진입한 CBT 세션 상세 조회 실패 안내 상태 관리.
-  const [resumeLoadError, setResumeLoadError] = useState('')
-  // URL CBT 세션 상세 재조회 요청 횟수 상태 관리.
-  const [resumeReloadCount, setResumeReloadCount] = useState(0)
-
-  // CBT 재개 URL을 새로고침한 경우 세션 상세와 기존 대화 상태 복원.
+  const resumeId = resumeSessionId ?? resumeSession?.sessionId
   useEffect(() => {
-    if (!resumeSessionId || resumeSession?.sessionId === resumeSessionId) {
-      return undefined
-    }
-
-    let isActive = true
-
-    const loadResumeSession = async () => {
-      setIsResumeLoading(true)
-      setResumeLoadError('')
-
+    if (!resumeId || current.current?.sessionId === resumeId) return
+    let active = true
+    const load = async () => {
+      setBusy(true); setError('')
       try {
-        const detail = await getReflectionSessionDetail(resumeSessionId)
-
-        if (!isActive) return
-
-        const resumedStatus = resolveReflectionStatus(detail)
-
-        setSessionId(detail.sessionId)
-        setReflectionStatus(resumedStatus)
-        setChatMessages(createResumedChatMessages(detail))
-        setAssessmentType(detail.assessmentType ?? '')
-        setConfirmationForm(createResumedConfirmationForm(detail))
-        setBeforeDistortions(createResumedDistortions(detail.beforeDistortions))
-        setAfterDistortions(createResumedDistortions(
-          detail.outcomeDraft?.afterDistortions ?? detail.afterDistortions,
-        ))
-        setQuestionRetryType(
-          detail.sessionId && !detail.currentStep ? questionRetryTypes.FIRST : '',
-        )
-        setIsConfirmed(detail.status === 'COMPLETED')
-        setIsChatStarted(Boolean(detail.currentStep) || detail.status === 'COMPLETED')
-        setApiError('')
-      } catch (error) {
-        if (isActive) {
-          setResumeLoadError(getReflectionErrorMessage(
-            error,
-            '이어갈 CBT 성찰을 불러오지 못했습니다.',
-          ))
-        }
-      } finally {
-        if (isActive) setIsResumeLoading(false)
+        const saved = await getReflectionSessionDetail(resumeId)
+        if (!active) return
+        apply(saved)
+        const hydrated = await openReflection({ sessionId: resumeId }, newRequestKey(), saved.revision)
+        if (active) apply(hydrated)
+      } catch (e) { if (active) setError(errorMessage(e)) }
+      finally { if (active) setBusy(false) }
+    }
+    load()
+    return () => { active = false }
+  }, [resumeId, reload])
+  useEffect(() => {
+    if (!pending(view)) return
+    let active = true
+    const timer = setInterval(async () => {
+      try { const next = await getReflectionSessionDetail(view.sessionId); if (active) apply(next) }
+      catch { /* Keep saved view; manual refresh remains available. */ }
+    }, 2000)
+    return () => { active = false; clearInterval(timer) }
+  }, [view?.sessionId, view?.job?.status])
+  const proposalId = view?.currentProposal?.proposalId
+  useEffect(() => { setReviews({}); setScores({}) }, [proposalId])
+  const run = async (action) => {
+    setBusy(true); setError('')
+    try { await action() }
+    catch (e) {
+      setError(errorMessage(e))
+      if (current.current?.sessionId) {
+        try { apply(await getReflectionSessionDetail(current.current.sessionId)) } catch { /* Preserve input. */ }
       }
-    }
-
-    loadResumeSession()
-
-    return () => {
-      isActive = false
-    }
-  }, [resumeReloadCount, resumeSession, resumeSessionId])
-
-  // CBT 응답의 안전 안내를 반영하고 위기 입력 차단 필요 여부 반환.
-  const applySafetyNotice = (response) => {
-    const responseSafetyNotice = response.safetyNotice
-
-    if (!responseSafetyNotice) return false
-
-    const shouldBlockCbt = responseSafetyNotice.actionCode
-      === 'SHOW_CRISIS_NOTICE'
-
-    setSafetyNotice(responseSafetyNotice)
-    if (shouldBlockCbt) setIsCrisisBlocked(true)
-
-    return shouldBlockCbt
+    } finally { setBusy(false) }
   }
-
-  // AI의 최종 결과 초안과 인지왜곡 제안을 사용자 검토 입력값으로 변환하는 처리.
-  const prepareConfirmationForm = (response) => {
-    if (response.status !== 'CONFIRM_REQUIRED') {
-      setAssessmentType('')
-      return
-    }
-
-    const outcomeDraft = response.outcomeDraft ?? {}
-
-    setAssessmentType(response.assessmentType ?? 'DISTORTION_PRESENT')
-    setConfirmationForm({
-      ...initialConfirmationForm,
-      evidenceForText: outcomeDraft.evidenceForText ?? '',
-      evidenceAgainstText: outcomeDraft.evidenceAgainstText ?? '',
-      alternativeThoughtText: outcomeDraft.alternativeThoughtText ?? '',
+  const openSavedRecord = async () => {
+    const result = await send('OPEN', { emotionRecordId }, (key) => openReflection({ emotionRecordId }, key))
+    onSessionStarted?.(result.sessionId)
+  }
+  const start = () => run(async () => {
+    if (!emotionRecordId) return
+    if (confirmedRecord) { await openSavedRecord(); return }
+    const saved = await getEmotionRecordDetail(emotionRecordId)
+    if (!saved.automaticThought?.trim()) { setRecord(saved); return }
+    const invalid = automaticThoughtError(saved.automaticThought)
+    if (invalid) { setError(invalid); return }
+    await openSavedRecord()
+  })
+  const saveThought = (e) => {
+    e.preventDefault()
+    const invalid = automaticThoughtError(thought)
+    if (invalid) { setError(invalid); return }
+    run(async () => {
+      const saved = await confirmThoughtForOpen(emotionRecordId, {
+        situationText: record.situationText, automaticThought: thought.trim(),
+        primaryEmotionCode: record.primaryEmotionCode, primaryIntensity: record.primaryIntensity,
+        secondaryEmotions: record.secondaryEmotions ?? [], contextCategory: record.contextCategory,
+        relatedPersonType: record.relatedPersonType, details: record.details ?? {},
+      }, { confirmEmotionRecord, getEmotionRecordDetail })
+      setConfirmedRecord(saved)
+      setRecord(null) // This durable stage is complete even if OPEN loses its response.
+      await openSavedRecord()
     })
-    setBeforeDistortions((response.beforeDistortions ?? []).map((distortion) => ({
-      code: distortion.code,
-      reviewStatus: '',
-    })))
-    setAfterDistortions((outcomeDraft.afterDistortions ?? []).map((distortion) => ({
-      code: distortion.code,
-      reviewStatus: '',
-    })))
-    setConfirmationError('')
-    setIsConfirmed(false)
   }
-
-  // CBT 세션 시작 응답을 현재 대화 화면 상태에 반영하는 처리.
-  const applyReflectionStartResponse = (response) => {
-    const shouldBlockCbt = applySafetyNotice(response)
-
-    setSessionId(response.sessionId)
-    onSessionStarted?.(response.sessionId)
-    setReflectionStatus(shouldBlockCbt ? 'SAFETY_STOP' : response.status)
-    if (shouldBlockCbt) {
-      setAssessmentType('')
-    } else {
-      prepareConfirmationForm(response)
-    }
-    setChatMessages([{
-      id: `ai-${response.sessionId}-start`,
-      sender: 'ai',
-      text: getResponseMessage(response),
-    }])
-    setIsChatStarted(true)
-    setIsAutomaticThoughtRequired(false)
-    setQuestionRetryType('')
-    setApiError('')
+  const submit = (e) => {
+    e.preventDefault()
+    const text = answer
+    if (!text.trim() || busy || pending(view)) return
+    run(async () => {
+      await send('TURN', { answer: text }, (key, rev) => submitReflectionAnswer(view.sessionId, text, key, rev))
+      setAnswer('')
+    })
   }
-
-  // 다음 질문 생성 응답을 대화와 최종 결과 확인 상태에 반영하는 처리.
-  const applyReflectionTurnResponse = (response, answeredMessage = '') => {
-    const shouldBlockCbt = applySafetyNotice(response)
-
-    if (shouldBlockCbt) {
-      // 위기 신호 감지 시 기존 대화 대신 안전 안내 메시지만 유지하는 처리.
-      setChatMessages([{
-        id: `ai-${sessionId}-safety`,
-        sender: 'ai',
-        text: getResponseMessage(response),
-      }])
-      setReflectionStatus('SAFETY_STOP')
-      setAssessmentType('')
-    } else {
-      setChatMessages((currentMessages) => [
-        ...currentMessages,
-        ...(answeredMessage ? [{
-          id: `user-${sessionId}-${currentMessages.length}`,
-          sender: 'user',
-          text: answeredMessage,
-        }] : []),
-        {
-          id: `ai-${sessionId}-${currentMessages.length + (answeredMessage ? 1 : 0)}`,
-          sender: 'ai',
-          text: getResponseMessage(response),
-        },
-      ])
-      setReflectionStatus(response.status)
-      prepareConfirmationForm(response)
+  const confirm = (e) => {
+    e.preventDefault()
+    const proposal = view.currentProposal
+    const body = { proposalId: proposal.proposalId,
+      reviews: proposal.suggestions.map((s) => ({ code: s.code, reviewStatus: reviews[s.code] })),
+      ...Object.fromEntries(scoreFields.map(([key]) => [key, Number(scores[key])])),
     }
-
-    setMessage('')
-    setQuestionRetryType('')
-    setApiError('')
+    run(() => send('CONFIRM', body, (key, rev) => confirmReflection(view.sessionId, body, key, rev)))
   }
-
-  // 첫 질문 생성 실패 후 동일 감정 기록에 연결된 최신 OPEN 세션 식별자 복구.
-  const recoverFailedFirstQuestionSession = async (error) => {
-    if (!isQuestionGenerationError(error)) return false
-
-    const responseSessionId = error.response?.data?.sessionId
-
-    if (responseSessionId) {
-      setSessionId(responseSessionId)
-      onSessionStarted?.(responseSessionId)
-      setQuestionRetryType(questionRetryTypes.FIRST)
-      return true
-    }
-
-    try {
-      const openSessions = await getOpenReflectionSessions()
-      const failedSession = openSessions.find((openSession) => (
-        String(openSession.emotionRecordId) === String(emotionRecordId)
-        && !openSession.currentStep
-      ))
-
-      if (!failedSession) return false
-
-      setSessionId(failedSession.sessionId)
-      onSessionStarted?.(failedSession.sessionId)
-      setQuestionRetryType(questionRetryTypes.FIRST)
-      return true
-    } catch {
-      return false
-    }
+  const cancel = () => {
+    if (!window.confirm('이 성찰을 완전히 중단할까요? 문답은 보존되지만 이 세션을 이어갈 수 없습니다.')) return
+    run(async () => {
+      apply(await getReflectionSessionDetail(view.sessionId))
+      await send('CANCEL', {}, (key, rev) => cancelReflection(view.sessionId, key, rev))
+    })
   }
-
-  // 저장된 감정 기록을 사용하여 첫 CBT 질문을 요청하는 처리.
-  const handleChatStart = async () => {
-    if (!emotionRecordId || isStarting || isRetryingQuestion) return
-
-    setIsStarting(true)
-    setApiError('')
-    setQuestionRetryType('')
-
-    let didRequestFirstQuestion = false
-
-    try {
-      // CBT 시작에 필요한 자동 사고가 기록되어 있는지 상세 API로 사전 확인.
-      const emotionRecord = await getEmotionRecordDetail(emotionRecordId)
-
-      if (!emotionRecord.automaticThought?.trim()) {
-        setRecordForCbt(emotionRecord)
-        setAutomaticThought('')
-        setIsAutomaticThoughtRequired(true)
-        return
-      }
-
-      didRequestFirstQuestion = true
-      const response = await startReflection(emotionRecordId)
-
-      applyReflectionStartResponse(response)
-    } catch (error) {
-      if (didRequestFirstQuestion) {
-        await recoverFailedFirstQuestionSession(error)
-      }
-      setApiError(getReflectionErrorMessage(
-        error,
-        'CBT 대화를 시작하지 못했습니다. 잠시 후 다시 시도해 주세요.',
-      ))
-    } finally {
-      setIsStarting(false)
-    }
-  }
-
-  // 사용자가 입력한 자동 사고를 감정 기록에 반영한 뒤 CBT 세션 시작 요청.
-  const handleAutomaticThoughtSubmit = async (event) => {
-    event.preventDefault()
-
-    const trimmedAutomaticThought = automaticThought.trim()
-
-    if (
-      !trimmedAutomaticThought
-      || !recordForCbt
-      || isStarting
-      || isRetryingQuestion
-    ) return
-
-    setIsStarting(true)
-    setApiError('')
-    setQuestionRetryType('')
-
-    let didRequestFirstQuestion = false
-
-    try {
-      await confirmEmotionRecord(emotionRecordId, {
-        situationText: recordForCbt.situationText,
-        automaticThought: trimmedAutomaticThought,
-        primaryEmotionCode: recordForCbt.primaryEmotionCode,
-        primaryIntensity: recordForCbt.primaryIntensity,
-        secondaryEmotions: recordForCbt.secondaryEmotions ?? [],
-        contextCategory: recordForCbt.contextCategory,
-        relatedPersonType: recordForCbt.relatedPersonType,
-        details: recordForCbt.details ?? {},
-      })
-
-      setIsAutomaticThoughtRequired(false)
-      didRequestFirstQuestion = true
-      const response = await startReflection(emotionRecordId)
-
-      applyReflectionStartResponse(response)
-    } catch (error) {
-      if (didRequestFirstQuestion) {
-        await recoverFailedFirstQuestionSession(error)
-      }
-      setApiError(getReflectionErrorMessage(
-        error,
-        '자동 사고를 저장하거나 CBT 대화를 시작하지 못했습니다. 잠시 후 다시 시도해 주세요.',
-      ))
-    } finally {
-      setIsStarting(false)
-    }
-  }
-
-  // 현재 CBT 질문의 답변을 백엔드에 전달하고 다음 AI 질문을 표시하는 처리.
-  const handleMessageSubmit = async (event) => {
-    event.preventDefault()
-
-    const trimmedMessage = message.trim()
-    if (
-      !trimmedMessage
-      || !sessionId
-      || isSending
-      || isRetryingQuestion
-      || isCrisisBlocked
-    ) return
-
-    setIsSending(true)
-    setApiError('')
-    setQuestionRetryType('')
-
-    try {
-      const response = await submitReflectionAnswer(sessionId, trimmedMessage)
-
-      applyReflectionTurnResponse(response, trimmedMessage)
-    } catch (error) {
-      if (isQuestionGenerationError(error)) {
-        // 백엔드에 이미 저장된 답변을 대화에 남기고 다음 질문 재시도 상태로 전환.
-        setChatMessages((currentMessages) => [
-          ...currentMessages,
-          {
-            id: `user-${sessionId}-${currentMessages.length}`,
-            sender: 'user',
-            text: trimmedMessage,
-          },
-        ])
-        setMessage('')
-        setQuestionRetryType(questionRetryTypes.NEXT)
-      }
-      setApiError(getReflectionErrorMessage(
-        error,
-        '답변을 전송하지 못했습니다. 잠시 후 다시 시도해 주세요.',
-      ))
-    } finally {
-      setIsSending(false)
-    }
-  }
-
-  // 실패 유형에 맞는 첫 질문 또는 다음 질문 재생성 API 요청.
-  const handleQuestionRetry = async () => {
-    if (!sessionId || !questionRetryType || isRetryingQuestion) return
-
-    setIsRetryingQuestion(true)
-    setApiError('')
-
-    try {
-      if (questionRetryType === questionRetryTypes.FIRST) {
-        const response = await retryFirstReflectionQuestion(sessionId)
-
-        applyReflectionStartResponse(response)
-      } else {
-        const response = await retryNextReflectionQuestion(sessionId)
-
-        applyReflectionTurnResponse(response)
-      }
-    } catch (error) {
-      setApiError(getReflectionErrorMessage(
-        error,
-        questionRetryType === questionRetryTypes.FIRST
-          ? '첫 질문을 다시 만들지 못했습니다. 잠시 후 다시 시도해 주세요.'
-          : '다음 질문을 다시 만들지 못했습니다. 잠시 후 다시 시도해 주세요.',
-      ))
-    } finally {
-      setIsRetryingQuestion(false)
-    }
-  }
-
-  // CBT 최종 결과 입력값 변경과 기존 오류 안내 초기화 처리.
-  const handleConfirmationChange = (event) => {
-    const { name, value } = event.target
-
-    setConfirmationForm((currentForm) => ({
-      ...currentForm,
-      [name]: value,
-    }))
-    setConfirmationError('')
-  }
-
-  // 성찰 전후 인지왜곡 한 건의 사용자 검토 결과 변경 처리.
-  const handleDistortionReviewChange = (phase, index, reviewStatus) => {
-    const updateReviews = (currentReviews) => currentReviews.map(
-      (review, reviewIndex) => (
-        reviewIndex === index ? { ...review, reviewStatus } : review
-      ),
-    )
-
-    if (phase === 'before') {
-      setBeforeDistortions(updateReviews)
-    } else {
-      setAfterDistortions(updateReviews)
-    }
-    setConfirmationError('')
-  }
-
-  // 필수 결과와 인지왜곡 검토를 백엔드 형식으로 변환하여 최종 확정 요청.
-  const handleReflectionConfirm = async (event) => {
-    event.preventDefault()
-
-    const hasUnreviewedDistortion = [
-      ...beforeDistortions,
-      ...afterDistortions,
-    ].some((distortion) => !distortion.reviewStatus)
-
-    if (!confirmationForm.alternativeThoughtText.trim()) {
-      setConfirmationError('대안적 사고를 입력해 주세요.')
-      return
-    }
-    if (hasUnreviewedDistortion) {
-      setConfirmationError('제안된 인지왜곡이 맞는지 모두 확인해 주세요.')
-      return
-    }
-    if (!sessionId || isConfirming) return
-
-    setIsConfirming(true)
-    setConfirmationError('')
-
-    try {
-      await confirmReflection(sessionId, {
-        evidenceForText: confirmationForm.evidenceForText.trim(),
-        evidenceAgainstText: confirmationForm.evidenceAgainstText.trim(),
-        alternativeThoughtText: confirmationForm.alternativeThoughtText.trim(),
-        beforeBeliefStrength: Number(confirmationForm.beforeBeliefStrength),
-        afterBeliefStrength: Number(confirmationForm.afterBeliefStrength),
-        finalEmotionIntensity: Number(confirmationForm.finalEmotionIntensity),
-        helpfulnessScore: Number(confirmationForm.helpfulnessScore),
-        beforeDistortions,
-        afterDistortions,
-      })
-
-      setIsConfirmed(true)
-      setReflectionStatus('COMPLETED')
-      setIsEmbeddingRetryRequired(false)
-      setEmbeddingRetryError('')
-      setEmbeddingRetrySuccess('')
-    } catch (error) {
-      if (error.response?.status === 502) {
-        // 최종 결과 저장 후 별도 임베딩 생성만 실패한 백엔드 처리 순서 반영.
-        setIsConfirmed(true)
-        setReflectionStatus('COMPLETED')
-        setIsEmbeddingRetryRequired(true)
-        setEmbeddingRetryError(
-          'CBT 결과는 저장됐지만 AI 분석 데이터 생성에 실패했습니다.',
-        )
-        setConfirmationError('')
-      } else {
-        setConfirmationError(getConfirmationErrorMessage(error))
-      }
-    } finally {
-      setIsConfirming(false)
-    }
-  }
-
-  // 완료된 CBT 성찰의 실패한 임베딩 생성 재요청 처리.
-  const handleEmbeddingRetry = async () => {
-    if (!sessionId || isRetryingEmbedding) return
-
-    setIsRetryingEmbedding(true)
-    setEmbeddingRetryError('')
-    setEmbeddingRetrySuccess('')
-
-    try {
-      await retryReflectionEmbedding(sessionId)
-      setIsEmbeddingRetryRequired(false)
-      setEmbeddingRetrySuccess('AI 분석 데이터 생성을 완료했습니다.')
-    } catch (error) {
-      setEmbeddingRetryError(getEmbeddingRetryErrorMessage(error))
-    } finally {
-      setIsRetryingEmbedding(false)
-    }
-  }
-
-  // API 호출 없이 OPEN 세션을 유지한 채 감정 기록 목록으로 이동하는 처리.
-  const handleReflectionLater = () => {
-    if (
-      !sessionId
-      || isSending
-      || isRetryingQuestion
-      || isConfirming
-      || isCancelling
-    ) return
-
-    setSessionActionError('')
-    onEmotionHistory()
-  }
-
-  // 사용자 확인 후 진행 중인 CBT 세션을 완전히 취소하고 목록으로 이동하는 처리.
-  const handleReflectionCancel = async () => {
-    if (
-      !sessionId
-      || isSending
-      || isRetryingQuestion
-      || isConfirming
-      || isCancelling
-    ) return
-
-    const shouldCancel = window.confirm(
-      '성찰을 완전히 중단하면 다시 이어할 수 없습니다. 중단하시겠습니까?',
-    )
-
-    if (!shouldCancel) return
-
-    setIsCancelling(true)
-    setSessionActionError('')
-
-    try {
-      await cancelReflection(sessionId)
-      setReflectionStatus('CANCELLED')
-      onEmotionHistory()
-    } catch (error) {
-      setSessionActionError(getReflectionErrorMessage(
-        error,
-        'CBT 성찰을 중단하지 못했습니다. 잠시 후 다시 시도해 주세요.',
-      ))
-    } finally {
-      setIsCancelling(false)
-    }
-  }
-
-  // 다음 질문 입력 가능 여부 설정.
-  const canContinue = reflectionStatus === 'CONTINUE' && !isCrisisBlocked
-  // 명확한 인지왜곡이 없다는 AI 판정 여부 설정.
-  const hasNoClearDistortion = assessmentType === 'NO_CLEAR_DISTORTION'
-  // 사용자가 중단하거나 나중에 이어할 수 있는 OPEN 세션 여부 설정.
-  const canManageOpenSession = !isCrisisBlocked && sessionId && (
-    reflectionStatus === 'CONTINUE'
-    || reflectionStatus === 'CONFIRM_REQUIRED'
-  )
-
-  // CBT 소개 화면과 간단한 AI 대화창을 포함한 화면 반환.
-  return (
-    <main className="cbt-page">
-      {/* 다른 서비스 화면과 동일한 크기와 기능의 공통 네비게이션 배치. */}
-      <Navbar
-        isAuthenticated={isAuthenticated}
-        isLoggingOut={isLoggingOut}
-        onLogin={onLogin}
-        onLogout={onLogout}
-        onSignUp={onSignUp}
-        onEmotionHistory={onEmotionHistory}
-        onCenter={onCenter}
-        onDailyCare={onDailyCare}
-        onHome={onHome}
-      />
-
-      {/* 공통 네비게이션 아래 CBT 성찰 카드를 중앙에 배치하는 영역. */}
-      <div className="cbt-content">
-        <section
-          className="cbt-card"
-          aria-labelledby={
-            isResumeLoading || resumeLoadError
-              ? 'cbt-route-state-title'
-              : isChatStarted
-                ? 'cbt-chat-title'
-                : 'cbt-title'
-          }
-        >
-          <BrandLogo className="cbt-logo" onClick={onHome} />
-
-        {isResumeLoading ? (
-          /* URL로 직접 진입한 CBT 세션을 불러오는 상태 표시. */
-          <div className="cbt-route-state" role="status">
-            <strong id="cbt-route-state-title">
-              진행 중인 CBT 성찰을 불러오는 중입니다.
-            </strong>
-          </div>
-        ) : resumeLoadError ? (
-          /* URL CBT 세션 상세 조회 실패 안내와 재조회 기능 표시. */
-          <div className="cbt-route-state" role="alert">
-            <strong id="cbt-route-state-title">{resumeLoadError}</strong>
-            <button
-              type="button"
-              onClick={() => setResumeReloadCount((count) => count + 1)}
-            >
-              다시 불러오기
-            </button>
-          </div>
-        ) : !isChatStarted ? (
-          <>
-            <h1 id="cbt-title">CBT 성찰</h1>
-            <p className="cbt-description">
-              감정이 생긴 순간의 생각을 천천히 돌아보는 공간입니다.
-            </p>
-
-            {/* 사용자가 CBT 성찰의 기본 목적을 이해할 수 있는 시작 안내 배치. */}
-            <div className="cbt-guide">
-              <h2>생각 돌아보기</h2>
-              <p>
-                감정 기록을 바탕으로 당시 떠오른 생각과 새로운 관점을
-                AI와의 대화로 차근차근 살펴볼 수 있습니다.
-              </p>
-            </div>
-
-            {/* CBT AI 대화창을 여는 기본 시작 버튼 배치. */}
-            <div className="cbt-actions">
-              {questionRetryType === questionRetryTypes.FIRST && sessionId ? (
-                /* 첫 질문 생성 실패 세션을 유지하고 재생성 API만 호출하는 영역 표시. */
-                <div className="cbt-question-retry" role="group" aria-label="첫 질문 다시 시도">
-                  <strong>첫 CBT 질문을 만들지 못했습니다.</strong>
-                  <p>작성한 감정 기록은 유지되어 있습니다. 같은 세션에서 다시 시도할 수 있습니다.</p>
-                  <button
-                    type="button"
-                    onClick={handleQuestionRetry}
-                    disabled={isRetryingQuestion}
-                  >
-                    {isRetryingQuestion ? '다시 만드는 중…' : '다시 시도'}
-                  </button>
-                </div>
-              ) : !isAutomaticThoughtRequired ? (
-                <button
-                  className="cbt-start-button"
-                  type="button"
-                  onClick={handleChatStart}
-                  disabled={!emotionRecordId || isStarting || isRetryingQuestion}
-                >
-                  {isStarting ? '기록 확인 중…' : 'CBT 검사 시작하기'}
-                </button>
-              ) : (
-                /* 자동 사고가 없는 기록에 CBT 필수 생각 입력 영역 표시. */
-                <form
-                  className="cbt-automatic-thought-form"
-                  onSubmit={handleAutomaticThoughtSubmit}
-                >
-                  <div>
-                    <h3>CBT 시작 전 생각 확인</h3>
-                    <p>
-                      당시 상황에서 순간적으로 떠오른 생각을 작성해 주세요.
-                    </p>
-                  </div>
-                  <label htmlFor="cbt-automatic-thought">
-                    <span>그 순간 어떤 생각이 떠올랐나요?</span>
-                    <textarea
-                      id="cbt-automatic-thought"
-                      value={automaticThought}
-                      onChange={(event) => {
-                        setAutomaticThought(event.target.value)
-                        setApiError('')
-                      }}
-                      rows="3"
-                      maxLength={maxAnswerLength}
-                      placeholder="예: 내일 발표에서 실수하면 모두가 나를 부족하다고 생각할 것 같았다."
-                      required
-                      disabled={isStarting}
-                    />
-                  </label>
-                  <span className="cbt-message-count">
-                    {automaticThought.length}/{maxAnswerLength}
-                  </span>
-                  <button
-                    type="submit"
-                    disabled={!automaticThought.trim() || isStarting || isRetryingQuestion}
-                  >
-                    {isStarting ? '저장 후 준비 중…' : '저장하고 CBT 시작하기'}
-                  </button>
-                </form>
-              )}
-              {!emotionRecordId && (
-                <p className="cbt-error" role="alert">
-                  먼저 감정 기록을 저장한 후 CBT 검사를 시작해 주세요.
-                </p>
-              )}
-              {apiError && (
-                <p className="cbt-error" role="alert">
-                  {apiError}
-                </p>
-              )}
-            </div>
-          </>
-        ) : (
-          <section className="cbt-chat" aria-labelledby="cbt-chat-title">
-            {/* CBT AI 대화창의 제목과 간단한 이용 안내 배치. */}
-            <header className="cbt-chat-header">
-              <h1 id="cbt-chat-title">AI CBT 대화</h1>
-              <p>편안한 속도로 떠오르는 생각을 이야기해 주세요.</p>
-            </header>
-
-            {/* API가 반환한 AI 질문과 사용자가 전송한 답변을 표시하는 대화 목록 배치. */}
-            <div className="cbt-chat-messages" role="log" aria-live="polite">
-              {chatMessages.map((chatMessage) => (
-                chatMessage.sender === 'ai' ? (
-                  <div
-                    className="cbt-message cbt-message--ai"
-                    key={chatMessage.id}
-                  >
-                    <strong>Mindot AI</strong>
-                    <p>{chatMessage.text}</p>
-                  </div>
-                ) : (
-                  <p
-                    className="cbt-message cbt-message--user"
-                    key={chatMessage.id}
-                  >
-                    {chatMessage.text}
-                  </p>
-                )
-              ))}
-            </div>
-
-            {/* 대화 진행 상태에서만 사용자 답변 입력과 전송 기능 제공. */}
-            {canContinue ? (
-              <form className="cbt-chat-form" onSubmit={handleMessageSubmit}>
-                <label htmlFor="cbt-message">답변</label>
-                <textarea
-                  id="cbt-message"
-                  value={message}
-                  onChange={(event) => {
-                    setMessage(event.target.value)
-                    setApiError('')
-                  }}
-                  placeholder="답변을 입력해 주세요."
-                  rows="3"
-                  maxLength={maxAnswerLength}
-                  disabled={isSending || isRetryingQuestion || Boolean(questionRetryType)}
-                />
-                <span className="cbt-message-count">
-                  {message.length}/{maxAnswerLength}
-                </span>
-                {apiError && (
-                  <p className="cbt-error" role="alert">
-                    {apiError}
-                  </p>
-                )}
-                {questionRetryType === questionRetryTypes.NEXT && (
-                  /* 저장된 답변을 다시 보내지 않고 다음 질문 생성만 재시도하는 영역 표시. */
-                  <div className="cbt-question-retry" role="group" aria-label="다음 질문 다시 시도">
-                    <strong>다음 CBT 질문을 만들지 못했습니다.</strong>
-                    <p>방금 작성한 답변은 저장되어 있습니다. 질문 생성만 다시 시도합니다.</p>
-                    <button
-                      type="button"
-                      onClick={handleQuestionRetry}
-                      disabled={isRetryingQuestion}
-                    >
-                      {isRetryingQuestion ? '다시 만드는 중…' : '다시 시도'}
-                    </button>
-                  </div>
-                )}
-                <button
-                  type="submit"
-                  disabled={!message.trim() || isSending || Boolean(questionRetryType)}
-                >
-                  {isSending ? '전송 중…' : '보내기'}
-                </button>
-              </form>
-            ) : reflectionStatus === 'CONFIRM_REQUIRED' ? (
-              /* AI가 만든 성찰 결과 초안을 검토하고 최종 확정하는 입력 영역 배치. */
-              <form
-                className="cbt-confirm-form"
-                onSubmit={handleReflectionConfirm}
-              >
-                <header>
-                  <h2>
-                    {hasNoClearDistortion
-                      ? '명확한 인지왜곡 없음 확인'
-                      : 'CBT 최종 결과 확인'}
-                  </h2>
-                  <p>
-                    {hasNoClearDistortion
-                      ? '현재 생각을 인지왜곡으로 단정하지 않고, 대화를 통해 정리된 내용을 확인해 주세요.'
-                      : 'AI가 정리한 내용을 확인하고 필요한 부분을 수정해 주세요.'}
-                  </p>
-                </header>
-
-                {hasNoClearDistortion && (
-                  /* 명확한 인지왜곡이 없다는 판정과 확인 목적 안내 배치. */
-                  <div className="cbt-no-clear-distortion" role="status">
-                    <strong>명확한 인지왜곡이 확인되지 않았습니다.</strong>
-                    <p>
-                      생각이 틀렸다고 판단하는 대신, 현재 상황을 균형 있게
-                      바라볼 수 있도록 정리한 내용을 확인하는 단계입니다.
-                    </p>
-                  </div>
-                )}
-
-                <label htmlFor="cbt-evidence-for">
-                  <span>처음 생각을 뒷받침하는 근거</span>
-                  <textarea
-                    id="cbt-evidence-for"
-                    name="evidenceForText"
-                    value={confirmationForm.evidenceForText}
-                    onChange={handleConfirmationChange}
-                    rows="3"
-                    maxLength={maxAnswerLength}
-                    disabled={isConfirming}
-                  />
-                </label>
-
-                <label htmlFor="cbt-evidence-against">
-                  <span>처음 생각과 다른 근거</span>
-                  <textarea
-                    id="cbt-evidence-against"
-                    name="evidenceAgainstText"
-                    value={confirmationForm.evidenceAgainstText}
-                    onChange={handleConfirmationChange}
-                    rows="3"
-                    maxLength={maxAnswerLength}
-                    disabled={isConfirming}
-                  />
-                </label>
-
-                <label htmlFor="cbt-alternative-thought">
-                  <span>대안적 사고</span>
-                  <textarea
-                    id="cbt-alternative-thought"
-                    name="alternativeThoughtText"
-                    value={confirmationForm.alternativeThoughtText}
-                    onChange={handleConfirmationChange}
-                    rows="3"
-                    maxLength={maxAnswerLength}
-                    required
-                    disabled={isConfirming}
-                  />
-                </label>
-
-                <div className="cbt-confirm-scores">
-                  <label htmlFor="cbt-before-belief">
-                    <span>성찰 전 생각 확신도</span>
-                    <input
-                      id="cbt-before-belief"
-                      name="beforeBeliefStrength"
-                      type="number"
-                      value={confirmationForm.beforeBeliefStrength}
-                      onChange={handleConfirmationChange}
-                      min="0"
-                      max="100"
-                      placeholder="0~100"
-                      required
-                      disabled={isConfirming}
-                    />
-                  </label>
-                  <label htmlFor="cbt-after-belief">
-                    <span>성찰 후 생각 확신도</span>
-                    <input
-                      id="cbt-after-belief"
-                      name="afterBeliefStrength"
-                      type="number"
-                      value={confirmationForm.afterBeliefStrength}
-                      onChange={handleConfirmationChange}
-                      min="0"
-                      max="100"
-                      placeholder="0~100"
-                      required
-                      disabled={isConfirming}
-                    />
-                  </label>
-                  <label htmlFor="cbt-final-emotion">
-                    <span>현재 감정 강도</span>
-                    <input
-                      id="cbt-final-emotion"
-                      name="finalEmotionIntensity"
-                      type="number"
-                      value={confirmationForm.finalEmotionIntensity}
-                      onChange={handleConfirmationChange}
-                      min="0"
-                      max="10"
-                      placeholder="0~10"
-                      required
-                      disabled={isConfirming}
-                    />
-                  </label>
-                  <label htmlFor="cbt-helpfulness">
-                    <span>성찰 도움 정도</span>
-                    <input
-                      id="cbt-helpfulness"
-                      name="helpfulnessScore"
-                      type="number"
-                      value={confirmationForm.helpfulnessScore}
-                      onChange={handleConfirmationChange}
-                      min="0"
-                      max="5"
-                      placeholder="0~5"
-                      required
-                      disabled={isConfirming}
-                    />
-                  </label>
-                </div>
-
-                {!hasNoClearDistortion
-                  && (beforeDistortions.length > 0 || afterDistortions.length > 0) && (
-                  <fieldset className="cbt-distortion-reviews">
-                    <legend>인지왜곡 검토</legend>
-                    <p>AI가 제안한 항목이 내 생각과 맞는지 확인해 주세요.</p>
-
-                    {beforeDistortions.map((distortion, index) => (
-                      <label key={`before-${distortion.code}`}>
-                        <span>
-                          성찰 전 · {distortionCodeLabels[distortion.code] ?? distortion.code}
-                        </span>
-                        <select
-                          value={distortion.reviewStatus}
-                          onChange={(event) => handleDistortionReviewChange(
-                            'before',
-                            index,
-                            event.target.value,
-                          )}
-                          required
-                          disabled={isConfirming}
-                        >
-                          <option value="" disabled>선택해 주세요</option>
-                          <option value="CONFIRMED">맞아요</option>
-                          <option value="REJECTED">아니에요</option>
-                        </select>
-                      </label>
-                    ))}
-
-                    {afterDistortions.map((distortion, index) => (
-                      <label key={`after-${distortion.code}`}>
-                        <span>
-                          성찰 후 · {distortionCodeLabels[distortion.code] ?? distortion.code}
-                        </span>
-                        <select
-                          value={distortion.reviewStatus}
-                          onChange={(event) => handleDistortionReviewChange(
-                            'after',
-                            index,
-                            event.target.value,
-                          )}
-                          required
-                          disabled={isConfirming}
-                        >
-                          <option value="" disabled>선택해 주세요</option>
-                          <option value="CONFIRMED">맞아요</option>
-                          <option value="REJECTED">아니에요</option>
-                        </select>
-                      </label>
-                    ))}
-                  </fieldset>
-                )}
-
-                {confirmationError && (
-                  <p className="cbt-error" role="alert">
-                    {confirmationError}
-                  </p>
-                )}
-
-                <button type="submit" disabled={isConfirming}>
-                  {isConfirming
-                    ? '확정 중…'
-                    : hasNoClearDistortion
-                      ? '확인하고 완료하기'
-                      : '최종 결과 확정하기'}
-                </button>
-              </form>
-            ) : isConfirmed || reflectionStatus === 'COMPLETED' ? (
-              /* CBT 최종 결과 확정 완료 상태 안내. */
-              <div className="cbt-confirmed" role="status">
-                <strong>CBT 성찰 결과를 확정했습니다.</strong>
-                <p>확정한 내용은 이후 마음 패턴을 살펴보는 데 활용됩니다.</p>
-                {embeddingRetryError && (
-                  <p className="cbt-embedding-retry-error" role="alert">
-                    {embeddingRetryError}
-                  </p>
-                )}
-                {embeddingRetrySuccess && (
-                  <p className="cbt-embedding-retry-success">
-                    {embeddingRetrySuccess}
-                  </p>
-                )}
-                {isEmbeddingRetryRequired && (
-                  /* 최종 결과 저장 후 임베딩 생성만 실패한 경우의 재시도 버튼 배치. */
-                  <button
-                    className="cbt-embedding-retry-button"
-                    type="button"
-                    onClick={handleEmbeddingRetry}
-                    disabled={isRetryingEmbedding}
-                  >
-                    {isRetryingEmbedding
-                      ? '임베딩 다시 만드는 중…'
-                      : '임베딩 다시 만들기'}
-                  </button>
-                )}
-              </div>
-            ) : (
-              <p className="cbt-finished" role="status">
-                {reflectionStatus === 'SAFETY_STOP'
-                  ? '안전을 위해 대화가 중단되었습니다.'
-                  : '현재 CBT 대화가 마무리되었습니다.'}
-              </p>
-            )}
-
-            {canManageOpenSession && (
-              /* OPEN 성찰 세션의 나중에 이어하기와 완전 중단 기능 배치. */
-              <div className="cbt-session-actions">
-                <p>
-                  잠시 멈추면 현재 진행 상태가 유지되며, 목록에서 나중에 이어할 수 있습니다.
-                </p>
-                {sessionActionError && (
-                  <p className="cbt-error" role="alert">
-                    {sessionActionError}
-                  </p>
-                )}
-                <div>
-                  <button
-                    className="cbt-later-button"
-                    type="button"
-                    onClick={handleReflectionLater}
-                    disabled={isSending || isRetryingQuestion || isConfirming || isCancelling}
-                  >
-                    나중에 이어하기
-                  </button>
-                  <button
-                    className="cbt-cancel-button"
-                    type="button"
-                    onClick={handleReflectionCancel}
-                    disabled={isSending || isRetryingQuestion || isConfirming || isCancelling}
-                  >
-                    {isCancelling ? '중단 중…' : '성찰 완전히 중단'}
-                  </button>
-                </div>
-              </div>
-            )}
-          </section>
-        )}
-        </section>
-      </div>
-
-      {/* CBT 시작 또는 답변 응답에 안전 신호가 있을 때 공통 안전 안내 모달 표시. */}
-      {safetyNotice && (
-        <SafetyNoticeModal
-          notice={safetyNotice}
-          onClose={() => setSafetyNotice(null)}
-        />
-      )}
-    </main>
-  )
+  const refresh = () => run(async () => {
+    if (current.current) apply(await getReflectionSessionDetail(current.current.sessionId))
+    else setReload((n) => n + 1)
+  })
+  const open = view?.status === 'OPEN'
+  const failed = view?.job?.retryable
+  const disabled = busy || pending(view)
+  return <main className="cbt-page">
+    <Navbar {...props} />
+    <div className="cbt-content"><section className="cbt-card">
+      <BrandLogo className="cbt-logo" onClick={onHome} />
+      <h1>CBT 성찰</h1>
+      {error && <div role="alert"><p>{error}</p><button type="button" onClick={refresh}>현재 결과 확인</button></div>}
+      {!view ? <>
+        <p>감정이 생긴 순간의 생각을 편안한 속도로 살펴보세요.</p>
+        {confirmedRecord && <p>생각은 저장됐습니다. 성찰 시작을 다시 시도할 수 있어요.</p>}
+        {record ? <form className="cbt-automatic-thought-form" onSubmit={saveThought}>
+          <label>그때 처음 떠오른 생각<textarea required maxLength={MAX_AUTOMATIC_THOUGHT_LENGTH} value={thought} onChange={(e) => setThought(e.target.value)} /></label>
+          <button disabled={busy || !thought.trim()}>저장하고 시작하기</button>
+        </form> : <button className="cbt-start-button" disabled={!emotionRecordId || busy} onClick={start}>{busy ? '불러오는 중…' : '성찰 시작하기'}</button>}
+        {!emotionRecordId && !resumeId && <p>감정 기록을 선택한 뒤 시작해 주세요.</p>}
+      </> : <section className="cbt-chat">
+        <p>처음 생각: {view.record.automaticThought}</p>
+        <div className="cbt-chat-messages" role="log" aria-live="polite">
+          {view.messages.map((m) => <div key={m.messageNumber} className={`cbt-message cbt-message--${m.role === 'USER' ? 'user' : 'ai'}`}>
+            <strong>{m.role === 'USER' ? '나' : 'Mindot AI'}</strong><p style={{ whiteSpace: 'pre-wrap' }}>{m.content}</p>
+          </div>)}
+        </div>
+        {pending(view) && <p role="status">답변은 저장됐습니다. 응답을 준비하고 있어요.</p>}
+        {failed && <div role="alert"><p>생성을 마치지 못했습니다. 저장된 입력으로 다시 시도할 수 있어요.</p>
+          <button disabled={busy} onClick={() => run(() => send('RETRY', {}, (key, rev) => retryReflection(view.sessionId, key, rev)))}>생성 다시 시도</button></div>}
+        {open && view.phase === 'PROPOSAL_REVIEW' && view.currentProposal && !disabled && <form className="cbt-confirm-form" onSubmit={confirm}>
+          <InsightResult result={view.currentProposal} reviews={reviews} onReview={(code, value) => setReviews((r) => ({ ...r, [code]: value }))} />
+          <p>수정한 생각이 자신의 뜻과 다르면 아래 답변으로 정정해 주세요. 유형을 모두 거부해도 저장할 수 있습니다.</p>
+          <div className="cbt-confirm-scores">{scoreFields.map(([key, label, max]) => <label key={key}>{label} (0–{max})
+            <input required type="number" min="0" max={max} step="1" value={scores[key] ?? ''} onChange={(e) => setScores((s) => ({ ...s, [key]: e.target.value }))} />
+          </label>)}</div>
+          <button type="submit">이 생각과 유형 검토를 확인하고 저장</button>
+        </form>}
+        {open && !failed && <form className="cbt-chat-form" onSubmit={submit}>
+          <label htmlFor="cbt-answer">{view.currentProposal ? '제안의 뜻 정정 또는 설명 요청' : '답변'}</label>
+          <textarea id="cbt-answer" maxLength={10000} value={answer} disabled={disabled} onChange={(e) => setAnswer(e.target.value)} />
+          <button disabled={disabled || !answer.trim()}>보내기</button>
+        </form>}
+        {view.confirmedResult && <><h2>확인한 성찰 결과</h2><InsightResult result={view.confirmedResult} />
+          <button onClick={() => run(async () => { await retryReflectionEmbedding(view.sessionId); setEmbeddingMessage('검색 연결을 완료했습니다.') })}>검색 연결 다시 시도</button>
+          {embeddingMessage && <p role="status">{embeddingMessage}</p>}
+        </>}
+        {!open && <p>{view.status === 'COMPLETED' ? '성찰 결과가 저장됐습니다.' : view.status === 'CANCELLED' ? '성찰을 완전히 중단했습니다. 문답은 보존됩니다.' : '안전을 위해 성찰을 중단했습니다.'}</p>}
+        <div className="cbt-session-actions"><div>
+          <button className="cbt-later-button" onClick={onEmotionHistory}>{open ? '나중에 이어하기' : '기록 목록으로'}</button>
+          {open && <button className="cbt-cancel-button" onClick={cancel}>성찰 완전히 중단</button>}
+        </div></div>
+      </section>}
+    </section></div>
+  </main>
 }
-
-export default CBT

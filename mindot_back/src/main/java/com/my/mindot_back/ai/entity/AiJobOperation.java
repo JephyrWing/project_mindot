@@ -2,6 +2,7 @@
 package com.my.mindot_back.ai.entity;
 
 public enum AiJobOperation {
+    CBT_COMMAND,
     // 감정 기록 원문 구조화 작업
     STRUCTURE,
 

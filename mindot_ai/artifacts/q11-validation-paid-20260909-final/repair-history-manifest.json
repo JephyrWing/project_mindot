@@ -1,0 +1,3444 @@
+{
+  "schema": "mindot-repair-history-1",
+  "createdAtUtc": "2026-09-08T15:55:43Z",
+  "artifactRoot": "C:/Users/human-09/AppData/Local/Temp/mindot_ai/q11-validation-paid/20260908T101100Z",
+  "status": "CANARY_BLOCKED_FINAL_USER_STOP",
+  "scope": "Initial Q11 evaluation snapshot through REPAIR-13; complete immutable snapshot and offline-result receipt inventory, not all unrelated development history.",
+  "notAQualityEvaluation": true,
+  "actionsForThisReport": {
+    "productEdits": 0,
+    "productImports": 0,
+    "tests": 0,
+    "apiCalls": 0,
+    "secretReads": 0,
+    "holdoutPlaintextReads": 0,
+    "rubricReads": 0
+  },
+  "verification": {
+    "snapshotDirectories": 17,
+    "executionFilesHashedAcrossSnapshots": 840,
+    "declaredRepairSnapshotMismatches": 0,
+    "initialReviewedSet": {
+      "declaredCount": 43,
+      "verifiedDeclaredCount": 43,
+      "declaredMismatchPaths": [],
+      "extraExecutionPaths": [
+        "Dockerfile",
+        "requirements.txt"
+      ],
+      "manifestPath": "input-package/docs/cbt-q11-evaluation/reviewed-manifest.json",
+      "manifestSha256": "57980bded3bd003052280c66e0adc86ee35217a6b22be412bbe9fcd69f74004e"
+    },
+    "sourceSetHashRule": "Use each pinned snapshot's declared rule and sourceSetSha256. Per-file bytes were verified; sourceSet digests are reported rather than newly redefined.",
+    "offlineReceipts": 37,
+    "fullSuites": 17,
+    "adapterSuites": 17,
+    "targetedDiagnosticSuites": 3
+  },
+  "final": {
+    "sourceSnapshot": "REPAIR-13",
+    "sourceSetSha256": "f4fa31387855250597e68a04b6e09d3bcade680ad406dcbfa0d5e54c1278e927",
+    "offline": {
+      "testFunctionsPassed": 121,
+      "testFunctionsExecuted": 121,
+      "subtests": 516,
+      "pythonFilesCompiled": 47
+    },
+    "adapterPassed": 10,
+    "canaryStatus": "CANARY_BLOCKED",
+    "finalAttemptResult": {
+      "path": "live/mindot_ai/canary-retry10/canary-result.json",
+      "sha256": "c2793aec0914874de03a49307ceb2281be3caa9eaa76dd3eff251d78f0e2b550",
+      "bytes": 2373
+    },
+    "formal": {
+      "planned": 368,
+      "attempted": 0,
+      "collected": 0,
+      "status": "NOT_RUN"
+    },
+    "additionalProductRepairOrPaidRetry": "STOPPED_BY_LATEST_USER",
+    "finalizationAudit": {
+      "path": "reports/canary-attempt-11-finalization.json",
+      "sha256": "a6c2a73dad200327bea88bfe5205400bc62d335a6c8aeb89efe064ff48b3bae7",
+      "bytes": 38535
+    }
+  },
+  "usage": {
+    "dispatchAttempts": {
+      "generation": 31,
+      "moderation": 16
+    },
+    "knownGenerationTokens": 305355,
+    "actualTotalGenerationTokens": null,
+    "unknownAttempts": [
+      5
+    ],
+    "unknownReservationRetained": 18806,
+    "knownPlusReservedAccountingTokens": 324161,
+    "accountingIsNotActualUsageOrInvoice": true,
+    "cachedPromptTokensAreAlreadyIncluded": true,
+    "moderationExcludedFromGenerationTokenSum": true
+  },
+  "snapshots": [
+    {
+      "id": "Q11",
+      "receipt": "snapshot-verification.json",
+      "receiptSha256": "72f87766606e5688ae555b8265813cc75dd12ff4d8969aefa0978a6041ed4bef",
+      "receiptBytes": 1077,
+      "sourceRoot": "execution/Q11/mindot_ai",
+      "sourceSetSha256": "cffc49083503b1621f3742094d6055efd9e8d05234bb6711c7af75871066488d",
+      "frozenFileCount": 45,
+      "verifiedFileCount": 45,
+      "snapshotMismatchPaths": [],
+      "changedFromPrevious": [],
+      "timestampUtc": null,
+      "initialReviewedCount": 43,
+      "initialExecutionDeclarationExtras": [
+        "Dockerfile",
+        "requirements.txt"
+      ],
+      "changeClassification": "INITIAL_REVIEWED_CANDIDATE",
+      "changeExplanation": "정적 리뷰를 마친 원 후보를 실제 고정 환경에서 처음 실행. 용량 admission, fixture DTO/예약 코드, 오래된 SELECT hash 기대값 등에서 중단.",
+      "explanationReferences": [
+        "reports/offline-noncapacity-triage.md"
+      ],
+      "paidAttemptNumbers": []
+    },
+    {
+      "id": "REPAIR-01",
+      "receipt": "snapshot-REPAIR-01.json",
+      "receiptSha256": "70ee7820f12b67409afda804c3a41c5ae3fa07923fc208c9729c638f511d61c5",
+      "receiptBytes": 14386,
+      "sourceRoot": "execution/REPAIR-01/mindot_ai",
+      "sourceSetSha256": "0b904b04ae7f4d58498fdd8f3d5ea7747dd423ce1a5d0e7f5b80d2a4c6f1bf39",
+      "frozenFileCount": 48,
+      "verifiedFileCount": 48,
+      "snapshotMismatchPaths": [],
+      "changedFromPrevious": [
+        {
+          "path": "cbt_q11/agent_graph.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "0ad505cc2e9d7a0b5c0ba137266c2dd9a91d121733ff185e1111e7ba5957e913",
+          "afterSha256": "7b867abccc5763e598739e8b2a805d94236c7b8d9a8e8f3278f4a9176cc52ff5",
+          "bytes": 10137
+        },
+        {
+          "path": "cbt_q11/capacity.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "e8ea9aa3e064409c4612e1e5c29f4a8d3895fc5e45cc6affb6ecdc0748a0e6da",
+          "afterSha256": "1251a7c1802360848acf6715912abc49d6e05c654c32696a60054ad2aa731c51",
+          "bytes": 3587
+        },
+        {
+          "path": "cbt_q11/llm.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "0708cbb585e357982aad849550fc16afbff58b0711aa4218179e0a9b6440a196",
+          "afterSha256": "b5a54485e1919e5cf843104bca229e1e6de8912c5888be7c5587e3cb3e50ae08",
+          "bytes": 15810
+        },
+        {
+          "path": "cbt_q11/phases.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "0f4d696bf17d93496eb883631529f2404ab144695bf1417bd5c9eecf13d060f4",
+          "afterSha256": "b5d9674425f9e52b2ed2a8fda79a97cd66e32cab9b577374ef5963b04ba732c7",
+          "bytes": 7017
+        },
+        {
+          "path": "cbt_q11/provider_schemas.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "acec5164d9d2f978e3829c6b98322058fe82225045c27951e4834e77571bd756",
+          "afterSha256": "df59accb855e7cd690dd9ad69b279a4fd8d17167eead96439662d11f4ed2ac8c",
+          "bytes": 18861
+        },
+        {
+          "path": "cbt_q11/provider.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "4c5325de87c379a9854714c9ca6f0597d4df0de6ba95a13a26f3381124c769b8",
+          "afterSha256": "7b6e2358ff5f845bf73a2b5727a8a48dfa34d4edc9d5f7966adf62f2fb41f1c2",
+          "bytes": 9983
+        },
+        {
+          "path": "cbt_q11/wire_ids.py",
+          "kind": "ADDED",
+          "area": "PRODUCT",
+          "beforeSha256": null,
+          "afterSha256": "d6b57671334ea2dfcbeb3179ef148fc833e3d34ad460b8c11809231f936d1603",
+          "bytes": 18290
+        },
+        {
+          "path": "tests/test_cbt_bounded_provenance.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "ba2aeeddf5e304ecfe4fdbdf7a7b11f55b700f08374b103a3836390c2e2117f4",
+          "afterSha256": "d200bd00dbf8a891022715dcc1578c46bca739575e7fe36b68d1648ba6c74916",
+          "bytes": 28062
+        },
+        {
+          "path": "tests/test_cbt_bounded_safety.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "ee456b5ecb165f1f0a25264da7d305df3d247fe128206c32a6a22542b4f52984",
+          "afterSha256": "0985fd70ad5f0df3134851ba7d911fd4f8065402e54fd9e1884116a4647f8f76",
+          "bytes": 20256
+        },
+        {
+          "path": "tests/test_cbt_bounded_schema_compaction.py",
+          "kind": "ADDED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": null,
+          "afterSha256": "95cfdd9f792617291b86e3ec5d04591532de2cc954adba3e8df2055cd8f3363e",
+          "bytes": 4681
+        },
+        {
+          "path": "tests/test_cbt_bounded_wire_ids.py",
+          "kind": "ADDED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": null,
+          "afterSha256": "62cbceef558c4cfaa3293959c033fa2b05b16c9b5da7eba5986b560a0a9b4967",
+          "bytes": 11865
+        },
+        {
+          "path": "tests/test_cbt_integrity_relations.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "d3fd742db9320e88b791b2c639a0f952a9b7b6fc1827b67565c89c3c5b895e5a",
+          "afterSha256": "f13eaa94913eb2d53d3e7c5e04cada2403d8f06a90f22ff6c76f962d3b92191a",
+          "bytes": 12817
+        },
+        {
+          "path": "tests/test_cbt_q11.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "ef882de4c743d7dc08c82164ae0c7af438c7c8f2df8cba2bd35ad807038e2f25",
+          "afterSha256": "974d7410ad1cd0a16c1616de48ba0ec061a01634fafafbed467c43b318e941d7",
+          "bytes": 55742
+        },
+        {
+          "path": "tests/test_cbt_whole_flow_provenance.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "b865e2def38353470f9278cd9d87b1397a60e348ce3d3b81868b02c9362a52a9",
+          "afterSha256": "d50059c0896cb759cf21c9e4fc7047542a447f738d299d3f0fc1ca63a52dcc7f",
+          "bytes": 16596
+        }
+      ],
+      "timestampUtc": "2026-09-08T10:42:11.811779Z",
+      "changeClassification": "PRODUCT_AND_FIXTURE_REPAIR",
+      "changeExplanation": "원문/의미를 보존하는 shared-schema 압축, request-local WI ID codec, 실제 SDK 직렬화 측정과 raw/decoded 경계 연결. 테스트의 한 글자·예약 코드, stale hash 등 확인된 fixture 오류 보정. 12,000 입력 상한은 이 단계에서 유지.",
+      "explanationReferences": [
+        "reports/wire-identity-codec.md",
+        "reports/offline-noncapacity-triage.md",
+        "reports/lossless-representation-experiment.md"
+      ],
+      "paidAttemptNumbers": []
+    },
+    {
+      "id": "REPAIR-02",
+      "receipt": "snapshot-REPAIR-02.json",
+      "receiptSha256": "213639be0ebea742ca0f166b75af9c3135ef5f913fc62a954055251241b04a1b",
+      "receiptBytes": 14631,
+      "sourceRoot": "execution/REPAIR-02/mindot_ai",
+      "sourceSetSha256": "7d8834edd6fab59798e61cc401cf2d2e6d022a641fd19c11d306c61bd0f6acdc",
+      "frozenFileCount": 49,
+      "verifiedFileCount": 49,
+      "snapshotMismatchPaths": [],
+      "changedFromPrevious": [
+        {
+          "path": "cbt_q11/llm.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "b5a54485e1919e5cf843104bca229e1e6de8912c5888be7c5587e3cb3e50ae08",
+          "afterSha256": "24358f546c01a2d2b304c145395dfded9cbc0db2dba1ba18b1bc57fabc68b243",
+          "bytes": 15810
+        },
+        {
+          "path": "cbt_q11/validity.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "d07a996a9f2f3e9e539922af9c1a45e58d1a3fc08ec8a365d35044733c51d7a5",
+          "afterSha256": "38de3a1863c590b75f73ccc276effe2ae74d848b88f373547f527bb413ec8249",
+          "bytes": 43659
+        },
+        {
+          "path": "cbt_q11/wire_ids.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "d6b57671334ea2dfcbeb3179ef148fc833e3d34ad460b8c11809231f936d1603",
+          "afterSha256": "72ddf54cca7580b3406945b2b59581d89c3c0c80a47491ff6b12298ccfa77bf1",
+          "bytes": 18407
+        },
+        {
+          "path": "tests/test_cbt_bounded_projection_stability.py",
+          "kind": "ADDED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": null,
+          "afterSha256": "dcb8d76d618c42ffd534ae4a5dbf9853827ee3a208a41d70a6c607c041489724",
+          "bytes": 2347
+        },
+        {
+          "path": "tests/test_cbt_bounded_schema_compaction.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "95cfdd9f792617291b86e3ec5d04591532de2cc954adba3e8df2055cd8f3363e",
+          "afterSha256": "f9780516e0389be6eff14542978dc9f0317dead18c30d82ccef3e0ef1e875016",
+          "bytes": 6069
+        },
+        {
+          "path": "tests/test_cbt_bounded_wire_ids.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "62cbceef558c4cfaa3293959c033fa2b05b16c9b5da7eba5986b560a0a9b4967",
+          "afterSha256": "cdd6348376857b1d118a1c92d0d3414f5b0d5064f0326a3e72a68111544c662f",
+          "bytes": 12690
+        },
+        {
+          "path": "tests/test_cbt_whole_flow_contracts.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "507753f24eca6ef4fb4382cd3dfbf7fcd3eaab816ccd74d1ffcbec3190304f43",
+          "afterSha256": "09414fe16686cc66b752cde6c5af3d2bffa236bb4c6feeb8624839dce49ec9ff",
+          "bytes": 12651
+        }
+      ],
+      "timestampUtc": "2026-09-08T11:04:03.2094852Z",
+      "changeClassification": "PRODUCT_AND_FIXTURE_REPAIR",
+      "changeExplanation": "승인된 입력 상한을 32,000으로 확대. canonical JSON 복원 후 base semantic projection 순서가 달라지던 문제를 sourceKey 기준 표시 순서로 안정화(정정 인과 순서 불변). codec 보완 및 source edit/archive fixture 명시 binding 보정.",
+      "explanationReferences": [
+        "reports/final-repair-verification.md",
+        "reports/token-budget-adjustment.md"
+      ],
+      "paidAttemptNumbers": []
+    },
+    {
+      "id": "REPAIR-03",
+      "receipt": "snapshot-REPAIR-03.json",
+      "receiptSha256": "2cca37e335a3ad9a1cc59ca504d363811e64af2e23406b58b63a932c7c75d709",
+      "receiptBytes": 14629,
+      "sourceRoot": "execution/REPAIR-03/mindot_ai",
+      "sourceSetSha256": "0aa23b3e392e6b183e884d9eaf6aa9f5a04b7a78a444b3d246aae6a1d770937a",
+      "frozenFileCount": 49,
+      "verifiedFileCount": 49,
+      "snapshotMismatchPaths": [],
+      "changedFromPrevious": [
+        {
+          "path": "cbt_q11/llm.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "24358f546c01a2d2b304c145395dfded9cbc0db2dba1ba18b1bc57fabc68b243",
+          "afterSha256": "e5ca36ee39535b98ccceb87b42dd189addd76d05e4af31e9dfb8cce2a3567957",
+          "bytes": 15811
+        },
+        {
+          "path": "cbt_q11/provider.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "7b6e2358ff5f845bf73a2b5727a8a48dfa34d4edc9d5f7966adf62f2fb41f1c2",
+          "afterSha256": "ea3823dc32ef21e0fc8a8b68b7ea096d0205234aef102f44a56415eeb44e59e0",
+          "bytes": 10140
+        },
+        {
+          "path": "cbt_q11/requests.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "35742af712b8362eca5729a2b43267c45c59d7a778fd80b53d6e773c2b120c0d",
+          "afterSha256": "98a98aa231c2012064f5f0b74a3823d6cef17e6a16509b132becf0799edbc5c7",
+          "bytes": 32182
+        },
+        {
+          "path": "cbt_q11/validity.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "38de3a1863c590b75f73ccc276effe2ae74d848b88f373547f527bb413ec8249",
+          "afterSha256": "d243d540b1e4c61ce7630145c0d54c7c28e6387ecc614a7ec351c6265f66c05b",
+          "bytes": 43794
+        },
+        {
+          "path": "tests/test_cbt_bounded_gaps.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "15dbf449a033e116e8712062ed10fb3c6b6a2ea6903ea598018132af4af1fe13",
+          "afterSha256": "69b6310befdda7c1c3dedc7cdae5aa103c5aa5b02896ec2983bfdb8ed830f346",
+          "bytes": 31099
+        },
+        {
+          "path": "tests/test_cbt_bounded_projection_stability.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "dcb8d76d618c42ffd534ae4a5dbf9853827ee3a208a41d70a6c607c041489724",
+          "afterSha256": "d3ed3315f1e93017e6897eccf907e151d3621c14dcf6683bf13392a9f6178a43",
+          "bytes": 3063
+        },
+        {
+          "path": "tests/test_cbt_bounded_schema_compaction.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "f9780516e0389be6eff14542978dc9f0317dead18c30d82ccef3e0ef1e875016",
+          "afterSha256": "2014307b8a22e3b39eb67dd41cff9c4a270fbd0ceaf4e5a0328403f60ad5a9af",
+          "bytes": 7042
+        },
+        {
+          "path": "tests/test_cbt_q11.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "974d7410ad1cd0a16c1616de48ba0ec061a01634fafafbed467c43b318e941d7",
+          "afterSha256": "9db79ba6d6bdfd8894dabca804c380a31d6e09fb9a9700d7d3cdb79aafa8b08d",
+          "bytes": 55968
+        },
+        {
+          "path": "tests/test_cbt_whole_flow_requests.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "c0e480e8c114ff72b1055ea83a660c063fbc1ca318a33cbe371d7a402b13529e",
+          "afterSha256": "6eb9a9f14da30ef5022b7f8fed465847115ce04571625023c08da3c70f43d617",
+          "bytes": 27798
+        }
+      ],
+      "timestampUtc": "2026-09-08T11:18:06.2706258Z",
+      "changeClassification": "PRODUCT_AND_FIXTURE_REPAIR",
+      "changeExplanation": "승인된 입력 상한 48,000/196,608 bytes 적용. SDK 실제 wire 숫자 표현까지 동일성 비교, 현재 정정에 빈 legacyIds를 생성해 immutable receipt가 변하던 문제 수정, 잘못된 request proof를 typed technical error로 보존. 독립 HTTP 요청 fixture deep copy와 관련 회귀 보완.",
+      "explanationReferences": [
+        "reports/final-repair-verification.md"
+      ],
+      "paidAttemptNumbers": [
+        1
+      ]
+    },
+    {
+      "id": "REPAIR-04",
+      "receipt": "snapshot-REPAIR-04.json",
+      "receiptSha256": "dcba1e9b48650a23479e4d6744c1011fe2fe3620a136b8ae3c7b9b1ac8d756e1",
+      "receiptBytes": 14624,
+      "sourceRoot": "execution/REPAIR-04/mindot_ai",
+      "sourceSetSha256": "fd120ff31ca5bc0e882e4955cb16aa60687679fb35f54d4116458bd1626441f3",
+      "frozenFileCount": 49,
+      "verifiedFileCount": 49,
+      "snapshotMismatchPaths": [],
+      "changedFromPrevious": [
+        {
+          "path": "cbt_q11/contracts.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "44989e7c7e8561348803f6286744d12711bb0f95050c0dc240de353f381a972e",
+          "afterSha256": "daf0c581b36e76c7b59acf7777f063f3ddf07c428b7cc1e6961482840d25c2ca",
+          "bytes": 3874
+        },
+        {
+          "path": "cbt_q11/goals.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "c3218fbc0b0e4e3f6e35cc47b02d1f5ee857f4670a7a9bfc854232ba6facfdaf",
+          "afterSha256": "80d74034a2295ffc3051d3b53ea235b7771a6b2225fd3a89d90306a8c977a4a8",
+          "bytes": 8156
+        },
+        {
+          "path": "cbt_q11/planner.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "d9ae7fc519d36131f3ffbafad413d2d3054cdd549f1984c6ed8f5c633f31e1ac",
+          "afterSha256": "906d4efc79ad43485e1d3d9bb2888e01fdf5db317d695ecbac10820399504d76",
+          "bytes": 11839
+        },
+        {
+          "path": "cbt_q11/rendering.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "eaeeefa6f8286655e35bc7fb92155cc57748b7e11df254dd2cbcb5a3a1e747fc",
+          "afterSha256": "ee4b653c5b4e0ee608133c507ff8928d727ce05db8305ddb371f84acf1dbd4a3",
+          "bytes": 8812
+        },
+        {
+          "path": "cbt_q11/requests.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "98a98aa231c2012064f5f0b74a3823d6cef17e6a16509b132becf0799edbc5c7",
+          "afterSha256": "1f54c651b42e882cde1caa7e99684b067559a796a120688e6fd8743ca015bf8e",
+          "bytes": 36206
+        },
+        {
+          "path": "cbt_q11/state.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "b9c0e8a229417f2d51d67ed1e4e26a852815a279159c8c8aa3c7ba2a7507810c",
+          "afterSha256": "e18b731132c875043524770ee3bf5ac4e356ed3c5d51a60245e4cddc621e9151",
+          "bytes": 36128
+        },
+        {
+          "path": "tests/test_cbt_whole_flow_requests.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "6eb9a9f14da30ef5022b7f8fed465847115ce04571625023c08da3c70f43d617",
+          "afterSha256": "6e614f250cf707b841418972db567a19e80f14469a6b169821137130e7e72daf",
+          "bytes": 44477
+        }
+      ],
+      "timestampUtc": "2026-09-08T12:17:14.3209802Z",
+      "changeClassification": "PRODUCT_AND_REGRESSION_REPAIR",
+      "changeExplanation": "첫 실제 canary의 GOAL_BINDING_UNRECOVERABLE_presentation 수습. 실제 public history 질문의 원문·purpose·route·identity를 질문 전용 provenance로 엄격 결속. 목표 fact binding UNKNOWN은 유지하고 일반 CONTINUE/REVISIT 허용을 넓히지 않음. warm migration/optional route omission 및 phantom requestIds 제한 복구 회귀.",
+      "explanationReferences": [
+        "reports/live-canary-failure-analysis.md",
+        "reports/public-history-presentation-repair.md"
+      ],
+      "paidAttemptNumbers": [
+        2
+      ]
+    },
+    {
+      "id": "REPAIR-05",
+      "receipt": "snapshot-REPAIR-05.json",
+      "receiptSha256": "685cb9871091f47288f199e82e13dd2667ba68858a06d877d159a0f85a912aee",
+      "receiptBytes": 14860,
+      "sourceRoot": "execution/REPAIR-05/mindot_ai",
+      "sourceSetSha256": "3d49fb98e6557e5de6b8d746f8bf43d6cfbd8c8a3a6ef8e577c7f21200f0e2d8",
+      "frozenFileCount": 50,
+      "verifiedFileCount": 50,
+      "snapshotMismatchPaths": [],
+      "changedFromPrevious": [
+        {
+          "path": "cbt_q11/provider_schemas.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "df59accb855e7cd690dd9ad69b279a4fd8d17167eead96439662d11f4ed2ac8c",
+          "afterSha256": "c8efe9f2268251e1545a4b8a1d4db0c135812273f806dac07b9ce878baae2abb",
+          "bytes": 19547
+        },
+        {
+          "path": "cbt_q11/writer.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "d1bb928001191b8683f46269c4ab97698076bef5798d6a876a5fbfc557859fc3",
+          "afterSha256": "0bde0b797572ec1db39a28c325e1813bd80c043193858801ea14322caf88f71f",
+          "bytes": 7413
+        },
+        {
+          "path": "tests/test_cbt_whole_flow_writer.py",
+          "kind": "ADDED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": null,
+          "afterSha256": "a1cb803631b38d49df5b32b26cb8b6503493b799cd530d1db579cb4f058bc545",
+          "bytes": 10944
+        }
+      ],
+      "timestampUtc": "2026-09-08T12:33:55.6980276Z",
+      "changeClassification": "PRODUCT_AND_REGRESSION_REPAIR",
+      "changeExplanation": "Writer 기존 금지 형식을 provider schema pattern에도 동일 적용하고 repair_issue의 shape 분류만 호환. 독립 결함 검사와 길이/중복 복구 allowlist는 유지. EXAMPLE 일반 역할 설명 추가; 시스템 프롬프트 불변.",
+      "explanationReferences": [
+        "reports/repair05-verification.md"
+      ],
+      "paidAttemptNumbers": [
+        3
+      ]
+    },
+    {
+      "id": "REPAIR-06",
+      "receipt": "snapshot-REPAIR-06.json",
+      "receiptSha256": "c1376a74970593f3b73dcb382a70ad1c6e4a92cac509f011d20640e01fa0684b",
+      "receiptBytes": 14860,
+      "sourceRoot": "execution/REPAIR-06/mindot_ai",
+      "sourceSetSha256": "d4b9a472524f944304bee1e68227f91fcadebf0604eadb560b7545b572b933df",
+      "frozenFileCount": 50,
+      "verifiedFileCount": 50,
+      "snapshotMismatchPaths": [],
+      "changedFromPrevious": [
+        {
+          "path": "cbt_q11/provider_schemas.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "c8efe9f2268251e1545a4b8a1d4db0c135812273f806dac07b9ce878baae2abb",
+          "afterSha256": "4fc6903d1a1e3890fd865e88e78920e45e4a118de535c729a95cee2bdf2d4681",
+          "bytes": 20429
+        },
+        {
+          "path": "tests/test_cbt_whole_flow_writer.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "a1cb803631b38d49df5b32b26cb8b6503493b799cd530d1db579cb4f058bc545",
+          "afterSha256": "f48fa0aa25cf1f8e926eece00471079b01be5d71d7e1f044a01d92e119995b9a",
+          "bytes": 11338
+        }
+      ],
+      "timestampUtc": "2026-09-08T12:51:18.3902703Z",
+      "changeClassification": "SCHEMA_DESCRIPTION_AND_REGRESSION_REPAIR",
+      "changeExplanation": "EXAMPLE을 기존 질문에 대한 명시적 가상 답변 두 개와 가까움/둘 다 아님 선택 질문으로 표현하도록 schema description 강화. 시스템 프롬프트·validator·실제 원문 불변. 이 설명 보강의 실제 효과는 다음 canary에서 실패.",
+      "explanationReferences": [
+        "reports/retry03-authorization.md"
+      ],
+      "paidAttemptNumbers": [
+        4
+      ]
+    },
+    {
+      "id": "REPAIR-07",
+      "receipt": "snapshot-REPAIR-07.json",
+      "receiptSha256": "07215d85b80c65d209e25dc67fcb33c8ddf8151a3694b5fa6990247b89914c60",
+      "receiptBytes": 14860,
+      "sourceRoot": "execution/REPAIR-07/mindot_ai",
+      "sourceSetSha256": "88b150458f73cde14a7333461ee50d279e63b63a3e86bb8e13e2fe7fbdca868d",
+      "frozenFileCount": 50,
+      "verifiedFileCount": 50,
+      "snapshotMismatchPaths": [],
+      "changedFromPrevious": [
+        {
+          "path": "cbt_q11/provider_schemas.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "4fc6903d1a1e3890fd865e88e78920e45e4a118de535c729a95cee2bdf2d4681",
+          "afterSha256": "4e70e377e0d8b4712df930a8cff6a086a82f13819e833f69c2398cda432eec93",
+          "bytes": 21357
+        },
+        {
+          "path": "cbt_q11/writer.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "0bde0b797572ec1db39a28c325e1813bd80c043193858801ea14322caf88f71f",
+          "afterSha256": "410fea0377b2d734ee3de6b243a351d68acd8735e8fa1a664e5f1ac4e832a669",
+          "bytes": 7697
+        },
+        {
+          "path": "tests/test_cbt_whole_flow_writer.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "f48fa0aa25cf1f8e926eece00471079b01be5d71d7e1f044a01d92e119995b9a",
+          "afterSha256": "5516248b35f5ab8949688e553b8edd35c06f00e1f023c7ed527d379cdd7d6d7c",
+          "bytes": 14385
+        }
+      ],
+      "timestampUtc": "2026-09-08T13:12:06.4212662Z",
+      "changeClassification": "PRODUCT_AND_REGRESSION_REPAIR",
+      "changeExplanation": "실제 Arabic U+061F로 빠져나간 물음표 금지 형식을 Unicode 이름에 근거한 유한 25문자 집합으로 provider/local/repair/render에 통일. 의미 질문 탐지나 자동 문장 치환 아님. 시스템 프롬프트 불변, 이 소스 자체의 paid 시도 없음.",
+      "explanationReferences": [
+        "reports/repair07-final-verification.md"
+      ],
+      "paidAttemptNumbers": []
+    },
+    {
+      "id": "REPAIR-08",
+      "receipt": "snapshot-REPAIR-08.json",
+      "receiptSha256": "ee7a5bb8a820d4b6ddd6151c2c2723de26da346fd5071d76e58954aab6282f6d",
+      "receiptBytes": 14859,
+      "sourceRoot": "execution/REPAIR-08/mindot_ai",
+      "sourceSetSha256": "02e804576f2a83fc7a1ab6a5c2e2173ac7ec48b408345adb1e52757deec4686f",
+      "frozenFileCount": 50,
+      "verifiedFileCount": 50,
+      "snapshotMismatchPaths": [],
+      "changedFromPrevious": [
+        {
+          "path": "cbt_q11/prompts.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "adedc6382f4402ebc46625341c085f8884425031b9dd9eb9495b51107c8ac804",
+          "afterSha256": "f6ae5509a1a3f4a3a6c0553f660ac1b01372722797f940adfbe474c0bde50828",
+          "bytes": 26428
+        },
+        {
+          "path": "tests/test_cbt_q11.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "9db79ba6d6bdfd8894dabca804c380a31d6e09fb9a9700d7d3cdb79aafa8b08d",
+          "afterSha256": "e1b4ad9c1e4d412df4e5f6237af8c1f58bfc81aa25276b9a42bfdf42d6f7dc38",
+          "bytes": 55968
+        },
+        {
+          "path": "tests/test_cbt_whole_flow_writer.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "5516248b35f5ab8949688e553b8edd35c06f00e1f023c7ed527d379cdd7d6d7c",
+          "afterSha256": "e8d7d8e9c32b96505f3708df4ccc560401ec0ca3a2a409eadf8e60736d25c412",
+          "bytes": 17051
+        }
+      ],
+      "timestampUtc": "2026-09-08T13:23:38.4048761Z",
+      "changeClassification": "AUTHORIZED_PROMPT_AND_REGRESSION_REPAIR",
+      "changeExplanation": "사용자가 프롬프트 변경을 명시 승인한 뒤 Writer/Writer Repair 두 문자열만 모드별 출력 역할과 정보 목표를 구분. 나머지 다섯 phase·tool prompt 및 caps 불변. 같은 소스의 첫 시도는 transport UNKNOWN, 네트워크 실행환경만 복구한 다음 시도는 semantic FAIL.",
+      "explanationReferences": [
+        "reports/repair08-verification.md",
+        "reports/retry05-transport-authorization.md"
+      ],
+      "paidAttemptNumbers": [
+        5,
+        6
+      ]
+    },
+    {
+      "id": "REPAIR-09",
+      "receipt": "snapshot-REPAIR-09.json",
+      "receiptSha256": "ea7777546b9a689a31f3384f306ce6e5b92e8f21c49bde88f2eccde52864d44e",
+      "receiptBytes": 14860,
+      "sourceRoot": "execution/REPAIR-09/mindot_ai",
+      "sourceSetSha256": "367c378c1defc6a75d57958aa483e538eac406c572cc5e3e057e05563a93c004",
+      "frozenFileCount": 50,
+      "verifiedFileCount": 50,
+      "snapshotMismatchPaths": [],
+      "changedFromPrevious": [
+        {
+          "path": "cbt_q11/prompts.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "f6ae5509a1a3f4a3a6c0553f660ac1b01372722797f940adfbe474c0bde50828",
+          "afterSha256": "f3df303192e01b79d2f25604890d89efc80d3a1c228c2a0e500af83a126c0b40",
+          "bytes": 26092
+        },
+        {
+          "path": "cbt_q11/writer.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "410fea0377b2d734ee3de6b243a351d68acd8735e8fa1a664e5f1ac4e832a669",
+          "afterSha256": "5f28aeedb206cb200f8a266e4c42ccd2d7a47cb66dc1536f00fe10d492850165",
+          "bytes": 11091
+        },
+        {
+          "path": "tests/test_cbt_q11.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "e1b4ad9c1e4d412df4e5f6237af8c1f58bfc81aa25276b9a42bfdf42d6f7dc38",
+          "afterSha256": "3ce8679a604d338fa68598f5683c78bdc4b63a09bfa555055727f555f1611a4e",
+          "bytes": 55968
+        },
+        {
+          "path": "tests/test_cbt_whole_flow_writer.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "e8d7d8e9c32b96505f3708df4ccc560401ec0ca3a2a409eadf8e60736d25c412",
+          "afterSha256": "6600aac213a842d56b38b62d8c464840d9bda4394829c20bb0e46525861ade0b",
+          "bytes": 25279
+        }
+      ],
+      "timestampUtc": "2026-09-08T14:07:10.1110039Z",
+      "changeClassification": "PRODUCT_AND_REGRESSION_REPAIR",
+      "changeExplanation": "Writer 표현 전용 payload projection: outputFieldRoles/underlyingGoalContext 구분, source/validity/evidence/correction/안전 binding 보존, 의사결정용 lifecycle metadata와 반복 질문을 정리. primary Writer prompt에 현재 자료와 무관한 가상 형식 예시 추가. 첫 suite의 1 FAIL은 새 테스트의 pre/post commit 질문 ID 시점 혼동.",
+      "explanationReferences": [
+        "reports/repair09-verification.md"
+      ],
+      "paidAttemptNumbers": []
+    },
+    {
+      "id": "REPAIR-09B",
+      "receipt": "snapshot-REPAIR-09B.json",
+      "receiptSha256": "04935ac065fa08d37be09b2c7faf47821b95c5a6385ddbf634b9518461967ced",
+      "receiptBytes": 14862,
+      "sourceRoot": "execution/REPAIR-09B/mindot_ai",
+      "sourceSetSha256": "2b206523eadc1740055e3eeffc52fd7c81acfb8f7163dc72f365db81556517b7",
+      "frozenFileCount": 50,
+      "verifiedFileCount": 50,
+      "snapshotMismatchPaths": [],
+      "changedFromPrevious": [
+        {
+          "path": "tests/test_cbt_whole_flow_writer.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "6600aac213a842d56b38b62d8c464840d9bda4394829c20bb0e46525861ade0b",
+          "afterSha256": "a311e33d481e83c1bc2cf3a8e733474f9e4ffcf8cd471b822ede416c58285028",
+          "bytes": 25941
+        }
+      ],
+      "timestampUtc": "2026-09-08T14:11:17.2337108Z",
+      "changeClassification": "TEST_FIXTURE_ONLY",
+      "changeExplanation": "동일 REPAIR09 제품에 대해 SAFETY parent episode의 pre-Writer snapshot과 실제 새 질문 commit을 시점별로 비교하도록 테스트만 수정. 다른 episode 필드는 exact equality 유지.",
+      "explanationReferences": [
+        "reports/repair09-verification.md"
+      ],
+      "paidAttemptNumbers": [
+        7
+      ]
+    },
+    {
+      "id": "REPAIR-10",
+      "receipt": "snapshot-REPAIR-10.json",
+      "receiptSha256": "073fbf5e7aa452b673737e30e3bd14a46439543d50b51b4f1a1fdbdaea018311",
+      "receiptBytes": 14860,
+      "sourceRoot": "execution/REPAIR-10/mindot_ai",
+      "sourceSetSha256": "c33fcbc1cc948b69a4ff1fe63ed6c7b6c39b6dfb4426b76a98951c6967f9a5ea",
+      "frozenFileCount": 50,
+      "verifiedFileCount": 50,
+      "snapshotMismatchPaths": [],
+      "changedFromPrevious": [
+        {
+          "path": "cbt_q11/policy.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "f227361916f13a1fb3665edb728bcd0051a29ae8dc3ded149ee1693074e26378",
+          "afterSha256": "f9b75b734dc1156c49226a31b152d72ce6105be951d2bc30c0e54e397f3ef843",
+          "bytes": 11879
+        },
+        {
+          "path": "cbt_q11/prompts.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "f3df303192e01b79d2f25604890d89efc80d3a1c228c2a0e500af83a126c0b40",
+          "afterSha256": "d57a4026425e9426039307096f55665f6aa3a98668f877ecbf1e5bc6675cf577",
+          "bytes": 28219
+        },
+        {
+          "path": "cbt_q11/provider_schemas.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "4e70e377e0d8b4712df930a8cff6a086a82f13819e833f69c2398cda432eec93",
+          "afterSha256": "d7f14d98182e00d0d3e5069381e06028dce0b22ea1cc56a21cf4f26bb7624f17",
+          "bytes": 23030
+        },
+        {
+          "path": "tests/test_cbt_bounded_schema_compaction.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "2014307b8a22e3b39eb67dd41cff9c4a270fbd0ceaf4e5a0328403f60ad5a9af",
+          "afterSha256": "ef0d78d76753d9c399be14451c55891ba4b48c103b29b839a79e59a93c2b9e45",
+          "bytes": 12277
+        },
+        {
+          "path": "tests/test_cbt_q11.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "3ce8679a604d338fa68598f5683c78bdc4b63a09bfa555055727f555f1611a4e",
+          "afterSha256": "dd95f55695aa225e167f96de75fef5aac2f4a50fa39d558fa00b97ea01c166a9",
+          "bytes": 55968
+        },
+        {
+          "path": "tests/test_cbt_whole_flow_writer.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "a311e33d481e83c1bc2cf3a8e733474f9e4ffcf8cd471b822ede416c58285028",
+          "afterSha256": "5a07ef0c66e79c5506a7d669b5bc851fc3e8e19dd81774fa644a2f183d7e245e",
+          "bytes": 25931
+        }
+      ],
+      "timestampUtc": "2026-09-08T14:47:12.5108726Z",
+      "changeClassification": "PRODUCT_AND_REGRESSION_REPAIR",
+      "changeExplanation": "실제 Agent의 잘못된 slot 구절 복사·실질 내용의 도움 요청 오분류 수습. Agent에 source-local mixed 절 지침, schema slot별 실제 sourceId 설명, policy의 slot mapping 전달 추가. Writer 제품 불변. 새 긍정 fixture가 complete 상태에서 write_turn을 요구해 정상적으로 거절됨.",
+      "explanationReferences": [
+        "reports/repair10-verification.md"
+      ],
+      "paidAttemptNumbers": []
+    },
+    {
+      "id": "REPAIR-10B",
+      "receipt": "snapshot-REPAIR-10B.json",
+      "receiptSha256": "3a7e5500629399ee690f7e285f5dd084d4e583ecfaca97fad4a84206013382ee",
+      "receiptBytes": 14862,
+      "sourceRoot": "execution/REPAIR-10B/mindot_ai",
+      "sourceSetSha256": "5bfda54605183393cc7be5d9d2db2b1b1438c2b5ffc599d152f32f029020bf89",
+      "frozenFileCount": 50,
+      "verifiedFileCount": 50,
+      "snapshotMismatchPaths": [],
+      "changedFromPrevious": [
+        {
+          "path": "tests/test_cbt_bounded_schema_compaction.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "ef0d78d76753d9c399be14451c55891ba4b48c103b29b839a79e59a93c2b9e45",
+          "afterSha256": "a2a8672c8d8232409325ef184e71161769a58c18be6bce38c7a2136a3a54e29a",
+          "bytes": 12512
+        }
+      ],
+      "timestampUtc": "2026-09-08T14:50:58.7543195Z",
+      "changeClassification": "TEST_FIXTURE_ONLY",
+      "changeExplanation": "양성 façade fixture를 실제 incomplete 3답변으로 수정. 음성 fixture occurrence=null이 원한 invalid_occurrence보다 앞선 ambiguous_or_missing_excerpt를 내므로 아직 1 FAIL. 제품 및 validator 불변.",
+      "explanationReferences": [
+        "reports/repair10-verification.md"
+      ],
+      "paidAttemptNumbers": []
+    },
+    {
+      "id": "REPAIR-10C",
+      "receipt": "snapshot-REPAIR-10C.json",
+      "receiptSha256": "6162f583e208a5c8f13430141c91e66ae6d62a9fa9f06af33a5cdd20cfe05a6c",
+      "receiptBytes": 14862,
+      "sourceRoot": "execution/REPAIR-10C/mindot_ai",
+      "sourceSetSha256": "0c6f6eb6a67353aa07fa85eb2e9a4c439445625b53e86f1534d98f8e0484897a",
+      "frozenFileCount": 50,
+      "verifiedFileCount": 50,
+      "snapshotMismatchPaths": [],
+      "changedFromPrevious": [
+        {
+          "path": "tests/test_cbt_bounded_schema_compaction.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "a2a8672c8d8232409325ef184e71161769a58c18be6bce38c7a2136a3a54e29a",
+          "afterSha256": "f5314b6970055271aa505ea3a479ebfc2ec1d407dbe2c0be4ce945536d4708b8",
+          "bytes": 12515
+        }
+      ],
+      "timestampUtc": "2026-09-08T14:54:34.5179781Z",
+      "changeClassification": "TEST_FIXTURE_ONLY",
+      "changeExplanation": "음성 fixture의 occurrence를 실제 실패와 동일한 0으로 명시. source mismatch를 가리거나 validator를 완화하지 않음. 10/10B/10C 제품 bytes 동일.",
+      "explanationReferences": [
+        "reports/repair10-verification.md"
+      ],
+      "paidAttemptNumbers": [
+        8
+      ]
+    },
+    {
+      "id": "REPAIR-11",
+      "receipt": "snapshot-REPAIR-11.json",
+      "receiptSha256": "54b889364b2b5e395bf0bbcac24a3a978e7ec9718f7c844b455b0ee55e088aae",
+      "receiptBytes": 14860,
+      "sourceRoot": "execution/REPAIR-11/mindot_ai",
+      "sourceSetSha256": "78797873f09aef97add334ffb05ba28be9d7bc6174ed7cd1267a4b1f413a4b31",
+      "frozenFileCount": 50,
+      "verifiedFileCount": 50,
+      "snapshotMismatchPaths": [],
+      "changedFromPrevious": [
+        {
+          "path": "cbt_q11/prompts.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "d57a4026425e9426039307096f55665f6aa3a98668f877ecbf1e5bc6675cf577",
+          "afterSha256": "e456d0d0f8c9f2210b4d205b1fc5c215b6248ca527819645b2dd46035714f547",
+          "bytes": 29986
+        },
+        {
+          "path": "cbt_q11/provider.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "ea3823dc32ef21e0fc8a8b68b7ea096d0205234aef102f44a56415eeb44e59e0",
+          "afterSha256": "cce723a6fd8f16019395dc2564537c3de8621925537cff4cb31cf2db243276cb",
+          "bytes": 12970
+        },
+        {
+          "path": "tests/test_cbt_bounded_schema_compaction.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "f5314b6970055271aa505ea3a479ebfc2ec1d407dbe2c0be4ce945536d4708b8",
+          "afterSha256": "e3e45d746b908409757f83ab50234de85958f3502ba98862e92e1a80f5aff29e",
+          "bytes": 17662
+        },
+        {
+          "path": "tests/test_cbt_q11.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "dd95f55695aa225e167f96de75fef5aac2f4a50fa39d558fa00b97ea01c166a9",
+          "afterSha256": "006f74093f08826f879e2e6ae04b8e31d1666778e896866a18c629b348ad3d20",
+          "bytes": 55968
+        },
+        {
+          "path": "tests/test_cbt_whole_flow_writer.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "5a07ef0c66e79c5506a7d669b5bc851fc3e8e19dd81774fa644a2f183d7e245e",
+          "afterSha256": "42820715fc5a9ee72aa09ad7ae1dfa30d8079656a971624e926fb1a20eb71c0d",
+          "bytes": 25931
+        }
+      ],
+      "timestampUtc": "2026-09-08T15:07:49.3748511Z",
+      "changeClassification": "PROVIDER_PROJECTION_AND_PROMPT_REPAIR",
+      "changeExplanation": "SELECT-only provider view의 기존 source 행에 reviewSlot/sourceQuestionPendingId 추가. 실제 mapping에만 근거하고 두 annotation을 제거하면 원 view로 복원. Agent에 일반 source-local 예시 추가. 모델의 네 CONTENT 제안은 개선됐지만 잘못된 help slot/target은 계속 실패.",
+      "explanationReferences": [
+        "reports/repair11-verification.md"
+      ],
+      "paidAttemptNumbers": [
+        9
+      ]
+    },
+    {
+      "id": "REPAIR-12",
+      "receipt": "snapshot-REPAIR-12.json",
+      "receiptSha256": "259b37b918362df79707b74a7fd942ca6be21d0190f2e3b98725da83b197ea65",
+      "receiptBytes": 14860,
+      "sourceRoot": "execution/REPAIR-12/mindot_ai",
+      "sourceSetSha256": "7de56f098ce938dcba1886ae32e2a671c9f58da9cf1d57cd15adf001549e7abd",
+      "frozenFileCount": 50,
+      "verifiedFileCount": 50,
+      "snapshotMismatchPaths": [],
+      "changedFromPrevious": [
+        {
+          "path": "cbt_q11/prompts.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "e456d0d0f8c9f2210b4d205b1fc5c215b6248ca527819645b2dd46035714f547",
+          "afterSha256": "8d14b22485d020feecec586236c6a637f463e06947d8bb2170af7ce8b660585f",
+          "bytes": 30441
+        },
+        {
+          "path": "cbt_q11/provider_schemas.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "d7f14d98182e00d0d3e5069381e06028dce0b22ea1cc56a21cf4f26bb7624f17",
+          "afterSha256": "80b422419afa3ce8e9dc71263d63425b6b2f266a64bce09817be58a262123e2a",
+          "bytes": 23030
+        },
+        {
+          "path": "tests/test_cbt_bounded_schema_compaction.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "e3e45d746b908409757f83ab50234de85958f3502ba98862e92e1a80f5aff29e",
+          "afterSha256": "14476ef4151895c0eb62706d018997dabbf2f62500b98074a4d03552987d3527",
+          "bytes": 19024
+        },
+        {
+          "path": "tests/test_cbt_q11.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "006f74093f08826f879e2e6ae04b8e31d1666778e896866a18c629b348ad3d20",
+          "afterSha256": "d3896c3a335e4ef67bb5b8d1d2baeb1ce96865d45c3f54a4a325a9177ef73a4f",
+          "bytes": 55968
+        },
+        {
+          "path": "tests/test_cbt_whole_flow_writer.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "42820715fc5a9ee72aa09ad7ae1dfa30d8079656a971624e926fb1a20eb71c0d",
+          "afterSha256": "2344d70ecde0d5ff0107e9c5688165a1877f849169c07054a2ecf4613143f792",
+          "bytes": 25931
+        }
+      ],
+      "timestampUtc": "2026-09-08T15:18:53.6462971Z",
+      "changeClassification": "SCHEMA_ORDER_AND_PROMPT_REPAIR",
+      "changeExplanation": "normal review properties/required 표시 순서를 contributions→signals로 변경하고 Agent에 자기 원문 CONTENT 후 signals 지침. 필드 집합/타입/한도/validator 불변. 실제 순서 변화가 전송·출력까지 전달됐으나 help binding 실패는 해소하지 못함.",
+      "explanationReferences": [
+        "reports/repair12-verification.md"
+      ],
+      "paidAttemptNumbers": [
+        10
+      ]
+    },
+    {
+      "id": "REPAIR-13",
+      "receipt": "snapshot-REPAIR-13.json",
+      "receiptSha256": "c968397b266cee65664871d896d9026900fb7301f30899e0be954c64c0a0287d",
+      "receiptBytes": 14860,
+      "sourceRoot": "execution/REPAIR-13/mindot_ai",
+      "sourceSetSha256": "f4fa31387855250597e68a04b6e09d3bcade680ad406dcbfa0d5e54c1278e927",
+      "frozenFileCount": 50,
+      "verifiedFileCount": 50,
+      "snapshotMismatchPaths": [],
+      "changedFromPrevious": [
+        {
+          "path": "cbt_q11/prompts.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "8d14b22485d020feecec586236c6a637f463e06947d8bb2170af7ce8b660585f",
+          "afterSha256": "5f1d9a0ea3cf6fe9766108620f3fa8cb9f0485d0a188b8e9c521973ac18b5f9d",
+          "bytes": 31153
+        },
+        {
+          "path": "cbt_q11/provider.py",
+          "kind": "MODIFIED",
+          "area": "PRODUCT",
+          "beforeSha256": "cce723a6fd8f16019395dc2564537c3de8621925537cff4cb31cf2db243276cb",
+          "afterSha256": "e2867dc5958528de6914e669036f7bec0ff3f9a8b14e15d018b980941e57c3e4",
+          "bytes": 14484
+        },
+        {
+          "path": "tests/test_cbt_bounded_schema_compaction.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "14476ef4151895c0eb62706d018997dabbf2f62500b98074a4d03552987d3527",
+          "afterSha256": "672ff4c5db198dfa9b81c2a7647aadde1b076b0da886a66a9f0bf84d1b08460f",
+          "bytes": 24026
+        },
+        {
+          "path": "tests/test_cbt_q11.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "d3896c3a335e4ef67bb5b8d1d2baeb1ce96865d45c3f54a4a325a9177ef73a4f",
+          "afterSha256": "0aefa7e9e09d49f02c0e53567803343f1deb3207f8938c05f3f8f36d6678aa48",
+          "bytes": 55968
+        },
+        {
+          "path": "tests/test_cbt_whole_flow_writer.py",
+          "kind": "MODIFIED",
+          "area": "TEST_FIXTURE",
+          "beforeSha256": "2344d70ecde0d5ff0107e9c5688165a1877f849169c07054a2ecf4613143f792",
+          "afterSha256": "feeea7adcbbd16063ce565ff1eb686c43e51fbc2b50abb35b7ab67c69bb736b2",
+          "bytes": 25931
+        }
+      ],
+      "timestampUtc": "2026-09-08T15:35:38.6204212Z",
+      "changeClassification": "PROVIDER_PROJECTION_AND_PROMPT_REPAIR_FINAL",
+      "changeExplanation": "SELECT에서 아직 생성되지 않은 RESERVED_NOT_AUTHORIZED alias+entry를 전역 presentationRequests에서 각 source.reviewSignalReservations로 lossless 이동. ACTIVE만 전역 유지, 원문/enum/validator/state 불변. Agent 예약 주소 설명 및 first-slot 예시 제거. 사용자 지정 마지막 시도도 실패하여 추가 수정·유료 재시도 중단.",
+      "explanationReferences": [
+        "reports/retry10-authorization.md",
+        "reports/final-attempt-and-shutdown-authorization.md"
+      ],
+      "paidAttemptNumbers": [
+        11
+      ]
+    }
+  ],
+  "offlineRuns": [
+    {
+      "receipt": "offline/mindot_ai/results/offline-result.json",
+      "sha256": "68685386a4c2526a714c704221e45ee14963e5130aa0d2c4ae74c4b64231990d",
+      "bytes": 228509,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\Q11\\mindot_ai",
+      "runId": null,
+      "status": "OFFLINE_BLOCKED",
+      "counts": {
+        "discovered": 82,
+        "executed": 82,
+        "passed": 24,
+        "failed": 6,
+        "errors": 52,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 68,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 42,
+        "passed": 42,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T19:18:15.115812+09:00",
+      "finishedAt": "2026-09-08T19:18:39.842684+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": null,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": [
+        {
+          "testId": "test_cbt_bounded_gaps.BoundedGapFlows.test_gap_missing_null_exact_binding_local_migration_and_failed_review",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_gaps.BoundedGapFlows.test_gap_partial_residual_latest_invalid_fallback_and_current_edit",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_gaps.BoundedGapFlows.test_gap_presentation_mixed_answer_control_target_rejection_and_wait_help",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_gaps.BoundedGapFlows.test_skip_retraction_wait_then_content_none_or_skip_completion_and_stale_candidate",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_gaps.BoundedGapFlows.test_wait_cannot_bypass_actual_stop_or_active_safety_question",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_gaps.BoundedGapFlows.test_wait_cannot_bypass_presentation_or_withdrawn_assessment_target",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_gaps.BoundedGapFlows.test_wait_review_pending_is_local_review_required_and_failed_slot_does_not_commit",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_provenance.BoundedSemanticRelations.test_f01_f02_empty_replacement_is_a_complete_suppression_edge",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_provenance.BoundedSemanticRelations.test_f02_applicable_null_is_local_and_failed_batch_is_atomic",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_provenance.BoundedSemanticRelations.test_f03_overlapping_retract_preserves_independent_cross_domain_atom",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_provenance.BoundedSemanticRelations.test_f04_clause_withdrawal_falls_back_and_zero_delta_keeps_first_proof",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_provenance.BoundedSemanticRelations.test_f04_replacement_dependency_withdraw_restore_and_explicit_recovery",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_provenance.BoundedSemanticRelations.test_f04_same_batch_first_proof_and_edges_keep_chronological_predecessor",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_provenance.BoundedSemanticRelations.test_f04_unrelated_same_source_event_change_keeps_independent_dependency",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_provenance.BoundedSemanticRelations.test_f05_analysis_cycle_is_rejected_without_reusing_identity",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_provenance.BoundedSemanticRelations.test_f05_changed_domain_full_review_still_has_affected_lineage",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_provenance.BoundedSemanticRelations.test_f05_legacy_ref_mapping_preserves_proof_and_does_not_revive_broad",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_provenance.BoundedSemanticRelations.test_f05_repeated_full_review_supersedes_transitive_replacement_frontier",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_provenance.BoundedSemanticRelations.test_f05_same_batch_new_replacement_is_not_covered_by_old_frontier",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_provenance.GeneratedSemanticFlow.test_f01_f02_generated_restore_and_actual_next_user_share_current_refs",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_provenance.GeneratedSemanticFlow.test_f02_f18_null_draft_rollback_then_explicit_attempt_schedules_dependency",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_safety.BoundedSafetyRelations.test_actual_used_episode_wrong_normal_rolls_back_correct_safety_commits_and_replays",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_safety.BoundedSafetyRelations.test_reopen_cancel_before_publish_preserves_previous_resolved_head",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_safety.BoundedSafetyRelations.test_resolved_catalog_unit_fixture_full_source_closure_and_zero_paid_capacity_failure",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_safety.BoundedSafetyRelations.test_resolved_unused_unit_fixture_reopens_clarify_then_reviews_both_actual_answers",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_integrity_relations.IntegrityRelations.test_cross_target_two_position_aliases_and_label_independent_receipt",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_integrity_relations.IntegrityRelations.test_goal_archived_record_and_answer_bindings_capacity_not_null",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_integrity_relations.RequestTargetFlow.test_null_target_committed_clarification_resolution_and_failed_writer",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_q11.Contracts.test_exact_seven_prompts_facade_and_public_dto",
+          "status": "FAIL"
+        },
+        {
+          "testId": "test_cbt_q11.Contracts.test_partial_broad_atom_residual_null_and_reanalysis_tombstone",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_q11.Transitions.test_argument_binding_repair_only_and_no_writer_second_repair",
+          "status": "FAIL"
+        },
+        {
+          "testId": "test_cbt_q11.Transitions.test_assessment_recheck_cannot_continue_to_four_calls",
+          "status": "FAIL"
+        },
+        {
+          "testId": "test_cbt_q11.Transitions.test_assessment_three_calls_final_review_pair_and_accept",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_q11.Transitions.test_candidate_reject_and_review_timeout_never_commit",
+          "status": "FAIL"
+        },
+        {
+          "testId": "test_cbt_q11.Transitions.test_candidate_safety_discards_staged_cbt_reviews",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_q11.Transitions.test_direction_presentation_preserves_goal_and_allows_later_direction",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_q11.Transitions.test_gap_only_commits_after_accept",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_q11.Transitions.test_invalid_presentation_target_is_not_repaired",
+          "status": "FAIL"
+        },
+        {
+          "testId": "test_cbt_q11.Transitions.test_safety_explanation_scope_then_mixed_answer",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_q11.Transitions.test_stop_presentation_resume_same_operation_and_direction_review",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_q11.Transitions.test_three_turn_goal_none_continue_new_and_revisit",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_contracts.WholeFlowProjectionWire.test_generated_answer_edit_uses_current_revision_and_archives_original",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_contracts.WholeFlowProjectionWire.test_unbound_archive_is_durable_without_becoming_mandatory_view",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_lifecycle.WholeFlowLifecycle.test_emergency_actual_pending_archive_then_clearance_and_success_replay",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_lifecycle.WholeFlowLifecycle.test_gap_answer_reject_explicit_attempt_and_replay_preserve_consumption",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_lifecycle.WholeFlowLifecycle.test_stale_emergency_overlay_not_clinical_head_then_guarded_recovery",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_lifecycle.WholeFlowLifecycle.test_terminal_user_rejection_new_thought_gap_and_old_answer_edit",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_provenance.CommittedProvenanceFlow.test_failed_correction_hint_next_attempt_select_and_preserved_first_acceptance",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_provenance.ProvenanceRelations.test_correction_clause_dag_partial_then_full_reaffirm_replay",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_provenance.ProvenanceRelations.test_disconnected_acceptance_does_not_authorize_hull_and_unknown_legacy_is_not_invented",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_provenance.ProvenanceRelations.test_prior_correction_cannot_merge_other_occurrence_target_or_source",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_requests.WholeFlowAssessmentTarget.test_belief_reduction_is_not_original_record_withdrawal",
+          "status": "FAIL"
+        },
+        {
+          "testId": "test_cbt_whole_flow_requests.WholeFlowAssessmentTarget.test_full_record_withdrawal_ask_wait_help_change_or_exact_reaffirm",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_requests.WholeFlowRequests.test_same_act_two_kinds_delivery_and_frozen_update_argument_repair",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_requests.WholeFlowRequests.test_stop_resume_preserves_pending_clarification_descendant",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_requests.WholeFlowRequests.test_two_targets_selected_subset_and_partial_descendant_resolution",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_requests.WholeFlowRequests.test_update_conflicts_bad_proof_and_writer_failure_keep_success_bundle",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_requests.WholeFlowRequests.test_wait_control_help_then_explicit_kind_cancel_and_new_source_request",
+          "status": "ERROR"
+        }
+      ]
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/q11-adapter-01/results/offline-result.json",
+      "sha256": "debdee126551857eca3199535cbcd9fb3b5c1f02e3e56c06f39c4869c66fb9b4",
+      "bytes": 32177,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-01\\mindot_ai",
+      "runId": "q11-adapter-01",
+      "status": "ADAPTER_BLOCKED",
+      "counts": {
+        "discovered": 10,
+        "executed": 10,
+        "passed": 6,
+        "failed": 4,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 0,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 45,
+        "passed": 45,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T20:02:02.890401+09:00",
+      "finishedAt": "2026-09-08T20:02:10.626031+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": [
+        {
+          "testId": "test_q11_adapter.Q11AdapterTests.test_caller_cancellation_propagates_and_never_publishes_result",
+          "status": "FAIL"
+        },
+        {
+          "testId": "test_q11_adapter.Q11AdapterTests.test_duplicate_raw_tool_argument_is_not_normalized_or_retried",
+          "status": "FAIL"
+        },
+        {
+          "testId": "test_q11_adapter.Q11AdapterTests.test_received_malformed_body_is_preserved_before_sdk_parse_failure",
+          "status": "FAIL"
+        },
+        {
+          "testId": "test_q11_adapter.Q11AdapterTests.test_received_sdk_status_error_body_preserved_without_retry_or_success_count",
+          "status": "FAIL"
+        }
+      ]
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/q11-adapter-02/results/offline-result.json",
+      "sha256": "4ccecc49d66b668a21e8d492b386c8fc4fc0bccf34999956115e8b2cdc15571e",
+      "bytes": 24292,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-01\\mindot_ai",
+      "runId": "q11-adapter-02",
+      "status": "ADAPTER_PASSED",
+      "counts": {
+        "discovered": 10,
+        "executed": 10,
+        "passed": 10,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 0,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 45,
+        "passed": 45,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T20:03:30.391831+09:00",
+      "finishedAt": "2026-09-08T20:03:38.477227+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/q11-adapter-final-03/results/offline-result.json",
+      "sha256": "d439293f3c6726df7af9e7e55771f336c27862a0033c1c5880595a2104720c7b",
+      "bytes": 24656,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-03\\mindot_ai",
+      "runId": "q11-adapter-final-03",
+      "status": "ADAPTER_PASSED",
+      "counts": {
+        "discovered": 10,
+        "executed": 10,
+        "passed": 10,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 0,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 46,
+        "passed": 46,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T20:23:04.670562+09:00",
+      "finishedAt": "2026-09-08T20:23:11.442159+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/q11-adapter-verified-03/results/offline-result.json",
+      "sha256": "9b783c1c6da3d1c03e7afc0473b863e321eb673b8cd9ee6f952b9fe764c4e6c5",
+      "bytes": 28125,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-03\\mindot_ai",
+      "runId": "q11-adapter-verified-03",
+      "status": "ADAPTER_PASSED",
+      "counts": {
+        "discovered": 10,
+        "executed": 10,
+        "passed": 10,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 0,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 46,
+        "passed": 46,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T20:40:15.747752+09:00",
+      "finishedAt": "2026-09-08T20:40:22.402376+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/q11-adapter-verified-04/results/offline-result.json",
+      "sha256": "180d997043c99d8aeb0e5dd5966d8e2222f223a53d9b42f720526824fc8c7bee",
+      "bytes": 28124,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-04\\mindot_ai",
+      "runId": "q11-adapter-verified-04",
+      "status": "ADAPTER_PASSED",
+      "counts": {
+        "discovered": 10,
+        "executed": 10,
+        "passed": 10,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 0,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 46,
+        "passed": 46,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T21:17:29.418892+09:00",
+      "finishedAt": "2026-09-08T21:17:36.657437+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/q11-adapter-verified-05/results/offline-result.json",
+      "sha256": "bfccea81c398b8a0feeeed8a3e0e40c5e91aca393d595a2eddd2c6a501e6b694",
+      "bytes": 28449,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-05\\mindot_ai",
+      "runId": "q11-adapter-verified-05",
+      "status": "ADAPTER_PASSED",
+      "counts": {
+        "discovered": 10,
+        "executed": 10,
+        "passed": 10,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 0,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 47,
+        "passed": 47,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T21:34:20.213575+09:00",
+      "finishedAt": "2026-09-08T21:34:27.388931+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/q11-adapter-verified-06/results/offline-result.json",
+      "sha256": "913d7d4608defd2835267ee4aff9fc3ed541013447735a3a043bce35960bbb81",
+      "bytes": 28449,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-06\\mindot_ai",
+      "runId": "q11-adapter-verified-06",
+      "status": "ADAPTER_PASSED",
+      "counts": {
+        "discovered": 10,
+        "executed": 10,
+        "passed": 10,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 0,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 47,
+        "passed": 47,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T21:51:45.031369+09:00",
+      "finishedAt": "2026-09-08T21:51:52.320852+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/q11-adapter-verified-07/results/offline-result.json",
+      "sha256": "a9fc8393ec6f4e2576b885f9de0de01d6800d5055f5042eedd38943bbe459637",
+      "bytes": 28447,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-07\\mindot_ai",
+      "runId": "q11-adapter-verified-07",
+      "status": "ADAPTER_PASSED",
+      "counts": {
+        "discovered": 10,
+        "executed": 10,
+        "passed": 10,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 0,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 47,
+        "passed": 47,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T22:12:24.122486+09:00",
+      "finishedAt": "2026-09-08T22:12:31.41052+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/q11-adapter-verified-08/results/offline-result.json",
+      "sha256": "0c28401b65d1531533b3fd270d57bb2fe40d3ce63712054f9831db8500abfb04",
+      "bytes": 28450,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-08\\mindot_ai",
+      "runId": "q11-adapter-verified-08",
+      "status": "ADAPTER_PASSED",
+      "counts": {
+        "discovered": 10,
+        "executed": 10,
+        "passed": 10,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 0,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 47,
+        "passed": 47,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T22:23:41.667297+09:00",
+      "finishedAt": "2026-09-08T22:23:48.776467+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/q11-adapter-verified-09/results/offline-result.json",
+      "sha256": "734fe3671094922555f28ebd59c60b18903e86049064b6e6299411b7360cf597",
+      "bytes": 28718,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-09\\mindot_ai",
+      "runId": "q11-adapter-verified-09",
+      "status": "ADAPTER_PASSED",
+      "counts": {
+        "discovered": 10,
+        "executed": 10,
+        "passed": 10,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 0,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 47,
+        "passed": 47,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T23:07:23.097646+09:00",
+      "finishedAt": "2026-09-08T23:07:42.88379+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/q11-adapter-verified-09b/results/offline-result.json",
+      "sha256": "66d57694bc22a30bf6449ede836985d2fd7fe63ae18a72873fb872180cf4d7b5",
+      "bytes": 28748,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-09B\\mindot_ai",
+      "runId": "q11-adapter-verified-09b",
+      "status": "ADAPTER_PASSED",
+      "counts": {
+        "discovered": 10,
+        "executed": 10,
+        "passed": 10,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 0,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 47,
+        "passed": 47,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T23:11:29.819926+09:00",
+      "finishedAt": "2026-09-08T23:11:38.178641+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/q11-adapter-verified-10/results/offline-result.json",
+      "sha256": "d21d4f59c0158a466506ec353f07c2d999934384e0fef60ed806fa27e39351fd",
+      "bytes": 28718,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-10\\mindot_ai",
+      "runId": "q11-adapter-verified-10",
+      "status": "ADAPTER_PASSED",
+      "counts": {
+        "discovered": 10,
+        "executed": 10,
+        "passed": 10,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 0,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 47,
+        "passed": 47,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T23:47:29.563187+09:00",
+      "finishedAt": "2026-09-08T23:47:36.936024+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/q11-adapter-verified-10b/results/offline-result.json",
+      "sha256": "5284d8206cfd7bbc3d71aa6130be5f251222d26ad2f41205c3610110d89c0fc1",
+      "bytes": 28749,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-10B\\mindot_ai",
+      "runId": "q11-adapter-verified-10b",
+      "status": "ADAPTER_PASSED",
+      "counts": {
+        "discovered": 10,
+        "executed": 10,
+        "passed": 10,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 0,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 47,
+        "passed": 47,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T23:51:26.656096+09:00",
+      "finishedAt": "2026-09-08T23:51:33.485732+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/q11-adapter-verified-10c/results/offline-result.json",
+      "sha256": "d2718a4e28fc22f97901f26b47becd5404a3a0270dafcf88acd2bc5c79acf1ef",
+      "bytes": 28752,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-10C\\mindot_ai",
+      "runId": "q11-adapter-verified-10c",
+      "status": "ADAPTER_PASSED",
+      "counts": {
+        "discovered": 10,
+        "executed": 10,
+        "passed": 10,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 0,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 47,
+        "passed": 47,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T23:54:50.201498+09:00",
+      "finishedAt": "2026-09-08T23:54:57.235505+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/q11-adapter-verified-11/results/offline-result.json",
+      "sha256": "d03e9620bd6c376bf48ba7e9fcf30234b73bc34d8bd114ce2cb8736fde0c4f65",
+      "bytes": 28720,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-11\\mindot_ai",
+      "runId": "q11-adapter-verified-11",
+      "status": "ADAPTER_PASSED",
+      "counts": {
+        "discovered": 10,
+        "executed": 10,
+        "passed": 10,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 0,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 47,
+        "passed": 47,
+        "errors": 0
+      },
+      "startedAt": "2026-09-09T00:08:04.597879+09:00",
+      "finishedAt": "2026-09-09T00:08:11.691538+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/q11-adapter-verified-12/results/offline-result.json",
+      "sha256": "91ea918deb98ae2d34724d6da2c91e88101ccf62fc4480dabaaa5c389738cf82",
+      "bytes": 28720,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-12\\mindot_ai",
+      "runId": "q11-adapter-verified-12",
+      "status": "ADAPTER_PASSED",
+      "counts": {
+        "discovered": 10,
+        "executed": 10,
+        "passed": 10,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 0,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 47,
+        "passed": 47,
+        "errors": 0
+      },
+      "startedAt": "2026-09-09T00:19:08.785368+09:00",
+      "finishedAt": "2026-09-09T00:19:15.984379+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/q11-adapter-verified-13/results/offline-result.json",
+      "sha256": "f0dbba71829716e1ee0b632e98a83f39d694aa48e95d66a48d041d3fa87fba4e",
+      "bytes": 28716,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-13\\mindot_ai",
+      "runId": "q11-adapter-verified-13",
+      "status": "ADAPTER_PASSED",
+      "counts": {
+        "discovered": 10,
+        "executed": 10,
+        "passed": 10,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 0,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 47,
+        "passed": 47,
+        "errors": 0
+      },
+      "startedAt": "2026-09-09T00:35:57.595695+09:00",
+      "finishedAt": "2026-09-09T00:36:04.851391+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/repair-01/results/offline-result.json",
+      "sha256": "cf358e03627d3bdeb7275e10d82100462e0591924af53143a350c3691af730a2",
+      "bytes": 192568,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-01\\mindot_ai",
+      "runId": "repair-01",
+      "status": "OFFLINE_BLOCKED",
+      "counts": {
+        "discovered": 99,
+        "executed": 99,
+        "passed": 67,
+        "failed": 4,
+        "errors": 28,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 71,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 45,
+        "passed": 45,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T19:43:02.981208+09:00",
+      "finishedAt": "2026-09-08T19:44:19.267873+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": [
+        {
+          "testId": "test_cbt_bounded_gaps.BoundedGapFlows.test_gap_missing_null_exact_binding_local_migration_and_failed_review",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_gaps.BoundedGapFlows.test_gap_partial_residual_latest_invalid_fallback_and_current_edit",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_gaps.BoundedGapFlows.test_gap_presentation_mixed_answer_control_target_rejection_and_wait_help",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_gaps.BoundedGapFlows.test_skip_retraction_wait_then_content_none_or_skip_completion_and_stale_candidate",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_gaps.BoundedGapFlows.test_wait_cannot_bypass_actual_stop_or_active_safety_question",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_gaps.BoundedGapFlows.test_wait_cannot_bypass_presentation_or_withdrawn_assessment_target",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_gaps.BoundedGapFlows.test_wait_review_pending_is_local_review_required_and_failed_slot_does_not_commit",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_provenance.GeneratedSemanticFlow.test_f01_f02_generated_restore_and_actual_next_user_share_current_refs",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_provenance.GeneratedSemanticFlow.test_f02_f18_null_draft_rollback_then_explicit_attempt_schedules_dependency",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_safety.BoundedSafetyRelations.test_resolved_catalog_unit_fixture_full_source_closure_and_zero_paid_capacity_failure",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_bounded_safety.BoundedSafetyRelations.test_resolved_unused_unit_fixture_reopens_clarify_then_reviews_both_actual_answers",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_integrity_relations.RequestTargetFlow.test_null_target_committed_clarification_resolution_and_failed_writer",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_q11.Transitions.test_assessment_recheck_cannot_continue_to_four_calls",
+          "status": "FAIL"
+        },
+        {
+          "testId": "test_cbt_q11.Transitions.test_assessment_three_calls_final_review_pair_and_accept",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_q11.Transitions.test_candidate_reject_and_review_timeout_never_commit",
+          "status": "FAIL"
+        },
+        {
+          "testId": "test_cbt_q11.Transitions.test_candidate_safety_discards_staged_cbt_reviews",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_q11.Transitions.test_gap_only_commits_after_accept",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_q11.Transitions.test_safety_explanation_scope_then_mixed_answer",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_q11.Transitions.test_stop_presentation_resume_same_operation_and_direction_review",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_q11.Transitions.test_three_turn_goal_none_continue_new_and_revisit",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_contracts.WholeFlowProjectionWire.test_generated_answer_edit_uses_current_revision_and_archives_original",
+          "status": "FAIL"
+        },
+        {
+          "testId": "test_cbt_whole_flow_contracts.WholeFlowProjectionWire.test_unbound_archive_is_durable_without_becoming_mandatory_view",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_lifecycle.WholeFlowLifecycle.test_gap_answer_reject_explicit_attempt_and_replay_preserve_consumption",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_lifecycle.WholeFlowLifecycle.test_stale_emergency_overlay_not_clinical_head_then_guarded_recovery",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_lifecycle.WholeFlowLifecycle.test_terminal_user_rejection_new_thought_gap_and_old_answer_edit",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_provenance.CommittedProvenanceFlow.test_failed_correction_hint_next_attempt_select_and_preserved_first_acceptance",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_requests.WholeFlowAssessmentTarget.test_full_record_withdrawal_ask_wait_help_change_or_exact_reaffirm",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_requests.WholeFlowRequests.test_same_act_two_kinds_delivery_and_frozen_update_argument_repair",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_requests.WholeFlowRequests.test_stop_resume_preserves_pending_clarification_descendant",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_requests.WholeFlowRequests.test_two_targets_selected_subset_and_partial_descendant_resolution",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_whole_flow_requests.WholeFlowRequests.test_update_conflicts_bad_proof_and_writer_failure_keep_success_bundle",
+          "status": "FAIL"
+        },
+        {
+          "testId": "test_cbt_whole_flow_requests.WholeFlowRequests.test_wait_control_help_then_explicit_kind_cancel_and_new_source_request",
+          "status": "ERROR"
+        }
+      ]
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/repair-01-projection-diagnostic/results/offline-result.json",
+      "sha256": "32b6dce7db0367a7e045a20c51a928c8169b5c942878e08ae6e4d0553e78cb1d",
+      "bytes": 38404,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-01\\mindot_ai",
+      "runId": "repair-01-projection-diagnostic",
+      "status": "TARGETED_BLOCKED",
+      "counts": {
+        "discovered": 99,
+        "selected": 1,
+        "executed": 1,
+        "passed": 0,
+        "failed": 1,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 0,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 45,
+        "passed": 45,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T19:48:24.263575+09:00",
+      "finishedAt": "2026-09-08T19:48:32.598592+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": [
+        {
+          "testId": "test_cbt_whole_flow_contracts.WholeFlowProjectionWire.test_generated_answer_edit_uses_current_revision_and_archives_original",
+          "status": "FAIL"
+        }
+      ]
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/repair-01-safety-diagnostic/results/offline-result.json",
+      "sha256": "f3410b74d0951aa743ee68b9588811092656ce5620f85f9c5e7577166565cf22",
+      "bytes": 46288,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-01\\mindot_ai",
+      "runId": "repair-01-safety-diagnostic",
+      "status": "TARGETED_BLOCKED",
+      "counts": {
+        "discovered": 99,
+        "selected": 1,
+        "executed": 1,
+        "passed": 0,
+        "failed": 0,
+        "errors": 1,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 0,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 45,
+        "passed": 45,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T19:48:35.72085+09:00",
+      "finishedAt": "2026-09-08T19:48:42.593043+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": [
+        {
+          "testId": "test_cbt_q11.Transitions.test_safety_explanation_scope_then_mixed_answer",
+          "status": "ERROR"
+        }
+      ]
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/repair-02/results/offline-result.json",
+      "sha256": "1acb5dd88d5b872cfc49d0c18e198c56a31aeefd7534fa1129bc236a2a3c1f32",
+      "bytes": 97441,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-02\\mindot_ai",
+      "runId": "repair-02",
+      "status": "OFFLINE_BLOCKED",
+      "counts": {
+        "discovered": 103,
+        "executed": 103,
+        "passed": 99,
+        "failed": 2,
+        "errors": 2,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 74,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 46,
+        "passed": 46,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T20:09:13.133695+09:00",
+      "finishedAt": "2026-09-08T20:11:39.031574+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": [
+        {
+          "testId": "test_cbt_bounded_gaps.BoundedGapFlows.test_gap_partial_residual_latest_invalid_fallback_and_current_edit",
+          "status": "ERROR"
+        },
+        {
+          "testId": "test_cbt_q11.Transitions.test_assessment_three_calls_final_review_pair_and_accept",
+          "status": "FAIL"
+        },
+        {
+          "testId": "test_cbt_whole_flow_provenance.CommittedProvenanceFlow.test_failed_correction_hint_next_attempt_select_and_preserved_first_acceptance",
+          "status": "FAIL"
+        },
+        {
+          "testId": "test_cbt_whole_flow_requests.WholeFlowRequests.test_update_conflicts_bad_proof_and_writer_failure_keep_success_bundle",
+          "status": "ERROR"
+        }
+      ]
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/repair-02-wire-diagnostic/results/offline-result.json",
+      "sha256": "ba67d55d73816e31898d360137b0f72f4ef739c04ae69b871d3b50836d286594",
+      "bytes": 39265,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-02\\mindot_ai",
+      "runId": "repair-02-wire-diagnostic",
+      "status": "TARGETED_BLOCKED",
+      "counts": {
+        "discovered": 103,
+        "selected": 1,
+        "executed": 1,
+        "passed": 0,
+        "failed": 1,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 0,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 46,
+        "passed": 46,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T20:15:13.401522+09:00",
+      "finishedAt": "2026-09-08T20:15:22.301381+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": [
+        {
+          "testId": "test_cbt_q11.Transitions.test_assessment_three_calls_final_review_pair_and_accept",
+          "status": "FAIL"
+        }
+      ]
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/repair-03/results/offline-result.json",
+      "sha256": "b379204b614c9b0be0d51a097db44e3d697428a6d255398237232ff20e4f4c13",
+      "bytes": 87538,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-03\\mindot_ai",
+      "runId": "repair-03",
+      "status": "OFFLINE_PASSED",
+      "counts": {
+        "discovered": 107,
+        "executed": 107,
+        "passed": 107,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 79,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 46,
+        "passed": 46,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T20:18:22.118657+09:00",
+      "finishedAt": "2026-09-08T20:20:51.48365+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/repair-04/results/offline-result.json",
+      "sha256": "feb831b88ad2a7994ea8816c44078e46f4f803fb091f59e8b83f4db40db41059",
+      "bytes": 95345,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-04\\mindot_ai",
+      "runId": "repair-04",
+      "status": "OFFLINE_PASSED",
+      "counts": {
+        "discovered": 113,
+        "executed": 113,
+        "passed": 113,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 95,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 46,
+        "passed": 46,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T21:17:17.324001+09:00",
+      "finishedAt": "2026-09-08T21:19:20.779766+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/repair-05/results/offline-result.json",
+      "sha256": "8ccdb06d3bc0329183d2f6ef5dce110c4712f57a4a5a519e7ad4475f5764f437",
+      "bytes": 116798,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-05\\mindot_ai",
+      "runId": "repair-05",
+      "status": "OFFLINE_PASSED",
+      "counts": {
+        "discovered": 120,
+        "executed": 120,
+        "passed": 120,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 146,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 47,
+        "passed": 47,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T21:34:08.058174+09:00",
+      "finishedAt": "2026-09-08T21:36:13.649904+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/repair-06/results/offline-result.json",
+      "sha256": "7facee1631581093d40b6d05f18de0616b6f3bde647d3977e7e4675d1b6cd205",
+      "bytes": 116796,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-06\\mindot_ai",
+      "runId": "repair-06",
+      "status": "OFFLINE_PASSED",
+      "counts": {
+        "discovered": 120,
+        "executed": 120,
+        "passed": 120,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 146,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 47,
+        "passed": 47,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T21:51:32.857899+09:00",
+      "finishedAt": "2026-09-08T21:53:37.662519+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/repair-07/results/offline-result.json",
+      "sha256": "d0da00094906c58fa52ef0fbfdbacc3ff9c800bdbf3bf92468c1f536c395b895",
+      "bytes": 246737,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-07\\mindot_ai",
+      "runId": "repair-07",
+      "status": "OFFLINE_PASSED",
+      "counts": {
+        "discovered": 120,
+        "executed": 120,
+        "passed": 120,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 492,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 47,
+        "passed": 47,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T22:12:23.930507+09:00",
+      "finishedAt": "2026-09-08T22:14:28.293437+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/repair-08/results/offline-result.json",
+      "sha256": "7bb8a3bf1626caf18b5a3bb7a434114b949d310699a1fc4dd86ec8e5ab4e70f9",
+      "bytes": 246746,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-08\\mindot_ai",
+      "runId": "repair-08",
+      "status": "OFFLINE_PASSED",
+      "counts": {
+        "discovered": 120,
+        "executed": 120,
+        "passed": 120,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 492,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 47,
+        "passed": 47,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T22:23:41.519856+09:00",
+      "finishedAt": "2026-09-08T22:25:45.989008+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/repair-09/results/offline-result.json",
+      "sha256": "ef9a520fbfbcdfb585c9ec4f2ff2becae1ac13aa9fe537f084f56831d3d97807",
+      "bytes": 247782,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-09\\mindot_ai",
+      "runId": "repair-09",
+      "status": "OFFLINE_BLOCKED",
+      "counts": {
+        "discovered": 120,
+        "executed": 120,
+        "passed": 119,
+        "failed": 1,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 492,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 47,
+        "passed": 47,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T23:07:23.097646+09:00",
+      "finishedAt": "2026-09-08T23:09:46.253887+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": [
+        {
+          "testId": "test_cbt_whole_flow_writer.WriterFormatFacade.test_actual_writer_wire_uses_patterns_and_authorized_prompt_caps_for_all_modes",
+          "status": "FAIL"
+        }
+      ]
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/repair-09b/results/offline-result.json",
+      "sha256": "2d504e56bc3f92391f748b783d69baafdac44dae1a690e7c81e4451591cfcf39",
+      "bytes": 246791,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-09B\\mindot_ai",
+      "runId": "repair-09b",
+      "status": "OFFLINE_PASSED",
+      "counts": {
+        "discovered": 120,
+        "executed": 120,
+        "passed": 120,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 492,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 47,
+        "passed": 47,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T23:11:29.799925+09:00",
+      "finishedAt": "2026-09-08T23:13:36.688969+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/repair-10/results/offline-result.json",
+      "sha256": "49b65dba6f8dca0ed738b4b833b63e6a23e4477f67d36ac2adf3172cfc51771a",
+      "bytes": 253555,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-10\\mindot_ai",
+      "runId": "repair-10",
+      "status": "OFFLINE_BLOCKED",
+      "counts": {
+        "discovered": 121,
+        "executed": 121,
+        "passed": 120,
+        "failed": 0,
+        "errors": 1,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 496,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 47,
+        "passed": 47,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T23:47:29.342989+09:00",
+      "finishedAt": "2026-09-08T23:49:57.59628+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": [
+        {
+          "testId": "test_cbt_bounded_schema_compaction.ExactWireBinding.test_slot_source_annotations_reach_real_facade_and_cross_slot_stays_invalid",
+          "status": "ERROR"
+        }
+      ]
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/repair-10b/results/offline-result.json",
+      "sha256": "67dc2ac4fdf1c3020f0d060cd0a544282e2d939b6a1f1f299e42ea53038460b9",
+      "bytes": 249729,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-10B\\mindot_ai",
+      "runId": "repair-10b",
+      "status": "OFFLINE_BLOCKED",
+      "counts": {
+        "discovered": 121,
+        "executed": 121,
+        "passed": 120,
+        "failed": 1,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 496,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 47,
+        "passed": 47,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T23:51:14.601682+09:00",
+      "finishedAt": "2026-09-08T23:53:38.964364+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": [
+        {
+          "testId": "test_cbt_bounded_schema_compaction.ExactWireBinding.test_slot_source_annotations_reach_real_facade_and_cross_slot_stays_invalid",
+          "status": "FAIL"
+        }
+      ]
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/repair-10c/results/offline-result.json",
+      "sha256": "cab1ec99975f4a5940ab2b33064b55a6c8a02599f44f9cc7dc9bd706ea622dc0",
+      "bytes": 248516,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-10C\\mindot_ai",
+      "runId": "repair-10c",
+      "status": "OFFLINE_PASSED",
+      "counts": {
+        "discovered": 121,
+        "executed": 121,
+        "passed": 121,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 496,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 47,
+        "passed": 47,
+        "errors": 0
+      },
+      "startedAt": "2026-09-08T23:54:37.435505+09:00",
+      "finishedAt": "2026-09-08T23:57:04.263533+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/repair-11/results/offline-result.json",
+      "sha256": "f046ca3c747d1af41bb5685ab8a61c6b255c4735d86709ccb320ec47fa61cf4d",
+      "bytes": 253360,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-11\\mindot_ai",
+      "runId": "repair-11",
+      "status": "OFFLINE_PASSED",
+      "counts": {
+        "discovered": 121,
+        "executed": 121,
+        "passed": 121,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 509,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 47,
+        "passed": 47,
+        "errors": 0
+      },
+      "startedAt": "2026-09-09T00:07:52.349326+09:00",
+      "finishedAt": "2026-09-09T00:10:23.155719+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/repair-12/results/offline-result.json",
+      "sha256": "177ea96440f79903ec1e6735b8facff0ab4bef1f9c58ebdfbc7eed2d54685170",
+      "bytes": 253365,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-12\\mindot_ai",
+      "runId": "repair-12",
+      "status": "OFFLINE_PASSED",
+      "counts": {
+        "discovered": 121,
+        "executed": 121,
+        "passed": 121,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 509,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 47,
+        "passed": 47,
+        "errors": 0
+      },
+      "startedAt": "2026-09-09T00:18:56.537626+09:00",
+      "finishedAt": "2026-09-09T00:21:23.845884+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    },
+    {
+      "receipt": "offline/mindot_ai/runs/repair-13/results/offline-result.json",
+      "sha256": "384ba6e3a1325cc8524b4026e37fed731627a1a59b963377d2df29eeb24d07d1",
+      "bytes": 255991,
+      "sourceRoot": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\execution\\REPAIR-13\\mindot_ai",
+      "runId": "repair-13",
+      "status": "OFFLINE_PASSED",
+      "counts": {
+        "discovered": 121,
+        "executed": 121,
+        "passed": 121,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "expectedFailures": 0,
+        "unexpectedSuccesses": 0,
+        "subtests": 516,
+        "notRun": 0
+      },
+      "compile": {
+        "attempted": 47,
+        "passed": 47,
+        "errors": 0
+      },
+      "startedAt": "2026-09-09T00:35:57.597695+09:00",
+      "finishedAt": "2026-09-09T00:38:25.70246+09:00",
+      "sourceBytesUnchanged": true,
+      "sourceBytesUnchangedDuringRun": true,
+      "productNetworkOrSecretAttempts": 0,
+      "paidCalls": 0,
+      "nonPassingTests": []
+    }
+  ],
+  "paidAttempts": [
+    {
+      "attemptNumber": 1,
+      "label": "CANARY_ATTEMPT_01",
+      "sourceSnapshot": "REPAIR-03",
+      "result": "CANARY_BLOCKED",
+      "audit": {
+        "path": "reports/canary-attempt-01-finalization.json",
+        "sha256": "c5819eaee2b4fcb981b01476e5d450a395df1a302f3ebffd0f8761b6afcf60f4",
+        "bytes": 8953
+      },
+      "canonicalEngineFinish": false,
+      "canonicalResult": null,
+      "observedCounts": {
+        "attemptedCases": 1,
+        "generationInvocations": 1,
+        "agentInvocations": 1,
+        "writerInvocations": 0,
+        "moderationInvocations": 1,
+        "http200Responses": 2,
+        "remainingCanaryCasesNotRun": 8,
+        "formalCasesNotRun": 368
+      },
+      "observedUsage": {
+        "promptTokens": 12572,
+        "completionTokens": 146,
+        "totalTokens": 12718,
+        "cachedTokensIncludedInPromptTokens": 0,
+        "moderationOutsideGenerationTokenUsage": true
+      },
+      "caseResults": [],
+      "reason": "첫 사례가 public-history presentation 목표 결속에서 GOAL_BINDING_UNRECOVERABLE_presentation. Writer 미도달. 최초 runner의 canonical finish가 없어 사후 감사가 derived CANARY_BLOCKED로 분리 기록."
+    },
+    {
+      "attemptNumber": 2,
+      "label": "CANARY_ATTEMPT_02_RETRY01",
+      "sourceSnapshot": "REPAIR-04",
+      "result": "CANARY_BLOCKED",
+      "audit": {
+        "path": "reports/canary-attempt-02-finalization.json",
+        "sha256": "d3a2aa43887de1260f61c00631186f0ca1e5e2101bd097f29a84e5cd70589272",
+        "bytes": 12697
+      },
+      "canonicalEngineFinish": true,
+      "canonicalResult": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\live\\mindot_ai\\canary-retry01\\canary-result.json",
+        "sha256": "6972da09c08e08a6c49d01888f480211d2639ca0edb88be8f81e4ca91092e451",
+        "bytes": 2014
+      },
+      "observedCounts": {
+        "attemptedCases": 1,
+        "generationInvocations": 3,
+        "agentInvocations": 2,
+        "writerInvocations": 1,
+        "moderationInvocations": 1,
+        "http200Responses": 4,
+        "remainingCanaryCasesNotRun": 8,
+        "formalCasesNotRun": 368
+      },
+      "observedUsage": {
+        "promptTokens": 17167,
+        "completionTokens": 264,
+        "totalTokens": 17431,
+        "moderationOutsideGenerationTokenUsage": true,
+        "allGenerationUsageSettled": true
+      },
+      "caseResults": [],
+      "reason": "목표 결속은 통과, phantom alias는 허용된 ARGUMENT_REPAIR로 복구. Writer option들이 질문 형식이라 writer_nonrepairable_shape."
+    },
+    {
+      "attemptNumber": 3,
+      "label": "CANARY_ATTEMPT_03_RETRY02",
+      "sourceSnapshot": "REPAIR-05",
+      "result": "CANARY_BLOCKED",
+      "audit": {
+        "path": "reports/canary-attempt-03-finalization.json",
+        "sha256": "83671f2c2098909b74a09062d515723723bf69dc81c01e513bdaf5fbe7bffda8",
+        "bytes": 13400
+      },
+      "canonicalEngineFinish": true,
+      "canonicalResult": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\live\\mindot_ai\\canary-retry02\\canary-result.json",
+        "sha256": "b947884949214c4562262c969abf22a0f7e9c9ee56ebf6aeb2d25fa527f34cc4",
+        "bytes": 2034
+      },
+      "observedCounts": {
+        "attemptedCases": 1,
+        "generationInvocations": 3,
+        "agentInvocations": 2,
+        "writerInvocations": 1,
+        "moderationInvocations": 1,
+        "http200Responses": 4,
+        "remainingCanaryCasesNotRun": 8,
+        "formalCasesNotRun": 368
+      },
+      "observedUsage": {
+        "promptTokens": 17518,
+        "completionTokens": 288,
+        "totalTokens": 17806,
+        "moderationOutsideGenerationTokenUsage": true,
+        "allGenerationUsageSettled": true
+      },
+      "caseResults": [],
+      "reason": "형식 검사는 통과하여 실제 CONTINUE/commit까지 갔지만 가상 예시 답변/보기 선택 의미 불충족으로 개발 semantic FAIL."
+    },
+    {
+      "attemptNumber": 4,
+      "label": "CANARY_ATTEMPT_04_RETRY03",
+      "sourceSnapshot": "REPAIR-06",
+      "result": "CANARY_BLOCKED",
+      "audit": {
+        "path": "reports/canary-attempt-04-finalization.json",
+        "sha256": "62c291e28fffe324fbb2aa9824092fe6fcc5af110a61966882a0c4aa61524cf1",
+        "bytes": 14252
+      },
+      "canonicalEngineFinish": true,
+      "canonicalResult": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\live\\mindot_ai\\canary-retry03\\canary-result.json",
+        "sha256": "c70742916fedf02de2cdf1be1ee9d2df5c0e9277d5908a880599b7aab2002822",
+        "bytes": 2048
+      },
+      "observedCounts": {
+        "attemptedCases": 1,
+        "generationInvocations": 3,
+        "agentInvocations": 2,
+        "writerInvocations": 1,
+        "moderationInvocations": 1,
+        "http200Responses": 4,
+        "remainingCanaryCasesNotRun": 8,
+        "formalCasesNotRun": 368
+      },
+      "observedUsage": {
+        "promptTokens": 18521,
+        "completionTokens": 298,
+        "totalTokens": 18819,
+        "moderationOutsideGenerationTokenUsage": true,
+        "allGenerationUsageSettled": true,
+        "cachedTokensIncludedInPromptTokens": 14720
+      },
+      "caseResults": [],
+      "reason": "Arabic U+061F 질문형 보기와 원 탐색 질문 반복. 실제 CONTINUE/commit 뒤 semantic FAIL. 당시 validator의 형식 공백은 후속 REPAIR07에서 수정."
+    },
+    {
+      "attemptNumber": 5,
+      "label": "CANARY_ATTEMPT_05_RETRY04",
+      "sourceSnapshot": "REPAIR-08",
+      "result": "CANARY_BLOCKED",
+      "audit": {
+        "path": "reports/canary-attempt-05-finalization.json",
+        "sha256": "c8122eef44514f1513dfa50a3c75a92c0fed4311068358775368a18c83fe8c32",
+        "bytes": 20750
+      },
+      "canonicalEngineFinish": true,
+      "canonicalResult": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\live\\mindot_ai\\canary-retry04\\canary-result.json",
+        "sha256": "169d387bcd4177e33f3ff57de0ca63fb815278533056da93c5f6906b1c8ff66e",
+        "bytes": 1978
+      },
+      "observedCounts": {
+        "attemptedCases": 1,
+        "generationInvocations": 1,
+        "agentInvocations": 1,
+        "writerInvocations": 0,
+        "moderationInvocations": 1,
+        "providerRawResponsesReceived": 0,
+        "actualModelResponsesReceived": 0,
+        "confirmedHttpResponsesReceived": 0,
+        "providerExecution": "UNKNOWN",
+        "remainingCanaryCasesNotRun": 8,
+        "formalCasesNotRun": 368
+      },
+      "observedUsage": {
+        "status": "UNKNOWN",
+        "promptTokens": null,
+        "completionTokens": null,
+        "totalTokens": null,
+        "providerUsageReceived": false,
+        "reservedTokensRetained": 18806,
+        "reservationIsNotActualProviderUsage": true,
+        "billing": "UNKNOWN",
+        "localLedgerSettledFlagIsNotProviderUsageSettlement": true
+      },
+      "caseResults": [],
+      "reason": "Moderation와 SELECT 모두 APIConnectionError; raw/model response 없음. 실행·사용량 UNKNOWN이며 18,806 예약을 유지. 의미 평가 미실시."
+    },
+    {
+      "attemptNumber": 6,
+      "label": "CANARY_ATTEMPT_06_RETRY05",
+      "sourceSnapshot": "REPAIR-08",
+      "result": "CANARY_BLOCKED",
+      "audit": {
+        "path": "reports/canary-attempt-06-finalization.json",
+        "sha256": "f244e22b2cf6e0fcbff973c59b714dc85b3a0b3f3aa9b4e95381e43a4ce6aadb",
+        "bytes": 26652
+      },
+      "canonicalEngineFinish": true,
+      "canonicalResult": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\live\\mindot_ai\\canary-retry05\\canary-result.json",
+        "sha256": "aa710ef25caa0feb8131a22522ee6dcd515a52e75c3ae44872a4dbf64c7a9ae7",
+        "bytes": 2025
+      },
+      "observedCounts": {
+        "attemptedCases": 1,
+        "generationInvocations": 3,
+        "agentInvocations": 2,
+        "writerInvocations": 1,
+        "moderationInvocations": 1,
+        "providerRawResponsesReceived": 4,
+        "actualModelResponsesReceived": 3,
+        "http200Responses": 4,
+        "remainingCanaryCasesNotRun": 8,
+        "formalCasesNotRun": 368
+      },
+      "observedUsage": {
+        "status": "KNOWN_FROM_PROVIDER_RESPONSES",
+        "promptTokens": 18884,
+        "completionTokens": 331,
+        "totalTokens": 19215,
+        "allGenerationUsageSettled": true,
+        "moderationOutsideGenerationTokenUsage": true
+      },
+      "caseResults": [],
+      "reason": "같은 REPAIR08 소스·runtime으로 네트워크 실행환경만 복구. 실제 Writer가 사용자 사실처럼 서술하고 원 질문 반복하여 semantic FAIL."
+    },
+    {
+      "attemptNumber": 7,
+      "label": "CANARY_ATTEMPT_07_RETRY06",
+      "sourceSnapshot": "REPAIR-09B",
+      "result": "CANARY_BLOCKED",
+      "audit": {
+        "path": "reports/canary-attempt-07-finalization.json",
+        "sha256": "1d8e159d62b435d1cfad08e8ebac9ec0982df775683e7f0acfd595e54c7ae93b",
+        "bytes": 31797
+      },
+      "canonicalEngineFinish": true,
+      "canonicalResult": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\live\\mindot_ai\\canary-retry06\\canary-result.json",
+        "sha256": "3a7b82a6858c3d1177840b98216337e84edf407add743a7dbd8650245b9e4072",
+        "bytes": 2330
+      },
+      "observedCounts": {
+        "attemptedCases": 2,
+        "passedCases": 1,
+        "failedCases": 1,
+        "generationInvocations": 4,
+        "agentInvocations": 3,
+        "writerInvocations": 1,
+        "moderationInvocations": 2,
+        "actualModelResponsesReceived": 4,
+        "http200Responses": 6,
+        "remainingCanaryCasesNotRun": 7,
+        "formalCasesNotRun": 368
+      },
+      "observedUsage": {
+        "status": "KNOWN_FROM_PROVIDER_RESPONSES",
+        "promptTokens": 39640,
+        "completionTokens": 853,
+        "totalTokens": 40493,
+        "allGenerationUsageSettled": true,
+        "moderationOutsideGenerationTokenUsage": true
+      },
+      "caseResults": [
+        {
+          "caseId": "example-only",
+          "caseResult": {
+            "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\live\\mindot_ai\\canary-retry06\\example-only.json",
+            "sha256": "1af2545159ea462db8a3784f536667f260afeb3306432a1c480a4172517de8bf",
+            "bytes": 225027
+          },
+          "verdict": {
+            "status": "PASS",
+            "evidence": "Two explicit fictional answer examples plus one A/B/neither choice; no evidence or coverage promotion; no Assessor; bound help fulfilled. Limited example diversity remains a quality caveat."
+          },
+          "usage": {
+            "promptTokens": 18111,
+            "completionTokens": 272,
+            "totalTokens": 18383
+          },
+          "generationPhases": [
+            "SELECT",
+            "ARGUMENT_REPAIR",
+            "WRITER"
+          ],
+          "generationInvocations": 3,
+          "moderationInvocations": 1,
+          "publicResponseStatus": "CONTINUE",
+          "stateCommitted": true,
+          "error": null
+        },
+        {
+          "caseId": "complete-substantive-example",
+          "caseResult": {
+            "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\live\\mindot_ai\\canary-retry06\\complete-substantive-example.json",
+            "sha256": "5c777161ee49fbe88c86f6dab70e0cc2331c3050a6519669aa33bdfa0d0b0a6b",
+            "bytes": 227629
+          },
+          "verdict": {
+            "status": "FAIL",
+            "evidence": "SELECT copied an excerpt from another review slot and mislabeled substantive answers as help requests. Exact-span validation rejected the batch; no Writer or state commit."
+          },
+          "usage": {
+            "promptTokens": 21529,
+            "completionTokens": 581,
+            "totalTokens": 22110
+          },
+          "generationPhases": [
+            "SELECT"
+          ],
+          "generationInvocations": 1,
+          "moderationInvocations": 1,
+          "publicResponseStatus": null,
+          "stateCommitted": false,
+          "error": {
+            "type": "CompletionTechnicalError",
+            "reason": "answer_review_batch_rejected:invalid_occurrence"
+          }
+        }
+      ],
+      "reason": "example-only PASS. 두 번째에서 잘못된 source 구절/실질 내용의 help 오분류, CONTENT 모두 비어 invalid_occurrence; Writer/commit 없음."
+    },
+    {
+      "attemptNumber": 8,
+      "label": "CANARY_ATTEMPT_08_RETRY07",
+      "sourceSnapshot": "REPAIR-10C",
+      "result": "CANARY_BLOCKED",
+      "audit": {
+        "path": "reports/canary-attempt-08-finalization.json",
+        "sha256": "5e1222d5c46dd82377c398277df58ae87f9143f29c7dc951646f7ed4dbb91006",
+        "bytes": 30954
+      },
+      "canonicalEngineFinish": true,
+      "canonicalResult": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\live\\mindot_ai\\canary-retry07\\canary-result.json",
+        "sha256": "27f03c946aa437da344631957c5116748b5cc5530ef3688488a40a9a57449828",
+        "bytes": 2357
+      },
+      "observedCounts": {
+        "attemptedCases": 2,
+        "passedCases": 1,
+        "failedCases": 1,
+        "generationInvocations": 3,
+        "agentInvocations": 2,
+        "writerInvocations": 1,
+        "moderationInvocations": 2,
+        "actualModelResponsesReceived": 3,
+        "http200Responses": 5,
+        "remainingCanaryCasesNotRun": 7,
+        "formalCasesNotRun": 368
+      },
+      "observedUsage": {
+        "status": "KNOWN_FROM_PROVIDER_RESPONSES",
+        "promptTokens": 42735,
+        "completionTokens": 470,
+        "totalTokens": 43205,
+        "allGenerationUsageSettled": true,
+        "moderationOutsideGenerationTokenUsage": true
+      },
+      "caseResults": [
+        {
+          "caseId": "example-only",
+          "caseResult": {
+            "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\live\\mindot_ai\\canary-retry07\\example-only.json",
+            "sha256": "be44ef9f01b8b9bfc890fbd28464e63dac7f4778193ae01210de15b27bf434f1",
+            "bytes": 211636
+          },
+          "verdict": {
+            "status": "PASS",
+            "evidence": "Two explicitly fictional event examples and one A/B/neither choice. No evidence or coverage promotion; bound help fulfilled. Agent and Writer only, no repair. Extra intention wording is a quality caveat."
+          },
+          "usage": {
+            "promptTokens": 17361,
+            "completionTokens": 246,
+            "totalTokens": 17607
+          },
+          "generationPhases": [
+            "SELECT",
+            "WRITER"
+          ],
+          "generationInvocations": 2,
+          "moderationInvocations": 1,
+          "publicResponseStatus": "CONTINUE",
+          "stateCommitted": true,
+          "error": null
+        },
+        {
+          "caseId": "complete-substantive-example",
+          "caseResult": {
+            "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\live\\mindot_ai\\canary-retry07\\complete-substantive-example.json",
+            "sha256": "b3e137e7f18739ab6e2f400980dee716fac1b519edc9373f201319db88782a92",
+            "bytes": 229075
+          },
+          "verdict": {
+            "status": "FAIL",
+            "evidence": "SELECT put the latest help excerpt in slot_000 instead of its own slot_003 and dropped substantive contributions. Exact-span validation rejected the batch; no Writer or accepted state."
+          },
+          "usage": {
+            "promptTokens": 25374,
+            "completionTokens": 224,
+            "totalTokens": 25598
+          },
+          "generationPhases": [
+            "SELECT"
+          ],
+          "generationInvocations": 1,
+          "moderationInvocations": 1,
+          "publicResponseStatus": null,
+          "stateCommitted": false,
+          "error": {
+            "type": "CompletionTechnicalError",
+            "reason": "answer_review_batch_rejected:invalid_occurrence"
+          }
+        }
+      ],
+      "reason": "example-only PASS. 두 번째 latest 도움 절이 slot000/첫 target에 들어가고 CONTENT 모두 비어 invalid_occurrence."
+    },
+    {
+      "attemptNumber": 9,
+      "label": "CANARY_ATTEMPT_09_RETRY08",
+      "sourceSnapshot": "REPAIR-11",
+      "result": "CANARY_BLOCKED",
+      "audit": {
+        "path": "reports/canary-attempt-09-finalization.json",
+        "sha256": "156be727a6ccc7753a6f0fc8accbf0c17ed8111776f7fd282315ecb00ccd5948",
+        "bytes": 34088
+      },
+      "canonicalEngineFinish": true,
+      "canonicalResult": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\live\\mindot_ai\\canary-retry08\\canary-result.json",
+        "sha256": "59877b8eeb28bc6e8df703f1c613b0e4168b46e0abcbf14d161609d1a3aff0f3",
+        "bytes": 2343
+      },
+      "observedCounts": {
+        "attemptedCases": 2,
+        "passedCases": 1,
+        "failedCases": 1,
+        "generationInvocations": 3,
+        "agentInvocations": 2,
+        "writerInvocations": 1,
+        "moderationInvocations": 2,
+        "actualModelResponsesReceived": 3,
+        "http200Responses": 5,
+        "remainingCanaryCasesNotRun": 7,
+        "formalCasesNotRun": 368
+      },
+      "observedUsage": {
+        "status": "KNOWN_FROM_PROVIDER_RESPONSES",
+        "promptTokens": 43678,
+        "completionTokens": 645,
+        "totalTokens": 44323,
+        "allGenerationUsageSettled": true,
+        "moderationOutsideGenerationTokenUsage": true
+      },
+      "caseResults": [
+        {
+          "caseId": "example-only",
+          "caseResult": {
+            "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\live\\mindot_ai\\canary-retry08\\example-only.json",
+            "sha256": "ca6778ce0a0c77be7c64047ead6a2a098ab09061f0d8aa2da40dc3d9ee6014d8",
+            "bytes": 213809
+          },
+          "verdict": {
+            "status": "PASS",
+            "evidence": "Two explicitly fictional event-based answer examples plus one A/B/neither choice. Bound request fulfilled; no contributions, coverage promotion or Assessor. Example diversity remains limited."
+          },
+          "usage": {
+            "promptTokens": 17810,
+            "completionTokens": 242,
+            "totalTokens": 18052
+          },
+          "generationPhases": [
+            "SELECT",
+            "WRITER"
+          ],
+          "generationInvocations": 2,
+          "moderationInvocations": 1,
+          "publicResponseStatus": "CONTINUE",
+          "stateCommitted": true,
+          "error": null
+        },
+        {
+          "caseId": "complete-substantive-example",
+          "caseResult": {
+            "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\live\\mindot_ai\\canary-retry08\\complete-substantive-example.json",
+            "sha256": "2a1957978f46f555e871ab844dd838b9efc987b9e6a8406cf30b3dd840a36ead",
+            "bytes": 234905
+          },
+          "verdict": {
+            "status": "FAIL",
+            "evidence": "All four CONTENT spans and roles were correct, but SELECT still assigned the latest help signal to slot_000 and the first question. Exact-span rejection; no Writer or accepted state."
+          },
+          "usage": {
+            "promptTokens": 25868,
+            "completionTokens": 403,
+            "totalTokens": 26271
+          },
+          "generationPhases": [
+            "SELECT"
+          ],
+          "generationInvocations": 1,
+          "moderationInvocations": 1,
+          "publicResponseStatus": null,
+          "stateCommitted": false,
+          "error": {
+            "type": "CompletionTechnicalError",
+            "reason": "answer_review_batch_rejected:invalid_occurrence"
+          }
+        }
+      ],
+      "reason": "example-only PASS. 두 번째 네 CONTENT 제안은 맞았지만 help source/target이 첫 slot/질문으로 잘못 결속. 전체 batch reject."
+    },
+    {
+      "attemptNumber": 10,
+      "label": "CANARY_ATTEMPT_10_RETRY09",
+      "sourceSnapshot": "REPAIR-12",
+      "result": "CANARY_BLOCKED",
+      "audit": {
+        "path": "reports/canary-attempt-10-finalization.json",
+        "sha256": "fafa72cf76edaaa05f45de916038f4f1fe69dd1110e3cd7459e3cf8426a6ded2",
+        "bytes": 35958
+      },
+      "canonicalEngineFinish": true,
+      "canonicalResult": {
+        "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\live\\mindot_ai\\canary-retry09\\canary-result.json",
+        "sha256": "3f9d8713fca0e52a53662223263b736cce5d8de99200b1082d75207fc479d027",
+        "bytes": 2334
+      },
+      "observedCounts": {
+        "attemptedCases": 2,
+        "passedCases": 1,
+        "failedCases": 1,
+        "generationInvocations": 3,
+        "agentInvocations": 2,
+        "writerInvocations": 1,
+        "moderationInvocations": 2,
+        "actualModelResponsesReceived": 3,
+        "http200Responses": 5,
+        "remainingCanaryCasesNotRun": 7,
+        "formalCasesNotRun": 368
+      },
+      "observedUsage": {
+        "status": "KNOWN_FROM_PROVIDER_RESPONSES",
+        "promptTokens": 43884,
+        "completionTokens": 659,
+        "totalTokens": 44543,
+        "allGenerationUsageSettled": true,
+        "moderationOutsideGenerationTokenUsage": true
+      },
+      "caseResults": [
+        {
+          "caseId": "example-only",
+          "caseResult": {
+            "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\live\\mindot_ai\\canary-retry09\\example-only.json",
+            "sha256": "94446132b6d065887d08351a80a17804788b8cb97251290b0462bb30d35e67bd",
+            "bytes": 214428
+          },
+          "verdict": {
+            "status": "PASS",
+            "evidence": "Two explicit fictional examples and one closer/neither question; A+W only; zero atoms/all NOT_EXPLORED; matching help fulfilled. Limited diversity retained as quality caveat."
+          },
+          "usage": {
+            "promptTokens": 17909,
+            "completionTokens": 248,
+            "totalTokens": 18157
+          },
+          "generationPhases": [
+            "SELECT",
+            "WRITER"
+          ],
+          "generationInvocations": 2,
+          "moderationInvocations": 1,
+          "publicResponseStatus": "CONTINUE",
+          "stateCommitted": true,
+          "error": null
+        },
+        {
+          "caseId": "complete-substantive-example",
+          "caseResult": {
+            "path": "C:\\Users\\human-09\\AppData\\Local\\Temp\\mindot_ai\\q11-validation-paid\\20260908T101100Z\\live\\mindot_ai\\canary-retry09\\complete-substantive-example.json",
+            "sha256": "e92d570bf292bd30125f0aca1ebec61ab19af2e4c0bacb39e062c982f40b76e7",
+            "bytes": 235440
+          },
+          "verdict": {
+            "status": "FAIL",
+            "evidence": "All four CONTENT spans are source-local but ACK help is emitted in slot_000 and targets FOR_1; requestIds also includes nonexistent signal_1. invalid_occurrence; no Writer or accepted state."
+          },
+          "usage": {
+            "promptTokens": 25975,
+            "completionTokens": 411,
+            "totalTokens": 26386
+          },
+          "generationPhases": [
+            "SELECT"
+          ],
+          "generationInvocations": 1,
+          "moderationInvocations": 1,
+          "publicResponseStatus": null,
+          "stateCommitted": false,
+          "error": {
+            "type": "CompletionTechnicalError",
+            "reason": "answer_review_batch_rejected:invalid_occurrence"
+          }
+        }
+      ],
+      "reason": "example-only PASS. 두 번째 네 CONTENT 제안은 맞았지만 help slot/target 오류와 nonexistent signal1 alias가 남음. 순서 변경으로 해결되지 않음."
+    },
+    {
+      "attemptNumber": 11,
+      "label": "CANARY_ATTEMPT_11_RETRY10_FINAL",
+      "sourceSnapshot": "REPAIR-13",
+      "result": "CANARY_BLOCKED",
+      "audit": {
+        "path": "reports/canary-attempt-11-finalization.json",
+        "sha256": "a6c2a73dad200327bea88bfe5205400bc62d335a6c8aeb89efe064ff48b3bae7",
+        "bytes": 38535
+      },
+      "auditStatus": "AVAILABLE_HASH_VERIFIED_AND_CANONICAL_COUNTS_MATCH",
+      "canonicalResult": {
+        "path": "live/mindot_ai/canary-retry10/canary-result.json",
+        "sha256": "c2793aec0914874de03a49307ceb2281be3caa9eaa76dd3eff251d78f0e2b550",
+        "bytes": 2373
+      },
+      "observedCounts": {
+        "attemptedCases": 2,
+        "passedCases": 1,
+        "failedCases": 1,
+        "generationInvocations": 4,
+        "moderationInvocations": 2,
+        "remainingCanaryCasesNotRun": 7,
+        "formalCasesNotRun": 368
+      },
+      "observedUsage": {
+        "status": "KNOWN_FROM_PROVIDER_RESPONSES",
+        "promptTokens": 46295,
+        "completionTokens": 507,
+        "totalTokens": 46802
+      },
+      "caseResults": [
+        {
+          "caseId": "example-only",
+          "path": "live/mindot_ai/canary-retry10/example-only.json",
+          "sha256": "c0f1510d87ab80fd468eb749160f183381ff636d07e0b2abfc944c0f65a75c58",
+          "bytes": 233301,
+          "canonicalVerdict": {
+            "status": "PASS",
+            "evidence": "Explicit fictional A/B and one closer/neither; zero atoms and all NOT_EXPLORED; correct help fulfilled. SELECT phantom alias used permitted ARGUMENT_REPAIR, then Writer; 3 calls. Limited diversity caveat."
+          },
+          "publicResponseStatus": "CONTINUE",
+          "acceptedStatePresent": true,
+          "error": null,
+          "actualModelResponses": 3,
+          "responses": [
+            {
+              "component": "agent",
+              "phase": "SELECT",
+              "usage": {
+                "completion_tokens": 146,
+                "prompt_tokens": 14769,
+                "total_tokens": 14915,
+                "completion_tokens_details": {
+                  "accepted_prediction_tokens": 0,
+                  "audio_tokens": 0,
+                  "reasoning_tokens": 0,
+                  "rejected_prediction_tokens": 0
+                },
+                "prompt_tokens_details": {
+                  "audio_tokens": 0,
+                  "cache_write_tokens": null,
+                  "cached_tokens": 0
+                }
+              }
+            },
+            {
+              "component": "agent",
+              "phase": "ARGUMENT_REPAIR",
+              "usage": {
+                "completion_tokens": 25,
+                "prompt_tokens": 2075,
+                "total_tokens": 2100,
+                "completion_tokens_details": {
+                  "accepted_prediction_tokens": 0,
+                  "audio_tokens": 0,
+                  "reasoning_tokens": 0,
+                  "rejected_prediction_tokens": 0
+                },
+                "prompt_tokens_details": {
+                  "audio_tokens": 0,
+                  "cache_write_tokens": null,
+                  "cached_tokens": 0
+                }
+              }
+            },
+            {
+              "component": "writer",
+              "phase": "WRITER",
+              "usage": {
+                "completion_tokens": 104,
+                "prompt_tokens": 3302,
+                "total_tokens": 3406,
+                "completion_tokens_details": {
+                  "accepted_prediction_tokens": 0,
+                  "audio_tokens": 0,
+                  "reasoning_tokens": 0,
+                  "rejected_prediction_tokens": 0
+                },
+                "prompt_tokens_details": {
+                  "audio_tokens": 0,
+                  "cache_write_tokens": null,
+                  "cached_tokens": 0
+                }
+              }
+            }
+          ]
+        },
+        {
+          "caseId": "complete-substantive-example",
+          "path": "live/mindot_ai/canary-retry10/complete-substantive-example.json",
+          "sha256": "537ec05d1701b67395877f629d1fdc618d2a5559abfc6fab6e85545db4daaf9d",
+          "bytes": 233687,
+          "canonicalVerdict": {
+            "status": "FAIL",
+            "evidence": "ACK help still emitted in FOR_1 slot_000; all four CONTENT arrays empty. Presentation target/aliases point ACK but signal target FOR_1; no valid slot003 signals. invalid_occurrence; no Writer/commit."
+          },
+          "publicResponseStatus": null,
+          "acceptedStatePresent": false,
+          "error": {
+            "type": "CompletionTechnicalError",
+            "reason": "answer_review_batch_rejected:invalid_occurrence"
+          },
+          "actualModelResponses": 1,
+          "responses": [
+            {
+              "component": "agent",
+              "phase": "SELECT",
+              "usage": {
+                "completion_tokens": 232,
+                "prompt_tokens": 26149,
+                "total_tokens": 26381,
+                "completion_tokens_details": {
+                  "accepted_prediction_tokens": 0,
+                  "audio_tokens": 0,
+                  "reasoning_tokens": 0,
+                  "rejected_prediction_tokens": 0
+                },
+                "prompt_tokens_details": {
+                  "audio_tokens": 0,
+                  "cache_write_tokens": null,
+                  "cached_tokens": 0
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "reason": "example-only PASS(허용된 ARGUMENT_REPAIR 후 Writer). 두 번째는 CONTENT 네 배열 모두 비고 ACK 도움 절은 slot000/FOR1, presentation target/alias는 ACK/slot003으로 불일치. invalid_occurrence, Writer/commit 없음. 최종 중단."
+    }
+  ],
+  "limitations": [
+    "Fake SDK/contract test success does not prove live semantic quality.",
+    "Historical failed receipts/claims/raw responses were not relabeled or overwritten.",
+    "First attempt lacks an engine canonical finish; its blocked status is an explicitly derived audit outcome.",
+    "Final attempt canonical/raw usage and the separate finalization audit were read and compared; these agree.",
+    "Source-local CONTENT suggestions in attempts 9/10 were rejected with the batch, not accepted evidence.",
+    "No Q10-vs-Q11 official comparison, blind grades, winner or completed 368-case result exists.",
+    "Past report text describes its creation checkpoint; the latest canonical live result governs final status."
+  ]
+}
