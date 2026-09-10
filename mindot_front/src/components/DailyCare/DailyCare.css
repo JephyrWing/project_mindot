@@ -99,7 +99,6 @@
 
 .daily-care-suggestion h2,
 .daily-care-pattern h2,
-.daily-care-tool h2,
 .daily-care-feedback h2 {
   margin: 0;
   font-size: 1.25rem;
@@ -134,7 +133,6 @@
 }
 
 .daily-care-section-heading button,
-.daily-care-tool button,
 .daily-care-record-button {
   min-height: 44px;
   border: 1px solid var(--mindot-primary-line);
@@ -147,7 +145,6 @@
 }
 
 .daily-care-section-heading button:hover,
-.daily-care-tool button:hover,
 .daily-care-record-button:hover {
   border-color: var(--mindot-primary);
   background: var(--mindot-primary-soft);
@@ -259,44 +256,7 @@
   background: var(--mindot-primary-strong);
 }
 
-/* 선택한 호흡 또는 명상 활동을 구분선 안에서 실행하는 영역 설정. */
-.daily-care-tool {
-  margin-top: 28px;
-  border-top: 1px solid var(--mindot-border);
-  border-bottom: 1px solid var(--mindot-border);
-  padding: 26px 0;
-}
-
-.daily-care-timer {
-  display: block;
-  margin-top: 18px;
-  color: var(--mindot-primary-strong);
-  font-size: 2rem;
-  font-weight: 700;
-}
-
-.daily-care-tool > p {
-  margin: 8px 0 0;
-  color: var(--mindot-text-secondary);
-}
-
-.daily-care-tool-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.daily-care-meditation-steps {
-  margin: 18px 0 0;
-  padding-left: 24px;
-  color: var(--mindot-text-secondary);
-}
-
-.daily-care-meditation-steps li + li {
-  margin-top: 8px;
-}
-
-.daily-care-tool .daily-care-tool-wide-button,
+/* 첫 감정 기록 이동 버튼의 전체 너비 설정. */
 .daily-care-record-button {
   width: 100%;
   margin-top: 20px;
@@ -373,8 +333,7 @@
 
 /* 매우 좁은 화면에서 만족도와 실행 버튼의 세로 배치 설정. */
 @media (max-width: 420px) {
-  .daily-care-feedback-actions,
-  .daily-care-tool-actions {
+  .daily-care-feedback-actions {
     display: grid;
     grid-template-columns: 1fr;
   }

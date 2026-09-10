@@ -13,6 +13,8 @@ import CompletedReflection from './components/CompletedReflection/CompletedRefle
 import AppIntroModal from './components/AppIntroModal/AppIntroModal.jsx'
 import Center from './components/Center/Center.jsx'
 import DailyCare from './components/DailyCare/DailyCare.jsx'
+import Breathing from './components/Breathing/Breathing.jsx'
+import Meditation from './components/Meditation/Meditation.jsx'
 import Admin from './components/Admin/Admin.jsx'
 import LoginRequiredModal from './components/LoginRequiredModal/LoginRequiredModal.jsx'
 import NetworkStatus from './components/NetworkStatus/NetworkStatus.jsx'
@@ -32,6 +34,8 @@ const protectedPages = new Set([
   'weekly-report-graph',
   'completed-reflection',
   'daily-care',
+  'breathing',
+  'meditation',
   'admin',
 ])
 // 최초 URL의 보호 화면 접근 가능 여부 확인.
@@ -390,6 +394,40 @@ function App() {
         onEmotionRecord={() => moveToPage('emotion-record')}
         onCBT={handleCbtOpen}
         onReflectionResume={handleReflectionResume}
+        onBreathing={() => moveToProtectedPage('breathing')}
+        onMeditation={() => moveToProtectedPage('meditation')}
+      />
+    )
+  } else if (currentPage === 'breathing') {
+    // 마음 돌봄 추천에서 3분 호흡 선택 시 전용 기본 화면 렌더링.
+    currentPageContent = (
+      <Breathing
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={() => moveToPage('login')}
+        onLogout={handleLogout}
+        onSignUp={() => moveToPage('signup')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onCenter={() => moveToPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
+        onBack={() => moveToPage('daily-care')}
+        onHome={moveToMain}
+      />
+    )
+  } else if (currentPage === 'meditation') {
+    // 마음 돌봄 추천에서 짧은 명상 선택 시 전용 기본 화면 렌더링.
+    currentPageContent = (
+      <Meditation
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={() => moveToPage('login')}
+        onLogout={handleLogout}
+        onSignUp={() => moveToPage('signup')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onCenter={() => moveToPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
+        onBack={() => moveToPage('daily-care')}
+        onHome={moveToMain}
       />
     )
   } else if (currentPage === 'admin') {
