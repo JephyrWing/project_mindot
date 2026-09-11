@@ -43,6 +43,12 @@ def main():
         actual=(len(text),hashlib.sha256(text.encode('utf-8')).hexdigest())
         if actual!=(characters,expected_sha):raise ValueError('q13_prompt_mismatch:'+name)
         prompt_contract[name]=dict(characters=characters,sha256=expected_sha)
+    runtime_root=ROOT/'mindot_ai/cbt_session_agent'
+    docs_root=ROOT/'docs/cbt-redesign'
+    documentation_copies=['model-contracts.json',*[f'prompts/{name}' for name in expected_prompts]]
+    for relative in documentation_copies:
+        if (runtime_root/relative).read_bytes()!=(docs_root/relative).read_bytes():
+            raise ValueError('documentation_copy_mismatch:'+relative)
     tokenizer=tiktoken.get_encoding('o200k_base')
     rows=[]
     for name,count in [('initial',0),('20_messages',20),('80_messages',80)]:
@@ -67,6 +73,7 @@ def main():
         generationPathCalls=dict(questionOrHelp=1,completionSuccess=3,
             completionNotEstablished=2,additionalAfterCompletionDecision=0),
         serialization=rows,promptHashes=prompts,q13PromptContract=prompt_contract,
+        documentationCopies=dict(status='BYTE_IDENTICAL',files=documentation_copies),
         modelCalls=0,tests='NOT_RUN_PENDING_GPT_FULL_BRANCH_REVIEW',
         limitations=['Representative synthetic serialization only; no Agent/Assessor execution.',
             'SELECT includes configured SDK fields; actual framework wire and usage must be observed after review.',

@@ -64,17 +64,18 @@ async def execute(snapshot,provider,diagnostics):
         return dict(agentMessage=message,selection=call)
     async def invoke(g):
         call=g['selection'];name=call['name']
+        fallback_question=call['args']['fallbackQuestion'] if name=='assess_completion' else None
         value=await tools[name](**call['args'])
         if name=='assess_completion':
             try:value,approvable=candidate_boundary(value,snapshot,diagnostics)
             except (ValueError,ProtocolError) as exc:
                 diagnostics.emit('candidate_rejected',reason=type(exc).__name__)
                 return dict(result=response('UNRESOLVED',INVALID_CANDIDATE,issue='INVALID_CANDIDATE'))
-            if not approvable:return dict(result=response('QUESTION',fallbackQuestion))
+            if not approvable:return dict(result=response('QUESTION',fallback_question))
         receipt=ToolMessage(content=canonical(value),name=name,tool_call_id=call['id'])
         diagnostics.emit('tool_result',name=name,callId=call['id'],result=value)
         if name=='assess_completion':
-            return dict(toolMessage=receipt,candidate=value,fallbackQuestion=call['args']['fallbackQuestion'])
+            return dict(toolMessage=receipt,candidate=value,fallbackQuestion=fallback_question)
         return dict(toolMessage=receipt,result=value)
     async def review(g):
         # Actual call and matching ToolMessage, not manufactured callable history.

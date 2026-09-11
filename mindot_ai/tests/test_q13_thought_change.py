@@ -154,13 +154,15 @@ class Q13Transitions(unittest.IsolatedAsyncioTestCase):
     async def test_not_established_and_review_rejection_reuse_same_fallback_without_extra_call(self):
         snap=snapshot(('USER','다른 이유도 있을 수는 있어요.'))
         result,provider=await self.run_case(snap,not_established('현재 생각이 불분명'))
-        self.assertEqual((result['outcome'],result['text']),('QUESTION',FALLBACK))
+        self.assertEqual((result['outcome'],result['phase'],result['text'],result['currentProposal'],result['issue']),
+            ('QUESTION','DIALOGUE',FALLBACK,None,None))
         self.assertEqual(provider.calls,['SELECT','ASSESSOR'])
         user=snap['messages'][0]
         candidate=established('한 번의 실수와 능력 전체는 다르다.',
             [dict(messageNumber=1,quote=user['content'])])
         result,provider=await self.run_case(snap,candidate,accept=False)
-        self.assertEqual((result['outcome'],result['text']),('QUESTION',FALLBACK))
+        self.assertEqual((result['outcome'],result['phase'],result['text'],result['currentProposal'],result['issue']),
+            ('QUESTION','DIALOGUE',FALLBACK,None,None))
         self.assertEqual(provider.calls,['SELECT','ASSESSOR','ASSESSMENT_REVIEW'])
 
     async def test_malformed_contradictory_and_invalid_quote_are_not_normal_non_establishment(self):

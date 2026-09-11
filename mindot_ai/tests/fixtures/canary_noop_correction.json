@@ -2,6 +2,7 @@
   "sourceRun": "Mindot-AI-Evaluation-20260910T030612Z",
   "sourceNode": "live-3",
   "candidate": {
+    "changeStatus": "ESTABLISHED",
     "beforeCorrection": {
       "text": "한 번 실수했으니 나는 일을 전혀 못하는 사람이야.",
       "evidence": {
