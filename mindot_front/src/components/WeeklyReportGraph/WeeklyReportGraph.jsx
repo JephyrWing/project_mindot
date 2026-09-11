@@ -53,35 +53,74 @@ const graphWeekdays = [
   { day: '일', dayIndex: 0 },
 ]
 
-// 감정 기록 근거 목록을 요일별로 묶고 대표 감정 강도의 평균값 계산.
+// 백엔드 감정 코드를 그래프 상세 정보에 표시할 한국어 이름으로 변환하기 위한 목록 설정.
+const emotionCodeLabels = {
+  ANXIETY: '불안',
+  FEAR: '두려움',
+  ANGER: '분노',
+  FRUSTRATION: '답답함',
+  SADNESS: '슬픔',
+  DISAPPOINTMENT: '실망',
+  SHAME: '수치심',
+  GUILT: '죄책감',
+  LONELINESS: '외로움',
+  JOY: '기쁨',
+  RELIEF: '안도',
+  ACHIEVEMENT: '성취감',
+  CALM: '평온',
+  GRATITUDE: '감사',
+  EXCITEMENT: '설렘',
+  OTHER: '기타',
+}
+
+// 감정 기록 근거 목록을 요일별로 묶고 평균 강도와 대표 감정 계산.
 const createWeeklyGraphItems = (emotionRecordEvidences = []) => {
-  const intensitiesByDay = Array.from({ length: 7 }, () => [])
+  const recordsByDay = Array.from({ length: 7 }, () => [])
 
   emotionRecordEvidences.forEach((record) => {
     const occurredDate = new Date(record.occurredAt)
-    const intensity = Number(record.primaryIntensity)
 
-    if (Number.isNaN(occurredDate.getTime()) || !Number.isFinite(intensity)) return
+    if (Number.isNaN(occurredDate.getTime())) return
 
-    intensitiesByDay[occurredDate.getDay()].push(intensity)
+    recordsByDay[occurredDate.getDay()].push(record)
   })
 
   return graphWeekdays.map(({ day, dayIndex }) => {
-    const intensities = intensitiesByDay[dayIndex]
+    const records = recordsByDay[dayIndex]
+    const intensities = records
+      .map((record) => record.primaryIntensity)
+      .filter((intensity) => intensity !== null
+        && intensity !== undefined
+        && intensity !== '')
+      .map((intensity) => Number(intensity))
+      .filter((intensity) => Number.isFinite(intensity)
+        && intensity >= 0
+        && intensity <= 10)
+    const emotionCounts = records.reduce((counts, record) => {
+      const emotionCode = record.primaryEmotionCode
 
-    if (intensities.length === 0) {
-      return { day, value: null, recordCount: 0 }
-    }
+      if (emotionCode) counts[emotionCode] = (counts[emotionCode] ?? 0) + 1
+      return counts
+    }, {})
+    const representativeEmotionCode = Object.entries(emotionCounts)
+      .sort(([firstCode, firstCount], [secondCode, secondCount]) => (
+        secondCount - firstCount || firstCode.localeCompare(secondCode)
+      ))[0]?.[0] ?? null
 
-    const averageIntensity = intensities.reduce(
-      (totalIntensity, currentIntensity) => totalIntensity + currentIntensity,
-      0,
-    ) / intensities.length
+    const averageIntensity = intensities.length > 0
+      ? intensities.reduce(
+        (totalIntensity, currentIntensity) => totalIntensity + currentIntensity,
+        0,
+      ) / intensities.length
+      : null
 
     return {
       day,
-      value: Number(averageIntensity.toFixed(1)),
-      recordCount: intensities.length,
+      value: averageIntensity === null ? null : Number(averageIntensity.toFixed(1)),
+      recordCount: records.length,
+      representativeEmotion: representativeEmotionCode
+        ? emotionCodeLabels[representativeEmotionCode] ?? representativeEmotionCode
+        : '분석 전',
     }
   })
 }
@@ -108,6 +147,8 @@ function WeeklyReportGraph({
 }) {
   // 현재 주를 기준으로 사용자가 이동한 주간 위치 상태 관리.
   const [weekOffset, setWeekOffset] = useState(0)
+  // 사용자가 상세 정보를 확인할 요일 상태 관리.
+  const [selectedDay, setSelectedDay] = useState('')
   // 백엔드에서 조회하거나 생성한 선택 주의 리포트 상태 관리.
   const [report, setReport] = useState(null)
   // 선택 주의 리포트 API 호출 진행 여부 상태 관리.
@@ -133,6 +174,14 @@ function WeeklyReportGraph({
     () => createWeeklyGraphItems(report?.emotionRecordEvidences),
     [report],
   )
+  // 선택한 요일에 해당하는 평균 강도와 대표 감정 정보 탐색.
+  const selectedGraphItem = weeklyGraphItems.find((item) => item.day === selectedDay)
+
+  // 주간 이동 시 선택 요일을 초기화하고 이동 범위를 현재 주까지로 제한하는 처리.
+  const handleWeekMove = (offsetChange) => {
+    setSelectedDay('')
+    setWeekOffset((currentOffset) => Math.min(currentOffset + offsetChange, 0))
+  }
 
   // 선택 주 변경 시 저장된 리포트 조회와 미생성 리포트 생성 요청 처리.
   useEffect(() => {
@@ -256,13 +305,13 @@ function WeeklyReportGraph({
           >
             <button
               type="button"
-              onClick={() => setWeekOffset((currentOffset) => currentOffset - 1)}
+              onClick={() => handleWeekMove(-1)}
             >
               ← 이전 주
             </button>
             <button
               type="button"
-              onClick={() => setWeekOffset((currentOffset) => Math.min(currentOffset + 1, 0))}
+              onClick={() => handleWeekMove(1)}
               disabled={weekOffset === 0}
             >
               다음 주 →
@@ -334,11 +383,18 @@ function WeeklyReportGraph({
                 {/* 실제 감정 기록의 요일별 평균 강도를 일곱 개 막대로 표시. */}
                 <div className="weekly-report-graph-bars">
                   {weeklyGraphItems.map((item) => (
-                    <div
-                      className="weekly-report-graph-item"
+                    <button
+                      className={selectedDay === item.day
+                        ? 'weekly-report-graph-item is-selected'
+                        : 'weekly-report-graph-item'}
                       key={item.day}
-                      aria-label={item.recordCount > 0
+                      type="button"
+                      onClick={() => setSelectedDay(item.day)}
+                      aria-pressed={selectedDay === item.day}
+                      aria-label={item.recordCount > 0 && item.value !== null
                         ? `${item.day}요일 감정 강도 평균 ${item.value}점, 기록 ${item.recordCount}건`
+                        : item.recordCount > 0
+                          ? `${item.day}요일 기록 ${item.recordCount}건, 감정 강도 없음`
                         : `${item.day}요일 감정 기록 없음`}
                     >
                       <span className="weekly-report-graph-value">
@@ -348,9 +404,35 @@ function WeeklyReportGraph({
                         <span style={{ height: `${(item.value ?? 0) * 10}%` }} />
                       </div>
                       <strong>{item.day}</strong>
-                    </div>
+                    </button>
                   ))}
                 </div>
+
+                {/* 사용자가 선택한 요일의 기록 건수와 평균 강도 및 대표 감정 표시. */}
+                {selectedGraphItem && (
+                  <dl className="weekly-report-graph-details" aria-live="polite">
+                    <div>
+                      <dt>선택 요일</dt>
+                      <dd>{selectedGraphItem.day}요일</dd>
+                    </div>
+                    <div>
+                      <dt>기록 건수</dt>
+                      <dd>{selectedGraphItem.recordCount}건</dd>
+                    </div>
+                    <div>
+                      <dt>평균 강도</dt>
+                      <dd>{selectedGraphItem.value === null
+                        ? '기록 없음'
+                        : `${selectedGraphItem.value}/10`}</dd>
+                    </div>
+                    <div>
+                      <dt>대표 감정</dt>
+                      <dd>{selectedGraphItem.recordCount > 0
+                        ? selectedGraphItem.representativeEmotion
+                        : '기록 없음'}</dd>
+                    </div>
+                  </dl>
+                )}
 
                 <p className="weekly-report-graph-note" role="status">
                   감정 기록 {report.recordCount}건의 요일별 평균 강도입니다.
