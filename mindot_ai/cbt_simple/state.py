@@ -37,15 +37,19 @@ def candidate_boundary(candidate,snapshot,diagnostics):
     Only an exact no-op BEFORE correction is removed, before USER citation checks.
     """
     candidate=deepcopy(candidate)
+    status=candidate['changeStatus']
     correction=candidate['beforeCorrection']
+    after=candidate['afterText'];evidence=candidate['afterEvidence'];suggestions=candidate['suggestions']
+    if status=='NOT_ESTABLISHED':
+        require(correction is None and after is None and not evidence and not suggestions
+            and candidate['assessmentType']=='UNDETERMINED' and candidate['evidenceForText'] is None
+            and candidate['evidenceAgainstText'] is None,'not_established_shape')
+        return candidate,False
+    require(status=='ESTABLISHED','change_status')
     if correction is not None and correction['text']==snapshot['record']['automaticThought']:
         candidate['beforeCorrection']=None
         diagnostics.emit('candidate_normalized',normalizedFields=['beforeCorrection'])
-    after=candidate['afterText'];evidence=candidate['afterEvidence'];suggestions=candidate['suggestions']
-    require(after is None or bool(after.strip()),'blank_after')
-    if after is None:
-        require(not evidence and not suggestions and candidate['assessmentType']=='UNDETERMINED','null_after_shape')
-        return candidate,False
+    require(after is not None and bool(after.strip()),'established_after_shape')
     require(bool(evidence),'missing_user_evidence')
     codes=[s['code'] for s in suggestions]
     require(len(codes)==len(set(codes)),'duplicate_suggestion')

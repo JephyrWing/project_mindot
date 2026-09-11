@@ -11,7 +11,7 @@ MODEL='gpt-4o-mini'
 INPUT_TOKEN_LIMIT=48000
 REQUEST_BYTE_LIMIT=196608
 PHASES={'SELECT':8192,'ASSESSOR':1800,'ASSESSMENT_REVIEW':1200}
-PROMPTS={k:(Path(__file__).parent/'prompts'/v).read_text(encoding='utf-8').removesuffix('\n') for k,v in {
+PROMPTS={k:(Path(__file__).parent/'prompts'/v).read_text(encoding='utf-8').strip() for k,v in {
     'SELECT':'agent.txt','ASSESSOR':'assessor.txt','ASSESSMENT_REVIEW':'assessment-review.txt'}.items()}
 
 def messages(phase,payload,pair=()):
