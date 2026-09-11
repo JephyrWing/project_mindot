@@ -58,6 +58,74 @@
   color: var(--mindot-text-secondary);
 }
 
+/* 3분 호흡 타이머를 구분선과 충분한 여백으로 분리하는 영역 설정. */
+.breathing-timer {
+  margin-top: 32px;
+  border-top: 1px solid var(--mindot-border);
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 28px 0;
+  text-align: center;
+}
+
+/* 호흡 타이머 소제목의 단계와 여백 설정. */
+.breathing-timer h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+/* 남은 시간을 화면에서 가장 분명하게 보여 주는 크기 설정. */
+.breathing-time {
+  display: block;
+  margin-top: 18px;
+  color: var(--mindot-primary-strong);
+  font-size: 3rem;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+}
+
+/* 타이머 상태 안내 문구의 읽기 편한 높이와 색상 설정. */
+.breathing-timer .breathing-timer-message {
+  min-height: 24px;
+  margin-top: 12px;
+}
+
+/* 전체 호흡 시간의 진행 정도를 담는 단색 배경 설정. */
+.breathing-progress {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 4px;
+  margin-top: 24px;
+  background: var(--mindot-surface-muted);
+}
+
+/* 경과 시간 비율에 맞춰 채워지는 브랜드 색상 설정. */
+.breathing-progress span {
+  display: block;
+  height: 100%;
+  background: var(--mindot-primary);
+  transition: width 0.3s ease;
+}
+
+/* 호흡 타이머를 시작하고 일시정지하는 기본 버튼 설정. */
+.breathing-control-button {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  margin-top: 24px;
+  color: #ffffff;
+  font-weight: 700;
+  background: var(--mindot-primary);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 호흡 제어 버튼 위에 마우스를 올렸을 때 진한 브랜드 색상 강조. */
+.breathing-control-button:hover {
+  border-color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-strong);
+}
+
 /* 작은 모바일 화면의 본문 위쪽 간격 조정. */
 @media (max-width: 480px) {
   .breathing-main {
@@ -66,5 +134,14 @@
 
   .breathing-content {
     margin-top: 28px;
+  }
+
+  .breathing-timer {
+    margin-top: 28px;
+    padding: 24px 0;
+  }
+
+  .breathing-time {
+    font-size: 2.5rem;
   }
 }
