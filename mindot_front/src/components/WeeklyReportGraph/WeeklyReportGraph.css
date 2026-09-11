@@ -224,6 +224,46 @@
   text-align: center;
 }
 
+/* 조회 실패와 로그인 만료 및 빈 기록을 한 영역에서 안내하는 상태 설정. */
+.weekly-report-graph-state {
+  margin-top: 24px;
+  padding: 20px 0;
+  text-align: center;
+}
+
+/* 그래프 상태 제목의 크기와 여백 설정. */
+.weekly-report-graph-state h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* 그래프 상태 상세 안내 문구 설정. */
+.weekly-report-graph-state p {
+  margin: 8px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+}
+
+/* 서버 재조회와 로그인 화면 이동 버튼 설정. */
+.weekly-report-graph-state button {
+  min-height: 44px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  margin-top: 16px;
+  padding: 0 20px;
+  color: var(--mindot-primary-strong);
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 상태 처리 버튼 위의 옅은 파란색 강조 설정. */
+.weekly-report-graph-state button:hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
 /* 기존 주간 리포트 화면으로 돌아가는 버튼 설정. */
 .weekly-report-graph-back {
   width: 100%;
