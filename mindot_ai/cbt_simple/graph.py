@@ -1,14 +1,13 @@
-"""A single LangGraph Agent selects one real tool; only completion is reviewed."""
+"""A single LangGraph Agent selects and writes one real tool response."""
 from copy import deepcopy
 from typing import TypedDict
 from uuid import uuid4
-from datetime import datetime,timezone
 from langchain_core.messages import ToolMessage
 from langgraph.graph import StateGraph,START,END
 from langgraph.checkpoint.memory import InMemorySaver
 from .state import require,candidate_boundary,render
-from .provider import WriterFormatError
 from .contracts import ProtocolError
+from cbt_q11.contracts import CompletionTechnicalError
 from .schema import validate,assessor_schema
 
 CONTROL='질문은 여기서 멈출게요. 나중에 이어하려면 ‘나중에 이어하기’를, 이 성찰을 완전히 종료하려면 ‘성찰 완전히 중단’을 선택해 주세요.'
@@ -28,20 +27,21 @@ class GraphState(TypedDict,total=False):
 async def execute(snapshot,provider,diagnostics):
     payload=dict(snapshot=snapshot)
     def response(outcome,text,proposal=None,issue=None):
-        return dict(outcome=outcome,phase='PROPOSAL_REVIEW' if proposal else 'DIALOGUE',
+        return dict(outcome=outcome,phase='PROPOSAL_REVIEW' if proposal is not None else 'DIALOGUE',
             text=text,currentProposal=proposal,issue=issue)
-    async def write_turn(mode,goal):
-        require(bool(goal.strip()),'blank_goal')
-        if mode=='EXPLAIN_PROPOSAL':require(snapshot['phase']=='PROPOSAL_REVIEW' and snapshot.get('currentProposal'),'no_active_proposal')
-        plan=dict(**payload,mode=mode,goal=goal)
-        diagnostics.emit('writer_plan',mode=mode,goal=goal)
-        try:
-            result=await provider.structured('WRITER',plan)
-            if not result['text'].strip() or len(result['text'])>500:raise WriterFormatError('display_text_format')
-        except WriterFormatError as exc:
-            result=await provider.structured('WRITER_REPAIR',dict(**plan,formatError=str(exc)))
-            require(bool(result['text'].strip()) and len(result['text'])<=500,'display_text_format')
-        return response(mode,result['text'],deepcopy(snapshot.get('currentProposal')) if mode=='EXPLAIN_PROPOSAL' else None)
+    def display_text(text):
+        if not text.strip() or len(text)>500:
+            raise CompletionTechnicalError('display_text_format')
+        return text
+    async def ask_question(text):
+        # A new question is a real return to dialogue, including after a user
+        # corrects or withdraws the meaning behind an active proposal.
+        return response('QUESTION',display_text(text))
+    async def offer_help(text):
+        proposal=deepcopy(snapshot.get('currentProposal')) if snapshot['phase']=='PROPOSAL_REVIEW' else None
+        # EXPLAIN_PROPOSAL remains an external outcome for Spring compatibility;
+        # the Agent-facing HELP/EXPLAIN_PROPOSAL mode split no longer exists.
+        return response('EXPLAIN_PROPOSAL' if proposal is not None else 'HELP',display_text(text),proposal)
     async def assess_completion():
         # Reserve both mandatory remaining calls before invoking the Assessor.
         provider.budget.reserve_path([('ASSESSOR',provider.wire('ASSESSOR',payload)),
@@ -51,13 +51,14 @@ async def execute(snapshot,provider,diagnostics):
         # Preserve the prior technical error contract for malformed schema values.
         # The raw candidate is already recorded; do not validate again downstream.
         try:validate(candidate,assessor_schema())
-        except ValueError as exc:raise WriterFormatError(str(exc)) from exc
+        except ValueError as exc:raise CompletionTechnicalError('assessor_schema:'+str(exc)) from exc
         return candidate
     async def respond_control():return response('CONTROL',CONTROL)
     async def respond_safety(action,reason):
         require(bool(reason.strip()),'blank_safety_reason')
         return response('SAFETY_STOP' if action=='STOP' else 'SAFETY_CLARIFY',SAFETY if action=='STOP' else CLARIFY)
-    tools={'write_turn':write_turn,'assess_completion':assess_completion,'respond_control':respond_control,'respond_safety':respond_safety}
+    tools={'ask_question':ask_question,'offer_help':offer_help,'assess_completion':assess_completion,
+        'respond_control':respond_control,'respond_safety':respond_safety}
     async def select(g):
         message,call=await provider.choose(provider.messages('SELECT',payload))
         return dict(agentMessage=message,selection=call)

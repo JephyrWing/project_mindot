@@ -58,7 +58,7 @@ async def generate(runtime,snap,job,registry,injected):
     runtime.snapshot=deepcopy(snap) # Preserve input even if generation fails.
     d=injected.get('diagnostics') or Diagnostics();task=asyncio.current_task()
     budget=Budget(d,lambda:not runtime.closed and not task.cancelling() and not d.counters.get('audit_sink_failure'))
-    provider=Provider(budget,injected.get('agent_model'),injected.get('writer_model'),injected.get('assessor_model'))
+    provider=Provider(budget,injected.get('agent_model'),injected.get('assessor_model'))
     async def run():
         latest=[m['content'] for m in snap['messages'][-1:] if m['role']=='USER'] or [x for x in (snap['record']['situation'],snap['record']['automaticThought']) if x]
         if any(detector(t) for t in latest):return dict(outcome='SAFETY_STOP',phase='DIALOGUE',text=SAFETY,currentProposal=None,issue=None)

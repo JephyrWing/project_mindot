@@ -7,56 +7,71 @@ from unittest.mock import patch
 
 from cbt_simple import graph, service, wire, schema
 from cbt_simple.contracts import Start, Turn, ProtocolError
-from cbt_simple.provider import WriterFormatError
+from cbt_simple.provider import Budget, aggregate_guard
 from cbt_simple.state import Registry
+from cbt_q11.contracts import CompletionTechnicalError
 from cbt_q11.diagnostics import Diagnostics
 from test_insight_protocol import FakeProvider, RECORD, ANSWER, STAMP
 
 FIXTURE = json.loads((Path(__file__).parent/'fixtures'/'canary_noop_correction.json').read_text(encoding='utf-8'))
 
 
-class WriterInputs(unittest.TestCase):
-    def test_definitions_follow_role_and_mode_without_losing_context(self):
+class AgentInputs(unittest.TestCase):
+    def test_writer_resources_are_absent_and_remaining_wires_keep_context(self):
         snapshot = deepcopy(FIXTURE['snapshot'])
         snapshot['phase'] = 'PROPOSAL_REVIEW'
-        original = deepcopy(snapshot)
-        for suggestions in ([{'code': 'OVERGENERALIZATION'}], []):
-            snapshot['currentProposal'] = {'suggestions': suggestions, 'afterText': '실수 하나로 전체를 판단할 수 없다.'}
-            for phase in ('WRITER', 'WRITER_REPAIR'):
-                for mode in ('QUESTION', 'HELP', 'EXPLAIN_PROPOSAL'):
-                    with self.subTest(phase=phase, mode=mode, suggestions=suggestions):
-                        payload = dict(snapshot=deepcopy(snapshot), mode=mode, goal='한 번의 실수와 전체 능력을 연결한 근거')
-                        if phase=='WRITER_REPAIR':payload['formatError']='display_text_format'
-                        before = deepcopy(payload)
-                        request = wire.wire(phase, payload)
-                        context = json.loads(request['messages'][1]['content'])
-                        if mode=='EXPLAIN_PROPOSAL':
-                            self.assertEqual(context['distortionDefinitions'], [d for d in schema.DEFINITIONS if d['code'] in {s['code'] for s in suggestions}])
-                        else:self.assertNotIn('distortionDefinitions', context)
-                        for key in ('record', 'currentProposal'):
-                            self.assertEqual(context[key], snapshot[key])
-                        self.assertEqual(context['goal'], payload['goal'])
-                        self.assertEqual(context['mode'], mode)
-                        self.assertEqual(payload, before)
-                        for row, message in zip(snapshot['messages'], request['messages'][2:]):
-                            self.assertEqual(message['role'], row['role'].lower())
-                            self.assertEqual(json.loads(message['content']), dict(messageNumber=row['messageNumber'], speaker=row['role'], content=row['content']))
-                        self.assertEqual(len(request['messages'])-2, len(snapshot['messages']))
+        snapshot['currentProposal']={'suggestions':[{'code':'OVERGENERALIZATION'}],'afterText':'실수 하나로 전체를 판단할 수 없다.'}
+        original=deepcopy(snapshot)
         for phase in ('SELECT', 'ASSESSOR', 'ASSESSMENT_REVIEW'):
             context=json.loads(wire.messages(phase,dict(snapshot=snapshot))[1].content)
             self.assertEqual(context['distortionDefinitions'],schema.DEFINITIONS)
+            for key in ('record','currentProposal'):self.assertEqual(context[key],snapshot[key])
+        for phase in ('ASSESSOR','ASSESSMENT_REVIEW'):
+            request=wire.wire(phase,dict(snapshot=snapshot))
+            for row,message in zip(snapshot['messages'],request['messages'][2:]):
+                self.assertEqual(message['role'],row['role'].lower())
+                self.assertEqual(json.loads(message['content']),dict(messageNumber=row['messageNumber'],speaker=row['role'],content=row['content']))
+        self.assertEqual(set(wire.PHASES),{'SELECT','ASSESSOR','ASSESSMENT_REVIEW'})
+        self.assertEqual(set(wire.PROMPTS),set(wire.PHASES))
+        self.assertEqual([t['function']['name'] for t in schema.select_tools()],
+            ['ask_question','offer_help','assess_completion','respond_control','respond_safety'])
+        self.assertFalse({'writerOutput','writerRepairOutput'} & set(schema.CONTRACT))
+        self.assertEqual(wire.INPUT_TOKEN_LIMIT,48000)
+        prompt_dir=Path(wire.__file__).parent/'prompts'
+        self.assertFalse((prompt_dir/'writer.txt').exists())
+        self.assertFalse((prompt_dir/'writer-repair.txt').exists())
         self.assertEqual(snapshot['messages'],original['messages'])
+
+    def test_aggregate_reservation_names_only_the_completion_path(self):
+        class Aggregate:
+            reserved=None
+            def reserve_path(self,rows):self.reserved=deepcopy(rows)
+            def admit(self,*args):pass
+        aggregate=Aggregate();token=aggregate_guard.set(aggregate)
+        try:
+            budget=Budget(Diagnostics(),lambda:True)
+            budget.admit('SELECT',dict(model=wire.MODEL,messages=[],tools=schema.select_tools(),
+                max_completion_tokens=wire.PHASES['SELECT']))
+        finally:aggregate_guard.reset(token)
+        self.assertEqual([row['phase'] for row in aggregate.reserved],
+            ['SELECT','ASSESSOR','ASSESSMENT_REVIEW'])
 
 
 class Probe(FakeProvider):
     def __init__(self, candidate, *, accept=True, failure=None):
         super().__init__(None)
         self.calls=[];self.candidate=deepcopy(candidate);self.accept=accept
-        self.failure=failure;self.review_input=None;self.writer_plans=[]
+        self.failure=failure;self.select_failure=None;self.review_input=None;self.structured_payloads=[]
         self.selection=('assess_completion', {})
 
+    async def choose(self,messages):
+        if self.select_failure:
+            self.calls.append('SELECT')
+            raise self.select_failure
+        return await super().choose(messages)
+
     async def structured(self, phase, payload):
-        self.writer_plans.append((phase,deepcopy(payload)))
+        self.structured_payloads.append((phase,deepcopy(payload)))
         if self.failure:raise self.failure
         return await super().structured(phase,payload)
 
@@ -132,38 +147,51 @@ class ProposalProcessing(unittest.IsolatedAsyncioTestCase):
 
     async def test_malformed_schema_and_provider_errors_remain_technical(self):
         malformed=deepcopy(FIXTURE['candidate']);malformed['beforeCorrection']={'text':FIXTURE['snapshot']['record']['automaticThought']}
-        with self.assertRaises(WriterFormatError):await self.run_candidate(malformed)
-        for error in (WriterFormatError('json_structure'),TimeoutError('provider timeout')):
+        with self.assertRaises(CompletionTechnicalError):await self.run_candidate(malformed)
+        for error in (CompletionTechnicalError('ASSESSOR_PARSE_ERROR'),TimeoutError('provider timeout')):
             provider=Probe(FIXTURE['candidate'],failure=error)
             with self.assertRaises(type(error)):
                 await graph.execute(deepcopy(FIXTURE['snapshot']),provider,Diagnostics())
             self.assertIsNone(provider.review_input)
 
-    async def test_writer_repair_keeps_original_mode_and_payload(self):
-        provider=Probe(None);provider.selection=('write_turn',dict(mode='HELP',goal='실제 앞 질문의 뜻 설명'))
-        async def structured(phase,payload):
-            provider.calls.append(phase);provider.writer_plans.append((phase,deepcopy(payload)))
-            if phase=='WRITER':raise WriterFormatError('display_text_format')
-            return {'text':'앞 질문의 의미를 설명합니다.'}
-        provider.structured=structured
-        result=await graph.execute(deepcopy(FIXTURE['snapshot']),provider,Diagnostics())
-        first=provider.writer_plans[0][1];repair=provider.writer_plans[1][1]
-        self.assertEqual({k:v for k,v in repair.items() if k!='formatError'},first)
-        self.assertEqual(provider.calls,['SELECT','WRITER','WRITER_REPAIR'])
-        self.assertEqual(result['outcome'],'HELP')
+    async def test_agent_text_returns_directly_without_writer_or_repair(self):
+        provider=Probe(None);provider.selection=('ask_question',dict(text='실제 확인한 사실 가운데 그 판단을 지지하는 것은 무엇인가요?'))
+        diagnostics=Diagnostics()
+        result=await graph.execute(deepcopy(FIXTURE['snapshot']),provider,diagnostics)
+        self.assertEqual(provider.calls,['SELECT'])
+        self.assertEqual(result['outcome'],'QUESTION')
+        self.assertEqual(result['text'],provider.selection[1]['text'])
+        self.assertFalse(any(e['event']=='writer_plan' for e in diagnostics.events))
+
+    async def test_blank_and_oversized_agent_text_remain_technical_format_errors(self):
+        provider=Probe(None)
+        for text in ('   ','가'*501):
+            provider.calls.clear();provider.selection=('offer_help',dict(text=text))
+            with self.assertRaises(CompletionTechnicalError):
+                await graph.execute(deepcopy(FIXTURE['snapshot']),provider,Diagnostics())
+            self.assertEqual(provider.calls,['SELECT'])
+
+    async def test_offer_help_preserves_active_proposal_without_mode_enum(self):
+        snapshot=deepcopy(FIXTURE['snapshot']);proposal=deepcopy(FIXTURE['candidate'])|{'proposalId':'same'}
+        snapshot.update(phase='PROPOSAL_REVIEW',currentProposal=proposal)
+        provider=Probe(None);provider.selection=('offer_help',dict(text='처음에는 한 번의 실수를 전체 능력으로 넓혔고, 바뀐 생각은 둘을 구분한다는 뜻이에요.'))
+        result=await graph.execute(snapshot,provider,Diagnostics())
+        self.assertEqual(provider.calls,['SELECT'])
+        self.assertEqual((result['outcome'],result['phase']),('EXPLAIN_PROPOSAL','PROPOSAL_REVIEW'))
+        self.assertEqual(result['currentProposal'],proposal)
 
     async def test_failed_turn_preserves_input_and_retry_never_duplicates_delta(self):
         registry=Registry();provider=Probe(None)
-        provider.selection=('write_turn',dict(mode='QUESTION',goal='처음 생각의 근거'))
+        provider.selection=('ask_question',dict(text='그 판단을 뒷받침하는 구체적인 사실은 무엇인가요?'))
         with patch.object(service,'Provider',return_value=provider):
             await service.start(Start(mode='NEW',sessionId=77,revision=0,record=RECORD,pendingJob=dict(requestId='new',attemptNo=1,inputRevision=0)),registry=registry)
             delta=Turn(sessionId=77,requestId='turn',attemptNo=1,baseRevision=1,inputRevision=2,userMessage=dict(messageNumber=2,role='USER',content=ANSWER,createdAt=STAMP))
-            provider.failure=TimeoutError('provider timeout')
+            provider.select_failure=TimeoutError('provider timeout')
             with self.assertRaises(TimeoutError):await service.turn(delta,registry=registry)
             before=list(provider.calls)
             with self.assertRaises(ProtocolError):await service.turn(delta,registry=registry)
             self.assertEqual(provider.calls,before)
-            provider.failure=None
+            provider.select_failure=None
             await service.turn(delta.model_copy(update={'attemptNo':2}),registry=registry)
         self.assertEqual([m['role'] for m in registry.sessions[77].snapshot['messages']],['ASSISTANT','USER','ASSISTANT'])
         self.assertEqual(registry.sessions[77].snapshot['messages'][1]['content'],ANSWER)

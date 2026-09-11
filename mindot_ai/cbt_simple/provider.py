@@ -3,11 +3,8 @@ import asyncio
 import json
 import math
 from contextvars import ContextVar
-from pathlib import Path
 from time import perf_counter
 from types import SimpleNamespace
-from copy import deepcopy
-from langchain_core.messages import SystemMessage,HumanMessage,AIMessage
 from langchain_openai import ChatOpenAI
 from openai import AsyncOpenAI
 from cbt_q11.contracts import CompletionTechnicalError
@@ -42,17 +39,17 @@ class Budget:
         return size
     def admit(self,phase,wire):
         sequence=[r['phase'] for r in self.ledger]
-        allowed={'SELECT':[], 'WRITER':['SELECT'], 'ASSESSOR':['SELECT'],
-                 'ASSESSMENT_REVIEW':['SELECT','ASSESSOR'],'WRITER_REPAIR':['SELECT','WRITER']}
+        allowed={'SELECT':[], 'ASSESSOR':['SELECT'],
+                 'ASSESSMENT_REVIEW':['SELECT','ASSESSOR']}
         if sequence!=allowed[phase]: raise CompletionTechnicalError('generation_budget_or_phase_order')
         size=self.check(phase,wire)
         if phase=='SELECT' and self.aggregate:
-            # Reserve room for either two downstream phases before entering the
-            # first call. This uses this request's measured view plus bounded
-            # candidate/framing growth, not a flat 48k debit for every call.
+            # Reserve the longest remaining path: Assessor plus the same Agent's
+            # final review. Ordinary question/help turns have no follow-up call.
             downstream=math.ceil((size['inputEstimate']+6000)*1.75)+1800
             self.aggregate.reserve_path([dict(phase='SELECT',**size),
-                dict(phase='FOLLOWUP',reservation=downstream),dict(phase='FOLLOWUP',reservation=downstream)])
+                dict(phase='ASSESSOR',reservation=downstream),
+                dict(phase='ASSESSMENT_REVIEW',reservation=downstream)])
         if self.aggregate: self.aggregate.admit(phase,size,wire)
         row=dict(phase=phase,ordinal=len(self.ledger)+1,capacity=size,usage=None,started=perf_counter(),received=False)
         self.ledger.append(row)
@@ -101,9 +98,9 @@ class Capture:
             self.budget.failed(ticket,exc); raise
 
 class Provider:
-    def __init__(self,budget,agent=None,writer=None,assessor=None):
+    def __init__(self,budget,agent=None,assessor=None):
         self.budget=budget
-        self.client=AsyncOpenAI(max_retries=0,timeout=30) if any(x is None for x in (agent,writer,assessor)) else None
+        self.client=AsyncOpenAI(max_retries=0,timeout=30) if any(x is None for x in (agent,assessor)) else None
         default=self.client.chat.completions if self.client else None
         self.capture=Capture(agent or default,budget)
         self.agent=ChatOpenAI(model=MODEL,temperature=0.0,max_retries=0,timeout=30,
@@ -111,7 +108,7 @@ class Provider:
             client=SimpleNamespace(create=self.no_sync),async_client=self.capture,
             root_async_client=SimpleNamespace(chat=SimpleNamespace(completions=self.capture)),
             api_key='offline-fixture' if agent is not None else None,cache=False)
-        self.writer=writer or default; self.assessor=assessor or default
+        self.assessor=assessor or default
     def no_sync(self,**kwargs): raise CompletionTechnicalError('sync_provider_forbidden')
     async def close(self):
         if self.client: await self.client.close()
@@ -135,23 +132,19 @@ class Provider:
     def wire(self,phase,payload):
         return serialize_wire(phase,payload)
     async def structured(self,phase,payload):
+        if phase!='ASSESSOR':raise CompletionTechnicalError('unknown_structured_phase')
         wire=self.wire(phase,payload); ticket=self.budget.admit(phase,wire)
         try:
-            endpoint=self.assessor if phase=='ASSESSOR' else self.writer
-            result=await asyncio.wait_for(endpoint.create(**wire),30)
+            result=await asyncio.wait_for(self.assessor.create(**wire),30)
             raw=result.model_dump(mode='json') if hasattr(result,'model_dump') else result
         except BaseException as exc:
             self.budget.failed(ticket,exc); raise
         self.budget.received(ticket,raw)
         value=parse(raw)
         if value.status!='USABLE':
-            if value.status=='PARSE_ERROR': raise WriterFormatError('json_structure')
             raise CompletionTechnicalError(phase+'_'+value.status)
         # Assessor schema validation is performed once by graph.assess_completion,
         # after preserving the raw candidate and before normalization/citation checks.
-        if phase!='ASSESSOR':
-            try: validate_schema(value.output,wire['response_format']['json_schema']['schema'])
-            except ValueError as exc: raise WriterFormatError(str(exc)) from exc
         return value.output
     async def review(self,messages):
         self.capture.phase='ASSESSMENT_REVIEW'
@@ -162,6 +155,3 @@ class Provider:
         if parsed.status!='USABLE': raise CompletionTechnicalError('review_'+parsed.status)
         validate_schema(parsed.output,schema.review_schema())
         return msg,parsed.output
-
-class WriterFormatError(CompletionTechnicalError):
-    pass
