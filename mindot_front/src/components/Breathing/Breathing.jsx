@@ -4,6 +4,8 @@ import './Breathing.css'
 
 // 3분 호흡의 전체 진행 시간을 초 단위로 설정.
 const breathingDurationSeconds = 180
+// 들이쉬기와 멈추기 및 내쉬기로 구성한 한 번의 호흡 주기 설정.
+const breathingCycleSeconds = 14
 
 // 남은 초를 분과 초가 포함된 화면 표시 형식으로 변환.
 const formatRemainingTime = (remainingSeconds) => {
@@ -11,6 +13,29 @@ const formatRemainingTime = (remainingSeconds) => {
   const seconds = String(remainingSeconds % 60).padStart(2, '0')
 
   return `${minutes}:${seconds}`
+}
+
+// 3분 타이머의 경과 시간으로 현재 호흡 단계와 남은 초 계산.
+const getBreathingPhase = (elapsedSeconds, remainingSeconds, isRunning) => {
+  if (remainingSeconds === 0) {
+    return { name: '완료', remaining: null, className: 'is-complete' }
+  }
+
+  if (elapsedSeconds === 0 && !isRunning) {
+    return { name: '준비', remaining: null, className: 'is-ready' }
+  }
+
+  const cycleSecond = elapsedSeconds % breathingCycleSeconds
+
+  if (cycleSecond < 4) {
+    return { name: '들이쉬기', remaining: 4 - cycleSecond, className: 'is-inhale' }
+  }
+
+  if (cycleSecond < 8) {
+    return { name: '멈추기', remaining: 8 - cycleSecond, className: 'is-hold' }
+  }
+
+  return { name: '내쉬기', remaining: 14 - cycleSecond, className: 'is-exhale' }
 }
 
 // 3분 호흡 기능을 단계적으로 확장하기 위한 전용 화면 기본 구조 정의.
@@ -34,6 +59,21 @@ function Breathing({
   const progressPercent = (
     (breathingDurationSeconds - remainingSeconds) / breathingDurationSeconds
   ) * 100
+  // 호흡 단계 계산에 사용할 전체 경과 시간 계산.
+  const elapsedSeconds = breathingDurationSeconds - remainingSeconds
+  // 현재 경과 시간에 맞는 들이쉬기와 멈추기 및 내쉬기 단계 계산.
+  const breathingPhase = getBreathingPhase(
+    elapsedSeconds,
+    remainingSeconds,
+    isRunning,
+  )
+  // 호흡 안내 원의 실행과 일시정지 상태를 나타내는 클래스 이름 설정.
+  const breathingCircleClassName = [
+    'breathing-circle',
+    breathingPhase.className,
+    elapsedSeconds > 0 && remainingSeconds > 0 ? 'has-started' : '',
+    isRunning ? 'is-running' : 'is-paused',
+  ].filter(Boolean).join(' ')
   // 남은 시간과 실행 상태에 맞는 사용자 안내 문구 설정.
   const timerMessage = remainingSeconds === 0
     ? '3분 호흡을 마쳤습니다. 지금의 마음을 천천히 확인해 보세요.'
@@ -111,6 +151,18 @@ function Breathing({
           {/* 남은 시간과 진행 상태 및 타이머 제어 버튼 배치. */}
           <section className="breathing-timer" aria-labelledby="breathing-timer-title">
             <h2 id="breathing-timer-title">호흡 안내</h2>
+
+            {/* 현재 4초 들이쉬기와 4초 멈추기 및 6초 내쉬기 단계 표시. */}
+            <div className="breathing-cycle" aria-live="polite">
+              <div className={breathingCircleClassName}>
+                <strong>{breathingPhase.name}</strong>
+                {breathingPhase.remaining !== null && (
+                  <span>{breathingPhase.remaining}초</span>
+                )}
+              </div>
+              <p>4초 들이쉬기 · 4초 멈추기 · 6초 내쉬기</p>
+            </div>
+
             <strong className="breathing-time" aria-live="polite">
               {formatRemainingTime(remainingSeconds)}
             </strong>
