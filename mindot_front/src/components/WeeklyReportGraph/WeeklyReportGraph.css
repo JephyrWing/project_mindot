@@ -103,6 +103,50 @@
   cursor: not-allowed;
 }
 
+/* 최신 감정 기록을 반영하는 리포트 갱신 버튼 설정. */
+.weekly-report-graph-refresh {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  margin-top: 12px;
+  color: var(--mindot-primary-strong);
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 리포트 갱신 버튼 위의 옅은 파란색 강조 설정. */
+.weekly-report-graph-refresh:not(:disabled):hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+/* 리포트 조회 또는 갱신 중 버튼의 비활성화 상태 설정. */
+.weekly-report-graph-refresh:disabled {
+  border-color: var(--mindot-border);
+  color: var(--mindot-disabled);
+  background: var(--mindot-surface-muted);
+  cursor: not-allowed;
+}
+
+/* 최신 리포트 갱신 성공 안내 문구 설정. */
+.weekly-report-graph-refresh-message {
+  margin: 10px 0 0;
+  color: var(--mindot-success);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* 최신 리포트 갱신 실패 안내 문구 설정. */
+.weekly-report-graph-refresh-error {
+  margin: 10px 0 0;
+  color: var(--mindot-danger);
+  font-size: 13px;
+  text-align: center;
+}
+
 /* 요일별 감정 강도 그래프 영역의 구분선과 간격 설정. */
 .weekly-report-graph-chart {
   margin-top: 24px;

@@ -107,6 +107,12 @@ function WeeklyReportGraph({
   const [isLoading, setIsLoading] = useState(true)
   // 선택 주의 리포트 API 호출 실패 안내 상태 관리.
   const [loadError, setLoadError] = useState('')
+  // 최신 감정 기록을 반영하는 리포트 갱신 요청 상태 관리.
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  // 리포트 갱신 결과를 사용자에게 안내할 문구 상태 관리.
+  const [refreshMessage, setRefreshMessage] = useState('')
+  // 리포트 갱신 실패 안내 문구 상태 관리.
+  const [refreshError, setRefreshError] = useState('')
   // 선택한 주의 월요일부터 일요일까지 표시할 기간 계산.
   const selectedWeek = getWeekRange(weekOffset)
   // API 응답의 감정 기록 근거를 요일별 평균 강도 그래프 항목으로 변환.
@@ -122,6 +128,8 @@ function WeeklyReportGraph({
     const loadWeeklyReport = async () => {
       setIsLoading(true)
       setLoadError('')
+      setRefreshMessage('')
+      setRefreshError('')
       setReport(null)
 
       try {
@@ -161,6 +169,31 @@ function WeeklyReportGraph({
       isActive = false
     }
   }, [selectedWeek.weekStart])
+
+  // 선택한 주의 최신 감정 기록으로 주간 리포트를 다시 생성하는 처리.
+  const handleReportRefresh = async () => {
+    if (isLoading || isRefreshing) return
+
+    setIsRefreshing(true)
+    setRefreshMessage('')
+    setRefreshError('')
+
+    try {
+      const refreshedReport = await generateWeeklyReport(selectedWeek.weekStart)
+
+      setReport(refreshedReport)
+      setLoadError('')
+      setRefreshMessage('최신 감정 기록으로 그래프를 갱신했습니다.')
+    } catch (error) {
+      setRefreshError(
+        error.response?.status === 409
+          ? '선택한 주에 감정 기록이 없어 리포트를 갱신할 수 없습니다.'
+          : '리포트를 갱신하지 못했습니다. 잠시 후 다시 시도해 주세요.',
+      )
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
 
   // 공통 네비게이션과 그래프 표시 예정 영역으로 구성한 기본 화면 반환.
   return (
@@ -208,6 +241,26 @@ function WeeklyReportGraph({
               다음 주 →
             </button>
           </div>
+
+          {/* 선택한 주의 최신 감정 기록을 그래프에 다시 반영하는 버튼 배치. */}
+          <button
+            className="weekly-report-graph-refresh"
+            type="button"
+            onClick={handleReportRefresh}
+            disabled={isLoading || isRefreshing}
+          >
+            {isRefreshing ? '갱신 중' : '최신 기록으로 갱신'}
+          </button>
+          {refreshMessage && (
+            <p className="weekly-report-graph-refresh-message" role="status">
+              {refreshMessage}
+            </p>
+          )}
+          {refreshError && (
+            <p className="weekly-report-graph-refresh-error" role="alert">
+              {refreshError}
+            </p>
+          )}
 
           {/* 선택한 주의 리포트 API 호출 결과 상태 표시. */}
           <section
