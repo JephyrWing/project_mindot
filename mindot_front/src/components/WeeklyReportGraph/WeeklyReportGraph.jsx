@@ -86,6 +86,13 @@ const createWeeklyGraphItems = (emotionRecordEvidences = []) => {
   })
 }
 
+// 리포트 API 오류를 서버 연결 여부에 맞는 사용자 안내 문구로 변환.
+const getReportErrorMessage = (error) => (
+  error.response
+    ? '주간 리포트를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
+    : '서버에 연결할 수 없습니다. 서버 실행 상태를 확인한 뒤 다시 시도해 주세요.'
+)
+
 // 주간 감정 그래프 기능을 단계적으로 추가하기 위한 기본 화면 정의.
 function WeeklyReportGraph({
   isAuthenticated,
@@ -107,6 +114,12 @@ function WeeklyReportGraph({
   const [isLoading, setIsLoading] = useState(true)
   // 선택 주의 리포트 API 호출 실패 안내 상태 관리.
   const [loadError, setLoadError] = useState('')
+  // 기록이 없는 선택 주에 표시할 빈 화면 안내 상태 관리.
+  const [emptyMessage, setEmptyMessage] = useState('')
+  // 인증 갱신까지 실패한 로그인 만료 상태 관리.
+  const [isAuthExpired, setIsAuthExpired] = useState(false)
+  // 서버 오류 발생 후 같은 주를 다시 조회하기 위한 요청 횟수 상태 관리.
+  const [reloadCount, setReloadCount] = useState(0)
   // 최신 감정 기록을 반영하는 리포트 갱신 요청 상태 관리.
   const [isRefreshing, setIsRefreshing] = useState(false)
   // 리포트 갱신 결과를 사용자에게 안내할 문구 상태 관리.
@@ -128,6 +141,8 @@ function WeeklyReportGraph({
     const loadWeeklyReport = async () => {
       setIsLoading(true)
       setLoadError('')
+      setEmptyMessage('')
+      setIsAuthExpired(false)
       setRefreshMessage('')
       setRefreshError('')
       setReport(null)
@@ -139,9 +154,13 @@ function WeeklyReportGraph({
       } catch (getError) {
         if (!isActive) return
 
+        if (getError.response?.status === 401) {
+          setIsAuthExpired(true)
+          return
+        }
+
         if (getError.response?.status !== 404) {
-          setLoadError('주간 리포트를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.')
-          setIsLoading(false)
+          setLoadError(getReportErrorMessage(getError))
           return
         }
 
@@ -152,11 +171,13 @@ function WeeklyReportGraph({
         } catch (generateError) {
           if (!isActive) return
 
-          setLoadError(
-            generateError.response?.status === 409
-              ? '선택한 주에 감정 기록이 없어 리포트를 만들 수 없습니다.'
-              : '주간 리포트를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.',
-          )
+          if (generateError.response?.status === 401) {
+            setIsAuthExpired(true)
+          } else if (generateError.response?.status === 409) {
+            setEmptyMessage('선택한 주에 작성한 감정 기록이 없습니다.')
+          } else {
+            setLoadError(getReportErrorMessage(generateError))
+          }
         }
       } finally {
         if (isActive) setIsLoading(false)
@@ -168,7 +189,7 @@ function WeeklyReportGraph({
     return () => {
       isActive = false
     }
-  }, [selectedWeek.weekStart])
+  }, [reloadCount, selectedWeek.weekStart])
 
   // 선택한 주의 최신 감정 기록으로 주간 리포트를 다시 생성하는 처리.
   const handleReportRefresh = async () => {
@@ -177,19 +198,25 @@ function WeeklyReportGraph({
     setIsRefreshing(true)
     setRefreshMessage('')
     setRefreshError('')
+    setEmptyMessage('')
 
     try {
       const refreshedReport = await generateWeeklyReport(selectedWeek.weekStart)
 
       setReport(refreshedReport)
       setLoadError('')
+      setIsAuthExpired(false)
       setRefreshMessage('최신 감정 기록으로 그래프를 갱신했습니다.')
     } catch (error) {
-      setRefreshError(
-        error.response?.status === 409
-          ? '선택한 주에 감정 기록이 없어 리포트를 갱신할 수 없습니다.'
-          : '리포트를 갱신하지 못했습니다. 잠시 후 다시 시도해 주세요.',
-      )
+      if (error.response?.status === 401) {
+        setIsAuthExpired(true)
+        setRefreshError('로그인 정보가 만료되었습니다. 다시 로그인해 주세요.')
+      } else if (error.response?.status === 409) {
+        setReport(null)
+        setEmptyMessage('선택한 주에 작성한 감정 기록이 없습니다.')
+      } else {
+        setRefreshError(getReportErrorMessage(error))
+      }
     } finally {
       setIsRefreshing(false)
     }
@@ -247,7 +274,7 @@ function WeeklyReportGraph({
             className="weekly-report-graph-refresh"
             type="button"
             onClick={handleReportRefresh}
-            disabled={isLoading || isRefreshing}
+            disabled={isLoading || isRefreshing || isAuthExpired}
           >
             {isRefreshing ? '갱신 중' : '최신 기록으로 갱신'}
           </button>
@@ -277,12 +304,32 @@ function WeeklyReportGraph({
                 주간 리포트를 불러오고 있습니다.
               </p>
             )}
-            {loadError && (
-              <p className="weekly-report-graph-note" role="alert">
-                {loadError}
-              </p>
+            {isAuthExpired && (
+              <div className="weekly-report-graph-state" role="alert">
+                <h3>로그인이 필요합니다</h3>
+                <p>로그인 정보가 만료되었습니다. 다시 로그인해 주세요.</p>
+                <button type="button" onClick={onLogin}>로그인 화면으로 이동</button>
+              </div>
             )}
-            {report && !isLoading && !loadError && (
+            {loadError && !isAuthExpired && (
+              <div className="weekly-report-graph-state" role="alert">
+                <h3>리포트를 불러오지 못했습니다</h3>
+                <p>{loadError}</p>
+                <button
+                  type="button"
+                  onClick={() => setReloadCount((currentCount) => currentCount + 1)}
+                >
+                  다시 불러오기
+                </button>
+              </div>
+            )}
+            {emptyMessage && !isLoading && !loadError && !isAuthExpired && (
+              <div className="weekly-report-graph-state" role="status">
+                <h3>기록이 없습니다</h3>
+                <p>{emptyMessage}</p>
+              </div>
+            )}
+            {report && !isLoading && !loadError && !isAuthExpired && (
               <>
                 {/* 실제 감정 기록의 요일별 평균 강도를 일곱 개 막대로 표시. */}
                 <div className="weekly-report-graph-bars">
