@@ -16,7 +16,8 @@ def main():
     out = Path(sys.argv[1])
     paths = [ROOT/'mindot_ai/app.py',ROOT/'mindot_ai/cbt_session_agent.py',ROOT/'mindot_ai/pattern_explanation.py',
              *sorted((ROOT/'mindot_ai/cbt_simple').glob('*.py')),
-             *sorted((ROOT/'mindot_ai/tools').glob('insight_*.py')),ROOT/'mindot_ai/tests/test_insight_protocol.py']
+             *sorted((ROOT/'mindot_ai/tools').glob('insight_*.py')),
+             ROOT/'mindot_ai/tests/test_insight_protocol.py',ROOT/'mindot_ai/tests/test_question_proposal_fix.py']
     syntax = []
     for path in paths:
         ast.parse(path.read_text(encoding='utf-8-sig'), filename=str(path))
@@ -28,8 +29,16 @@ def main():
             for child in shape['properties'].values(): inspect(child)
         if 'items' in shape: inspect(shape['items'])
         for child in shape.get('anyOf',[]): inspect(child)
-    for shape in [*schema.select_schemas().values(),schema.writer_schema(),schema.writer_repair_schema(),schema.assessor_schema(),schema.review_schema()]:
+    for shape in [*schema.select_schemas().values(),schema.assessor_schema(),schema.review_schema()]:
         inspect(shape)
+    canonical_copies={}
+    for relative in ['model-contracts.json','prompts/agent.txt','prompts/assessor.txt','prompts/assessment-review.txt']:
+        runtime=ROOT/'mindot_ai/cbt_simple'/relative
+        documentation=ROOT/'docs/cbt-redesign'/relative
+        runtime_text=runtime.read_text(encoding='utf-8-sig')
+        documentation_text=documentation.read_text(encoding='utf-8-sig')
+        if runtime_text!=documentation_text:raise ValueError('documentation_copy_mismatch:'+relative)
+        canonical_copies[relative]=hashlib.sha256(runtime_text.encode('utf-8')).hexdigest()
     tokenizer=tiktoken.get_encoding('o200k_base')
     rows=[]
     for name,count in [('initial',0),('20_messages',20),('80_messages',80)]:
@@ -43,7 +52,7 @@ def main():
                     messages=[dict(role={'system':'system','human':'user','ai':'assistant'}[m.type],content=m.content) for m in wire.messages(phase,payload)],
                     tools=schema.select_tools(),tool_choice='required',parallel_tool_calls=False)
             else:
-                request=wire.wire(phase,dict(**payload,mode='QUESTION',goal='실제 대화에 맞는 질문'))
+                request=wire.wire(phase,payload)
             text=json.dumps(request,ensure_ascii=False,separators=(',',':'),allow_nan=False)
             tokens=len(tokenizer.encode(text,disallowed_special=()))+64
             rows.append(dict(sample=name,phase=phase,inputEstimate=tokens,requestBytes=len(text.encode('utf-8')),
@@ -51,8 +60,10 @@ def main():
     prompts={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in (ROOT/'mindot_ai/cbt_simple/prompts').glob('*.txt')}
     result=dict(kind='STATIC_ONLY',syntax=syntax,strictSchemaStructure='CHECKED_NOT_PROVIDER_ACCEPTANCE',
         inputTokenLimit=wire.INPUT_TOKEN_LIMIT,requestByteLimit=wire.REQUEST_BYTE_LIMIT,phases=wire.PHASES,
-        serialization=rows,promptHashes=prompts,modelCalls=0,tests='NOT_RUN_PENDING_GPT_FULL_BRANCH_REVIEW',
-        limitations=['Representative synthetic serialization only; no Agent/Writer/Assessor execution.',
+        generationPathCalls=dict(questionOrHelp=1,completion=3),
+        serialization=rows,promptHashes=prompts,canonicalDocumentationCopies=canonical_copies,
+        modelCalls=0,tests='NOT_RUN_PENDING_GPT_FULL_BRANCH_REVIEW',
+        limitations=['Representative synthetic serialization only; no Agent/Assessor execution.',
             'SELECT includes configured SDK fields; actual framework wire and usage must be observed after review.',
             'Final review actual call/tool result is measured again at the provider boundary.'])
     out.write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')

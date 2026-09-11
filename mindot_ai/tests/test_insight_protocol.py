@@ -7,7 +7,8 @@ from langchain_core.messages import AIMessage
 from cbt_simple.contracts import Start, Turn, ProtocolError
 from cbt_simple.state import Registry
 from cbt_simple import service
-from cbt_q11.safety import detector
+from cbt_simple.diagnostics import Diagnostics
+from cbt_simple.safety import detector
 
 STAMP = '2026-09-09T00:00:00Z'
 RECORD = dict(recordId=1, situation='숫자 한 곳을 수정했다.', automaticThought='나는 일을 전혀 못한다.')
@@ -207,6 +208,16 @@ class InsightProtocol(unittest.IsolatedAsyncioTestCase):
         result=await service.turn(danger,registry=self.registry)
         self.assertEqual((result.outcome,result.phase,result.currentProposal),('SAFETY_STOP','DIALOGUE',None))
         self.assertEqual(FakeProvider.calls,calls)
+
+    async def test_diagnostics_sink_failure_does_not_block_commit(self):
+        def broken_sink(_):raise RuntimeError('offline fixture sink failure')
+        diagnostics=Diagnostics(sink=broken_sink)
+        result=await service.start(Start(mode='NEW',sessionId=2,revision=0,record=RECORD,
+            pendingJob=dict(requestId='new',attemptNo=1,inputRevision=0)),registry=self.registry,
+            diagnostics=diagnostics)
+        self.assertEqual(result.outcome,'QUESTION')
+        self.assertEqual(self.registry.sessions[2].snapshot['revision'],1)
+        self.assertGreater(diagnostics.counters.get('audit_sink_failure',0),0)
 
     async def test_null_after_is_unresolved_not_approvable_or_technical_retry(self):
         await self.new()

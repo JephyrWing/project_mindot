@@ -19,7 +19,8 @@ def messages(phase,payload,pair=()):
     context=dict(record=snapshot['record'],phase=snapshot['phase'],currentProposal=snapshot.get('currentProposal'),
         historicalTypeReviews=snapshot.get('historicalTypeReviews',[]),moderation=snapshot.get('moderation'))
     context.update({k:v for k,v in payload.items() if k!='snapshot'})
-    context['distortionDefinitions']=schema.DEFINITIONS
+    if phase in ('ASSESSOR','ASSESSMENT_REVIEW'):
+        context['distortionDefinitions']=schema.DEFINITIONS
     result=[SystemMessage(content=PROMPTS[phase]),HumanMessage(content=canonical(context))]
     for row in snapshot['messages']:
         cls=HumanMessage if row['role']=='USER' else AIMessage

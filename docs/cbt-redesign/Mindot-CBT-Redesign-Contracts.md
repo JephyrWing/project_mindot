@@ -1,292 +1,58 @@
-# Mindot CBT 재설계 계약
+# Mindot CBT 현재 계약
 
-2026-09-09 · 사용자 뜻에 따른 AFTER 자동 작성·한 번의 최종 승인 · 전체 스택 대상 설계
+이 문서는 `mindot_ai/cbt_simple/model-contracts.json`과 활성 runtime을 설명한다. JSON 파일이 모델 도구·후보 schema의 canonical source이며, `docs/cbt-redesign/model-contracts.json`은 정적 동일성 검사용 사본이다.
 
-이 문서는 `Mindot-CBT-Dialogue-Logic-Redesign.md`를 구현 가능한 계약으로 구체화한 설계다. 이 계약은 이번 실행 패키지에 포함한 구현 명세이며 구현 완료 보고서가 아니다. 아래 API·필드는 목표 계약이며 현재 코드에 존재한다고 주장하지 않는다. 이번 사용자 권한은 mindot_ai·mindot_back·mindot_front 및 해당 CBT 기능의 DB·집계·검색 연결 수정까지 포함한다.
+## 활성 경로
 
-## 1. 결과의 의미
+`app.py → cbt_session_agent.py → cbt_simple/service.py → graph.py → provider.py/wire.py`
 
-BEFORE는 처음 자동적 생각이다. AFTER는 사용자가 자신의 처음 자동적 생각의 잘못된 판단을 알아차리고, 그 판단을 수정해 갖게 된 생각을 AI가 정리한 문장이다. AFTER는 원문 인용과 문자가 같을 필요가 없지만 원문 뜻을 넘으면 안 된다. 여러 답변을 종합하거나 조심스러운 뉘앙스를 문장으로 정리할 수 있다. 처음 기록과 이후 생각을 각각 독립 분류하는 기능이 아니라 두 생각과 대화 근거를 비교해 처음 생각의 인지왜곡을 제안한다.
+현재 `cbt_simple`은 과거 `cbt_q11`이나 `cbt_agent.py`를 import하지 않는다. 과거 구현 파일은 역사 자료로 남지만 runtime fallback이나 공용 유틸 공급자가 아니다.
 
-AFTER 생성 및 제안 진입에는 초기 판단의 잘못을 인식한 의미와 그에 따른 생각 수정의 의미가 모두 실제 대화에 있어야 한다. 한 답변 또는 여러 답변에서 연결해 파악하며 정해진 단어·고백·유형 자인은 요구하지 않는다. 사용자 생각의 언급, 추가 설명, 단순 동의, 탐색할 내용이 줄어든 사실만으로 이 조건을 충족하지 않는다. 이 조건은 기존 Agent·Assessor의 의미 판단이며 새 매 턴 상태표·확인 LLM을 추가하지 않는다.
+## Agent 도구
 
-AFTER와 인지왜곡 제안은 같은 후보로 작성·검토·저장한다. 사용자의 최종 승인 전에는 draft이며, 사용자가 수락한 결과만 확정 사례다. AFTER 직접 입력 → 생각 쌍 사전 승인 → 별도 분류라는 단계는 만들지 않는다.
-
-## 2. 실제 Agent와 도구
-
-LangGraph의 같은 대화 Agent가 다음 도구를 선택한다. 일반 턴마다 의미 추출표·GOAL·정정 연산·출처 목록을 작성하지 않는다.
-
-| 도구 | 최소 인자 | 실행 |
+| 도구 | 인자 | 의미 |
 |---|---|---|
-| `write_turn` | `mode: QUESTION, HELP 또는 EXPLAIN_PROPOSAL`, `goal: string` | Writer가 해당 목표의 실제 응답 작성 |
-| `assess_completion` | 인자 없는 객체 | 초기 판단의 잘못 인식·수정이 드러났을 때 AFTER·유형 후보 작성 후 같은 Agent 검토 |
-| `respond_control` | 인자 없는 객체 | 질문을 멈추고 기존 이어하기·완전 종료 버튼 안내. 모델이 영구 종료를 확정하지 않음 |
-| `respond_safety` | `action: CLARIFY 또는 STOP`, `reason: string` | 명확한 현재 위험의 기존 기본 대응 |
+| `ask_question` | `text` | 사용자가 지금 답할 수 있는 맥락상 CBT 질문 하나를 바로 표시한다. 활성 제안 뒤 실제 정정·철회·새 탐색이면 기존 제안을 제거하고 `DIALOGUE`로 돌아간다. |
+| `offer_help` | `text` | 직전 질문 또는 현재 제안을 쉬운 말이나 중립적인 가상 예시로 설명한다. 활성 제안이 있으면 동일 제안과 `PROPOSAL_REVIEW`를 보존한다. |
+| `assess_completion` | 없음 | 실제 USER 발화에 초기 판단의 잘못 인식과 그에 따른 생각 수정이 함께 드러났을 때만 완료 후보를 만든다. |
+| `respond_control` | 없음 | 질문 중단과 기존 나중에 이어하기·완전 종료 선택을 안내한다. |
+| `respond_safety` | `action`, `reason` | 명확한 현재 위험의 중단 또는 필요한 최소 안전 확인을 처리한다. |
 
-`assess_completion`에 Agent가 AFTER·BEFORE·출처·왜곡 판단을 먼저 복제해 쓰지 않는다. 실제 전체 문맥을 서버가 Assessor에 전달한다. Writer의 goal은 현재 질문 대상과 설명할 점을 알아볼 수 있는 자연어다. 목적 코드·questionPurpose·semanticRoute·requestId를 모델에게 중복 선언하게 하지 않는다.
+`ask_question.text`와 `offer_help.text`에는 provider function schema의 길이 제약을 중복하지 않는다. `graph.py`가 공백 표시 문장과 500자 초과만 형식 검사한다. 자연어 의미 regex, 금지 문구 validator, repair LLM, 자동 생성 재시도는 없다.
 
-이미 같은 변화에 대한 currentProposal을 보여 줬으면 단순 동의·부연 설명·다른 생각의 언급만으로 assess_completion을 다시 호출하지 않는다. 현재 유효한 대화의 정정이나 추가 탐색으로 기존 AFTER 또는 유형 판단을 바꿀 실질적 이유가 있을 때만 새 후보를 만든다. 과거에 변화가 있었다는 이력만으로 철회된 AFTER를 다시 제안하지 않는다.
+## 생성 경로와 문맥
 
-EXPLAIN_PROPOSAL은 현재 제안의 뜻을 설명하면서 그 제안을 그대로 유지하는 행동이다. PROPOSAL_REVIEW에서만 선택할 수 있다. 실제 생각·사실의 정정이 섞였으면 이 모드를 쓰지 않고 일반 HELP/QUESTION 또는 새 완료 제안을 선택한다. 일반 턴에 후보 유지 여부를 매번 작성하게 하지 않는다.
+- 일반 질문·도움: `SELECT` 1회. Agent가 의미와 표시 문장을 함께 작성한다.
+- 완료: `SELECT → ASSESSOR → 같은 Agent의 ASSESSMENT_REVIEW`, 최대 3회.
+- `distortionDefinitions`: `ASSESSOR`와 `ASSESSMENT_REVIEW`에만 전체 정의를 제공한다. `SELECT`에는 제공하지 않는다.
+- 입력 추정 상한 48,000 tokens, 요청 196,608 bytes, 출력 cap은 SELECT 8,192 / ASSESSOR 1,800 / ASSESSMENT_REVIEW 1,200이다.
+- SDK 자동 retry는 0이다. RESTORE와 성공 결과 재전달은 생성하지 않는다.
 
-Writer의 결과는 `{"text":"실제로 표시할 질문 또는 설명"}`이다. 문장부호나 예시 수로 통과 여부를 정하지 않는다. 충분한 설명에 불필요한 새 질문을 붙이지 않는다. 서버가 임의 CBT 질문을 골라 빈 goal을 대신 채우지 않는다.
+## BEFORE, AFTER와 proposal
 
-## 3. 모델 문맥과 최종 후보
+BEFORE는 최초 `record.automaticThought`다. 사용자가 최초 기록 자체를 명확히 정정한 경우에만 `beforeCorrection`이 이를 대체하며 실제 USER 인용을 요구한다.
 
-모델에는 기록 문맥 한 번과 역할·순서가 유지된 실제 대화를 제공한다. 서버가 짧은 messageNumber를 부여해 최종 인용에서만 참조할 수 있게 한다. 긴 식별자 enum과 전체 사용자 원문을 여러 도구 schema에 반복하지 않는다. 사용자의 경험과 AI가 만든 예시는 역할로 구별한다.
+AFTER는 사용자가 처음 판단의 잘못을 알아차리고 그 판단에 따라 생각을 실제로 수정한 의미가 대화에 드러난 뒤 Assessor가 정리한 문장이다. 단순 맞장구, 질문 이해, 새 생각 언급, 도움 요청, 변화 없음, 기록 오기 정정만으로는 AFTER가 아니다. `afterEvidence`는 실제 USER 메시지 번호와 원문 구절만 가리킨다.
 
-최종 후보의 JSON 모양은 다음과 같다. 예시는 형식 설명이며 제품 고정 응답이나 평가 정답이 아니다.
+Assessor 후보는 같은 Agent의 최종 검토를 통과해야 proposal이 된다. proposal은 사용자 승인 전 저장·확정 결과가 아니다. 자연어 동의도 승인으로 간주하지 않는다.
 
-```json
-{
-  "beforeCorrection": null,
-  "afterText": "이번 실수 하나로 내 업무 능력 전체를 판단할 수는 없고, 이번 실수를 고치면 된다.",
-  "afterEvidence": [
-    {"messageNumber": 8, "quote": "실수 하나로 제 능력 전체를 판단한 건 너무 성급했네요. 다른 일들은 해냈으니 이번 실수만 고치면 되겠어요."}
-  ],
-  "assessmentType": "DISTORTION_SUGGESTED",
-  "suggestions": [
-    {"code": "OVERGENERALIZATION", "explanation": "한 번의 실수를 업무 능력 전체로 넓혀 판단했던 점을 사용자가 알아차리고 수정했다."}
-  ],
-  "comparisonExplanation": "처음에는 한 번의 실수로 전체 능력을 판단했지만, 그 판단이 성급했음을 인식하고 이번 실수와 전체 능력을 구별하게 됐다.",
-  "evidenceForText": null,
-  "evidenceAgainstText": null
-}
-```
+활성 proposal 설명은 내부 `offer_help`를 사용하며 외부 소비자 호환을 위해 outcome을 `EXPLAIN_PROPOSAL`로 매핑한다. proposal ID·내용·`PROPOSAL_REVIEW`는 그대로 유지된다. 실제 정정·변화 철회·새 탐색은 `ask_question`으로 기존 proposal을 제거하거나, 새 completion 판단으로 교체한다.
 
-위 예시의 BEFORE는 “한 번 실수했으니 나는 일을 못하는 사람이야”다. 코드 OVERGENERALIZATION은 기준 소스의 기존 유형 레지스트리 값이다. 이 예시는 제품 고정 답안이 아니며 실제 대화별 근거와 정의로 결정한다.
+## 세션과 외부 계약
 
-| 필드 | 계약 |
-|---|---|
-| `beforeCorrection` | 기본 null. 처음 기록이 잘못됐다는 실제 사용자 정정이 있을 때만 `{text, evidence:{messageNumber,quote}}`. 현재 생각이 바뀌었다는 답변으로 작성하지 않음 |
-| `afterText` | 사용자가 초기 판단의 잘못을 알아차리고 수정한 생각. 단순 현재 생각·변화 없음으로 채우지 않음 |
-| `afterEvidence` | 처음 판단의 문제를 알아차리고 생각을 수정한 실제 사용자 구절. 한 구절 또는 필요한 여러 구절로 연결하며 새 의미 장부 없음 |
-| `assessmentType` | `DISTORTION_SUGGESTED`, `NO_CLEAR_DISTORTION`, `UNDETERMINED` |
-| `suggestions` | 기존 12개 코드 중 근거 있는 제안과 비교 설명. 양쪽 생각의 독립 라벨 배열 없음 |
-| `comparisonExplanation` | 어떤 초기 판단을 잘못됐다고 보게 됐고 어떻게 수정했는지와 유형 제안의 관계. 단순 문장 차이를 증거로 삼지 않음 |
-| `evidenceForText`, `evidenceAgainstText` | 기존 성찰 결과용 짧은 정리. 자료가 없으면 null. 완료를 위한 네 영역 채우기 조건이 아님 |
+Spring은 start/resume에서 전체 이력과 phase·proposal·pending job을 보내고, 메모리 유지 중 TURN에는 새 USER 메시지 하나를 보낸다. AI runtime은 질문과 답변을 messageNumber 순서로 누적한다.
 
-`NO_CLEAR_DISTORTION`은 충분히 살펴봤으나 뚜렷한 왜곡 근거가 없는 판단이다. `UNDETERMINED`는 현재 자료로 왜곡을 판단하기 어려운 상태다. 둘 다 suggestions는 빈 목록이다. 사용자 거부와 기술 실패는 별도 상태이며 이 세 판단에 섞지 않는다.
+- NEW: 빈 이력과 pending job으로 첫 생성.
+- RESTORE: provider를 만들지 않고 전체 snapshot을 그대로 복원.
+- TURN: `baseRevision → inputRevision` delta 하나를 검증해 append.
+- 동일 request ID와 같은 입력의 성공 결과는 재생성하지 않는다.
+- 같은 request ID의 다른 입력은 `REQUEST_CONFLICT`다.
+- 메모리·revision 불일치는 모델 호출 전 `RESYNC_REQUIRED`다.
 
-잘못된 판단의 인식과 그에 따른 수정 중 하나라도 대화에서 뒷받침되지 않으면 AFTER는 성립하지 않는다. 아직 생각이 같거나 모르겠다는 답을 AFTER로 의역하지 않는다. 모델은 문장을 발명해 성공 후보로 내지 않는다. Assessor는 이 경우 `afterText: null`, `afterEvidence: []`, `assessmentType: UNDETERMINED`, `suggestions: []`로 한계를 표현할 수 있다. 이 후보는 **사용자 승인용 완료 후보로 수락할 수 없으며**, 조기 완료 시도라는 모델 동작 문제로 기록한다. 기존 대화와 사용자 입력을 보존하고 미확정 안내를 반환한다. 서버가 추가 질문을 만들어 성공으로 대체하거나 이를 API 장애·사용자 위험으로 위장하지 않는다. 후속 사용자 입력은 일반 대화 경로로 처리한다. 정상적으로 생각 변화가 없는 사용자 답변 자체는 오류가 아니며, 이를 변화 완료로 잘못 보내는 Agent 동작을 조기 제안 문제로 기록한다. 유용한 탐색이 없거나 중단 의사가 있으면 respond_control로 질문을 멈추고 기존 이어하기·완전 종료 버튼을 안내한다. 사용자에게 잘못을 인정하게 하려고 질문을 반복하지 않는다.
+외부 route, DTO, Result outcome enum과 Spring 승인 payload는 변경하지 않는다. `QUESTION`, `HELP`, `EXPLAIN_PROPOSAL`, `PROPOSAL`, `CONTROL`, `SAFETY_CLARIFY`, `SAFETY_STOP`, `UNRESOLVED` 의미를 유지한다.
 
-### 최종 검토와 인용 검사
+## 실패와 관측
 
-같은 Agent가 후보와 실제 대화를 보고 `{"accept":true,"reason":"…"}` 또는 거절을 반환한다. 초기 판단의 잘못을 알아차린 인식과 실제 수정의 연결부터 확인하고 AFTER의 뜻 확대·정정 누락·초기 생각 혼동·사실 발명·유형 정의 불일치를 확인한다. 후보를 다시 쓰거나 보충 질문을 만드는 경로는 없다. 문체·질문 수·영역 수로 거절하지 않는다.
+입력 snapshot은 생성 전에 보존되고, 성공한 결과만 메시지·revision·phase를 commit한다. 실패한 동일 attempt는 기술 실패로 재전달되며 새 attempt에서 같은 delta를 중복 append하지 않는다.
 
-서버의 인용 검사는 최종 경계 한 곳에서 수행한다. messageNumber가 실제 USER 발화이고 quote가 그 발화에 존재하는지 확인한다. AFTER 자체는 인용 문자열과 일치할 필요가 없다. 짧은 원문 인용의 존재가 추론의 정확성까지 증명하지 않으며 의미는 Assessor와 Agent가 판단한다. 비유·가정·부정·나중 정정을 인용 검사로 판단하는 문자열 엔진을 추가하지 않는다.
-
-수락한 후보에는 서버가 proposalId, basedOnRevision, resultFormatVersion을 붙인다. 서버는 초기 기록에서 BEFORE를 가져오고 검토된 beforeCorrection이 있으면 정정된 문구와 원래 기록을 함께 표시한다. 초기 판단의 잘못 인식과 수정이 실제로 있어 AFTER는 성립하지만 특정 유형만 불확실한 UNDETERMINED 결과는 그 한계를 표시한 사용자 확인이 가능하다. NO_CLEAR_DISTORTION·UNDETERMINED가 변화 없는 답변을 AFTER로 채우거나 완료 조건을 우회하는 경로가 되어서는 안 된다. 근거 없는 AFTER 후보·provider 실패·파싱 실패·거절 후보는 저장 가능한 성공 제안으로 만들지 않는다.
-
-## 4. 보충 전용 계약 삭제
-
-`FACT_BOUNDARY_REQUIRED`, `candidate_boundary`, factBoundaryGap, supplementalBoundaryEvidence, factBoundaryQuestionCount, 1회 예산, WAIT_FOR_GAP, 보충 질문 접두어·복원 모드를 새 실행 경로에서 제거한다. 일반 질문도 별도 보충인지 판별·계수하지 않는다. 과거 장부는 이전 실행 감사 자료로만 남긴다.
-
-Agent는 필요한 확인을 일반 `write_turn`으로 선택할 수 있다. 이는 아직 이해되지 않은 실제 내용에 대한 질문이어야 한다. 이미 답했거나 모르겠다고 한 내용을 완료 의례로 반복하지 않는다. Assessor 반환 후 Writer를 호출하는 숨은 4번째 모델 호출을 만들지 않는다.
-
-## 5. 세션과 데이터
-
-Spring DB가 영구 기준이고 AI는 실행용 메모리다. 기존 ReflectionSessions·AiJobs를 활용하며 별도 원격 메모리 DB·작업 큐를 새로 만들지 않는다.
-
-사용자는 DB 마이그레이션을 사용하지 않기로 했다. Flyway·Liquibase 등 마이그레이션 도구나 별도 데이터 일괄 이관 절차를 이번 계약의 필수 작업으로 추가하지 않는다. 확인한 기준 코드의 JPA 설정은 `ddl-auto: update`다. 실제 테이블·컬럼 변경이 필요한 항목은 명시하고 프로젝트의 기존 DB 관리 방식에 맞춰 적용한다. 이 설정이 임의의 기존 데이터 의미 변환까지 해준다고 가정하지 않는다.
-
-아래 표는 논리 데이터 계약이며 같은 이름의 새 DB 컬럼을 모두 만들라는 지시가 아니다. 특히 messages는 API·Agent 메모리에서 사용하는 시간순 표현이다. 기존 question_answers를 읽어 구성할 수 있으므로 과거 DB 행을 일괄 messages 형식으로 다시 저장할 필요는 없다.
-
-| 데이터 | 소유·목적 |
-|---|---|
-| sessionId, record snapshot | Spring. 어느 기록을 성찰하는지 고정 |
-| status | 기존 OPEN/COMPLETED/CANCELLED/SAFETY_STOPPED. 영구 생명주기 |
-| phase | OPEN일 때 DIALOGUE/PROPOSAL_REVIEW. 화면에서 무엇을 기다리는지. 닫힌 세션은 null |
-| revision | Spring이 발급하는 기계적 변경 번호. 모델은 생성하지 않음 |
-| messages | 순서 있는 `{messageNumber,role,content,createdAt}`. 실제 사용자 답변과 표시한 AI 응답 |
-| currentProposal | 수락된 최신 AI 후보. 미승인 재개용으로 보존 |
-| prior proposals | 철회·교체·거절 후보의 감사 이력. 승인 대상이나 실사용 대화로 자동 포함하지 않음 |
-| confirmedResult | BEFORE·AFTER·제안·유형별 사용자 수락/거부·점수·확정 시각 |
-| AiJobs | 실행 중/성공/실패 작업, 같은 논리 요청의 키·시도 번호·입력 revision·성공 응답 캐시 |
-
-실제 표시된 결과 제안은 일정한 renderer로 BEFORE·AFTER·제안 이유를 Assistant 발화에 남긴다. 사용자가 “그 뜻이 아니야”라고 답할 때 Agent가 직전 표시 내용을 알 수 있어야 한다. 실패한 후보·내부 도구 인자·미표시 초안은 대화에 넣지 않는다. 사용자 문장 대신 서버가 만든 요약을 User 발화로 기록하지 않는다.
-
-시간순 문답이 중심이다. 사실 원장·정정 마스크·goal 목록·요청 이행 상태를 따로 생성하지 않는다. 동일한 문자열의 답변이라도 다른 논리 턴이면 별도 발화다.
-
-### 결과 저장과 정정
-
-사용자 승인 트랜잭션에서 다음을 함께 확정한다: 사용자에게 표시한 proposalId와 revision, BEFORE와 AFTER, AI 제안, 유형별 수락/거부, 전후 확신도·감정·도움 정도, COMPLETED·userConfirmed·completedAt. 승인 전 후보는 성공적으로 생성됐어도 완료 사례가 아니다.
-
-승인 요청은 AFTER 문구를 임의로 덮어쓰는 입력을 받지 않는다. AFTER 뜻 정정은 기존 답변 입력에서 자연어로 받는다. 사용자가 생각을 바꾼 적 없다고 정정하면 기존 후보를 철회하고 DIALOGUE로 돌아간다. 잘못 인식·수정 근거가 사라진 상태에서 새 AFTER를 자동 생성하지 않는다. 제안 뒤 새 답변을 저장하면 처리 중에는 승인을 잠근다. Agent가 EXPLAIN_PROPOSAL로 단순 설명을 제공하면 같은 제안을 유지한다. 생각·사실의 정정이면 일반 대화로 돌아가 이전 제안을 승인 대상에서 제외하거나, AFTER와 유형을 함께 새 제안으로 교체한다. 혼합 도움/정정은 단순 설명 유지로 처리하지 않는다. 처리에 실패하면 이전 제안을 이력으로 보존하고 승인하지 못하게 하며 저장된 입력으로 재시도한다. 추가 사전 승인 화면이나 수정 문자 단위의 의미 검사는 없다.
-
-모든 제안 유형을 거부해도 AFTER를 자신의 생각으로 확인했다면 저장할 수 있다. `acceptedCodes: []`만으로 AI가 왜곡 없다고 판단했다고 해석하지 않고 원래 assessmentType과 사용자 검토 결과를 보존한다. 초기 판단의 잘못 인식과 수정이 확인된 AFTER에서 유형만 불확실한 경우에는 그 한계를 표시해 확인 가능하다. 변화 없는 답변을 이런 결과로 저장하지 않는다.
-
-beforeBeliefStrength와 afterBeliefStrength는 처음 자동적 생각에 대한 전후 확신도다. 기존 수치 범위를 유지하고 화면 문구로 같은 대상임을 명확히 한다. 결과 승인은 임베딩 완료를 기다리지 않는다. 임베딩 실패는 기존 별도 재시도 기능으로 복구한다.
-
-## 6. React → Spring 공개 API
-
-아래 API는 이번 전체 스택 개편의 단일 목표다. 기존 start/first-retry/next-retry를 계속 유지하는 별도 정책 엔진을 만들지 않는다. 외부 클라이언트가 없다면 세 앱을 함께 전환한다. 실제 배포는 이번 문서 작업과 별개다.
-
-| 요청 | 본문 | 동작 |
-|---|---|---|
-| `POST /api/reflections/open` | `{emotionRecordId}` 또는 `{sessionId}` 중 하나 | 처음 열기·재개 통합. 기존 같은 기록 세션을 중복 생성하지 않음 |
-| `GET /api/reflections/{sessionId}` | 없음 | 전체 SessionView 조회. 모델 호출 없음 |
-| `POST /api/reflections/{sessionId}/turn` | `{"answer":"…"}` | 일반 답변 또는 결과 뜻 정정. 새 사용자 내용은 문자열 하나 |
-| `POST /api/reflections/{sessionId}/retry` | 없음 | 해당 세션의 실패한 생성 작업을 같은 저장 입력으로 재시도 |
-| `POST /api/reflections/{sessionId}/confirm` | proposalId·유형별 수락/거부·기존 확인 점수 | 현재 제안을 한 번에 승인 |
-| `POST /api/reflections/{sessionId}/cancel` | 없음 | 기존 완전 종료 버튼. CANCELLED로 종료하며 문답 보존·재개 불가 |
-
-기준 React의 handleReflectionLater는 목록으로 이동하며 OPEN을 유지한다. handleReflectionCancel은 기존 확인 대화상자 뒤 cancelReflection을 호출하고 Spring cancelSession은 CANCELLED로 바꾼다. 이 구분을 재사용하며 별도 ENDED_WITHOUT_CHANGE 상태·종료 API·종료 판별 LLM을 추가하지 않는다. 자연어 중단은 respond_control로 안내하고, 영구 종료는 사용자가 기존 버튼을 눌러 cancel API를 호출했을 때 처리한다.
-
-나중에 이어하기는 저장된 문답·미확정 제안을 유지한다. 완전 종료는 문답을 삭제하지 않으며 미승인 제안을 자동 승인하지 않는다. 승인 완료 COMPLETED와 사용자 종료 CANCELLED를 분리하고, 변화가 없더라도 사용자는 완전 종료할 수 있다. 종료 시 AFTER 작성·인지왜곡 제안·Assessor 호출은 없다. CANCELLED를 기술 실패·왜곡 없음 또는 변화 성공으로 집계하지 않으며 승인 완료 결과만 변화 사례 검색에 포함한다.
-
-재사용 가능한 임베딩 재시도 기능은 별도로 유지하며 생성 retry와 혼동하지 않는다. 중단 후 이어하기는 취소 호출을 하지 않고 OPEN 상태를 유지한다. COMPLETED/CANCELLED/SAFETY_STOPPED 세션을 open했다고 자동으로 다시 열지 않는다.
-
-모든 변경 요청은 client가 만든 `Idempotency-Key`를 재전달 시 그대로 사용한다. 이미 존재하는 세션 변경에는 `If-Match`로 화면에서 본 revision을 보낸다. 이 헤더는 기계적 요청 식별이며 모델 인자가 아니다. 같은 키·같은 내용은 저장된 처리 결과를 재사용하고 같은 키·다른 내용은 충돌이다. 동일 키의 중복 여부를 stale revision 검사보다 먼저 처리해 성공한 요청 재전달을 오판하지 않는다.
-
-SessionView에는 sessionId, revision, status, phase, 시간순 messages, currentProposal 또는 confirmedResult, 실행 중/실패 job의 최소 정보를 담는다. AI의 questionCode·CONFIRM_REQUIRED 문자열로 화면 단계를 추측하지 않는다. 공개 기술 오류는 기존 성공 제안과 구별하고 재시도 가능한지 표시한다. 진행 중 응답은 202와 job 상태를 반환할 수 있으며, 이 경우 GET 조회로 실제 완료를 확인한다. 정상 기본 흐름은 동기 응답이고 항상 polling을 강제하지 않는다.
-
-## 7. Spring → FastAPI 요청과 복원
-
-| 요청 | 내용 | 생성 호출 |
-|---|---|---:|
-| `/internal/ai/reflections/start` | sessionId·record snapshot·전체 messages·currentProposal·revision | 새 시작에서만 첫 질문 생성, 기존 세션 복원은 0회 |
-| `/internal/ai/reflections/turn` | sessionId·논리 requestId·attemptNo·baseRevision·inputRevision·새 userMessage | 일반 경로 최대 3회 |
-| `/internal/ai/reflections/{sessionId}` DELETE | 세션 메모리 정리 | 0회 |
-
-start의 요청 목적은 명시적 `mode: NEW 또는 RESTORE`로 구분한다. 이것은 생성할지 복원할지의 기계적 명령이다. RESTORE는 과거 질문이나 완료 후보를 재생성하지 않는다. 기록의 원문·정정·직전 제안이 손실되지 않도록 전체 snapshot을 사용한다.
-
-기존 resume 화면 조회만으로 AI 메모리가 이미 복원된다고 가정하지 않는다. open에서 RESTORE를 연결한다. 복원 끝이 미답변 AI 발화면 그 발화를 그대로 보여 준다. 사용자 답변까지 저장되고 생성이 실패했으면 실패 job과 retry 상태를 보여 준다. 정상 진행 중 job이 있으면 기존 실행을 확인하고 두 번째 생성을 시작하지 않는다.
-
-### 한 턴 처리 순서
-
-1. Spring 짧은 트랜잭션 A: 권한·OPEN·revision·중복/실행 중 작업을 확인하고 사용자 원문과 AiJob을 저장한다. 새 답변을 처리하는 동안 이전 제안을 승인할 수 없게 한다. 서버는 사용자 문장만 보고 정정 여부를 단정하지 않는다. revision을 inputRevision으로 증가시킨 뒤 트랜잭션을 끝낸다.
-2. AI는 세션 lock 안에서 메모리 버전을 확인한다. baseRevision이면 새 userMessage를 한 번 추가한다. 복원으로 이미 inputRevision과 동일 사용자 메시지를 받았다면 다시 추가하지 않는다. 같은 requestId·attemptNo의 성공 캐시가 있으면 재전달한다.
-3. 메모리가 없거나 일치하지 않으면 모델 호출 전에 `RESYNC_REQUIRED`를 반환한다. Spring은 DB 전체 snapshot으로 RESTORE한 뒤 **같은 요청**을 한 번 이어간다. 이 복원 재전달은 생성 실패 재시도가 아니다. 복원 뒤에도 불일치하면 기술 오류로 끝내고 원문은 보존한다.
-4. AI는 일반 Agent·도구 경로를 실행한다. 실제 성공 응답만 자기 메모리에 추가하고 성공 결과를 캐시한다. 제안은 서버 renderer가 실제 표시할 동일 문장을 기억한다. 실패 후보는 사용자 대화에 추가하지 않는다.
-5. Spring 짧은 트랜잭션 B: 해당 job·attempt·inputRevision이 현재이고 세션이 취소되지 않았는지 확인한다. 도구 결과에 따라 EXPLAIN_PROPOSAL이면 기존 제안 유지, 일반 질문/HELP이면 대화로 전환, 완료면 새 제안으로 교체한다. respond_control은 실제 안내를 문답에 남기고 OPEN을 유지하되 새 답변 이후에는 과거 제안을 승인 대상으로 되살리지 않는다. 영구 종료는 별도 사용자 cancel API만 처리하고 모델의 제어 응답만으로 CANCELLED로 바꾸지 않는다. 안전 STOP은 기존 안전 종료 경로로 처리한다. 사용자가 새 답변 없이 화면을 닫아 나중에 재개하는 경우에는 기존 제안을 그대로 복원한다. 응답과 다음 phase·후보·job 성공 결과를 함께 저장하고 revision을 inputRevision+1로 증가시킨다. SessionView를 반환한다.
-
-같은 세션에서 생성 중에는 다음 답변·승인을 동시에 처리하지 않는다. 취소는 허용하며 revision을 바꾸고 작업을 무효화한다. AI 응답의 다음 revision은 inputRevision+1로 예약하지만 영구 확정 기준은 Spring이다. Spring 저장이 실패하면 job을 복구하기 전 새 턴을 받지 않는다. AI 성공 캐시가 남으면 재사용하고, 유실됐다면 저장된 원문으로 명시적 재시도를 한다. 새로운 문맥으로 유령 AI 응답을 이어가지 않는다.
-
-### 기존 AiJobs 활용
-
-현재의 무작위 requestId를 매 호출마다 새 논리 요청으로 쓰는 방식은 교체한다. AiJobs의 idempotencyKey·attemptNo를 논리 요청과 시도로 사용하고 필요한 inputRevision·입력 식별 정보·성공 응답 snapshot을 보존한다. 동일 턴 재시도는 새로운 사용자 답변을 만들지 않는다. 실제 외부 호출을 다시 할 때만 attemptNo를 늘린다.
-
-중복 요청·프로세스 유실 뒤 전역 exactly-once 모델 호출을 약속하지 않는다. DB의 사용자 답변과 최종 결과 중복을 막고 확인 가능한 성공 응답을 재사용한다. 한 세션에 실행 중 job 하나, 늦은 결과의 attempt/revision 검사, AI lock은 서로 다른 저장·실행 경계를 보호하며 의미 검증 장부가 아니다.
-
-취소의 정본은 Spring 상태다. AI DELETE 성공을 기다려야 취소되는 구조로 만들지 않는다. AI 정리는 best effort로 수행하고 취소 뒤 돌아온 결과는 Spring에서 저장하지 않는다. FastApiCbtClient는 모든 오류를 502 하나로 삼키지 않고 RESYNC_REQUIRED·기술 실패·실행 중 상태를 구분한다.
-
-FastAPI 전체 deadline과 Spring·프록시·React의 대기 시간도 함께 맞춘다. 바깥 계층이 안쪽의 정상 처리 한도보다 먼저 끊지 않게 설정하고, 종료된 job은 완료 또는 실패로 남긴다. 기존 FastApiClientConfig에는 명시적인 CBT timeout 설정이 없으므로 현재 연결이 이 조건을 만족한다고 가정하지 않는다. 무한 대기로 해결하지 않는다.
-
-## 8. 저장·조회 코드 변경과 기존 기록 처리
-
-1. 기존 question_answers는 원래 저장된 상태로 읽고 요청·복원 시 필요한 messages를 메모리에서 구성한다. 질문·답변·시각·순서를 유지하고 짝이 없는 마지막 질문·답변도 보존한다. 이 변환 결과를 과거 DB 행 전체에 다시 쓰는 이관 작업은 요구하지 않는다. 내용을 새 LLM으로 재해석해 이력을 만들지 않는다.
-2. current_step의 질문 코드와 화면 상태 혼용은 저장·조회 코드와 DTO에서 status+phase의 명확한 의미로 정리한다. 필요한 영속 필드와 DTO 전용 필드를 구분하며 단어 변경을 이유로 과거 행 전체를 다시 쓰지 않는다. 과거 코드/목적은 필요하면 역사 메타데이터로만 읽고 새 모델 도구에 요구하지 않는다.
-3. 새 결과는 resultFormatVersion으로 구분하고 BEFORE·AFTER·단일 왜곡 제안·사용자 검토를 보존한다. 기존 alternativeThoughtText 등 실제 저장 컬럼을 재사용할 수 있지만 API의 afterText와 의미가 일치해야 한다.
-4. 기존 왜곡 저장 테이블을 재사용하면 새 제안은 처음 생각에 대한 제안으로 저장한다. 과거 BEFORE/AFTER phase 행은 삭제하지 않으며 새 결과에서 AFTER 라벨 행을 만들어 차집합을 계산하지 않는다. 외부 DTO는 단일 suggestions·reviews로 제공한다.
-5. 기존 완료 사례의 대안 문구가 사용자 이후 생각인지 출처만으로 확정할 수 없으면 구형 결과로 보존한다. 추측으로 새 계약의 AFTER로 재분류하지 않는다. 진행 중 구형 결과는 원문 대화를 복원해 새 제안과 사용자 확인을 거친다.
-6. 주간 보고서의 REMOVED/PERSISTED/NEW 분류를 새 계약에 사용하지 않는다. 승인한 생각과 인지왜곡, 같은 최초 생각에 대한 확신도 변화, 도움 정도를 읽는다. 옛 보고서의 수치·의미는 소급 바꾸지 않는다.
-7. 기록 상세·PDF·검색 결과는 같은 confirmedResult를 읽는다. 검색 후보는 사용자 확인 완료 사례만 사용한다. 문맥/생각 포함 임베딩의 기존 목적은 유지하고 승인된 최초 생각 정정이 있으면 thought-aware 입력을 일치시킨다. AFTER와 유형의 실제 표시·검색 payload도 함께 수정한다.
-8. API·엔티티·저장/조회 코드 변경을 전체 스택의 하나의 경로로 연결한다. DB 마이그레이션 도구 도입·별도 이관 스크립트·과거 결과의 일괄 재분류는 요구하지 않는다. 기존 DB 관리 방식을 따르며 DB 초기화나 기존 데이터 삭제를 이 문서의 구현 조건으로 삼지 않는다. 구형 기록의 작은 읽기 매핑과 과거 정책 엔진 실행은 다르며 과거 의미 원장을 fallback 엔진으로 계속 실행하지 않는다.
-
-## 9. 실제 소스 변경 지도
-
-| 파일·구성요소 | 적용할 변경 |
-|---|---|
-| AI `app.py`, `cbt_session_agent.py`, `cbt_simple/service.py` | NEW/RESTORE·delta 입력, 시간순 메모리, 오류 재전달, 실제 표시 응답 저장 |
-| AI `cbt_simple/state.py`, `schema.py`, `graph.py` | 일반 의미 장부 제거, 단순 도구, AFTER와 단일 제안 후보, 보충 전용 경로 삭제 |
-| AI `cbt_simple/provider.py`, 제품 프롬프트 | 실제 도구 호출·호출 상한 유지, 작은 스키마·전체 문맥 한 번 전달 |
-| Spring ReflectionSessions/관련 DTO·controller·service | status/phase·revision·대화·미확정 제안·승인 결과, open/turn/retry/confirm/cancel 연결 |
-| Spring Start/Turn TransactionService·AiJobs | 입력 선저장·논리 키·시도·결과 원자 저장·취소와 늦은 결과 처리 |
-| Spring FastApiCbtClient/FastApiClientConfig | 새 DTO·RESTORE/delta·typed resync와 deadline |
-| React `components/CBT/CBT.jsx`와 API 호출 | SessionView로 단계 표시, 동일 입력 기반 재시도, 제안 한 번 확인, 뜻 정정, 재개 |
-| Spring Confirm/Embedding·RagUtils·검색 DTO | 사용자 승인 결과와 처음 생각 일치, 임베딩 실패 독립 복구 |
-| 주간 보고서·PDF·기록 상세 | 두 라벨 집합의 차집합 제거, 실제 두 생각·승인한 유형으로 읽기 |
-| 테스트·runner·blind exporter | 없어진 필드·보충 한도 의무 제거, 사용자 기능·새 공통 결과 형식으로 수정 |
-
-팀원 변경과 무관한 인증·기록 생성·일반 화면을 함께 재작성하지 않는다. 실제 경로는 구현 시작 snapshot에서 확인한다. 위 지도는 읽은 기준 소스와 연결한 변경 명세이며 이미 수정된 파일 목록이 아니다.
-
-## 10. 교체할 제품 프롬프트 전문
-
-아래 다섯 블록이 이번 구현에 제공하는 전문이다. 기존 prompt 끝에 덧붙이는 보완 문구가 아니다. 실행 패키지의 prompts 폴더에 같은 내용을 파일별 전체 교체 원문으로 제공한다. 코드 레지스트리와 출력 schema는 서버가 별도로 한 번 제공한다.
-
-### Agent
-
-```text
-너는 Mindot의 CBT 대화 Agent다. 사용자의 상황과 처음 자동적 생각을 함께 살펴보고 지금 맥락에 맞는 질문 하나를 고른다. 범용 문서나 상담 초안을 작성하지 않는다.
-
-기록과 역할·시간순 대화를 읽는다. 이미 답한 내용, 더 없다는 답, 모르겠음, 말하고 싶지 않음, 질문을 이해하지 못함을 구분한다. 설명 요청과 실제 답변이 섞이면 모두 반영한다. 부분 정정은 바뀐 부분에 적용하고 유지된 내용은 남긴다. AI 예시의 사건을 사용자 경험으로 취급하지 않는다.
-
-질문이 더 필요한 경우 write_turn을 선택하고 무엇을 왜 묻는지 구체적인 goal을 준다. 설명·예시가 필요하면 HELP로 먼저 돕는다. 사용자가 이미 준 동일 정보를 다시 요구하지 않는다. 모든 영역을 채우거나 일정 횟수를 묻지 않는다. 긍정적 결론과 인지왜곡 인정을 강요하지 않는다. 관찰한 사실과 그로부터 내린 해석을 구별하고 실제 부정적인 일을 없던 일처럼 바꾸지 않는다.
-
-BEFORE는 처음 자동적 생각이다. AFTER는 사용자가 그 자동적 생각의 잘못된 판단을 알아차리고 그에 따라 수정한 생각이다. 두 의미가 실제 대화에 함께 있을 때만 AFTER가 성립한다. 한 답변 또는 여러 답변에서 의미와 뉘앙스로 파악하며 정해진 고백이나 AFTER 입력란을 요구하지 않는다. 단순 현재 생각·추가 설명·맞장구·모르겠음·변화 없음은 그 자체로 AFTER가 아니다.
-
-초기 판단이 잘못됐다는 인식과 그 판단을 수정한 생각이 실제로 드러났고 남은 도움 등 즉시 다룰 일이 없을 때 assess_completion을 선택한다. 설명이 길어졌거나 질문할 것이 줄었다는 이유만으로 선택하지 않는다. 이미 드러난 깨달음을 고백 문구로 다시 말하게 하지 않는다. 아직 이 변화가 없으면 필요한 일반 대화를 하거나 중단 의사를 존중한다. 유용한 탐색이 없으면 respond_control로 질문을 멈추고 기존 이어하기·완전 종료 버튼을 안내하며 잘못을 인정할 때까지 반복 질문하지 않는다. 기록 오기 정정만으로 CBT 변화로 처리하지 않는다.
-
-Assessor는 AFTER와 인지왜곡 제안을 함께 작성한다. 제안 전에 사용자가 생각 쌍을 승인하게 하거나 평가 후 별도 보충 질문 단계를 추가하지 않는다. 제안 뒤 뜻 정정은 새 질문이나 새 제안에 반영한다. 제안에 대한 단순 설명 요청은 write_turn의 EXPLAIN_PROPOSAL로 설명하고 같은 제안을 유지한다. 단순 동의나 제안 내용을 바꾸지 않는 부연에도 EXPLAIN_PROPOSAL로 현재 확인 화면을 짧게 안내해 제안을 보존한다. 생각·사실의 정정이 섞이면 이 모드를 쓰지 않는다. 이전 제안을 그대로 승인하라고 요구하지 않는다. 이미 보여 준 변화에 대한 단순 동의·부연 설명에는 같은 제안을 반복 생성하지 않는다. 현재 제안을 바꿀 실제 정정이나 새로운 탐색 근거가 있을 때만 다시 평가하며, 과거 변화 이력으로 철회된 생각을 되살리지 않는다.
-
-중단 의사는 respond_control로 질문을 멈추고 기존 나중에 이어하기·완전 종료 버튼을 안내해 존중한다. 네 판단으로 영구 종료를 확정하지 않는다. 명확한 현재 위험에는 respond_safety를 사용한다. 과거·인용·가정·타인과 현재 사용자의 위험을 구별한다. 기술 장애를 사용자 위험이나 인지왜곡 없음으로 해석하지 않는다.
-
-주어진 도구 중 필요한 하나를 선택한다. 일반 답변 분류표·정정 연산·요청 장부를 생성하지 않는다. 최종 후보 검토 요청을 받으면 사용자 뜻과 실제 근거의 일치만 검토한다.
-```
-
-### Writer
-
-```text
-너는 Mindot CBT Agent가 선택한 목표를 자연스러운 한국어로 표현한다. 기록과 시간순 대화, mode와 goal을 읽는다. 다음 대화 방향이나 완료 여부를 새로 정하지 않는다.
-
-QUESTION이면 지금 답변으로 얻을 수 있는 유용한 질문 하나를 작성한다. 이미 받은 답을 반복 요구하지 않는다. 관찰과 해석을 구분하되 사용자의 생각이 틀렸다고 전제하지 않는다. HELP이면 현재 질문을 쉬운 말이나 분명한 가상 예시로 설명한다. EXPLAIN_PROPOSAL이면 이미 보여 준 AFTER나 왜곡 제안의 뜻을 설명하고 그 내용을 새로 바꾸지 않는다. 가상 예시를 사용자에게 실제 있었던 일처럼 말하지 않는다. 설명에 무관한 탐색 질문을 붙이지 않는다.
-
-실제 답변과 도움 요청이 같이 있으면 앞의 내용을 인정하면서 돕는다. 사용자가 더 없거나 모르겠다고 한 자료를 다시 내놓으라고 압박하지 않는다. 사용자에게 없는 경험·확신·생각 변화를 만들어 말하지 않는다. 범용 정리 문서를 작성하지 않는다. schema에 맞는 실제 표시 문장만 반환한다.
-```
-
-### Assessor
-
-```text
-너는 Mindot CBT 대화의 결과 후보를 작성한다. 기록의 처음 자동적 생각, 전체 시간순 대화, 제공된 인지왜곡 정의를 사용한다.
-
-BEFORE는 처음 자동적 생각이다. AFTER는 사용자가 자신의 처음 자동적 생각의 잘못된 판단을 알아차리고 그에 따라 수정한 생각을 네가 정리한 문장이다. 두 의미의 연결이 실제 대화에 있어야 한다. 사용자의 말을 그대로 복사할 필요는 없고 여러 답변의 뜻을 종합할 수 있다. 그러나 없는 경험·새로운 결론·더 강한 확신을 보태지 않는다. 가능성·부분 동의·불확실성을 유지한다. 단순 맞장구·질문 이해를 관점 변화로 확대하지 않는다. 가상 예시를 실제 경험으로 바꾸지 않는다.
-
-처음 판단의 잘못을 알아차리고 수정한 실제 USER 구절을 afterEvidence에 연결한다. 생각이 같다는 답, 단순 동의, 맥락 없는 모르겠음, 추가 설명만으로 AFTER를 채우지 않는다. “싫어한다고 단정한 건 근거가 없고 이유는 아직 모른다”처럼 잘못된 단정을 수정한 결과가 불확실성인 경우는 가능하다. 인식과 수정이 뒷받침되지 않으면 afterText null·afterEvidence 빈 목록·UNDETERMINED·suggestions 빈 목록과 이유를 반환하며 이는 승인용 제안이 아니다.
-
-처음 기록이 잘못됐다는 사용자 정정이 명확한 경우에만 beforeCorrection을 작성하고 그 실제 구절을 연결한다. 지금 생각이 바뀌었다는 답변으로 처음 생각을 덮어쓰지 않는다. 부분 정정과 나중 정정을 대화에서 반영한다.
-
-BEFORE와 AFTER의 차이 및 실제 대화 근거를 함께 보고 처음 생각에 어떤 인지왜곡이 있었는지 제공된 정의에 대조한다. 두 문장을 독립 분류해 유형 차집합을 만들지 않는다. 생각이 달라졌다는 사실만으로 왜곡이 있었다고 단정하지 않는다. 생각이 같다는 이유로 왜곡 없음으로 단정하지 않는다. 근거 있는 유형과 그 이유만 제안한다. 실제 문제에 대한 정확한 생각을 무조건 왜곡으로 바꾸지 않는다.
-
-실제 인식과 수정이 있어 AFTER가 성립하더라도 기존 유형 정의에 맞는 근거가 없으면 NO_CLEAR_DISTORTION, 유형 판단 근거가 부족하면 UNDETERMINED로 구별한다. 이 상태를 이용해 생각 변화가 없는 답변을 승인용 AFTER로 만들지 않는다. 없는 자료를 채우거나 모든 유형의 부재를 입증하려 하지 않는다. 필요한 기존 지지·반대 근거는 짧게 정리하고 없으면 null로 둔다. 점수·감정 강도·확신도는 사용자가 입력할 값이며 네가 만들지 않는다.
-
-결과 후보만 반환한다. 질문을 작성하지 않으며 보충 질문·질문 예산·사전 승인 단계를 만들지 않는다. AI 제안은 사용자가 확인하기 전 실제 동의나 확정된 치료 결과가 아니다.
-```
-
-### 같은 Agent의 최종 검토
-
-```text
-같은 대화 Agent로서 Assessor 후보와 기록·전체 실제 대화를 검토한다. 사용자가 초기 판단의 잘못을 알아차린 의미와 그에 따라 생각을 수정한 의미가 실제로 연결되는지 먼저 확인한다. 그 근거 없는 AFTER는 수락하지 않는다. 수정한 뜻을 유지하며 가능성을 확신으로 강화하지 않았는지 확인한다. 문자 그대로의 복사를 요구하지 않는다. BEFORE와 지금 생각을 혼동하거나 최초 기록 정정을 무시하지 않았는지 확인한다. 인지왜곡의 이유가 실제 대화와 제공된 정의에 맞는지 본다.
-
-사용자에게 없는 생각·경험, 정정 무시, 근거 없는 유형을 수락하지 않는다. 초기 판단을 잘못됐다고 인식해 수정한 실제 변화가 있는 AFTER에서 유형만 불확실한 경우에는 한계를 표시해 수락할 수 있다. 문체·질문 수·네 영역·무조건 긍정적인 결론을 요구하지 않는다. 처음 생각의 잘못 인식과 수정이라는 AFTER 성립 조건은 반드시 지킨다.
-
-accept와 짧은 reason만 반환한다. 후보를 다시 작성하거나 추가 질문을 만들지 않는다. 거절을 기술 실패·사용자 위험·왜곡 없음으로 바꿔 설명하지 않는다.
-```
-
-### Writer 형식 복구
-
-```text
-동일한 대화·mode·goal과 형식 오류 정보를 받았다. 의미와 작성 목표를 바꾸지 말고 지정된 출력 구조만 바로잡는다. 새로운 탐색 질문·생각 변화·사실을 추가하지 않는다. 실제 표시할 한국어 문장을 text에 담아 반환한다.
-```
-
-## 11. 용량·검증·평가 연결
-
-일반 질문 Agent→Writer 2회, 완료 Agent→Assessor→같은 Agent 3회, Writer 형식 복구 포함 요청당 최대 3회다. restore·동일 성공 결과 재전달·제안 승인에 새 생성 호출을 넣지 않는다. Moderation 별도 최대 1회, 자동 SDK retry 0회다. role별 출력 cap은 기존 Agent 8,192·Writer 650·Assessor 1,800·최종 검토 1,200·복구 650을 시작값으로 유지하며 정상 새 후보 길이를 실제 구현에서 확인한다.
-
-입력 48,000 추정 토큰·196,608바이트를 지속 기본값으로 유지한다. 문자 수·추정 입력·실제 usage·출력·실행 누적 예산을 구분한다. 상한 전체를 매 호출 비용으로 예약하지 않는다. 내부 schema와 전체 문답의 중복부터 제거하며 필수 원문을 잘라 통과시키지 않는다.
-
-이번 설계의 기계적 검증 범위는 실제 저장·재개·멱등성·취소·승인 결과 일치와 폐기 필드 미요구다. 실모델 검증은 질문의 맥락 적합성, 잘못 인식과 생각 수정에 따른 AFTER 정리, 단순 설명·맞장구·변화 없음에서 제안하지 않기, 변화 철회 시 후보 취소, 실제 Assessor·검토 진입을 포함한다. 변화가 없는 사례에 AFTER나 제안을 강제하는 기대값은 제품 계약과 맞지 않는다. 원문 전달 자체를 정확한 이해의 증거로 삼지 않는다. 시험을 위한 범용 초안 요청·보충 의례·고정 답안 요구는 제거한다.
-
-새 rubric v1.13, cbt-known-insight-1, cbt-insight-canary-1과 blind 형식을 함께 발행한다. 과거 점수·잠긴 입력·봉인 holdout을 소급 수정하지 않는다. 구현 후 fix/CBTAI push와 ChatGPT 전체 브랜치 리뷰를 먼저 완료하며, 이번 구현 작업에서 오프라인·canary·유료 평가를 실행하지 않는다.
-
-## 12. 요청 경계의 구현 세부와 리뷰 순서
-
-- NEW 첫 질문에도 Spring AiJob의 requestId·attemptNo·inputRevision을 전달하고 생성 캐시·저장·retry 규칙을 동일 적용한다. RESTORE는 생성하지 않는다. 기존 질문·제안이 있으면 open은 NEW가 아니라 RESTORE/조회다.
-- currentProposal의 basedOnRevision은 근거가 된 시점이다. 설명 뒤 세션 revision이 증가해도 제안은 유지할 수 있다. confirm은 현재 If-Match와 활성 proposalId를 확인하며 basedOnRevision이 현재 revision과 다르다는 이유만으로 유효한 제안을 거절하지 않는다. 새 답변이 처리 중이거나 실패한 상태의 옛 제안은 승인 불가다.
-- 제안 이후 단순 동의는 EXPLAIN_PROPOSAL로 짧게 현재 승인 화면을 안내할 수 있다. 제안을 재생성하거나 자연어 동의만으로 DB를 확정하지 않는다. 설명 뒤 늦은 화면 응답은 더 최신 SessionView를 덮어쓰지 않는다.
-- RESTORE에는 messages뿐 아니라 새 요청의 처리 여부·현재 phase/제안·논리 job 정보가 필요하다. 같은 입력을 이미 복원했으면 delta를 다시 붙이지 않는다. 구형 유형 수락/거부 이력은 실제 저장 사실로 문맥에 유지하며 사용자 발화나 새 승인 제안으로 발명하지 않는다.
-- 사용자 원문에 대한 모델·parse·최종 인용/검토 실패는 답변 유실이나 no-clear로 바꾸지 않는다. 승인 불가 안내와 재시도/다음 답변의 가능한 동작을 구별한다. 최종 후보 거절은 미확정 응답이며 새 4번째 생성은 없다.
-- 실행 중 job을 영구 방치하지 않는다. 저장된 attempt deadline 경과가 확인되면 조회 또는 retry의 짧은 트랜잭션으로 시도를 실패/만료 처리하고 늦은 응답을 무효화한다. process 재시작 뒤에도 기존 입력으로 재시도할 수 있게 한다. 새 작업 큐를 추가하지 않는다.
-- 내부 경로도 기존 서버 간 인증·접근 제한을 적용한다. 공개 API의 소유권 검사·idempotency를 헤더 이름만 바꿔 생략하지 않는다. React와 CORS는 Idempotency-Key/If-Match를 실제 전송할 수 있어야 한다.
-
-이번 구현 완료 기준은 `READY_FOR_GPT_FULL_BRANCH_REVIEW`다. 일반 commit·push 대상은 `fix/CBTAI`이고 원격 반영 SHA를 제출한다. 테스트는 `NOT_RUN_PENDING_GPT_FULL_BRANCH_REVIEW`다. ChatGPT가 해당 SHA의 전체 자사 소스·설정·테스트를 읽고 수정하지 않은 기능까지 연결 검토한 뒤 테스트 단계를 연다. 기존 연속 유료 평가 지시가 이 순서를 대체하지 않는다. 세부 절차는 함께 제공하는 `Mindot-CBT-Full-Branch-Review.md`와 실행 지시에 있다.
+Diagnostics sink 예외는 `audit_sink_failure` 카운터에 남지만 제품 generation guard나 상태 commit을 차단하지 않는다. guard는 runtime close와 task cancellation만 검사한다.

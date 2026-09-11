@@ -6,8 +6,8 @@ from langchain_core.messages import ToolMessage
 from langgraph.graph import StateGraph,START,END
 from langgraph.checkpoint.memory import InMemorySaver
 from .state import require,candidate_boundary,render
-from .contracts import ProtocolError
-from cbt_q11.contracts import CompletionTechnicalError
+from .contracts import CompletionTechnicalError,ProtocolError
+from .diagnostics import canonical
 from .schema import validate,assessor_schema
 
 CONTROL='질문은 여기서 멈출게요. 나중에 이어하려면 ‘나중에 이어하기’를, 이 성찰을 완전히 종료하려면 ‘성찰 완전히 중단’을 선택해 주세요.'
@@ -65,7 +65,6 @@ async def execute(snapshot,provider,diagnostics):
     async def invoke(g):
         call=g['selection'];name=call['name']
         value=await tools[name](**call['args'])
-        from cbt_q11.diagnostics import canonical
         if name=='assess_completion':
             try:value,approvable=candidate_boundary(value,snapshot,diagnostics)
             except (ValueError,ProtocolError) as exc:

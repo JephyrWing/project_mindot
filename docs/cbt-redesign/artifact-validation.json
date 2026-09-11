@@ -1,51 +1,26 @@
 {
-  "checkType": "AUTHORING_ARTIFACT_INTEGRITY_ONLY",
-  "schemaVerification": "JSON parse and static key/required/enum/example consistency; provider acceptance NOT_RUN; general JSON Schema validator unavailable",
-  "productTestsRun": false,
-  "newModelCalls": 0,
-  "newProductImplementationReviewed": false,
-  "publicInputs": 160,
-  "publicSessions": 10,
-  "originalSingleTurnTextPreserved": true,
-  "scope2FilesByteIdentical": 7,
-  "q10FilesMatchHistoricalLock": 7,
-  "sealedCiphertextPreservedWithoutDecryption": true,
-  "canaryPlannedRequests": 12,
-  "promptCharacters": {
-    "agent": 1738,
-    "writer": 534,
-    "assessor": 1347,
-    "assessment-review": 558,
-    "writer-repair": 128
-  },
-  "mainPromptCharacters": 7152,
-  "qualityWeights": [
-    [
-      15,
-      15,
-      20,
-      15,
-      10,
-      10,
-      10,
-      5
-    ],
-    [
-      20,
-      25,
-      20,
-      15,
-      15,
-      5
-    ],
-    [
-      20,
-      25,
-      20,
-      15,
-      10,
-      10
-    ]
+  "checkType": "CURRENT_SOURCE_ALIGNMENT_DECLARATION",
+  "canonicalModelContract": "mindot_ai/cbt_simple/model-contracts.json",
+  "documentationCopy": "docs/cbt-redesign/model-contracts.json",
+  "activePromptFiles": [
+    "agent.txt",
+    "assessor.txt",
+    "assessment-review.txt"
   ],
-  "status": "PASS"
+  "removedActivePromptFiles": [
+    "writer.txt",
+    "writer-repair.txt"
+  ],
+  "activeGenerationPhases": [
+    "SELECT",
+    "ASSESSOR",
+    "ASSESSMENT_REVIEW"
+  ],
+  "ordinaryGenerationCalls": 1,
+  "completionGenerationCalls": 3,
+  "inputTokenLimit": 48000,
+  "productTestsRun": false,
+  "modelCalls": 0,
+  "providerAcceptance": "NOT_RUN_PENDING_GPT_FULL_BRANCH_REVIEW",
+  "status": "READY_FOR_STATIC_SOURCE_REVIEW"
 }

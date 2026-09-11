@@ -3,9 +3,9 @@ import asyncio
 from copy import deepcopy
 from datetime import datetime,timezone
 from langsmith.run_helpers import tracing_context
-from cbt_q11.diagnostics import Diagnostics,canonical,sha
-from cbt_q11.safety import detector
 from .contracts import Start,Turn,Result,ProtocolError
+from .diagnostics import Diagnostics,canonical,sha
+from .safety import detector
 from .state import Registry,require
 from .provider import Provider,Budget
 from .graph import execute,SAFETY
@@ -57,7 +57,7 @@ async def generate(runtime,snap,job,registry,injected):
     if ticket in runtime.failures:raise ProtocolError(runtime.failures[ticket])
     runtime.snapshot=deepcopy(snap) # Preserve input even if generation fails.
     d=injected.get('diagnostics') or Diagnostics();task=asyncio.current_task()
-    budget=Budget(d,lambda:not runtime.closed and not task.cancelling() and not d.counters.get('audit_sink_failure'))
+    budget=Budget(d,lambda:not runtime.closed and not task.cancelling())
     provider=Provider(budget,injected.get('agent_model'),injected.get('assessor_model'))
     async def run():
         latest=[m['content'] for m in snap['messages'][-1:] if m['role']=='USER'] or [x for x in (snap['record']['situation'],snap['record']['automaticThought']) if x]

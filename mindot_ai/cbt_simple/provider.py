@@ -7,9 +7,9 @@ from time import perf_counter
 from types import SimpleNamespace
 from langchain_openai import ChatOpenAI
 from openai import AsyncOpenAI
-from cbt_q11.contracts import CompletionTechnicalError
-from cbt_q11.diagnostics import canonical, sha
-from cbt_q11.llm import token_count, parse, unique_object
+from .contracts import CompletionTechnicalError
+from .diagnostics import sha
+from .parsing import parse,token_count,unique_object
 from .schema import validate as validate_schema
 from . import schema
 

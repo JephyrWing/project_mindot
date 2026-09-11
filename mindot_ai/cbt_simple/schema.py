@@ -20,9 +20,6 @@ def validate(value,shape):
            'integer':type(value)is int,'boolean':type(value)is bool,'null':value is None}
     if not any(types.get(k,False) for k in kinds):raise ValueError('schema_type')
     if 'enum' in shape and value not in shape['enum']:raise ValueError('schema_enum')
-    if isinstance(value,str):
-        if len(value)<shape.get('minLength',0):raise ValueError('schema_min_length')
-        if 'maxLength' in shape and len(value)>shape['maxLength']:raise ValueError('schema_max_length')
     if isinstance(value,dict):
         if set(value)!=set(shape['required']):raise ValueError('schema_fields')
         for k,v in value.items():validate(v,shape['properties'][k])

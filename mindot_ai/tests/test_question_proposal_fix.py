@@ -9,8 +9,8 @@ from cbt_simple import graph, service, wire, schema
 from cbt_simple.contracts import Start, Turn, ProtocolError
 from cbt_simple.provider import Budget, aggregate_guard
 from cbt_simple.state import Registry
-from cbt_q11.contracts import CompletionTechnicalError
-from cbt_q11.diagnostics import Diagnostics
+from cbt_simple.contracts import CompletionTechnicalError
+from cbt_simple.diagnostics import Diagnostics
 from test_insight_protocol import FakeProvider, RECORD, ANSWER, STAMP
 
 FIXTURE = json.loads((Path(__file__).parent/'fixtures'/'canary_noop_correction.json').read_text(encoding='utf-8'))
@@ -24,7 +24,8 @@ class AgentInputs(unittest.TestCase):
         original=deepcopy(snapshot)
         for phase in ('SELECT', 'ASSESSOR', 'ASSESSMENT_REVIEW'):
             context=json.loads(wire.messages(phase,dict(snapshot=snapshot))[1].content)
-            self.assertEqual(context['distortionDefinitions'],schema.DEFINITIONS)
+            if phase=='SELECT':self.assertNotIn('distortionDefinitions',context)
+            else:self.assertEqual(context['distortionDefinitions'],schema.DEFINITIONS)
             for key in ('record','currentProposal'):self.assertEqual(context[key],snapshot[key])
         for phase in ('ASSESSOR','ASSESSMENT_REVIEW'):
             request=wire.wire(phase,dict(snapshot=snapshot))
@@ -35,6 +36,9 @@ class AgentInputs(unittest.TestCase):
         self.assertEqual(set(wire.PROMPTS),set(wire.PHASES))
         self.assertEqual([t['function']['name'] for t in schema.select_tools()],
             ['ask_question','offer_help','assess_completion','respond_control','respond_safety'])
+        for name in ('ask_question','offer_help'):
+            text_shape=schema.select_schemas()[name]['properties']['text']
+            self.assertEqual(text_shape,{'type':'string'})
         self.assertFalse({'writerOutput','writerRepairOutput'} & set(schema.CONTRACT))
         self.assertEqual(wire.INPUT_TOKEN_LIMIT,48000)
         prompt_dir=Path(wire.__file__).parent/'prompts'

@@ -5,7 +5,7 @@
 - 사용자 지정 순서인 구현→fix/CBTAI push→ChatGPT 전체 브랜치 리뷰→테스트를 main/README/계약/리뷰 기준/stage manifest에 연결했다. Codex 자체 리뷰로 다음 단계에 진입하지 않는다.
 - 실제 초기/진행/재개·제안·설명·승인·철회·영구 취소의 연결을 대입했다. NEW의 논리 job, 설명 후 revision이 달라진 제안의 승인, 단순 동의의 EXPLAIN_PROPOSAL 경로, 만료 job 복구를 명시해 누락을 줄였다.
 - 전체 스택 수정 및 일반 원격 push 권한을 반영했고, 원격에 추가된 기록 목록·정렬·화면 변경은 보존하도록 했다. DB migration 도구·초기화·일괄 재분류는 요구하지 않는다.
-- 계약 속 5개 제품 프롬프트와 파일 원문이 일치한다. schema의 도구 인자·필수 키·enum과 후보 예시를 정적으로 대조했다. 일반 JSON Schema 검증기는 이 작성 환경에 없어 provider 수용을 검증했다고 하지 않는다. 실제 SDK/제품 런타임 검증은 리뷰 후 실행한다.
+- 현재 계약은 Agent, Assessor, assessment-review 세 prompt와 runtime canonical model-contract를 사용한다. Writer와 Writer repair 자료는 최신 prompt 위치에서 제거됐다. 실제 SDK/제품 런타임 수용은 소스 리뷰 뒤 별도 실행 단계에서 검증한다.
 - 공개160의 record·실제 문답 텍스트는 원본과 같고, 모델 입력과 평가 기대를 분리했다. 공개10세션은 실제 질문/자연스러운 중단과 복원에 맞는 진행 규칙을 기록했다. 이전7개 공개 파일·Q10 baseline7개는 기존 hash와 일치한다. 봉인 암호문은 동일하고 복호화하지 않았다.
 - 세 품질 배점 합100을 확인했다. 채점의 의미와 단일 정답 분모가 바뀌었으므로 이전 점수와 동일 평가라고 하지 않는다. 새 AFTER 조건의 no-clear 제안 표본 부족은 N/A/미검증으로 남긴다.
 
