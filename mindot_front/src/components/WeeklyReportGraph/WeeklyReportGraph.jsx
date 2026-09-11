@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Navbar from '../Navbar/Navbar.jsx'
 import {
@@ -42,6 +42,50 @@ const getWeekRange = (weekOffset) => {
   }
 }
 
+// 월요일부터 일요일까지 그래프에 표시할 요일 순서 설정.
+const graphWeekdays = [
+  { day: '월', dayIndex: 1 },
+  { day: '화', dayIndex: 2 },
+  { day: '수', dayIndex: 3 },
+  { day: '목', dayIndex: 4 },
+  { day: '금', dayIndex: 5 },
+  { day: '토', dayIndex: 6 },
+  { day: '일', dayIndex: 0 },
+]
+
+// 감정 기록 근거 목록을 요일별로 묶고 대표 감정 강도의 평균값 계산.
+const createWeeklyGraphItems = (emotionRecordEvidences = []) => {
+  const intensitiesByDay = Array.from({ length: 7 }, () => [])
+
+  emotionRecordEvidences.forEach((record) => {
+    const occurredDate = new Date(record.occurredAt)
+    const intensity = Number(record.primaryIntensity)
+
+    if (Number.isNaN(occurredDate.getTime()) || !Number.isFinite(intensity)) return
+
+    intensitiesByDay[occurredDate.getDay()].push(intensity)
+  })
+
+  return graphWeekdays.map(({ day, dayIndex }) => {
+    const intensities = intensitiesByDay[dayIndex]
+
+    if (intensities.length === 0) {
+      return { day, value: null, recordCount: 0 }
+    }
+
+    const averageIntensity = intensities.reduce(
+      (totalIntensity, currentIntensity) => totalIntensity + currentIntensity,
+      0,
+    ) / intensities.length
+
+    return {
+      day,
+      value: Number(averageIntensity.toFixed(1)),
+      recordCount: intensities.length,
+    }
+  })
+}
+
 // 주간 감정 그래프 기능을 단계적으로 추가하기 위한 기본 화면 정의.
 function WeeklyReportGraph({
   isAuthenticated,
@@ -63,8 +107,19 @@ function WeeklyReportGraph({
   const [isLoading, setIsLoading] = useState(true)
   // 선택 주의 리포트 API 호출 실패 안내 상태 관리.
   const [loadError, setLoadError] = useState('')
+  // 최신 감정 기록을 반영하는 리포트 갱신 요청 상태 관리.
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  // 리포트 갱신 결과를 사용자에게 안내할 문구 상태 관리.
+  const [refreshMessage, setRefreshMessage] = useState('')
+  // 리포트 갱신 실패 안내 문구 상태 관리.
+  const [refreshError, setRefreshError] = useState('')
   // 선택한 주의 월요일부터 일요일까지 표시할 기간 계산.
   const selectedWeek = getWeekRange(weekOffset)
+  // API 응답의 감정 기록 근거를 요일별 평균 강도 그래프 항목으로 변환.
+  const weeklyGraphItems = useMemo(
+    () => createWeeklyGraphItems(report?.emotionRecordEvidences),
+    [report],
+  )
 
   // 선택 주 변경 시 저장된 리포트 조회와 미생성 리포트 생성 요청 처리.
   useEffect(() => {
@@ -73,6 +128,8 @@ function WeeklyReportGraph({
     const loadWeeklyReport = async () => {
       setIsLoading(true)
       setLoadError('')
+      setRefreshMessage('')
+      setRefreshError('')
       setReport(null)
 
       try {
@@ -112,6 +169,31 @@ function WeeklyReportGraph({
       isActive = false
     }
   }, [selectedWeek.weekStart])
+
+  // 선택한 주의 최신 감정 기록으로 주간 리포트를 다시 생성하는 처리.
+  const handleReportRefresh = async () => {
+    if (isLoading || isRefreshing) return
+
+    setIsRefreshing(true)
+    setRefreshMessage('')
+    setRefreshError('')
+
+    try {
+      const refreshedReport = await generateWeeklyReport(selectedWeek.weekStart)
+
+      setReport(refreshedReport)
+      setLoadError('')
+      setRefreshMessage('최신 감정 기록으로 그래프를 갱신했습니다.')
+    } catch (error) {
+      setRefreshError(
+        error.response?.status === 409
+          ? '선택한 주에 감정 기록이 없어 리포트를 갱신할 수 없습니다.'
+          : '리포트를 갱신하지 못했습니다. 잠시 후 다시 시도해 주세요.',
+      )
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
 
   // 공통 네비게이션과 그래프 표시 예정 영역으로 구성한 기본 화면 반환.
   return (
@@ -160,6 +242,26 @@ function WeeklyReportGraph({
             </button>
           </div>
 
+          {/* 선택한 주의 최신 감정 기록을 그래프에 다시 반영하는 버튼 배치. */}
+          <button
+            className="weekly-report-graph-refresh"
+            type="button"
+            onClick={handleReportRefresh}
+            disabled={isLoading || isRefreshing}
+          >
+            {isRefreshing ? '갱신 중' : '최신 기록으로 갱신'}
+          </button>
+          {refreshMessage && (
+            <p className="weekly-report-graph-refresh-message" role="status">
+              {refreshMessage}
+            </p>
+          )}
+          {refreshError && (
+            <p className="weekly-report-graph-refresh-error" role="alert">
+              {refreshError}
+            </p>
+          )}
+
           {/* 선택한 주의 리포트 API 호출 결과 상태 표시. */}
           <section
             className="weekly-report-graph-chart"
@@ -181,9 +283,32 @@ function WeeklyReportGraph({
               </p>
             )}
             {report && !isLoading && !loadError && (
-              <p className="weekly-report-graph-note" role="status">
-                감정 기록 {report.recordCount}건의 리포트 데이터를 불러왔습니다.
-              </p>
+              <>
+                {/* 실제 감정 기록의 요일별 평균 강도를 일곱 개 막대로 표시. */}
+                <div className="weekly-report-graph-bars">
+                  {weeklyGraphItems.map((item) => (
+                    <div
+                      className="weekly-report-graph-item"
+                      key={item.day}
+                      aria-label={item.recordCount > 0
+                        ? `${item.day}요일 감정 강도 평균 ${item.value}점, 기록 ${item.recordCount}건`
+                        : `${item.day}요일 감정 기록 없음`}
+                    >
+                      <span className="weekly-report-graph-value">
+                        {item.value ?? '-'}
+                      </span>
+                      <div className="weekly-report-graph-track" aria-hidden="true">
+                        <span style={{ height: `${(item.value ?? 0) * 10}%` }} />
+                      </div>
+                      <strong>{item.day}</strong>
+                    </div>
+                  ))}
+                </div>
+
+                <p className="weekly-report-graph-note" role="status">
+                  감정 기록 {report.recordCount}건의 요일별 평균 강도입니다.
+                </p>
+              </>
             )}
           </section>
 

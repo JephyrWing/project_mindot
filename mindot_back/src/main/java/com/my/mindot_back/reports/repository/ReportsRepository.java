@@ -18,6 +18,11 @@ public interface ReportsRepository extends JpaRepository<Reports, Long> {
             LocalDate periodEnd
     );
 
-    // 감정 기록 변경 시 최신 원본으로 다시 만들 수 있도록 사용자 리포트 캐시 전체 삭제
-    long deleteByUser_Id(Long userId);
+    // 변경 날짜를 포함하는 리포트만 삭제
+    long deleteByUser_IdAndPeriodStartLessThanEqualAndPeriodEndGreaterThanEqual(
+            Long userId,
+            LocalDate date,
+            LocalDate sameDate
+    );
+
 }
