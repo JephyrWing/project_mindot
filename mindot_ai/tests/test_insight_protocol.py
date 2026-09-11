@@ -4,11 +4,11 @@ from datetime import datetime
 from copy import deepcopy
 from unittest.mock import patch
 from langchain_core.messages import AIMessage
-from cbt_simple.contracts import Start, Turn, ProtocolError
-from cbt_simple.state import Registry
-from cbt_simple import service
-from cbt_simple.diagnostics import Diagnostics
-from cbt_simple.safety import detector
+from cbt_session_agent.contracts import Start, Turn, ProtocolError
+from cbt_session_agent.state import Registry
+from cbt_session_agent import service
+from cbt_session_agent.diagnostics import Diagnostics
+from cbt_session_agent.safety import detector
 
 STAMP = '2026-09-09T00:00:00Z'
 RECORD = dict(recordId=1, situation='숫자 한 곳을 수정했다.', automaticThought='나는 일을 전혀 못한다.')

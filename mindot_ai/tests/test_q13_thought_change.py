@@ -4,9 +4,9 @@ from copy import deepcopy
 
 from langchain_core.messages import AIMessage
 
-from cbt_simple import graph, schema, wire
-from cbt_simple.contracts import CompletionTechnicalError, Result
-from cbt_simple.diagnostics import Diagnostics
+from cbt_session_agent import graph, schema, wire
+from cbt_session_agent.contracts import CompletionTechnicalError, Result
+from cbt_session_agent.diagnostics import Diagnostics
 
 
 STAMP = '2026-09-11T00:00:00Z'

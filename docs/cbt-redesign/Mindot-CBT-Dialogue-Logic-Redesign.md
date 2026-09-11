@@ -16,11 +16,12 @@ NEW / TURN
           │   └─ active proposal 있음 ───────→ EXPLAIN_PROPOSAL / PROPOSAL_REVIEW
           ├─ respond_control() ───────────────→ CONTROL / DIALOGUE
           ├─ respond_safety(action, reason) ─→ SAFETY_* / DIALOGUE
-          └─ assess_completion()
+          └─ assess_completion(fallbackQuestion)
               └─ Assessor candidate
-                  └─ same Agent review
+                  ├─ NOT_ESTABLISHED ─────────→ QUESTION / DIALOGUE
+                  └─ ESTABLISHED → same Agent review
                       ├─ accept ──────────────→ PROPOSAL / PROPOSAL_REVIEW
-                      └─ reject/unready ──────→ UNRESOLVED / DIALOGUE
+                      └─ reject ──────────────→ QUESTION / DIALOGUE
 ```
 
 일반 질문과 도움은 Agent 한 번이 의미와 최종 표시 문장을 작성한다. Writer와 Writer repair 단계는 없다. 완료 경로만 최대 3회 생성한다.
@@ -46,6 +47,6 @@ Spring이 전체 상태의 영속 정본이다. AI runtime은 NEW/RESTORE/TURN�
 
 좁은 deterministic detector는 명확한 현재 즉시 위험만 선차단한다. 과거·부정·가정·인용 위험은 자동 중단하지 않는다. 그 밖의 문맥 판단은 Agent의 `respond_safety`가 담당한다. 중단 안내는 나중에 이어하기와 성찰 완전 종료를 구분하며 AI가 사용자의 영구 종료를 대신 확정하지 않는다.
 
-## 비활성 역사 자료
+## 삭제된 비활성 구현
 
-`cbt_q11`, `cbt_agent.py`와 그 내부 Writer 기반 설계는 삭제하지 않은 역사 구현이다. 현재 `app.py → cbt_session_agent.py → cbt_simple` 경로에서 import하거나 fallback으로 실행하지 않는다.
+`cbt_agent.py`, `cbt_q5`, `cbt_q11`과 그 내부 Writer 기반 구현은 활성 소스에서 삭제했다. 과거 평가 재현에 필요한 동결 사본은 `mindot_ai/artifacts`에서만 보존한다.

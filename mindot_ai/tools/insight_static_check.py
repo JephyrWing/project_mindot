@@ -8,14 +8,14 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'mindot_ai'))
-from cbt_simple import schema, wire
+from cbt_session_agent import schema, wire
 import tiktoken
 
 
 def main():
     out = Path(sys.argv[1])
-    paths = [ROOT/'mindot_ai/app.py',ROOT/'mindot_ai/cbt_session_agent.py',ROOT/'mindot_ai/pattern_explanation.py',
-             *sorted((ROOT/'mindot_ai/cbt_simple').glob('*.py')),
+    paths = [ROOT/'mindot_ai/app.py',ROOT/'mindot_ai/pattern_explanation.py',
+             *sorted((ROOT/'mindot_ai/cbt_session_agent').glob('*.py')),
              *sorted((ROOT/'mindot_ai/tools').glob('insight_*.py')),
              ROOT/'mindot_ai/tests/test_insight_protocol.py',ROOT/'mindot_ai/tests/test_question_proposal_fix.py',
              ROOT/'mindot_ai/tests/test_q13_thought_change.py']
@@ -39,7 +39,7 @@ def main():
     }
     prompt_contract={}
     for name,(characters,expected_sha) in expected_prompts.items():
-        text=(ROOT/'mindot_ai/cbt_simple/prompts'/name).read_text(encoding='utf-8-sig').strip()
+        text=(ROOT/'mindot_ai/cbt_session_agent/prompts'/name).read_text(encoding='utf-8-sig').strip()
         actual=(len(text),hashlib.sha256(text.encode('utf-8')).hexdigest())
         if actual!=(characters,expected_sha):raise ValueError('q13_prompt_mismatch:'+name)
         prompt_contract[name]=dict(characters=characters,sha256=expected_sha)
@@ -61,7 +61,7 @@ def main():
             tokens=len(tokenizer.encode(text,disallowed_special=()))+64
             rows.append(dict(sample=name,phase=phase,inputEstimate=tokens,requestBytes=len(text.encode('utf-8')),
                 outputCap=wire.PHASES[phase],reservedContext=math.ceil(tokens*1.75)+wire.PHASES[phase]))
-    prompts={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in (ROOT/'mindot_ai/cbt_simple/prompts').glob('*.txt')}
+    prompts={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in (ROOT/'mindot_ai/cbt_session_agent/prompts').glob('*.txt')}
     result=dict(kind='STATIC_ONLY',syntax=syntax,strictSchemaStructure='CHECKED_NOT_PROVIDER_ACCEPTANCE',
         inputTokenLimit=wire.INPUT_TOKEN_LIMIT,requestByteLimit=wire.REQUEST_BYTE_LIMIT,phases=wire.PHASES,
         generationPathCalls=dict(questionOrHelp=1,completionSuccess=3,

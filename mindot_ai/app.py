@@ -21,7 +21,7 @@ from records_agent import (
     RecordAnalysis,
     analyze_record
 )
-from cbt_simple.contracts import Start as CbtStartRequest, Turn as CbtTurnRequest, Result as CbtTurnResponse, ProtocolError
+from cbt_session_agent.contracts import Start as CbtStartRequest, Turn as CbtTurnRequest, Result as CbtTurnResponse, ProtocolError
 from cbt_session_agent import close_agent_cbt_session, generate_agent_cbt_start, generate_agent_cbt_turn
 
 

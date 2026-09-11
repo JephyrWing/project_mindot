@@ -5,12 +5,12 @@ from copy import deepcopy
 from pathlib import Path
 from unittest.mock import patch
 
-from cbt_simple import graph, service, wire, schema
-from cbt_simple.contracts import Start, Turn, ProtocolError
-from cbt_simple.provider import Budget, aggregate_guard
-from cbt_simple.state import Registry
-from cbt_simple.contracts import CompletionTechnicalError
-from cbt_simple.diagnostics import Diagnostics
+from cbt_session_agent import graph, service, wire, schema
+from cbt_session_agent.contracts import Start, Turn, ProtocolError
+from cbt_session_agent.provider import Budget, aggregate_guard
+from cbt_session_agent.state import Registry
+from cbt_session_agent.contracts import CompletionTechnicalError
+from cbt_session_agent.diagnostics import Diagnostics
 from test_insight_protocol import FakeProvider, RECORD, ANSWER, STAMP
 
 FIXTURE = json.loads((Path(__file__).parent/'fixtures'/'canary_noop_correction.json').read_text(encoding='utf-8'))
