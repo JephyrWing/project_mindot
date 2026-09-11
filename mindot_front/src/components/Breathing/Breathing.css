@@ -73,6 +73,89 @@
   font-size: 1.25rem;
 }
 
+/* 현재 호흡 단계 원과 호흡 순서를 세로로 배치하는 영역 설정. */
+.breathing-cycle {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  margin-top: 24px;
+}
+
+/* 들이쉬기와 내쉬기에 맞춰 크기가 변하는 단색 안내 원 설정. */
+.breathing-circle {
+  display: flex;
+  width: 150px;
+  height: 150px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border: 2px solid var(--mindot-primary-line);
+  border-radius: 50%;
+  color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-soft);
+  transform: scale(0.76);
+}
+
+/* 호흡 안내 원 내부 단계 이름의 강조 설정. */
+.breathing-circle strong {
+  font-size: 1.25rem;
+}
+
+/* 현재 호흡 단계의 남은 초 표시 설정. */
+.breathing-circle span {
+  margin-top: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* 호흡 시작 후 4초와 4초 및 6초 순서로 반복되는 크기 변화 설정. */
+.breathing-circle.has-started {
+  animation: breathing-cycle 14s ease-in-out infinite;
+}
+
+/* 타이머 실행 중 호흡 안내 원의 움직임 진행 설정. */
+.breathing-circle.is-running {
+  animation-play-state: running;
+}
+
+/* 타이머 일시정지 중 호흡 안내 원의 움직임 정지 설정. */
+.breathing-circle.is-paused {
+  animation-play-state: paused;
+}
+
+/* 호흡 완료 시 안내 원을 기본 크기로 보여 주는 설정. */
+.breathing-circle.is-complete {
+  border-color: var(--mindot-success);
+  color: var(--mindot-success);
+  background: var(--mindot-surface);
+  transform: scale(1);
+}
+
+/* 호흡 안내 원 아래의 전체 호흡 순서 문구 설정. */
+.breathing-cycle p {
+  margin-top: 18px;
+  font-size: 14px;
+}
+
+/* 들이쉬기와 멈추기 및 내쉬기 시간에 맞춘 안내 원 크기 변화 설정. */
+@keyframes breathing-cycle {
+  0% {
+    transform: scale(0.76);
+  }
+
+  28.57% {
+    transform: scale(1);
+  }
+
+  57.14% {
+    transform: scale(1);
+  }
+
+  100% {
+    transform: scale(0.76);
+  }
+}
+
 /* 남은 시간을 화면에서 가장 분명하게 보여 주는 크기 설정. */
 .breathing-time {
   display: block;
@@ -143,5 +226,18 @@
 
   .breathing-time {
     font-size: 2.5rem;
+  }
+
+  .breathing-circle {
+    width: 136px;
+    height: 136px;
+  }
+}
+
+/* 움직임 감소 설정 사용자의 호흡 안내 원 애니메이션 제거. */
+@media (prefers-reduced-motion: reduce) {
+  .breathing-circle.has-started {
+    animation: none;
+    transform: scale(0.9);
   }
 }
