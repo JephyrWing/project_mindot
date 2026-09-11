@@ -5,8 +5,6 @@ CONTRACT=json.loads((Path(__file__).parent/'model-contracts.json').read_text(enc
 DEFINITIONS=json.loads((Path(__file__).parent/'distortion-definitions.json').read_text(encoding='utf-8'))
 def select_tools():return [dict(type='function',function=dict(t,strict=True)) for t in CONTRACT['tools']]
 def select_schemas():return {t['name']:t['parameters'] for t in CONTRACT['tools']}
-def writer_schema():return CONTRACT['writerOutput']
-def writer_repair_schema():return CONTRACT['writerRepairOutput']
 def assessor_schema():return CONTRACT['assessorOutput']
 def review_schema():return CONTRACT['assessmentReviewOutput']
 def response_format(name,value):return dict(type='json_schema',json_schema=dict(name=name,strict=True,schema=value))

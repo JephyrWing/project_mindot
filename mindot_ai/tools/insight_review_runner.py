@@ -45,14 +45,17 @@ def main():
     parser.add_argument('--suite', choices=['ai','pattern','spring','frontend'], required=True)
     args = parser.parse_args()
     check_external_review(args.chatgpt_review)
-    commands = {
-        'ai': ([sys.executable,'-m','unittest','discover','-s','tests','-p','test_insight_protocol.py'], ROOT/'mindot_ai'),
-        'pattern': ([sys.executable,'-m','unittest','discover','-s','tests','-p','test_pattern_confirmed_after.py'], ROOT/'mindot_ai'),
-        'spring': ([str(ROOT/'mindot_back'/'gradlew.bat'),'test','--tests','*InsightServiceTest','--tests','*InsightMappingTest','--tests','*LegacyReflectionRetryTest','--tests','*PatternCaseEligibilityTest','--no-daemon'], ROOT/'mindot_back'),
-        'frontend': (['node','--test','src/utils/reflections/reflectionsApi.test.js','src/utils/reflections/sessionView.test.js','src/utils/reflections/confirmThoughtForOpen.test.js'],ROOT/'mindot_front'),
+    suites = {
+        'ai': ([[sys.executable,'-m','unittest','discover','-s','tests','-p','test_insight_protocol.py'],
+                [sys.executable,'-m','unittest','discover','-s','tests','-p','test_question_proposal_fix.py']], ROOT/'mindot_ai'),
+        'pattern': ([[sys.executable,'-m','unittest','discover','-s','tests','-p','test_pattern_confirmed_after.py']], ROOT/'mindot_ai'),
+        'spring': ([[str(ROOT/'mindot_back'/'gradlew.bat'),'test','--tests','*InsightServiceTest','--tests','*InsightMappingTest','--tests','*LegacyReflectionRetryTest','--tests','*PatternCaseEligibilityTest','--no-daemon']], ROOT/'mindot_back'),
+        'frontend': ([['node','--test','src/utils/reflections/reflectionsApi.test.js','src/utils/reflections/sessionView.test.js','src/utils/reflections/confirmThoughtForOpen.test.js']],ROOT/'mindot_front'),
     }
-    command, cwd = commands[args.suite]
-    raise SystemExit(subprocess.call(command,cwd=cwd))
+    commands,cwd=suites[args.suite]
+    for command in commands:
+        result=subprocess.call(command,cwd=cwd)
+        if result:raise SystemExit(result)
 
 
 if __name__ == '__main__':

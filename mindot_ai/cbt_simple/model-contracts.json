@@ -2,27 +2,34 @@
   "contractVersion": "cbt-insight-1",
   "tools": [
     {
-      "name": "write_turn",
-      "description": "현재 CBT 질문 또는 도움·기존 제안 설명을 작성한다.",
+      "name": "ask_question",
+      "description": "사용자가 지금 바로 답할 수 있는 맥락상 CBT 질문 하나를 표시한다. 활성 제안 뒤 새 정정·철회·재탐색이면 기존 제안을 제거하고 대화로 돌아간다.",
       "parameters": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "mode": {
-            "type": "string",
-            "enum": [
-              "QUESTION",
-              "HELP",
-              "EXPLAIN_PROPOSAL"
-            ]
-          },
-          "goal": {
+          "text": {
             "type": "string"
           }
         },
         "required": [
-          "mode",
-          "goal"
+          "text"
+        ]
+      }
+    },
+    {
+      "name": "offer_help",
+      "description": "직전 CBT 질문 또는 현재 제안을 쉬운 말이나 중립적인 가상 예시로 설명한다. 활성 제안은 보존하며 사용자 동의나 저장을 확정하지 않는다.",
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
         ]
       }
     },
@@ -48,7 +55,7 @@
     },
     {
       "name": "respond_safety",
-      "description": "현재 문맥의 기본 안전 확인 또는 중단에 대응한다.",
+      "description": "명확한 현재 즉시 위험은 STOP, 현재성·주체 등 필요한 사실이 불분명할 때만 CLARIFY. 이미 명시한 위험을 반복 확인하지 않는다.",
       "parameters": {
         "type": "object",
         "additionalProperties": false,
@@ -71,18 +78,6 @@
       }
     }
   ],
-  "writerOutput": {
-    "type": "object",
-    "additionalProperties": false,
-    "properties": {
-      "text": {
-        "type": "string"
-      }
-    },
-    "required": [
-      "text"
-    ]
-  },
   "assessorOutput": {
     "type": "object",
     "additionalProperties": false,
@@ -232,21 +227,9 @@
       "reason"
     ]
   },
-  "writerRepairOutput": {
-    "type": "object",
-    "additionalProperties": false,
-    "properties": {
-      "text": {
-        "type": "string"
-      }
-    },
-    "required": [
-      "text"
-    ]
-  },
   "serverOnlyRules": [
-    "nonempty displayed text/goal",
-    "EXPLAIN_PROPOSAL requires an active proposal",
+    "nonempty displayed text and maximum 500 characters",
+    "offer_help preserves an active proposal; ask_question clears it",
     "non-null afterText requires USER evidence",
     "null afterText -> empty evidence and suggestions + UNDETERMINED; not approvable",
     "NO_CLEAR_DISTORTION or UNDETERMINED -> suggestions empty",

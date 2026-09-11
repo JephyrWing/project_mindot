@@ -75,3 +75,6 @@ class Result(Api):
 
 class ProtocolError(Exception):
     def __init__(self,code):self.code=code;super().__init__(code)
+
+class CompletionTechnicalError(RuntimeError):
+    """Internal generation failure translated to the existing generic 502."""

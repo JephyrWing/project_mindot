@@ -25,4 +25,4 @@ DB 기존 관리 방식과 데이터 보존을 따른다. 새 not-null 필드를
 
 기록 분석, 인증, 통계, 기록 정렬/페이지, RAG 검색 권한과 임베딩 재시도는 유지한다. 기존 임베딩의 context / context+thought 목적을 함부로 전체 대화 임베딩으로 바꾸지 않는다. 보고서의 사용자 승인된 왜곡/생각 변화와 과거 두 라벨 집합 차이는 같은 수치가 아니다.
 
-제품 prompt 5개와 model-contracts.json을 provider가 실제 소비하도록 연결한다. provider-specific wrapper/alias는 기계적 변환만 한다. 문서 JSON을 실제 provider 허용 schema라고 검증 없이 선언하지 않는다. 정적 표현력/예시 검토를 수행하고 실제 모델 수용은 리뷰 뒤 canary에서 확인한다.
+제품 prompt는 Agent, Assessor, 같은 Agent의 assessment-review 세 개이며 runtime `model-contracts.json`을 canonical source로 사용한다. provider-specific wrapper는 기계적 변환만 한다. 문서 JSON을 실제 provider 허용 schema라고 실행 없이 선언하지 않으며 실제 모델 수용은 별도 승인 뒤 canary에서 확인한다.
