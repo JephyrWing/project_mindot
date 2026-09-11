@@ -5,7 +5,7 @@ import hashlib
 import json
 from typing import Any,Callable
 
-diagnostic_sink=ContextVar('cbt_simple_diagnostic_sink',default=None)
+diagnostic_sink=ContextVar('cbt_session_agent_diagnostic_sink',default=None)
 
 def canonical(value:Any)->str:
     return json.dumps(value,ensure_ascii=False,sort_keys=True,separators=(',',':'))

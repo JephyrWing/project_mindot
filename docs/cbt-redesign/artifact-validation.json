@@ -1,7 +1,8 @@
 {
   "checkType": "CURRENT_SOURCE_ALIGNMENT_DECLARATION",
-  "canonicalModelContract": "mindot_ai/cbt_simple/model-contracts.json",
+  "canonicalModelContract": "mindot_ai/cbt_session_agent/model-contracts.json",
   "documentationCopy": "docs/cbt-redesign/model-contracts.json",
+  "documentationCopyStatus": "HISTORICAL_NOT_RUNTIME_CANONICAL",
   "activePromptFiles": [
     "agent.txt",
     "assessor.txt",

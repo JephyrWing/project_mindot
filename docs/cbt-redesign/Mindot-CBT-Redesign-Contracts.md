@@ -1,12 +1,12 @@
 # Mindot CBT 현재 계약
 
-이 문서는 `mindot_ai/cbt_simple/model-contracts.json`과 활성 runtime을 설명한다. JSON 파일이 모델 도구·후보 schema의 canonical source이며, `docs/cbt-redesign/model-contracts.json`은 정적 동일성 검사용 사본이다.
+이 문서는 `mindot_ai/cbt_session_agent/model-contracts.json`과 활성 runtime을 설명한다. JSON 파일이 모델 도구·후보 schema의 canonical source다.
 
 ## 활성 경로
 
-`app.py → cbt_session_agent.py → cbt_simple/service.py → graph.py → provider.py/wire.py`
+`app.py → cbt_session_agent package → cbt_session_agent.py facade → service.py → graph.py → provider.py/wire.py`
 
-현재 `cbt_simple`은 과거 `cbt_q11`이나 `cbt_agent.py`를 import하지 않는다. 과거 구현 파일은 역사 자료로 남지만 runtime fallback이나 공용 유틸 공급자가 아니다.
+활성 패키지는 과거 `cbt_agent.py`, `cbt_q5`, `cbt_q11`과 분리되어 있으며 해당 legacy 소스는 삭제됐다. 평가용 `mindot_ai/artifacts`의 동결 사본만 역사 자료로 유지한다.
 
 ## Agent 도구
 
@@ -14,7 +14,7 @@
 |---|---|---|
 | `ask_question` | `text` | 사용자가 지금 답할 수 있는 맥락상 CBT 질문 하나를 바로 표시한다. 활성 제안 뒤 실제 정정·철회·새 탐색이면 기존 제안을 제거하고 `DIALOGUE`로 돌아간다. |
 | `offer_help` | `text` | 직전 질문 또는 현재 제안을 쉬운 말이나 중립적인 가상 예시로 설명한다. 활성 제안이 있으면 동일 제안과 `PROPOSAL_REVIEW`를 보존한다. |
-| `assess_completion` | 없음 | 실제 USER 발화에 초기 판단의 잘못 인식과 그에 따른 생각 수정이 함께 드러났을 때만 완료 후보를 만든다. |
+| `assess_completion` | `fallbackQuestion` | 생각 변화 가능성을 Assessor가 독립 판단하도록 요청한다. 미성립 또는 최종 검토 거부 시 같은 호출에서 작성한 질문으로 대화에 복귀한다. |
 | `respond_control` | 없음 | 질문 중단과 기존 나중에 이어하기·완전 종료 선택을 안내한다. |
 | `respond_safety` | `action`, `reason` | 명확한 현재 위험의 중단 또는 필요한 최소 안전 확인을 처리한다. |
 

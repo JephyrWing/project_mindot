@@ -8,16 +8,17 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'mindot_ai'))
-from cbt_simple import schema, wire
+from cbt_session_agent import schema, wire
 import tiktoken
 
 
 def main():
     out = Path(sys.argv[1])
-    paths = [ROOT/'mindot_ai/app.py',ROOT/'mindot_ai/cbt_session_agent.py',ROOT/'mindot_ai/pattern_explanation.py',
-             *sorted((ROOT/'mindot_ai/cbt_simple').glob('*.py')),
+    paths = [ROOT/'mindot_ai/app.py',ROOT/'mindot_ai/PatternExplainLLM.py',
+             *sorted((ROOT/'mindot_ai/cbt_session_agent').glob('*.py')),
              *sorted((ROOT/'mindot_ai/tools').glob('insight_*.py')),
-             ROOT/'mindot_ai/tests/test_insight_protocol.py',ROOT/'mindot_ai/tests/test_question_proposal_fix.py']
+             ROOT/'mindot_ai/tests/test_insight_protocol.py',ROOT/'mindot_ai/tests/test_question_proposal_fix.py',
+             ROOT/'mindot_ai/tests/test_q13_thought_change.py']
     syntax = []
     for path in paths:
         ast.parse(path.read_text(encoding='utf-8-sig'), filename=str(path))
@@ -31,14 +32,17 @@ def main():
         for child in shape.get('anyOf',[]): inspect(child)
     for shape in [*schema.select_schemas().values(),schema.assessor_schema(),schema.review_schema()]:
         inspect(shape)
-    canonical_copies={}
-    for relative in ['model-contracts.json','prompts/agent.txt','prompts/assessor.txt','prompts/assessment-review.txt']:
-        runtime=ROOT/'mindot_ai/cbt_simple'/relative
-        documentation=ROOT/'docs/cbt-redesign'/relative
-        runtime_text=runtime.read_text(encoding='utf-8-sig')
-        documentation_text=documentation.read_text(encoding='utf-8-sig')
-        if runtime_text!=documentation_text:raise ValueError('documentation_copy_mismatch:'+relative)
-        canonical_copies[relative]=hashlib.sha256(runtime_text.encode('utf-8')).hexdigest()
+    expected_prompts={
+        'agent.txt':(1884,'9beb197fbeada4a1c7994bb434a3629f2322d5f621790a935f2f882710c85a5b'),
+        'assessor.txt':(1301,'5cc7f7c0db317bb6da49f268d07abe62fb0861304b30afb6b72ebb82c93089a7'),
+        'assessment-review.txt':(601,'e90d4dc21712b0b61611b691b6fa795af3e4393bd74d5660c73bda0762ad3f90'),
+    }
+    prompt_contract={}
+    for name,(characters,expected_sha) in expected_prompts.items():
+        text=(ROOT/'mindot_ai/cbt_session_agent/prompts'/name).read_text(encoding='utf-8-sig').strip()
+        actual=(len(text),hashlib.sha256(text.encode('utf-8')).hexdigest())
+        if actual!=(characters,expected_sha):raise ValueError('q13_prompt_mismatch:'+name)
+        prompt_contract[name]=dict(characters=characters,sha256=expected_sha)
     tokenizer=tiktoken.get_encoding('o200k_base')
     rows=[]
     for name,count in [('initial',0),('20_messages',20),('80_messages',80)]:
@@ -57,11 +61,12 @@ def main():
             tokens=len(tokenizer.encode(text,disallowed_special=()))+64
             rows.append(dict(sample=name,phase=phase,inputEstimate=tokens,requestBytes=len(text.encode('utf-8')),
                 outputCap=wire.PHASES[phase],reservedContext=math.ceil(tokens*1.75)+wire.PHASES[phase]))
-    prompts={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in (ROOT/'mindot_ai/cbt_simple/prompts').glob('*.txt')}
+    prompts={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in (ROOT/'mindot_ai/cbt_session_agent/prompts').glob('*.txt')}
     result=dict(kind='STATIC_ONLY',syntax=syntax,strictSchemaStructure='CHECKED_NOT_PROVIDER_ACCEPTANCE',
         inputTokenLimit=wire.INPUT_TOKEN_LIMIT,requestByteLimit=wire.REQUEST_BYTE_LIMIT,phases=wire.PHASES,
-        generationPathCalls=dict(questionOrHelp=1,completion=3),
-        serialization=rows,promptHashes=prompts,canonicalDocumentationCopies=canonical_copies,
+        generationPathCalls=dict(questionOrHelp=1,completionSuccess=3,
+            completionNotEstablished=2,additionalAfterCompletionDecision=0),
+        serialization=rows,promptHashes=prompts,q13PromptContract=prompt_contract,
         modelCalls=0,tests='NOT_RUN_PENDING_GPT_FULL_BRANCH_REVIEW',
         limitations=['Representative synthetic serialization only; no Agent/Assessor execution.',
             'SELECT includes configured SDK fields; actual framework wire and usage must be observed after review.',

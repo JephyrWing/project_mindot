@@ -1,6 +1,6 @@
 # 구현 연결 메모
 
-기준 소스의 실제 경로는 app.py → cbt_session_agent.py → cbt_simple/service.py → graph.py다. 새 위치로 정리할 수 있지만 같은 이름의 비활성 legacy 구현을 실행 경로로 오인하지 않는다. 아래는 과잉 의미 검증을 추가하기 위한 표가 아니라 기존 사용자 기능의 생산자·소비자 연결이다.
+기준 소스의 실제 경로는 `app.py → cbt_session_agent package → cbt_session_agent.py facade → service.py → graph.py`다. 삭제된 legacy 구현은 활성 경로에 존재하지 않으며 평가용 동결 사본만 `mindot_ai/artifacts`에 남는다. 아래는 과잉 의미 검증을 추가하기 위한 표가 아니라 기존 사용자 기능의 생산자·소비자 연결이다.
 
 | 변경 대상 | 끝까지 연결할 곳 |
 |---|---|
