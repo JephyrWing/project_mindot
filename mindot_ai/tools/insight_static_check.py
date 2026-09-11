@@ -14,7 +14,7 @@ import tiktoken
 
 def main():
     out = Path(sys.argv[1])
-    paths = [ROOT/'mindot_ai/app.py',ROOT/'mindot_ai/pattern_explanation.py',
+    paths = [ROOT/'mindot_ai/app.py',ROOT/'mindot_ai/PatternExplainLLM.py',
              *sorted((ROOT/'mindot_ai/cbt_session_agent').glob('*.py')),
              *sorted((ROOT/'mindot_ai/tools').glob('insight_*.py')),
              ROOT/'mindot_ai/tests/test_insight_protocol.py',ROOT/'mindot_ai/tests/test_question_proposal_fix.py',

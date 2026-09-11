@@ -23,7 +23,11 @@ from records_agent import (
 )
 from cbt_session_agent.contracts import Start as CbtStartRequest, Turn as CbtTurnRequest, Result as CbtTurnResponse, ProtocolError
 from cbt_session_agent import close_agent_cbt_session, generate_agent_cbt_start, generate_agent_cbt_turn
-
+from PatternExplainLLM import (
+    PatternRequest,
+    PatternResponse,
+    explain as explain_pattern,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -196,12 +200,26 @@ async def stop_cbt_session(
     await close_agent_cbt_session(session_id)
     return Response(status_code=204)
 
+@app.post(
+    "/internal/ai/patterns/explain",
+    response_model=PatternResponse,
+)
+async def run_pattern_explanation(request: PatternRequest) -> PatternResponse:
+    """확정한 유사 CBT 사례의 의미적 공통 흐름을 설명합니다."""
 
-from pattern_explanation import PatternRequest, explain as explain_pattern
-
-@app.post("/internal/ai/patterns/explain")
-async def run_pattern_explanation(request: PatternRequest) -> dict:
-    return explain_pattern(request)
+    try:
+        return await explain_pattern(request)
+    except Exception as exc:
+        # 유사 사례의 원문과 LLM 출력은 민감정보이므로 로그에 남기지 않습니다.
+        logger.error(
+            "Pattern explanation generation failed: emotionRecordId=%s error=%s",
+            request.emotionRecordId,
+            type(exc).__name__,
+        )
+        raise HTTPException(
+            status_code=502,
+            detail="The AI pattern explanation request failed.",
+        ) from exc
 
 
 if __name__ == "__main__":
