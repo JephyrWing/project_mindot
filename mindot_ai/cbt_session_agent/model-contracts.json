@@ -18,6 +18,22 @@
       }
     },
     {
+      "name": "check_current_thought",
+      "description": "BEFORE를 재고했을 합리적인 신호 뒤, 최초 판단을 지금 어떻게 보는지 중립적인 개방형 질문 하나로 확인한다. 외부에는 기존 QUESTION으로 표시되고 내부 질문 목적만 다음 TURN에 연결한다.",
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "text": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ]
+      }
+    },
+    {
       "name": "offer_help",
       "description": "직전 CBT 질문 또는 현재 제안을 쉬운 말이나 중립적인 가상 예시로 설명한다. 활성 제안은 보존하며 사용자 동의나 저장을 확정하지 않는다.",
       "parameters": {
@@ -243,6 +259,8 @@
   },
   "serverOnlyRules": [
     "nonempty displayed text and maximum 500 characters",
+    "check_current_thought returns the existing QUESTION outcome and stores only an internal pending question purpose",
+    "the USER answer immediately following a current-thought check is routed to assess_completion without a second Agent clarity gate",
     "offer_help preserves an active proposal; ask_question clears it",
     "changeStatus is ESTABLISHED or NOT_ESTABLISHED",
     "ESTABLISHED requires non-null afterText and USER evidence",

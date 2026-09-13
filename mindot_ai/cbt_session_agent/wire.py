@@ -17,6 +17,7 @@ PROMPTS={k:(Path(__file__).parent/'prompts'/v).read_text(encoding='utf-8').strip
 def messages(phase,payload,pair=()):
     snapshot=payload['snapshot']
     context=dict(record=snapshot['record'],phase=snapshot['phase'],currentProposal=snapshot.get('currentProposal'),
+        pendingQuestionPurpose=snapshot.get('pendingQuestionPurpose'),
         historicalTypeReviews=snapshot.get('historicalTypeReviews',[]),moderation=snapshot.get('moderation'))
     context.update({k:v for k,v in payload.items() if k!='snapshot'})
     if phase in ('ASSESSOR','ASSESSMENT_REVIEW'):

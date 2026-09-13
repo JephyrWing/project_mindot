@@ -36,8 +36,8 @@ class AgentInputs(unittest.TestCase):
         self.assertEqual(set(wire.PHASES),{'SELECT','ASSESSOR','ASSESSMENT_REVIEW'})
         self.assertEqual(set(wire.PROMPTS),set(wire.PHASES))
         self.assertEqual([t['function']['name'] for t in schema.select_tools()],
-            ['ask_question','offer_help','assess_completion','respond_control','respond_safety'])
-        for name in ('ask_question','offer_help'):
+            ['ask_question','check_current_thought','offer_help','assess_completion','respond_control','respond_safety'])
+        for name in ('ask_question','check_current_thought','offer_help'):
             text_shape=schema.select_schemas()[name]['properties']['text']
             self.assertEqual(text_shape,{'type':'string'})
         self.assertFalse({'writerOutput','writerRepairOutput'} & set(schema.CONTRACT))

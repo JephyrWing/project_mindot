@@ -14,6 +14,7 @@ CONTROL='질문은 여기서 멈출게요. 나중에 이어하려면 ‘나중�
 INVALID_CANDIDATE='생각을 정리하는 과정에서 오류가 생겨 이번 제안을 보여드리지 못했어요. 같은 답변을 다시 설명하실 필요는 없어요. 나중에 이어하거나 이 성찰을 완전히 중단할 수 있어요.'
 SAFETY='지금은 안전이 우선입니다. 즉시 위험하다면 119 또는 112에 연락하고, 가까운 믿을 수 있는 사람에게 알려 혼자 있지 않도록 도움을 요청해 주세요.'
 CLARIFY='말씀하신 위험이 지금 본인에게 해당하나요? 지금 자신이나 다른 사람을 해칠 생각이 있거나 즉시 도움이 필요한 상황인지 알려주세요.'
+CURRENT_THOUGHT_CHECK='CURRENT_THOUGHT_CHECK'
 
 class GraphState(TypedDict,total=False):
     selection: dict
@@ -25,9 +26,11 @@ class GraphState(TypedDict,total=False):
 
 async def execute(snapshot,provider,diagnostics):
     payload=dict(snapshot=snapshot)
-    def response(outcome,text,proposal=None,issue=None):
-        return dict(outcome=outcome,phase='PROPOSAL_REVIEW' if proposal is not None else 'DIALOGUE',
+    def response(outcome,text,proposal=None,issue=None,question_purpose=None):
+        value=dict(outcome=outcome,phase='PROPOSAL_REVIEW' if proposal is not None else 'DIALOGUE',
             text=text,currentProposal=proposal,issue=issue)
+        if question_purpose is not None:value['_questionPurpose']=question_purpose
+        return value
     def display_text(text):
         if not text.strip() or len(text)>500:
             raise CompletionTechnicalError('display_text_format')
@@ -36,11 +39,14 @@ async def execute(snapshot,provider,diagnostics):
         # A new question is a real return to dialogue, including after a user
         # corrects or withdraws the meaning behind an active proposal.
         return response('QUESTION',display_text(text))
+    async def check_current_thought(text):
+        return response('QUESTION',display_text(text),question_purpose=CURRENT_THOUGHT_CHECK)
     async def offer_help(text):
         proposal=deepcopy(snapshot.get('currentProposal')) if snapshot['phase']=='PROPOSAL_REVIEW' else None
         # EXPLAIN_PROPOSAL remains an external outcome for Spring compatibility;
         # the Agent-facing HELP/EXPLAIN_PROPOSAL mode split no longer exists.
-        return response('EXPLAIN_PROPOSAL' if proposal is not None else 'HELP',display_text(text),proposal)
+        return response('EXPLAIN_PROPOSAL' if proposal is not None else 'HELP',display_text(text),proposal,
+            question_purpose=snapshot.get('pendingQuestionPurpose'))
     async def assess_completion(fallbackQuestion):
         fallbackQuestion=display_text(fallbackQuestion)
         # Reserve both mandatory remaining calls before invoking the Assessor.
@@ -57,7 +63,8 @@ async def execute(snapshot,provider,diagnostics):
     async def respond_safety(action,reason):
         require(bool(reason.strip()),'blank_safety_reason')
         return response('SAFETY_STOP' if action=='STOP' else 'SAFETY_CLARIFY',SAFETY if action=='STOP' else CLARIFY)
-    tools={'ask_question':ask_question,'offer_help':offer_help,'assess_completion':assess_completion,
+    tools={'ask_question':ask_question,'check_current_thought':check_current_thought,
+        'offer_help':offer_help,'assess_completion':assess_completion,
         'respond_control':respond_control,'respond_safety':respond_safety}
     async def select(g):
         message,call=await provider.choose(provider.messages('SELECT',payload))

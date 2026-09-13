@@ -9,6 +9,7 @@
 | suggestions / reviews | 기존 12개 코드와 저장 테이블, 사용자 수락/거부, 과거 BEFORE/AFTER 행의 읽기 구분 |
 | status / phase / revision | entity·transaction·controller·client·React route/state·동시 요청·cancel·open 목록 |
 | currentProposal / confirmedResult | 미확정 복원, 설명 후 동일 ID 유지, 정정/실패 시 승인 잠금, 승인 후 확정 조회 |
+| pending current-thought purpose | `check_current_thought`가 라이브 runtime에만 기록, 다음 TURN의 Agent가 Assessor routing에 사용, RESTORE에서는 전체 시간순 대화로 복구 |
 | requestId / attemptNo / deadline | AiJobs 입력 선저장·재전달·만료·resync·최종 저장·취소·timeout과 reverse proxy |
 
 NEW도 논리 job과 같은 생성 실패/retry 규칙을 적용한다. RESTORE에서 현존 실행을 덮어쓰지 않는다. snapshot은 Spring의 현재 revision과 실제 처리 중 사용자 메시지/논리job 식별을 포함한다. messageNumber는 전체 이력의 안정적인 번호이며 재개마다 마지막 몇 문장 기준으로 다시 붙이지 않는다. 과거 동일 timestamp는 저장 순서를 유지한다.
@@ -24,5 +25,7 @@ FastAPI timeout≤Spring client≤proxy/browser wait를 실제 설정으로 맞�
 DB 기존 관리 방식과 데이터 보존을 따른다. 새 not-null 필드를 기존 행에 바로 강제하거나 구형 JSON을 새 형식으로 무조건 역직렬화하지 않는다. read mapper·기본값·resultFormatVersion으로 호환을 유지하며 과거 semantic engine을 실행하지 않는다. 새 결과의 AFTER를 사용자 확인 값으로 표시하되 의미가 다른 legacy 대안 문구는 새 변화로 소급 재분류하지 않는다.
 
 기록 분석, 인증, 통계, 기록 정렬/페이지, RAG 검색 권한과 임베딩 재시도는 유지한다. 기존 임베딩의 context / context+thought 목적을 함부로 전체 대화 임베딩으로 바꾸지 않는다. 보고서의 사용자 승인된 왜곡/생각 변화와 과거 두 라벨 집합 차이는 같은 수치가 아니다.
+
+현재 생각 확인 목적은 외부 route·DTO·snapshot·DB 상태가 아니라 runtime 내부 routing 메타데이터다. 이 메타데이터는 AFTER 성립 여부를 판정하지 않으며, 직후 USER 답변을 Assessor에게 넘길 시점만 알려 준다. 프로세스 복원 뒤에는 저장된 전체 ASSISTANT/USER 이력을 Agent가 직접 읽어 같은 결속을 회복한다.
 
 제품 prompt는 Agent, Assessor, 같은 Agent의 assessment-review 세 개이며 runtime `model-contracts.json`을 canonical source로 사용한다. provider-specific wrapper는 기계적 변환만 한다. 문서 JSON을 실제 provider 허용 schema라고 실행 없이 선언하지 않으며 실제 모델 수용은 별도 승인 뒤 canary에서 확인한다.

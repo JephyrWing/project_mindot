@@ -18,7 +18,7 @@ def main():
              *sorted((ROOT/'mindot_ai/cbt_session_agent').glob('*.py')),
              *sorted((ROOT/'mindot_ai/tools').glob('insight_*.py')),
              ROOT/'mindot_ai/tests/test_insight_protocol.py',ROOT/'mindot_ai/tests/test_question_proposal_fix.py',
-             ROOT/'mindot_ai/tests/test_q13_thought_change.py']
+             ROOT/'mindot_ai/tests/test_q13_thought_change.py',ROOT/'mindot_ai/tests/test_q14_current_thought_check.py']
     syntax = []
     for path in paths:
         ast.parse(path.read_text(encoding='utf-8-sig'), filename=str(path))
@@ -33,15 +33,15 @@ def main():
     for shape in [*schema.select_schemas().values(),schema.assessor_schema(),schema.review_schema()]:
         inspect(shape)
     expected_prompts={
-        'agent.txt':(1884,'9beb197fbeada4a1c7994bb434a3629f2322d5f621790a935f2f882710c85a5b'),
-        'assessor.txt':(1301,'5cc7f7c0db317bb6da49f268d07abe62fb0861304b30afb6b72ebb82c93089a7'),
-        'assessment-review.txt':(601,'e90d4dc21712b0b61611b691b6fa795af3e4393bd74d5660c73bda0762ad3f90'),
+        'agent.txt':(2603,'7fe3030e8350bb1046bc05680c140adc040f4c799ee254990f03baa55ef81fe8'),
+        'assessor.txt':(1374,'c3bc6e20479ce0d167c595e43e03e6030c854e20ae2af144e762cb89dae986f5'),
+        'assessment-review.txt':(660,'878a5c2444a27fcbc24de729fa8a8afd83a10959885f6ecd6de86f75077f7779'),
     }
     prompt_contract={}
     for name,(characters,expected_sha) in expected_prompts.items():
         text=(ROOT/'mindot_ai/cbt_session_agent/prompts'/name).read_text(encoding='utf-8-sig').strip()
         actual=(len(text),hashlib.sha256(text.encode('utf-8')).hexdigest())
-        if actual!=(characters,expected_sha):raise ValueError('q13_prompt_mismatch:'+name)
+        if actual!=(characters,expected_sha):raise ValueError('q14_prompt_mismatch:'+name)
         prompt_contract[name]=dict(characters=characters,sha256=expected_sha)
     runtime_root=ROOT/'mindot_ai/cbt_session_agent'
     docs_root=ROOT/'docs/cbt-redesign'
@@ -70,9 +70,9 @@ def main():
     prompts={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in (ROOT/'mindot_ai/cbt_session_agent/prompts').glob('*.txt')}
     result=dict(kind='STATIC_ONLY',syntax=syntax,strictSchemaStructure='CHECKED_NOT_PROVIDER_ACCEPTANCE',
         inputTokenLimit=wire.INPUT_TOKEN_LIMIT,requestByteLimit=wire.REQUEST_BYTE_LIMIT,phases=wire.PHASES,
-        generationPathCalls=dict(questionOrHelp=1,completionSuccess=3,
+        generationPathCalls=dict(questionHelpOrCurrentThoughtCheck=1,completionSuccess=3,
             completionNotEstablished=2,additionalAfterCompletionDecision=0),
-        serialization=rows,promptHashes=prompts,q13PromptContract=prompt_contract,
+        serialization=rows,promptHashes=prompts,q14PromptContract=prompt_contract,
         documentationCopies=dict(status='BYTE_IDENTICAL',files=documentation_copies),
         modelCalls=0,tests='NOT_RUN_PENDING_GPT_FULL_BRANCH_REVIEW',
         limitations=['Representative synthetic serialization only; no Agent/Assessor execution.',

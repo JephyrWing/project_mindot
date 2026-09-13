@@ -20,9 +20,10 @@ async def start(request:Start,*,registry=registry,**injected):
         if request.mode=='RESTORE':
             # Preserve a newer successful cache until Spring explicitly catches up;
             # authoritative restore may discard its visible text, never replay it as conversation.
-            runtime.snapshot=deepcopy(snap);registry.touch(runtime)
+            runtime.snapshot=deepcopy(snap);runtime.pending_question_purpose=None;registry.touch(runtime)
             return Result(sessionId=request.sessionId,inputRevision=request.revision,revision=request.revision,
                 outcome='RESTORED',phase=request.phase,currentProposal=request.currentProposal)
+        runtime.pending_question_purpose=None
         job=request.pendingJob
         return await generate(runtime,snap,job.model_dump(),registry,injected)
 
@@ -75,16 +76,19 @@ async def generate(runtime,snap,job,registry,injected):
             d.emit('moderation_unavailable',error=type(exc).__name__);moderation=dict(available=False,flagged=None)
         # Advisory moderation does not mechanically classify quotations as current risk.
         model_snapshot=deepcopy(snap);model_snapshot['moderation']=moderation
+        model_snapshot['pendingQuestionPurpose']=runtime.pending_question_purpose
         return await execute(model_snapshot,provider,d)
     try:
         with tracing_context(enabled=False):value=await asyncio.wait_for(run(),180)
         require(budget.guard(),'CANCELLED')
+        question_purpose=value.pop('_questionPurpose',None)
         message=dict(messageNumber=len(snap['messages'])+1,role='ASSISTANT',content=value.pop('text'),createdAt=datetime.now(timezone.utc).isoformat())
         result=Result(sessionId=snap['sessionId'],requestId=key,attemptNo=attempt,inputRevision=snap['revision'],revision=snap['revision']+1,
             assistantMessage=message,**value)
         updated=deepcopy(snap);updated['messages'].append(message);updated.update(revision=result.revision,phase=result.phase,
             currentProposal=result.currentProposal,pendingJob=None,mode='RESTORE')
-        runtime.snapshot=updated;runtime.successes[key]=result.model_dump(mode='json');registry.touch(runtime)
+        runtime.snapshot=updated;runtime.pending_question_purpose=question_purpose
+        runtime.successes[key]=result.model_dump(mode='json');registry.touch(runtime)
         d.emit('commit',response=runtime.successes[key],snapshot=updated)
         return result
     except BaseException as exc:
