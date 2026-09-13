@@ -37,9 +37,11 @@ class AgentInputs(unittest.TestCase):
         self.assertEqual(set(wire.PROMPTS),set(wire.PHASES))
         self.assertEqual([t['function']['name'] for t in schema.select_tools()],
             ['ask_question','check_current_thought','offer_help','assess_completion','respond_control','respond_safety'])
-        for name in ('ask_question','check_current_thought','offer_help'):
+        for name in ('ask_question','offer_help'):
             text_shape=schema.select_schemas()[name]['properties']['text']
             self.assertEqual(text_shape,{'type':'string'})
+        self.assertEqual(schema.select_schemas()['check_current_thought'],
+            {'type':'object','additionalProperties':False,'properties':{},'required':[]})
         self.assertFalse({'writerOutput','writerRepairOutput'} & set(schema.CONTRACT))
         self.assertEqual(wire.INPUT_TOKEN_LIMIT,48000)
         prompt_dir=Path(wire.__file__).parent/'prompts'

@@ -2,9 +2,13 @@
 
 상태: `READY_FOR_GPT_FULL_BRANCH_REVIEW`. 이 문서는 테스트·canary·실모델 품질 통과 보고서가 아니다.
 
+## 작업 기준 로그
+
+Google Drive의 최신 `project_mindot/docs/cbt-quality-iteration-log.md`를 읽기 전용으로 확인했다. Drive ID는 `1SEXzKZPNTJzuzjrcjp8hiyBnMHU4oetu`, 수정 시각은 `2026-09-13T06:56:11.847Z`, 크기는 366,758 bytes, SHA-256은 `d567eba68cae9ae6d8f3104a419faf666ea17ca7b337dfaf65611901ba1e63d2`다. 이 로그의 `CANARY_BLOCKED_CONFIRMED`와 공식 평가 `NOT_STARTED` 0/546 상태를 기준으로, 모델 생성 질문을 의미 검사하는 새 gate 대신 `check_current_thought({})`와 서버 소유 고정 질문으로 계약을 좁혔다. 로그 파일 자체는 수정하지 않았다.
+
 ## 활성 구현
 
-활성 경로는 `app.py → cbt_session_agent package → cbt_session_agent.py facade → service.py`다. 일반 대화는 Agent가 `ask_question(text)` 또는 `offer_help(text)`로 표시 문장까지 한 번에 결정한다. Q14는 합리적인 재고 신호 뒤 `check_current_thought(text)`로 현재 생각을 한 번 확인하고, 바로 답하거나 help 교환만 거친 뒤 답한 실제 USER 발화를 Assessor에게 넘긴다.
+활성 경로는 `app.py → cbt_session_agent package → cbt_session_agent.py facade → service.py`다. 일반 대화는 Agent가 `ask_question(text)` 또는 `offer_help(text)`로 표시 문장까지 한 번에 결정한다. Q14는 합리적인 재고 신호 뒤 Agent가 `check_current_thought({})`로 확인 시점만 선택하고, 서버가 `그렇다면, 처음에 떠올랐던 판단을 지금은 어떻게 보고 있나요?`를 기존 `QUESTION`으로 고정 반환한다. 바로 답하거나 help 교환만 거친 뒤 답한 실제 USER 발화는 Assessor에게 넘긴다.
 
 활성 `cbt_session_agent` 패키지는 필요한 오류 타입, 진단, canonical JSON/hash, token 계산, strict JSON object/provider response parsing, 현재 deterministic safety detector를 자체 모듈에 둔다. `cbt_agent.py`, `cbt_q5`, `cbt_q11`은 활성 소스에서 삭제했고 평가용 동결 사본만 `mindot_ai/artifacts`에 유지한다. 새 의미 엔진이나 fallback 계층은 추가하지 않았다.
 
@@ -12,7 +16,7 @@
 
 | 경로 | 생성 호출 | 정의 문맥 |
 |---|---:|---|
-| 질문·일반 도움·현재 생각 확인 | SELECT 1회 | distortionDefinitions 없음 |
+| 질문·일반 도움·현재 생각 확인 | SELECT 1회 | 현재 생각 확인 문구는 서버 고정, distortionDefinitions 없음 |
 | 현재 생각 확인 뒤 NOT_ESTABLISHED | SELECT + ASSESSOR, 최대 2회 | 판정 뒤 확인 질문 반복 없음 |
 | proposal 설명 | SELECT 1회 | 기존 proposal 전체, distortionDefinitions 없음 |
 | 완료 proposal | SELECT + ASSESSOR + ASSESSMENT_REVIEW, 최대 3회 | Assessor와 review에만 전체 정의 |
@@ -32,7 +36,7 @@ NEW/RESTORE/TURN, revision, request idempotency, failure retry, USER evidence, p
 
 `insight_static_check.py`는 현재 SELECT tool schema 전체와 Assessor/review schema, 세 phase serialization만 검사하도록 작성됐다. `insight_review_runner.py --suite ai`는 기존 세 AI 테스트 파일에 이어 `test_q14_current_thought_check.py`를 실행하도록 준비했다. Q14 테스트는 기존 외부 QUESTION 계약, 내부 목적 전달·소거, 직접 답변과 help 경유 답변, help 뒤 RESTORE, NOT_ESTABLISHED 비반복, ESTABLISHED proposal, 안전·제어·주제 전환의 복원 차단을 명세한다.
 
-이번 단계에서는 요청에 따라 static checker, runner, 테스트, 앱, canary, 유료 API와 공식 평가를 실행하지 않는다. 허용된 확인은 소스 읽기, prompt·문서 사본 무결성, 파일·참조 검색과 `git diff --check`뿐이다.
+이번 단계에서는 요청에 따라 static checker, runner, 테스트, 앱, canary, 유료 API와 공식 평가를 실행하지 않는다. 허용된 확인은 소스 읽기, Python AST, JSON parsing, prompt·문서 사본 무결성, 파일·참조 검색과 `git diff --check`뿐이다. 상태는 `READY_FOR_GPT_FULL_BRANCH_REVIEW`이며 테스트 전 전체 브랜치 리뷰를 기다린다.
 
 ## 외부 영역
 

@@ -4,13 +4,13 @@ import unittest
 from copy import deepcopy
 from unittest.mock import patch
 
-from cbt_session_agent import graph, service, wire
+from cbt_session_agent import graph, schema, service, wire
 from cbt_session_agent.contracts import Start, Turn
 from cbt_session_agent.state import Registry
 from test_insight_protocol import FakeProvider, RECORD, STAMP
 
 
-CHECK = '처음의 “나는 일을 전혀 못한다”는 판단을 지금은 어떻게 보고 있나요?'
+CHECK = '그렇다면, 처음에 떠올랐던 판단을 지금은 어떻게 보고 있나요?'
 ANSWER = '숫자 하나를 틀린 건 맞지만, 그 일 하나로 능력 전체를 판단하는 건 지나쳤다고 지금은 생각해요.'
 FALLBACK = '그 판단을 강하게 만들었던 구체적인 장면과 그렇지 않았던 장면을 하나씩 떠올려 볼까요?'
 
@@ -30,7 +30,7 @@ class Q14Provider(FakeProvider):
     def __init__(self):
         super().__init__(None)
         self.calls=[]
-        self.selection=('check_current_thought',dict(text=CHECK))
+        self.selection=('check_current_thought',{})
         self.candidate=candidate()
         self.select_payloads=[]
         self.assessor_payloads=[]
@@ -87,6 +87,11 @@ class CurrentThoughtCheck(unittest.IsolatedAsyncioTestCase):
         return result
 
     async def test_check_uses_existing_question_contract_and_internal_purpose_only(self):
+        tool=schema.select_schemas()['check_current_thought']
+        self.assertEqual(tool,dict(type='object',additionalProperties=False,properties={},required=[]))
+        with self.assertRaises(ValueError):
+            schema.validate(dict(text='모델이 만든 문구'),tool)
+        self.assertEqual(graph.CURRENT_THOUGHT_QUESTION,CHECK)
         result=await self.start_check()
         runtime=self.registry.sessions[14]
         self.assertEqual((result.outcome,result.phase,result.assistantMessage.content),('QUESTION','DIALOGUE',CHECK))

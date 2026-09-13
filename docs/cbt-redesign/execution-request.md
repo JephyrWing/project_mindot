@@ -5,8 +5,8 @@
 ## 현재 Q14 기준
 
 - 일반 질문·도움·현재 생각 확인은 Agent SELECT 한 번이다.
-- Agent 도구는 `ask_question(text)`, `check_current_thought(text)`, `offer_help(text)`, `assess_completion(fallbackQuestion)`, `respond_control()`, `respond_safety(action, reason)`다.
-- 사용자가 BEFORE를 재고했을 합리적인 신호를 보이면 `check_current_thought`가 중립적인 개방형 현재 생각 질문을 기존 외부 `QUESTION`으로 표시한다.
+- Agent 도구는 `ask_question(text)`, `check_current_thought({})`, `offer_help(text)`, `assess_completion(fallbackQuestion)`, `respond_control()`, `respond_safety(action, reason)`다.
+- 사용자가 BEFORE를 재고했을 합리적인 신호를 보이면 Agent는 `check_current_thought({})`로 확인 시점만 선택한다. 서버가 `그렇다면, 처음에 떠올랐던 판단을 지금은 어떻게 보고 있나요?`를 기존 외부 `QUESTION`으로 고정 표시한다.
 - 그 질문에 대한 실제 USER 답변은 Agent의 두 번째 명확성 gate 없이 Assessor로 전달되며, Assessor만 ESTABLISHED 또는 NOT_ESTABLISHED를 판정한다.
 - NOT_ESTABLISHED는 확인 질문을 반복하거나 AFTER를 발명하지 않고 일반 CBT 질문·지지로 돌아간다. ESTABLISHED만 같은 Agent의 원문 충실도·왜곡 근거·유형 적합성 review를 거쳐 proposal이 된다.
 - 일반 질문·도움·확인 질문은 SELECT 1회, 확인 뒤 NOT_ESTABLISHED는 SELECT → ASSESSOR 최대 2회, ESTABLISHED proposal은 SELECT → ASSESSOR → ASSESSMENT_REVIEW 최대 3회다.
@@ -28,7 +28,7 @@
 
 | 파일 | 문자 수 | SHA-256 |
 |---|---:|---|
-| `agent.txt` | 2907 | `b88c0c72ba243333e56d51062a4332a70a7ede76a831b2345d3bc0687733c55d` |
+| `agent.txt` | 2977 | `93f83c38fa25fea15008aa311b5923c583898ce404719a6210303305dda9c237` |
 | `assessor.txt` | 1374 | `c3bc6e20479ce0d167c595e43e03e6030c854e20ae2af144e762cb89dae986f5` |
 | `assessment-review.txt` | 660 | `878a5c2444a27fcbc24de729fa8a8afd83a10959885f6ecd6de86f75077f7779` |
 

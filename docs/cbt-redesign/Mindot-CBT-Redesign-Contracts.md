@@ -13,17 +13,17 @@
 | 도구 | 인자 | 의미 |
 |---|---|---|
 | `ask_question` | `text` | 사용자가 지금 답할 수 있는 맥락상 CBT 질문 하나를 바로 표시한다. 활성 제안 뒤 실제 정정·철회·새 탐색이면 기존 제안을 제거하고 `DIALOGUE`로 돌아간다. |
-| `check_current_thought` | `text` | 최초 판단을 재고했을 합리적인 신호 뒤, 그 판단을 지금 어떻게 보는지 한 번 확인한다. 외부에는 기존 `QUESTION`으로 표시되고 내부 질문 목적만 후속 TURN에 연결한다. |
+| `check_current_thought` | 없음 (`{}`) | Agent는 최초 판단을 재고했을 합리적인 신호 뒤 확인 시점만 선택한다. 서버가 `그렇다면, 처음에 떠올랐던 판단을 지금은 어떻게 보고 있나요?`를 기존 `QUESTION`으로 고정 표시하고 내부 질문 목적만 후속 TURN에 연결한다. |
 | `offer_help` | `text` | 직전 질문 또는 현재 제안을 쉬운 말이나 중립적인 가상 예시로 설명한다. 활성 제안이 있으면 동일 제안과 `PROPOSAL_REVIEW`를 보존한다. |
 | `assess_completion` | `fallbackQuestion` | 생각 변화 가능성을 Assessor가 독립 판단하도록 요청한다. 미성립 또는 최종 검토 거부 시 같은 호출에서 작성한 질문으로 대화에 복귀한다. |
 | `respond_control` | 없음 | 질문 중단과 기존 나중에 이어하기·완전 종료 선택을 안내한다. |
 | `respond_safety` | `action`, `reason` | 명확한 현재 위험의 중단 또는 필요한 최소 안전 확인을 처리한다. |
 
-세 표시 도구의 `text`에는 provider function schema의 길이 제약을 중복하지 않는다. `graph.py`가 공백 표시 문장과 500자 초과만 형식 검사한다. 자연어 의미 regex, keyword/score gate, 금지 문구 validator, repair LLM, 자동 생성 재시도는 없다.
+`ask_question`과 `offer_help`의 `text`에는 provider function schema의 길이 제약을 중복하지 않는다. `graph.py`가 이 모델 생성 문장의 공백과 500자 초과만 형식 검사한다. `check_current_thought`는 빈 object schema이며 모델 생성 `text`를 받지 않는다. 자연어 의미 regex, keyword/score gate, 금지 문구 validator, repair LLM, 자동 생성 재시도는 없다.
 
 ## 생성 경로와 문맥
 
-- 일반 질문·도움·현재 생각 확인: `SELECT` 1회. Agent가 의미와 표시 문장을 함께 작성한다.
+- 일반 질문·도움·현재 생각 확인: `SELECT` 1회. 일반 질문·도움은 Agent가 문장을 작성하고 현재 생각 확인은 서버 고정 문장을 사용한다.
 - 현재 생각 확인 다음 답변이 NOT_ESTABLISHED: `SELECT → ASSESSOR`, 최대 2회. 확인 질문을 반복하지 않고 일반 CBT 지원 또는 질문으로 돌아간다.
 - 완료: `SELECT → ASSESSOR → 같은 Agent의 ASSESSMENT_REVIEW`, 최대 3회.
 - `distortionDefinitions`: `ASSESSOR`와 `ASSESSMENT_REVIEW`에만 전체 정의를 제공한다. `SELECT`에는 제공하지 않는다.
@@ -48,7 +48,7 @@ Spring은 start/resume에서 전체 이력과 phase·proposal·pending job을 �
 - RESTORE: provider를 만들지 않고 전체 snapshot을 그대로 복원.
 - TURN: `baseRevision → inputRevision` delta 하나를 검증해 append.
 - 라이브 runtime: 현재 생각 확인 목적을 내부 메모리에만 보관해 후속 TURN의 routing에 제공하며, help 교환만 있는 동안 유지.
-- RESTORE: 내부 목적 마커는 복원하지 않고 전체 시간순 대화를 역추적한다. 최신 미해결 확인 질문 뒤에 help 교환만 있으면 이후 실제 답변과 결속하고, 안전·명시적 제어·주제 포기/전환·일반 질문·proposal 전이가 있으면 복원하지 않는다.
+- RESTORE: 내부 목적 마커는 복원하지 않고 전체 시간순 대화에서 서버 고정 확인 질문을 역추적한다. 최신 미해결 확인 질문 뒤에 help 교환만 있으면 이후 실제 답변과 결속하고, 안전·명시적 제어·주제 포기/전환·일반 질문·proposal 전이가 있으면 복원하지 않는다. RESTORE 자체는 모델을 호출하지 않으며 새 persistence를 추가하지 않는다.
 - 동일 request ID와 같은 입력의 성공 결과는 재생성하지 않는다.
 - 같은 request ID의 다른 입력은 `REQUEST_CONFLICT`다.
 - 메모리·revision 불일치는 모델 호출 전 `RESYNC_REQUIRED`다.

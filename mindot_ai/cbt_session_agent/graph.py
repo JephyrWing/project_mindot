@@ -15,6 +15,7 @@ INVALID_CANDIDATE='생각을 정리하는 과정에서 오류가 생겨 이번 �
 SAFETY='지금은 안전이 우선입니다. 즉시 위험하다면 119 또는 112에 연락하고, 가까운 믿을 수 있는 사람에게 알려 혼자 있지 않도록 도움을 요청해 주세요.'
 CLARIFY='말씀하신 위험이 지금 본인에게 해당하나요? 지금 자신이나 다른 사람을 해칠 생각이 있거나 즉시 도움이 필요한 상황인지 알려주세요.'
 CURRENT_THOUGHT_CHECK='CURRENT_THOUGHT_CHECK'
+CURRENT_THOUGHT_QUESTION='그렇다면, 처음에 떠올랐던 판단을 지금은 어떻게 보고 있나요?'
 
 class GraphState(TypedDict,total=False):
     selection: dict
@@ -39,8 +40,8 @@ async def execute(snapshot,provider,diagnostics):
         # A new question is a real return to dialogue, including after a user
         # corrects or withdraws the meaning behind an active proposal.
         return response('QUESTION',display_text(text))
-    async def check_current_thought(text):
-        return response('QUESTION',display_text(text),question_purpose=CURRENT_THOUGHT_CHECK)
+    async def check_current_thought():
+        return response('QUESTION',CURRENT_THOUGHT_QUESTION,question_purpose=CURRENT_THOUGHT_CHECK)
     async def offer_help(text):
         proposal=deepcopy(snapshot.get('currentProposal')) if snapshot['phase']=='PROPOSAL_REVIEW' else None
         # EXPLAIN_PROPOSAL remains an external outcome for Spring compatibility;

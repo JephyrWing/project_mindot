@@ -19,18 +19,12 @@
     },
     {
       "name": "check_current_thought",
-      "description": "BEFORE를 재고했을 합리적인 신호 뒤, 최초 판단을 지금 어떻게 보는지 중립적인 개방형 질문 하나로 확인한다. 외부에는 기존 QUESTION으로 표시되고 내부 질문 목적만 후속 TURN에 연결한다.",
+      "description": "Agent가 BEFORE를 재고한 뒤 현재 생각을 확인할 시점만 선택한다. 서버가 고정 질문을 기존 QUESTION으로 표시하고 내부 질문 목적만 후속 TURN에 연결한다.",
       "parameters": {
         "type": "object",
         "additionalProperties": false,
-        "properties": {
-          "text": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "text"
-        ]
+        "properties": {},
+        "required": []
       }
     },
     {
@@ -259,7 +253,7 @@
   },
   "serverOnlyRules": [
     "nonempty displayed text and maximum 500 characters",
-    "check_current_thought returns the existing QUESTION outcome and stores only an internal pending question purpose",
+    "check_current_thought accepts an empty object and returns the server-owned fixed question with the existing QUESTION outcome while storing only an internal pending question purpose",
     "the first substantive USER answer after a current-thought check, allowing only intervening help exchanges, is routed to assess_completion without a second Agent clarity gate",
     "offer_help preserves an active proposal; ask_question clears it",
     "changeStatus is ESTABLISHED or NOT_ESTABLISHED",
