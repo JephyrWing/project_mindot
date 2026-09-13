@@ -83,15 +83,18 @@ class Q13Contract(unittest.TestCase):
             'CONTROL','SAFETY_CLARIFY','SAFETY_STOP','UNRESOLVED'])
         self.assertEqual((wire.INPUT_TOKEN_LIMIT,wire.REQUEST_BYTE_LIMIT),(48000,196608))
 
-    def test_prompts_cover_q13_semantic_cases_without_server_keyword_policy(self):
+    def test_prompts_preserve_q14_semantic_roles_without_server_keyword_policy(self):
         agent=wire.PROMPTS['SELECT'];assessor=wire.PROMPTS['ASSESSOR'];review=wire.PROMPTS['ASSESSMENT_REVIEW']
-        for text in ('record에 이미 있는 상황·감정·자동적 생각','없다고 한 근거',
-                     '관련 없거나 반복이라는 피드백','설명·예시 요청','fallbackQuestion'):
-            self.assertIn(text,agent)
-        for text in ('다른 가능성','반대 근거','AI 예시 반복','사실적이고 비례적인 진술',
-                     '한 문장 또는 여러 USER 답변'):
-            self.assertIn(text,assessor)
-        self.assertIn('최초 생각에 없던 더 넓은 부정적 판단',review)
+        self.assertIn('check_current_thought',schema.select_schemas())
+        self.assertTrue(all(concept in agent for concept in
+            ('BEFORE','현재 생각 확인','pendingQuestionPurpose','assess_completion','fallbackQuestion')))
+        priorities=[agent.index(concept) for concept in
+            ('현재 사용자의 명확한 즉시 위험','전체 중단 의사','현재 도움·예시 요청','현재 생각 확인','일반 CBT 질문')]
+        self.assertEqual(priorities,sorted(priorities))
+        self.assertTrue(all(concept in assessor for concept in
+            ('유일한 Assessor','ESTABLISHED','NOT_ESTABLISHED','실제 USER 발화','다른 가능성')))
+        self.assertTrue(all(concept in review for concept in
+            ('다시 수행하거나 뒤집지 않는다','원문 충실도','왜곡 근거','유형 적합성')))
 
 
 class Q13Transitions(unittest.IsolatedAsyncioTestCase):

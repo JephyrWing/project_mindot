@@ -12,7 +12,9 @@ NEW / TURN
       └─ Agent SELECT
           ├─ ask_question(text) ───────────────→ QUESTION / DIALOGUE
           ├─ check_current_thought(text) ──────→ QUESTION / DIALOGUE
-          │   └─ 바로 다음 USER 답변 ─────────→ assess_completion
+          │   ├─ USER 실제 답변 ──────────────→ assess_completion
+          │   └─ help 요청·응답만 경유
+          │       └─ 이후 USER 실제 답변 ─────→ assess_completion
           ├─ offer_help(text)
           │   ├─ active proposal 없음 ───────→ HELP / DIALOGUE
           │   └─ active proposal 있음 ───────→ EXPLAIN_PROPOSAL / PROPOSAL_REVIEW
@@ -32,7 +34,7 @@ NEW / TURN
 
 질문은 자동적 생각과 최신 답변에서 아직 확인되지 않은 연결 하나를 고른다. 이미 말한 사실·원인·답이나 거절한 방향을 표현만 바꾸어 반복하지 않는다. 관찰 사실, 판단을 지지하거나 흔드는 구체적 근거, 예외 경험처럼 사용자가 바로 답할 대상을 분명히 한다.
 
-사용자가 최초 자동적 생각을 재고했을 합리적인 신호를 보이면 Agent는 명확/가능 단계를 나누지 않고 현재 생각을 한 번 확인한다. 이 질문은 BEFORE를 짧고 중립적으로 연결해 지금의 생각을 개방형으로 묻고, 후보 AFTER·왜곡 유형·이미 답한 근거를 제시하지 않는다. 바로 다음 USER 답변은 Agent의 두 번째 명확성 gate 없이 Assessor로 전달한다. Assessor만 AFTER의 ESTABLISHED/NOT_ESTABLISHED를 결정하며, 같은 Agent의 마지막 review는 원문 충실도·근거·왜곡 적합성만 확인한다.
+사용자가 최초 자동적 생각을 재고했을 합리적인 신호를 보이면 Agent는 명확/가능 단계를 나누지 않고 현재 생각을 한 번 확인한다. 이 질문은 BEFORE를 짧고 중립적으로 연결해 지금의 생각을 개방형으로 묻고, 후보 AFTER·왜곡 유형·이미 답한 근거를 제시하지 않는다. 바로 답하거나 도움·설명·예시 교환만 거친 뒤 답한 USER 발화는 Agent의 두 번째 명확성 gate 없이 Assessor로 전달한다. Assessor만 AFTER의 ESTABLISHED/NOT_ESTABLISHED를 결정하며, 같은 Agent의 마지막 review는 원문 충실도·근거·왜곡 적합성만 확인한다.
 
 도움은 직전 질문 또는 현재 proposal을 쉬운 말로 설명한다. 가상 예시는 가상임을 밝히고 사용자 경험·정답·생각 변화의 근거로 저장하지 않는다. proposal 설명은 내용을 바꾸거나 동의·저장을 대신 확정하지 않는다.
 
@@ -47,7 +49,7 @@ NEW / TURN
 
 Spring이 전체 상태의 영속 정본이다. AI runtime은 NEW/RESTORE/TURN과 revision·request ID를 검사하며 성공한 assistant 메시지만 commit한다. RESTORE는 생성 없이 전체 상태를 복구하고, TURN의 새 USER delta는 정확히 한 번만 누적한다.
 
-현재 생각 확인 목적은 라이브 runtime에만 보관하며 route·DTO·snapshot·DB에 새 상태를 추가하지 않는다. RESTORE에서는 이 휘발성 마커를 지우고, 복원된 전체 시간순 대화에서 최근 ASSISTANT의 현재 생각 확인 질문과 바로 다음 USER 답변의 결속을 Agent가 읽는다. 질문 목적은 Assessor로 보내는 routing 정보일 뿐 AFTER 성립 판정이 아니다.
+현재 생각 확인 목적은 라이브 runtime에만 보관하며 route·DTO·snapshot·DB에 새 상태를 추가하지 않는다. RESTORE에서는 이 휘발성 마커를 지우고, Agent가 전체 시간순 대화를 역추적해 가장 최신의 미해결 현재 생각 확인 질문을 찾는다. 질문 뒤에 도움·설명·예시 요청과 응답만 끼어 있으면 이후 실제 답변과 결속하며, 안전·명시적 제어·주제 포기/전환·일반 질문·proposal 전이가 있으면 복원하지 않는다. 질문 목적은 Assessor로 보내는 routing 정보일 뿐 AFTER 성립 판정이 아니다.
 
 ## 안전과 중단
 

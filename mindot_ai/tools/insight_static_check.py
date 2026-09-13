@@ -33,7 +33,7 @@ def main():
     for shape in [*schema.select_schemas().values(),schema.assessor_schema(),schema.review_schema()]:
         inspect(shape)
     expected_prompts={
-        'agent.txt':(2603,'7fe3030e8350bb1046bc05680c140adc040f4c799ee254990f03baa55ef81fe8'),
+        'agent.txt':(2907,'b88c0c72ba243333e56d51062a4332a70a7ede76a831b2345d3bc0687733c55d'),
         'assessor.txt':(1374,'c3bc6e20479ce0d167c595e43e03e6030c854e20ae2af144e762cb89dae986f5'),
         'assessment-review.txt':(660,'878a5c2444a27fcbc24de729fa8a8afd83a10959885f6ecd6de86f75077f7779'),
     }
