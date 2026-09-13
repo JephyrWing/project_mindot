@@ -69,7 +69,7 @@ class CurrentThoughtCheck(unittest.IsolatedAsyncioTestCase):
         agent=wire.PROMPTS['SELECT']
         self.assertTrue(all(concept in agent for concept in (
             '전체 시간순 대화를 뒤에서부터',
-            '가장 최신의 아직 답변되지 않은 현재 생각 확인 질문',
+            '가장 최신의 아직 답변되지 않은 서버 고정 현재 생각 확인 질문',
             '도움·설명·예시 응답으로 이루어진 교환만',
             '직전 ASSISTANT 메시지일 필요는 없다',
         )))
