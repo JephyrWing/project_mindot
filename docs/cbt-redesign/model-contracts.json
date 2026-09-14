@@ -18,6 +18,16 @@
       }
     },
     {
+      "name": "check_current_thought",
+      "description": "Agent가 BEFORE를 재고한 뒤 현재 생각을 확인할 시점만 선택한다. 서버가 고정 질문을 기존 QUESTION으로 표시하고 내부 질문 목적만 후속 TURN에 연결한다.",
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {},
+        "required": []
+      }
+    },
+    {
       "name": "offer_help",
       "description": "직전 CBT 질문 또는 현재 제안을 쉬운 말이나 중립적인 가상 예시로 설명한다. 활성 제안은 보존하며 사용자 동의나 저장을 확정하지 않는다.",
       "parameters": {
@@ -35,12 +45,18 @@
     },
     {
       "name": "assess_completion",
-      "description": "사용자가 초기 판단의 잘못을 알아차리고 수정했을 때 AFTER와 유형 후보를 작성한다.",
+      "description": "생각 변화 가능성을 Assessor가 전체 문맥에서 독립적으로 판단하도록 요청한다. 미성립 또는 최종 검토 거부 시 같은 호출의 fallbackQuestion을 표시한다.",
       "parameters": {
         "type": "object",
         "additionalProperties": false,
-        "properties": {},
-        "required": []
+        "properties": {
+          "fallbackQuestion": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "fallbackQuestion"
+        ]
       }
     },
     {
@@ -82,6 +98,13 @@
     "type": "object",
     "additionalProperties": false,
     "properties": {
+      "changeStatus": {
+        "type": "string",
+        "enum": [
+          "ESTABLISHED",
+          "NOT_ESTABLISHED"
+        ]
+      },
       "beforeCorrection": {
         "anyOf": [
           {
@@ -201,6 +224,7 @@
       }
     },
     "required": [
+      "changeStatus",
       "beforeCorrection",
       "afterText",
       "afterEvidence",
@@ -229,12 +253,16 @@
   },
   "serverOnlyRules": [
     "nonempty displayed text and maximum 500 characters",
+    "check_current_thought accepts an empty object and returns the server-owned fixed question with the existing QUESTION outcome while storing only an internal pending question purpose",
+    "the first substantive USER answer after a current-thought check, allowing only intervening help exchanges, is routed to assess_completion without a second Agent clarity gate",
     "offer_help preserves an active proposal; ask_question clears it",
-    "non-null afterText requires USER evidence",
-    "null afterText -> empty evidence and suggestions + UNDETERMINED; not approvable",
+    "changeStatus is ESTABLISHED or NOT_ESTABLISHED",
+    "ESTABLISHED requires non-null afterText and USER evidence",
+    "NOT_ESTABLISHED -> null beforeCorrection/afterText/evidence texts + empty evidence and suggestions + UNDETERMINED",
     "NO_CLEAR_DISTORTION or UNDETERMINED -> suggestions empty",
     "DISTORTION_SUGGESTED -> at least one unique existing code",
     "evidence quote is substring of the referenced USER content",
+    "changeStatus is internal and omitted from currentProposal",
     "proposalId/revision/phase/assessment eligibility semantics are not model-generated ledgers"
   ]
 }

@@ -14,6 +14,7 @@ from cbt_session_agent.diagnostics import Diagnostics
 from test_insight_protocol import FakeProvider, RECORD, ANSWER, STAMP
 
 FIXTURE = json.loads((Path(__file__).parent/'fixtures'/'canary_noop_correction.json').read_text(encoding='utf-8'))
+FALLBACK = '그 판단을 지금은 어떻게 보고 있는지 조금 더 설명해 주실 수 있나요?'
 
 
 class AgentInputs(unittest.TestCase):
@@ -35,10 +36,12 @@ class AgentInputs(unittest.TestCase):
         self.assertEqual(set(wire.PHASES),{'SELECT','ASSESSOR','ASSESSMENT_REVIEW'})
         self.assertEqual(set(wire.PROMPTS),set(wire.PHASES))
         self.assertEqual([t['function']['name'] for t in schema.select_tools()],
-            ['ask_question','offer_help','assess_completion','respond_control','respond_safety'])
+            ['ask_question','check_current_thought','offer_help','assess_completion','respond_control','respond_safety'])
         for name in ('ask_question','offer_help'):
             text_shape=schema.select_schemas()[name]['properties']['text']
             self.assertEqual(text_shape,{'type':'string'})
+        self.assertEqual(schema.select_schemas()['check_current_thought'],
+            {'type':'object','additionalProperties':False,'properties':{},'required':[]})
         self.assertFalse({'writerOutput','writerRepairOutput'} & set(schema.CONTRACT))
         self.assertEqual(wire.INPUT_TOKEN_LIMIT,48000)
         prompt_dir=Path(wire.__file__).parent/'prompts'
@@ -66,7 +69,7 @@ class Probe(FakeProvider):
         super().__init__(None)
         self.calls=[];self.candidate=deepcopy(candidate);self.accept=accept
         self.failure=failure;self.select_failure=None;self.review_input=None;self.structured_payloads=[]
-        self.selection=('assess_completion', {})
+        self.selection=('assess_completion',dict(fallbackQuestion=FALLBACK))
 
     async def choose(self,messages):
         if self.select_failure:
@@ -111,7 +114,9 @@ class ProposalProcessing(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([e['normalizedFields'] for e in d.events if e['event']=='candidate_normalized'],[['beforeCorrection']])
         self.assertEqual(provider.calls,['SELECT','ASSESSOR','ASSESSMENT_REVIEW'])
         self.assertEqual(result['outcome'],'PROPOSAL')
-        for k,v in processed.items():self.assertEqual(result['currentProposal'][k],v)
+        for k,v in processed.items():
+            if k!='changeStatus':self.assertEqual(result['currentProposal'][k],v)
+        self.assertNotIn('changeStatus',result['currentProposal'])
         self.assertEqual(result['currentProposal']['beforeText'],FIXTURE['snapshot']['record']['automaticThought'])
         self.assertIn(processed['afterText'],result['text'])
 
@@ -137,17 +142,22 @@ class ProposalProcessing(unittest.IsolatedAsyncioTestCase):
                 self.assertIsNone(result['currentProposal'])
                 self.assertIsNone(provider.review_input)
 
-    async def test_three_unresolved_causes_clear_old_proposal_and_do_not_regenerate(self):
-        null=deepcopy(FIXTURE['candidate']);null.update(beforeCorrection=None,afterText=None,afterEvidence=[],suggestions=[],assessmentType='UNDETERMINED')
+    async def test_non_establishment_rejection_and_invalid_candidate_clear_old_proposal(self):
+        null=deepcopy(FIXTURE['candidate']);null.update(changeStatus='NOT_ESTABLISHED',beforeCorrection=None,
+            afterText=None,afterEvidence=[],suggestions=[],assessmentType='UNDETERMINED',
+            evidenceForText=None,evidenceAgainstText=None)
         invalid=deepcopy(FIXTURE['candidate']);invalid['afterEvidence'][0]['messageNumber']=1
-        seen=[]
-        for candidate,accept,issue,count in [(null,True,'AFTER_NOT_ESTABLISHED',2),(invalid,True,'INVALID_CANDIDATE',2),(FIXTURE['candidate'],False,'CANDIDATE_REJECTED',3)]:
+        cases=[
+            (null,True,'QUESTION',None,FALLBACK,2),
+            (invalid,True,'UNRESOLVED','INVALID_CANDIDATE',graph.INVALID_CANDIDATE,2),
+            (FIXTURE['candidate'],False,'QUESTION',None,FALLBACK,3),
+        ]
+        for candidate,accept,outcome,issue,text,count in cases:
             snapshot=deepcopy(FIXTURE['snapshot']);snapshot.update(phase='PROPOSAL_REVIEW',currentProposal={'proposalId':'old'})
             result,provider,_=await self.run_candidate(candidate,snapshot,accept)
-            self.assertEqual((result['outcome'],result['phase'],result['issue']),('UNRESOLVED','DIALOGUE',issue))
+            self.assertEqual((result['outcome'],result['phase'],result['issue']),(outcome,'DIALOGUE',issue))
             self.assertIsNone(result['currentProposal']);self.assertEqual(len(provider.calls),count)
-            self.assertEqual(result['text'],getattr(graph,issue));seen.append(result['text'])
-        self.assertEqual(len(set(seen)),3)
+            self.assertEqual(result['text'],text)
 
     async def test_malformed_schema_and_provider_errors_remain_technical(self):
         malformed=deepcopy(FIXTURE['candidate']);malformed['beforeCorrection']={'text':FIXTURE['snapshot']['record']['automaticThought']}
@@ -176,7 +186,8 @@ class ProposalProcessing(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(provider.calls,['SELECT'])
 
     async def test_offer_help_preserves_active_proposal_without_mode_enum(self):
-        snapshot=deepcopy(FIXTURE['snapshot']);proposal=deepcopy(FIXTURE['candidate'])|{'proposalId':'same'}
+        snapshot=deepcopy(FIXTURE['snapshot'])
+        proposal={k:v for k,v in deepcopy(FIXTURE['candidate']).items() if k!='changeStatus'}|{'proposalId':'same'}
         snapshot.update(phase='PROPOSAL_REVIEW',currentProposal=proposal)
         provider=Probe(None);provider.selection=('offer_help',dict(text='처음에는 한 번의 실수를 전체 능력으로 넓혔고, 바뀐 생각은 둘을 구분한다는 뜻이에요.'))
         result=await graph.execute(snapshot,provider,Diagnostics())
@@ -202,7 +213,7 @@ class ProposalProcessing(unittest.IsolatedAsyncioTestCase):
 
     async def test_restore_does_not_normalize_preexisting_proposal(self):
         snapshot=deepcopy(FIXTURE['snapshot'])
-        proposal=dict(deepcopy(FIXTURE['candidate']),proposalId='saved-proposal')
+        proposal={k:v for k,v in deepcopy(FIXTURE['candidate']).items() if k!='changeStatus'}|{'proposalId':'saved-proposal'}
         snapshot.update(mode='RESTORE',phase='PROPOSAL_REVIEW',currentProposal=proposal,pendingJob=None)
         request=Start(**snapshot);registry=Registry()
         with patch.object(service,'Provider',side_effect=AssertionError('RESTORE must not instantiate Provider')):

@@ -13,6 +13,7 @@ from cbt_session_agent.safety import detector
 STAMP = '2026-09-09T00:00:00Z'
 RECORD = dict(recordId=1, situation='숫자 한 곳을 수정했다.', automaticThought='나는 일을 전혀 못한다.')
 ANSWER = '실수 하나로 능력 전체를 판단한 게 성급했네요. 이번 실수만 고치면 되겠어요.'
+FALLBACK = '그렇게 생각한 근거와 다르게 볼 수 있는 근거를 함께 살펴보면 지금 생각은 어떤가요?'
 
 
 class FakeBudget:
@@ -123,8 +124,9 @@ class InsightProtocol(unittest.IsolatedAsyncioTestCase):
 
     async def test_assessment_and_same_agent_review_then_explanation_and_withdrawal(self):
         await self.new()
-        FakeProvider.selection = ('assess_completion', {})
-        FakeProvider.candidate = dict(beforeCorrection=None, afterText='실수 하나가 내 능력 전체의 증거는 아니다.',
+        FakeProvider.selection = ('assess_completion', dict(fallbackQuestion=FALLBACK))
+        FakeProvider.candidate = dict(changeStatus='ESTABLISHED', beforeCorrection=None,
+            afterText='실수 하나가 내 능력 전체의 증거는 아니다.',
             afterEvidence=[dict(messageNumber=2, quote=ANSWER)], assessmentType='UNDETERMINED', suggestions=[],
             comparisonExplanation='능력 전체에 대한 단정을 수정했다.', evidenceForText=None, evidenceAgainstText=None)
         result = await service.turn(self.delta(), registry=self.registry)
@@ -219,13 +221,17 @@ class InsightProtocol(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.registry.sessions[2].snapshot['revision'],1)
         self.assertGreater(diagnostics.counters.get('audit_sink_failure',0),0)
 
-    async def test_null_after_is_unresolved_not_approvable_or_technical_retry(self):
+    async def test_null_after_returns_same_fallback_without_review_or_technical_retry(self):
         await self.new()
-        FakeProvider.selection = ('assess_completion', {})
-        FakeProvider.candidate = dict(beforeCorrection=None, afterText=None, afterEvidence=[],
+        FakeProvider.selection = ('assess_completion', dict(fallbackQuestion=FALLBACK))
+        FakeProvider.candidate = dict(changeStatus='NOT_ESTABLISHED', beforeCorrection=None,
+            afterText=None, afterEvidence=[],
             assessmentType='UNDETERMINED', suggestions=[], comparisonExplanation='변화 근거 없음',
             evidenceForText=None, evidenceAgainstText=None)
         result = await service.turn(self.delta(), registry=self.registry)
-        self.assertEqual(result.outcome, 'UNRESOLVED')
+        self.assertEqual((result.outcome,result.phase),('QUESTION','DIALOGUE'))
+        self.assertEqual(result.assistantMessage.content,FALLBACK)
         self.assertIsNone(result.currentProposal)
+        self.assertIsNone(result.issue)
+        self.assertEqual(FakeProvider.calls[-2:],['SELECT','ASSESSOR'])
         self.assertNotIn('ASSESSMENT_REVIEW', FakeProvider.calls)

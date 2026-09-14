@@ -9,6 +9,7 @@ from .contracts import ProtocolError
 class Runtime:
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
     snapshot: dict | None = None
+    pending_question_purpose: str | None = None
     successes: dict = field(default_factory=dict)
     fingerprints: dict = field(default_factory=dict)
     failures: dict = field(default_factory=dict)
