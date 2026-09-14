@@ -78,6 +78,30 @@
   line-height: 1.7;
 }
 
+/* 현재 명상 단계의 순서와 이름을 구분선 아래에 배치하는 설정. */
+.meditation-step-guide {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 22px;
+  border-top: 1px solid var(--mindot-border);
+  padding-top: 18px;
+}
+
+/* 전체 단계 중 현재 진행 순서를 브랜드 색상으로 표시. */
+.meditation-step-guide span {
+  color: var(--mindot-primary-strong);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* 현재 명상 단계 이름의 본문 강조 설정. */
+.meditation-step-guide strong {
+  color: var(--mindot-text);
+  font-size: 15px;
+}
+
 /* 남은 일분 명상 시간을 화면에서 분명하게 보여 주는 설정. */
 .meditation-time {
   display: block;
@@ -103,6 +127,34 @@
   height: 100%;
   background: var(--mindot-primary);
   transition: width 0.3s ease;
+}
+
+/* 브라우저 음성 안내 선택 항목의 충분한 터치 영역 설정. */
+.meditation-voice-option {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 9px;
+  margin-top: 10px;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* 음성 안내 선택 상자의 조작하기 쉬운 크기 설정. */
+.meditation-voice-option input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--mindot-primary);
+}
+
+/* 음성 안내를 사용할 수 없는 브라우저의 대체 안내 설정. */
+.meditation-content .meditation-voice-notice {
+  margin-top: 0;
+  color: var(--mindot-text-muted);
+  font-size: 13px;
 }
 
 /* 현재 명상 진행 여부를 옅은 파란색 영역으로 표시. */
@@ -136,6 +188,54 @@
   background: var(--mindot-primary-strong);
 }
 
+/* 처음부터와 명상 마치기 보조 버튼의 같은 너비 배치 설정. */
+.meditation-secondary-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* 명상 초기화와 완료에 사용하는 흰색 보조 버튼 설정. */
+.meditation-secondary-actions button,
+.meditation-completion button {
+  min-height: 44px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  color: var(--mindot-primary-strong);
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 명상 보조 버튼 위에 마우스를 올렸을 때 옅은 파란색 강조. */
+.meditation-secondary-actions button:hover,
+.meditation-completion button:hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+/* 명상 완료 안내와 복귀 버튼을 구분선 아래에 배치하는 설정. */
+.meditation-completion {
+  margin-top: 28px;
+  border-top: 1px solid var(--mindot-border);
+  padding-top: 28px;
+  text-align: center;
+}
+
+/* 명상 완료 안내 제목의 크기와 여백 설정. */
+.meditation-completion h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+/* 마음 돌봄 추천 화면 복귀 버튼의 전체 너비 설정. */
+.meditation-completion button {
+  width: 100%;
+  margin-top: 20px;
+}
+
 /* 모바일 화면에서 콘텐츠 카드의 가로 여백과 내부 간격 조정. */
 @media (max-width: 640px) {
   .meditation-main {
@@ -154,5 +254,19 @@
   .meditation-guide {
     margin-top: 28px;
     padding-top: 24px;
+  }
+}
+
+/* 매우 좁은 모바일 화면에서 명상 보조 버튼을 세로로 배치. */
+@media (max-width: 380px) {
+  .meditation-secondary-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 움직임 감소 설정 사용자의 명상 진행률 전환 효과 제거. */
+@media (prefers-reduced-motion: reduce) {
+  .meditation-progress span {
+    transition: none;
   }
 }
