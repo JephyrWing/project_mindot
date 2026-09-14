@@ -137,6 +137,28 @@
   font-size: 14px;
 }
 
+/* 현재 호흡 회차와 단계별 행동을 한 영역에 안내하는 설정. */
+.breathing-step-guide {
+  margin-top: 22px;
+  border-top: 1px solid var(--mindot-border);
+  padding-top: 18px;
+}
+
+/* 현재 호흡 회차를 브랜드 색상으로 구분하는 설정. */
+.breathing-step-guide span {
+  color: var(--mindot-primary-strong);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* 현재 호흡 단계에서 따라 할 행동 안내 문구 설정. */
+.breathing-timer .breathing-step-guide p {
+  min-height: 24px;
+  margin-top: 8px;
+  color: var(--mindot-text);
+  font-weight: 600;
+}
+
 /* 들이쉬기와 멈추기 및 내쉬기 시간에 맞춘 안내 원 크기 변화 설정. */
 @keyframes breathing-cycle {
   0% {
