@@ -120,6 +120,18 @@ function Breathing({
     setIsRunning((currentState) => !currentState)
   }
 
+  // 진행 중인 호흡을 처음 상태로 되돌리는 처리.
+  const handleTimerReset = () => {
+    setIsRunning(false)
+    setRemainingSeconds(breathingDurationSeconds)
+  }
+
+  // 사용자가 현재 호흡을 직접 마치고 완료 상태를 확인하는 처리.
+  const handleBreathingComplete = () => {
+    setIsRunning(false)
+    setRemainingSeconds(0)
+  }
+
   // 공통 네비게이션과 3분 호흡 타이머를 담은 이단계 화면 반환.
   return (
     <div className="breathing-page">
@@ -187,7 +199,31 @@ function Breathing({
             >
               {timerButtonLabel}
             </button>
+
+            {/* 호흡 시작 후 처음부터 다시 진행하거나 현재 호흡을 마치는 기능 배치. */}
+            {remainingSeconds > 0
+              && remainingSeconds < breathingDurationSeconds && (
+                <div className="breathing-secondary-actions">
+                  <button type="button" onClick={handleTimerReset}>
+                    처음부터
+                  </button>
+                  <button type="button" onClick={handleBreathingComplete}>
+                    호흡 마치기
+                  </button>
+                </div>
+              )}
           </section>
+
+          {/* 3분 호흡 완료 후 다음 이동을 선택할 수 있는 안내 영역 표시. */}
+          {remainingSeconds === 0 && (
+            <section className="breathing-completion" aria-live="polite">
+              <h2>호흡을 마쳤어요</h2>
+              <p>잠시 편안해진 몸과 마음의 변화를 확인해 보세요.</p>
+              <button type="button" onClick={onBack}>
+                마음 돌봄 추천으로 돌아가기
+              </button>
+            </section>
+          )}
         </section>
       </main>
     </div>
