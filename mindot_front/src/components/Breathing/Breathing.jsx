@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Navbar from '../Navbar/Navbar.jsx'
 import './Breathing.css'
 
@@ -80,6 +80,8 @@ function Breathing({
   const [remainingSeconds, setRemainingSeconds] = useState(breathingDurationSeconds)
   // 호흡 타이머의 현재 실행 여부 상태 관리.
   const [isRunning, setIsRunning] = useState(false)
+  // 브라우저 화면 갱신 지연에도 실제 종료 시각을 유지하기 위한 기준 시각 저장.
+  const timerDeadlineRef = useRef(null)
   // 전체 시간에서 경과한 비율 계산.
   const progressPercent = (
     (breathingDurationSeconds - remainingSeconds) / breathingDurationSeconds
@@ -118,43 +120,71 @@ function Breathing({
         ? '이어서 시작하기'
         : '호흡 시작하기'
 
-  // 타이머 실행 중 1초마다 남은 시간을 감소시키는 처리.
+  // 실제 종료 시각을 기준으로 남은 시간을 갱신하여 브라우저 지연에 따른 오차 방지.
   useEffect(() => {
-    if (!isRunning) return undefined
+    if (!isRunning || timerDeadlineRef.current === null) return undefined
 
-    const timerId = window.setInterval(() => {
-      setRemainingSeconds((currentSeconds) => {
-        if (currentSeconds <= 1) {
-          setIsRunning(false)
-          return 0
-        }
+    const updateRemainingTime = () => {
+      const timerDeadline = timerDeadlineRef.current
 
-        return currentSeconds - 1
-      })
-    }, 1000)
+      if (timerDeadline === null) return
+
+      const nextRemainingSeconds = Math.max(
+        0,
+        Math.ceil((timerDeadline - Date.now()) / 1000),
+      )
+
+      setRemainingSeconds(nextRemainingSeconds)
+
+      if (nextRemainingSeconds === 0) {
+        timerDeadlineRef.current = null
+        setIsRunning(false)
+      }
+    }
+
+    updateRemainingTime()
+    const timerId = window.setInterval(updateRemainingTime, 250)
 
     return () => window.clearInterval(timerId)
   }, [isRunning])
 
   // 시작과 일시정지 및 완료 후 재시작을 하나의 버튼으로 처리.
   const handleTimerToggle = () => {
+    if (isRunning) {
+      const pausedRemainingSeconds = timerDeadlineRef.current === null
+        ? remainingSeconds
+        : Math.max(
+            0,
+            Math.ceil((timerDeadlineRef.current - Date.now()) / 1000),
+          )
+
+      timerDeadlineRef.current = null
+      setRemainingSeconds(pausedRemainingSeconds)
+      setIsRunning(false)
+      return
+    }
+
     if (remainingSeconds === 0) {
       setRemainingSeconds(breathingDurationSeconds)
+      timerDeadlineRef.current = Date.now() + breathingDurationSeconds * 1000
       setIsRunning(true)
       return
     }
 
-    setIsRunning((currentState) => !currentState)
+    timerDeadlineRef.current = Date.now() + remainingSeconds * 1000
+    setIsRunning(true)
   }
 
   // 진행 중인 호흡을 처음 상태로 되돌리는 처리.
   const handleTimerReset = () => {
+    timerDeadlineRef.current = null
     setIsRunning(false)
     setRemainingSeconds(breathingDurationSeconds)
   }
 
   // 사용자가 현재 호흡을 직접 마치고 완료 상태를 확인하는 처리.
   const handleBreathingComplete = () => {
+    timerDeadlineRef.current = null
     setIsRunning(false)
     setRemainingSeconds(0)
   }

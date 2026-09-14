@@ -6,13 +6,14 @@
   background: var(--mindot-page);
 }
 
-/* 전용 화면 내용을 모바일에서도 읽기 좋은 너비로 중앙 배치. */
+/* 감정 기록 목록과 같은 크기의 흰색 테두리 콘텐츠 영역 설정. */
 .breathing-main {
-  width: min(100%, 720px);
-  margin: 0 auto;
-  padding: 32px max(24px, env(safe-area-inset-right, 0px))
-    calc(48px + env(safe-area-inset-bottom, 0px))
-    max(24px, env(safe-area-inset-left, 0px));
+  width: min(calc(100% - 48px), 780px);
+  margin: 56px auto 32px;
+  border: 1px solid var(--mindot-border);
+  border-radius: 14px;
+  padding: 36px;
+  background: var(--mindot-surface);
 }
 
 /* 이전 화면 이동 버튼의 충분한 터치 영역과 단순한 텍스트 형태 설정. */
@@ -44,7 +45,7 @@
 
 /* 3분 호흡의 제목과 안내 문구 영역 설정. */
 .breathing-content {
-  margin-top: 36px;
+  margin-top: 28px;
 }
 
 /* 3분 호흡 화면 제목의 정보 단계와 여백 설정. */
@@ -289,14 +290,19 @@
   background: var(--mindot-primary-soft);
 }
 
-/* 작은 모바일 화면의 본문 위쪽 간격 조정. */
-@media (max-width: 480px) {
+/* 모바일 화면에서 콘텐츠 카드의 가로 여백과 내부 간격 조정. */
+@media (max-width: 640px) {
   .breathing-main {
-    padding-top: 22px;
+    width: calc(100% - 24px);
+    margin: 24px auto 20px;
+    padding:
+      24px max(20px, env(safe-area-inset-right, 0px))
+      calc(24px + env(safe-area-inset-bottom, 0px))
+      max(20px, env(safe-area-inset-left, 0px));
   }
 
   .breathing-content {
-    margin-top: 28px;
+    margin-top: 24px;
   }
 
   .breathing-timer {
@@ -311,6 +317,13 @@
   .breathing-circle {
     width: 136px;
     height: 136px;
+  }
+}
+
+/* 매우 좁은 모바일 화면에서 보조 버튼을 세로로 배치. */
+@media (max-width: 380px) {
+  .breathing-secondary-actions {
+    grid-template-columns: 1fr;
   }
 }
 
