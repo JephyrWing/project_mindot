@@ -18,24 +18,49 @@ const formatRemainingTime = (remainingSeconds) => {
 // 3분 타이머의 경과 시간으로 현재 호흡 단계와 남은 초 계산.
 const getBreathingPhase = (elapsedSeconds, remainingSeconds, isRunning) => {
   if (remainingSeconds === 0) {
-    return { name: '완료', remaining: null, className: 'is-complete' }
+    return {
+      name: '완료',
+      remaining: null,
+      className: 'is-complete',
+      instruction: '자연스러워진 호흡과 지금의 마음을 천천히 확인해 보세요.',
+    }
   }
 
   if (elapsedSeconds === 0 && !isRunning) {
-    return { name: '준비', remaining: null, className: 'is-ready' }
+    return {
+      name: '준비',
+      remaining: null,
+      className: 'is-ready',
+      instruction: '어깨의 힘을 풀고 편안한 자세를 만들어 주세요.',
+    }
   }
 
   const cycleSecond = elapsedSeconds % breathingCycleSeconds
 
   if (cycleSecond < 4) {
-    return { name: '들이쉬기', remaining: 4 - cycleSecond, className: 'is-inhale' }
+    return {
+      name: '들이쉬기',
+      remaining: 4 - cycleSecond,
+      className: 'is-inhale',
+      instruction: '코로 천천히 숨을 들이마셔요.',
+    }
   }
 
   if (cycleSecond < 8) {
-    return { name: '멈추기', remaining: 8 - cycleSecond, className: 'is-hold' }
+    return {
+      name: '멈추기',
+      remaining: 8 - cycleSecond,
+      className: 'is-hold',
+      instruction: '몸에 힘을 주지 않고 잠시 머물러요.',
+    }
   }
 
-  return { name: '내쉬기', remaining: 14 - cycleSecond, className: 'is-exhale' }
+  return {
+    name: '내쉬기',
+    remaining: 14 - cycleSecond,
+    className: 'is-exhale',
+    instruction: '입으로 길고 부드럽게 숨을 내쉬어요.',
+  }
 }
 
 // 3분 호흡 기능을 단계적으로 확장하기 위한 전용 화면 기본 구조 정의.
@@ -67,6 +92,8 @@ function Breathing({
     remainingSeconds,
     isRunning,
   )
+  // 현재 사용자가 진행 중인 호흡 회차 계산.
+  const currentCycle = Math.floor(elapsedSeconds / breathingCycleSeconds) + 1
   // 호흡 안내 원의 실행과 일시정지 상태를 나타내는 클래스 이름 설정.
   const breathingCircleClassName = [
     'breathing-circle',
@@ -165,7 +192,7 @@ function Breathing({
             <h2 id="breathing-timer-title">호흡 안내</h2>
 
             {/* 현재 4초 들이쉬기와 4초 멈추기 및 6초 내쉬기 단계 표시. */}
-            <div className="breathing-cycle" aria-live="polite">
+            <div className="breathing-cycle">
               <div className={breathingCircleClassName}>
                 <strong>{breathingPhase.name}</strong>
                 {breathingPhase.remaining !== null && (
@@ -175,7 +202,21 @@ function Breathing({
               <p>4초 들이쉬기 · 4초 멈추기 · 6초 내쉬기</p>
             </div>
 
-            <strong className="breathing-time" aria-live="polite">
+            {/* 단계 변화에 맞는 구체적인 호흡 방법과 현재 회차 표시. */}
+            <div className="breathing-step-guide" role="status" aria-live="polite">
+              <span>
+                {elapsedSeconds > 0 && remainingSeconds > 0
+                  ? `${currentCycle}회차 호흡`
+                  : '호흡 안내'}
+              </span>
+              <p>{breathingPhase.instruction}</p>
+            </div>
+
+            <strong
+              className="breathing-time"
+              role="timer"
+              aria-label={`남은 시간 ${formatRemainingTime(remainingSeconds)}`}
+            >
               {formatRemainingTime(remainingSeconds)}
             </strong>
             <p className="breathing-timer-message">{timerMessage}</p>
