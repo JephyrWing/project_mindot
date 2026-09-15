@@ -1,0 +1,62 @@
+/* 권한 안내를 현재 화면 위에 고정하는 배경 영역 설정. */
+.access-denied-backdrop {
+  position: fixed;
+  z-index: 1200;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding:
+    calc(20px + env(safe-area-inset-top, 0px))
+    calc(20px + env(safe-area-inset-right, 0px))
+    calc(20px + env(safe-area-inset-bottom, 0px))
+    calc(20px + env(safe-area-inset-left, 0px));
+  background: rgba(20, 32, 51, 0.52);
+}
+
+/* 권한 안내 문구와 확인 버튼을 담는 단일 모달 설정. */
+.access-denied-modal {
+  width: min(100%, 420px);
+  border: 0;
+  border-radius: 14px;
+  padding: 32px;
+  background: var(--mindot-surface);
+  box-shadow: 0 12px 28px rgba(20, 32, 51, 0.2);
+}
+
+.access-denied-modal h2 {
+  margin: 0;
+  font-size: 1.5625rem;
+  font-weight: 700;
+}
+
+.access-denied-modal p {
+  margin: 12px 0 0;
+  color: var(--mindot-text-secondary);
+  line-height: 1.7;
+  word-break: keep-all;
+}
+
+/* 확인 버튼의 브랜드 색상과 충분한 터치 영역 설정. */
+.access-denied-modal button {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 28px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  color: var(--mindot-surface);
+  font-weight: 600;
+  background: var(--mindot-primary);
+  cursor: pointer;
+}
+
+.access-denied-modal button:hover {
+  border-color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-strong);
+}
+
+@media (max-width: 420px) {
+  .access-denied-modal {
+    padding: 28px 22px;
+  }
+}

@@ -19,9 +19,13 @@ import Admin from './components/Admin/Admin.jsx'
 import LoginRequiredModal from './components/LoginRequiredModal/LoginRequiredModal.jsx'
 import NetworkStatus from './components/NetworkStatus/NetworkStatus.jsx'
 import PwaInstallPrompt from './components/PwaInstallPrompt/PwaInstallPrompt.jsx'
+import AccessDeniedModal from './components/AccessDeniedModal/AccessDeniedModal.jsx'
 import { logout } from './utils/auth/authApi.js'
 import { getAccessToken } from './utils/auth/tokenStorage.js'
-import { authExpiredEventName } from './utils/auth/authEvents.js'
+import {
+  accessDeniedEventName,
+  authExpiredEventName,
+} from './utils/auth/authEvents.js'
 import { createAppPath, readAppRoute } from './utils/routing/appRouter.js'
 
 // 브라우저 주소에서 최초 화면과 상세 식별자를 읽어 오는 초기 라우트 설정.
@@ -66,6 +70,8 @@ function App() {
   const [isLoginRequiredOpen, setIsLoginRequiredOpen] = useState(
     isInitialRouteBlocked,
   )
+  // 로그인 계정의 서비스 접근 권한 부족 안내 모달 표시 상태 관리.
+  const [isAccessDeniedOpen, setIsAccessDeniedOpen] = useState(false)
   // CBT 성찰을 시작할 저장 완료 감정 기록 식별자 상태 관리.
   const [cbtEmotionRecordId, setCbtEmotionRecordId] = useState(
     initialRoute.page === 'cbt' ? initialRoute.emotionRecordId ?? null : null,
@@ -172,6 +178,16 @@ function App() {
     window.addEventListener(authExpiredEventName, handleAuthExpired)
     return () => {
       window.removeEventListener(authExpiredEventName, handleAuthExpired)
+    }
+  }, [])
+
+  // 일반 서비스 API의 403 응답 수신 시 공통 권한 안내 모달 표시 처리.
+  useEffect(() => {
+    const handleAccessDenied = () => setIsAccessDeniedOpen(true)
+
+    window.addEventListener(accessDeniedEventName, handleAccessDenied)
+    return () => {
+      window.removeEventListener(accessDeniedEventName, handleAccessDenied)
     }
   }, [])
 
@@ -502,6 +518,10 @@ function App() {
           onClose={() => setIsLoginRequiredOpen(false)}
           onLogin={moveToLoginFromRequiredModal}
         />
+      )}
+      {/* 로그인 계정에 선택 기능의 접근 권한이 없을 때 공통 안내 표시. */}
+      {isAccessDeniedOpen && !isIntroOpen && (
+        <AccessDeniedModal onClose={() => setIsAccessDeniedOpen(false)} />
       )}
       {/* 시작 안내창을 닫은 뒤 PWA 설치 버튼 또는 수동 설치 방법 안내 표시. */}
       {!isIntroOpen && <PwaInstallPrompt />}

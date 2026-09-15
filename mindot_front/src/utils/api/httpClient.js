@@ -4,7 +4,10 @@ import {
   getAccessToken,
   setAccessToken,
 } from '../auth/tokenStorage.js'
-import { notifyAuthExpired } from '../auth/authEvents.js'
+import {
+  notifyAccessDenied,
+  notifyAuthExpired,
+} from '../auth/authEvents.js'
 
 const apiBaseUrl =
   import.meta.env?.VITE_API_BASE_URL ?? "http://localhost:8080";
@@ -18,6 +21,12 @@ const authPaths = [
 const isAuthRequest = (url = '') => {
   const pathname = new URL(url, 'http://localhost:8080').pathname
   return authPaths.includes(pathname)
+}
+
+// 관리자 화면에서 자체 안내할 관리자 API 요청 여부 확인.
+const isAdminRequest = (url = '') => {
+  const pathname = new URL(url, 'http://localhost:8080').pathname
+  return pathname.startsWith('/api/admin')
 }
 
 export const createHttpClient = ({
@@ -48,6 +57,14 @@ export const createHttpClient = ({
     (response) => response,
     async (error) => {
       const originalRequest = error.config
+
+      // 일반 서비스 API의 권한 없음 응답을 전역 안내 모달로 전달.
+      if (
+        error.response?.status === 403
+        && !isAdminRequest(originalRequest?.url)
+      ) {
+        notifyAccessDenied()
+      }
 
       if (
         error.response?.status !== 401
