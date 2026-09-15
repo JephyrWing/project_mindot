@@ -27,6 +27,7 @@ import { createAppPath, readAppRoute } from './utils/routing/appRouter.js'
 const browserInitialRoute = readAppRoute()
 // 직접 URL로 접근해도 기존 로그인 제한을 유지할 보호 화면 목록 설정.
 const protectedPages = new Set([
+  'emotion-record',
   'emotion-history',
   'emotion-record-detail',
   'cbt',
@@ -266,7 +267,7 @@ function App() {
         onSignUp={() => moveToPage('signup')}
         onEmotionHistory={() => moveToProtectedPage('emotion-history')}
         onRecordDetail={handleEmotionRecordDetailOpen}
-        onEmotionRecord={() => moveToPage('emotion-record')}
+        onEmotionRecord={() => moveToProtectedPage('emotion-record')}
         onCenter={() => moveToPage('center')}
         onDailyCare={() => moveToProtectedPage('daily-care')}
         onReflectionResume={handleReflectionResume}
@@ -391,7 +392,7 @@ function App() {
         onCenter={() => moveToPage('center')}
         onDailyCare={() => moveToProtectedPage('daily-care')}
         onHome={moveToMain}
-        onEmotionRecord={() => moveToPage('emotion-record')}
+        onEmotionRecord={() => moveToProtectedPage('emotion-record')}
         onCBT={handleCbtOpen}
         onReflectionResume={handleReflectionResume}
         onBreathing={() => moveToProtectedPage('breathing')}
@@ -454,7 +455,7 @@ function App() {
         onLogin={() => moveToPage('login')}
         onLogout={handleLogout}
         onSignUp={() => moveToPage('signup')}
-        onEmotionRecord={() => moveToPage('emotion-record')}
+        onEmotionRecord={() => moveToProtectedPage('emotion-record')}
         onEmotionHistory={() => moveToProtectedPage('emotion-history')}
         onWeeklyReport={() => moveToProtectedPage('weekly-report')}
         onCenter={() => moveToPage('center')}
