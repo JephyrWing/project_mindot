@@ -21,6 +21,7 @@ import com.my.mindot_back.safety.dto.SafetyNoticeResponseDto;
 import com.my.mindot_back.safety.service.SafetyEventsService;
 import com.my.mindot_back.users.entity.Users;
 import com.my.mindot_back.users.repository.UsersRepository;
+import com.my.mindot_back.users.service.ConsentEventsService;
 import com.my.mindot_back.records.repository.EmotionRecordSemanticSearchQuery;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -90,11 +91,16 @@ public class EmotionRecordsService {
     // 감정 기록에 연결된 최신 안전 안내를 조회
     private final SafetyEventsService  safetyEventsService;
 
+    // 외부 AI 기능 실행 전에 사용자의 최신 AI 분석 동의 상태 확인
+    private final ConsentEventsService consentEventsService;
+
     public EmotionRecordsQuickCreateResponseDto createQuickRecord(
             Long userId,
             EmotionRecordsQuickCreateRequestDto dto,
             String key
     ) {
+        consentEventsService.requireAiAnalysisConsent(userId);
+
         var context = emotionRecordAiTransactionService
                 .createQuickRecordAndStartAiJob(userId, dto, key);
 
@@ -123,6 +129,8 @@ public class EmotionRecordsService {
             Long userId,
             Long emotionRecordId
     ) {
+        consentEventsService.requireAiAnalysisConsent(userId);
+
         var context = emotionRecordAiTransactionService
                 .startReanalysis(userId, emotionRecordId);
 
@@ -139,6 +147,8 @@ public class EmotionRecordsService {
             Long userId,
             Long emotionRecordId
     ) {
+        consentEventsService.requireAiAnalysisConsent(userId);
+
         searchEmbeddingService.retry(
                 userId,
                 emotionRecordId
@@ -330,6 +340,7 @@ public class EmotionRecordsService {
         // 검색 문장만 일회성으로 임베딩하며 DB에는 저장하지 않음
         float[] queryEmbedding =
                 searchEmbeddingService.embedSearchQuery(
+                        userId,
                         normalizedQueryText
                 );
 
@@ -636,6 +647,8 @@ public class EmotionRecordsService {
             Long userId,
             Long emotionRecordId
     ) {
+        consentEventsService.requireAiAnalysisConsent(userId);
+
         // 본인 소유의 감정 기록만 패턴 분석 가능
         EmotionRecords emotionRecord = emotionRecordsRepository
                 .findByIdAndUser_Id(emotionRecordId, userId)

@@ -2,6 +2,7 @@
 package com.my.mindot_back.records.service;
 
 import com.my.mindot_back.common.rag.RagUtils;
+import com.my.mindot_back.users.service.ConsentEventsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ class EmotionRecordSearchEmbeddingServiceTest {
 
     private EmotionRecordSearchEmbeddingTransactionService transactionService;
     private RagUtils ragUtils;
+    private ConsentEventsService consentEventsService;
     private EmotionRecordSearchEmbeddingService service;
 
     @BeforeEach
@@ -27,9 +29,11 @@ class EmotionRecordSearchEmbeddingServiceTest {
                 EmotionRecordSearchEmbeddingTransactionService.class
         );
         ragUtils = mock(RagUtils.class);
+        consentEventsService = mock(ConsentEventsService.class);
         service = new EmotionRecordSearchEmbeddingService(
                 transactionService,
-                ragUtils
+                ragUtils,
+                consentEventsService
         );
     }
 
@@ -124,7 +128,7 @@ class EmotionRecordSearchEmbeddingServiceTest {
 
         ResponseStatusException exception = assertThrows(
                 ResponseStatusException.class,
-                () -> service.embedSearchQuery("업무 불안")
+                () -> service.embedSearchQuery(7L, "업무 불안")
         );
 
         assertThat(exception.getStatusCode())

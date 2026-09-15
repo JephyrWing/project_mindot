@@ -58,34 +58,53 @@ public class ConsentEvents {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    // 회원가입 시 동의 이벤트를 위한 생성자
-    // action은 회원가입에서 항상 GRANTED
+    // 동의 또는 철회 이벤트 생성을 위한 공통 생성자
     private ConsentEvents(
             Users user,
             ConsentType consentType,
-            String consentVersion
+            String consentVersion,
+            ConsentAction action
     ) {
         this.user = user;
         this.consentType = consentType;
         this.consentVersion = consentVersion;
-        this.action = ConsentAction.GRANTED;
+        this.action = action;
     }
 
-    // 회원가입 Service에서 읽기 쉽게 호출하는 정적 생성 메서드
+    // 동의 이벤트 생성
     public static ConsentEvents grant(
             Users user,
             ConsentType consentType,
             String consentVersion
     ) {
-        return new ConsentEvents(user, consentType, consentVersion);
+        return new ConsentEvents(
+                user,
+                consentType,
+                consentVersion,
+                ConsentAction.GRANTED
+        );
+    }
+
+    // 철회 이벤트 생성
+    public static ConsentEvents revoke(
+            Users user,
+            ConsentType consentType,
+            String consentVersion
+    ) {
+        return new ConsentEvents(
+                user,
+                consentType,
+                consentVersion,
+                ConsentAction.REVOKED
+        );
     }
 
     // insert 전 동의시각과 DB 저장 시각 설정
     // PrePersist: JPA가 DB 에 insert 하기 전 자동 실행하는 메서드
     @PrePersist
     void prePersist() {
-                Instant now = Instant.now();
-                this.occurredAt = now;
-                this.createdAt = now;
+        Instant now = Instant.now();
+        this.occurredAt = now;
+        this.createdAt = now;
     }
 }
