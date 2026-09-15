@@ -2,6 +2,7 @@
 package com.my.mindot_back.records.service;
 
 import com.my.mindot_back.common.rag.RagUtils;
+import com.my.mindot_back.users.service.ConsentEventsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
@@ -19,6 +20,9 @@ public class EmotionRecordSearchEmbeddingService {
             embeddingTransactionService;
 
     private final RagUtils ragUtils;
+
+    // 비동기 실행 시점에도 AI 분석 동의가 유지되는지 다시 확인
+    private final ConsentEventsService consentEventsService;
 
     // 신규 기록 저장 후 HTTP 응답을 지연시키지 않고 검색 벡터 자동 생성
     @Async
@@ -42,7 +46,9 @@ public class EmotionRecordSearchEmbeddingService {
     }
 
     // 사용자가 입력한 의미 검색 문장을 일회성 검색 벡터로 변환
-    public float[] embedSearchQuery(String queryText) {
+    public float[] embedSearchQuery(Long userId, String queryText) {
+        consentEventsService.requireAiAnalysisConsent(userId);
+
         try {
             float[] embedding = ragUtils.embed(queryText);
 
@@ -74,6 +80,8 @@ public class EmotionRecordSearchEmbeddingService {
             Long userId,
             Long emotionRecordId
     ) {
+        consentEventsService.requireAiAnalysisConsent(userId);
+
         EmotionRecordSearchEmbeddingContext context =
                 embeddingTransactionService.start(
                         userId,

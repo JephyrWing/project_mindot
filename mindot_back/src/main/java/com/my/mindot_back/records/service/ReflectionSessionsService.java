@@ -8,6 +8,7 @@ import com.my.mindot_back.records.dto.ai.FastApiCbtResponseDto;
 import com.my.mindot_back.records.entity.*;
 import com.my.mindot_back.records.repository.ReflectionSessionsRepository;
 import com.my.mindot_back.safety.service.SafetyEventsService;
+import com.my.mindot_back.users.service.ConsentEventsService;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -44,11 +45,16 @@ public class ReflectionSessionsService {
     // CBT 세션의 원본 감정 기록에 연결된 최신 안전 안내를 조회
     private final SafetyEventsService safetyEventsService;
 
+    // CBT 질문·결과·임베딩 외부 AI 호출 전 최신 AI 분석 동의 확인
+    private final ConsentEventsService consentEventsService;
+
     // CBT 세션 저장, 첫 질문 FastAPI 호출, 결과 저장을 분리해 처리
     public ReflectionSessionStartResponseDto startSession(
             Long userId,
             Long emotionRecordId
     ) {
+        consentEventsService.requireAiAnalysisConsent(userId);
+
         // 트랜잭션 A: CBT 세션과 PROCESSING AI 작업 이력 저장 후 커밋
         ReflectionSessionStartAiContext context =
                 reflectionSessionStartTransactionService
@@ -103,6 +109,8 @@ public class ReflectionSessionsService {
             Long userId,
             Long sessionId
     ) {
+        consentEventsService.requireAiAnalysisConsent(userId);
+
         // 트랜잭션 A: 재시도 QUESTION 작업 이력 저장 후 커밋
         ReflectionSessionStartAiContext context =
                 reflectionSessionStartTransactionService
@@ -153,6 +161,8 @@ public class ReflectionSessionsService {
             Long sessionId,
             String answer
     ) {
+        consentEventsService.requireAiAnalysisConsent(userId);
+
         // 트랜잭션 A: 사용자 답변과 PROCESSING AI 작업 이력 저장 후 커밋
         ReflectionSessionTurnAiContext context =
                 reflectionSessionTurnTransactionService
@@ -207,6 +217,8 @@ public class ReflectionSessionsService {
             Long userId,
             Long sessionId
     ) {
+        consentEventsService.requireAiAnalysisConsent(userId);
+
         // 트랜잭션 A: 재시도 QUESTION 작업 이력 저장 후 커밋
         ReflectionSessionTurnAiContext context =
                 reflectionSessionTurnTransactionService
@@ -257,6 +269,8 @@ public class ReflectionSessionsService {
             Long sessionId,
             ReflectionSessionConfirmRequestDto request
     ) {
+        consentEventsService.requireAiAnalysisConsent(userId);
+
         ReflectionSessionEmbeddingContext context =
                 reflectionSessionEmbeddingTransactionService
                         .confirmAndStartEmbedding(userId, sessionId, request);
@@ -266,6 +280,8 @@ public class ReflectionSessionsService {
 
     // 완료된 CBT 세션의 임베딩 생성에 실패했을 때 벡터 생성만 재시도
     public void retryEmbedding(Long userId, Long sessionId) {
+        consentEventsService.requireAiAnalysisConsent(userId);
+
         ReflectionSessionEmbeddingContext context =
                 reflectionSessionEmbeddingTransactionService
                         .startEmbeddingRetry(userId, sessionId);
