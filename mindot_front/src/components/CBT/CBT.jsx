@@ -37,6 +37,16 @@ export default function CBT(props) {
   const [embeddingMessage, setEmbeddingMessage] = useState('')
   const apply = (next) => {
     if (!acceptSessionView(current.current, next)) return
+
+    // 새로운 최종 제안 수신 시 이전 제안에서 작성한 검토값 초기화.
+    const previousProposalId = current.current?.currentProposal?.proposalId
+    const nextProposalId = next?.currentProposal?.proposalId
+
+    if (previousProposalId !== nextProposalId) {
+      setReviews({})
+      setScores({})
+    }
+
     current.current = next
     setView(next)
   }
@@ -76,17 +86,20 @@ export default function CBT(props) {
     load()
     return () => { active = false }
   }, [resumeId, reload])
+  const viewSessionId = view?.sessionId
+  const viewJobStatus = view?.job?.status
   useEffect(() => {
-    if (!pending(view)) return
+    if (!viewSessionId || !['PROCESSING', 'PENDING'].includes(viewJobStatus)) {
+      return undefined
+    }
+
     let active = true
     const timer = setInterval(async () => {
-      try { const next = await getReflectionSessionDetail(view.sessionId); if (active) apply(next) }
+      try { const next = await getReflectionSessionDetail(viewSessionId); if (active) apply(next) }
       catch { /* Keep saved view; manual refresh remains available. */ }
     }, 2000)
     return () => { active = false; clearInterval(timer) }
-  }, [view?.sessionId, view?.job?.status])
-  const proposalId = view?.currentProposal?.proposalId
-  useEffect(() => { setReviews({}); setScores({}) }, [proposalId])
+  }, [viewSessionId, viewJobStatus])
   const run = async (action) => {
     setBusy(true); setError('')
     try { await action() }

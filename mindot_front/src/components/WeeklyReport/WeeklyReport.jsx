@@ -1,4 +1,4 @@
-import { distortionLabels } from '../CBT/InsightResult.jsx'
+import { distortionLabels } from '../CBT/distortionLabels.js'
 import { useEffect, useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Navbar from '../Navbar/Navbar.jsx'
