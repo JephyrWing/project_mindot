@@ -28,6 +28,11 @@ import java.util.Map;
                 @Index(
                         name = "idx_reflection_sessions_user_created_at",
                         columnList = "user_id, created_at DESC"
+                ),
+                // 사용자별 완료·확정 CBT를 기간 조건으로 조회할 때 사용
+                @Index(
+                        name = "idx_reflection_sessions_user_status_confirmed_completed_at",
+                        columnList = "user_id, status, user_confirmed, completed_at"
                 )
         }
 )

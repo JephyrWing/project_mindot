@@ -11,7 +11,16 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.time.Instant;
 
 @Entity
-@Table(name = "consent_events")
+@Table(
+        name = "consent_events",
+        indexes = {
+                // 사용자별 특정 동의의 최신 상태를 빠르게 조회
+                @Index(
+                        name = "idx_consent_events_user_type_occurred_at",
+                        columnList = "user_id, consent_type, occurred_at DESC"
+                )
+        }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ConsentEvents {
