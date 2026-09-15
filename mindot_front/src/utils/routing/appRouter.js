@@ -22,9 +22,16 @@ export const readAppRoute = () => {
   const emotionRecordMatch = pathname.match(/^\/records\/(\d+)$/)
   const cbtSessionMatch = pathname.match(/^\/cbt\/sessions\/(\d+)$/)
   const completedReflectionMatch = pathname.match(/^\/reflections\/(\d+)$/)
+  const oauthCallbackMatch = pathname.match(/^\/oauth\/(kakao|google)\/callback$/)
 
   if (pathname === '/login') return { page: 'login' }
   if (pathname === '/signup') return { page: 'signup' }
+  if (oauthCallbackMatch) {
+    return {
+      page: 'oauth-callback',
+      provider: oauthCallbackMatch[1],
+    }
+  }
   if (pathname === '/records/new') return { page: 'emotion-record' }
   if (pathname === '/records') return { page: 'emotion-history' }
   if (emotionRecordMatch) {
@@ -69,6 +76,12 @@ export const createAppPath = (page, parameters = {}) => {
 
   if (page === 'login') return '/login'
   if (page === 'signup') return '/signup'
+  if (
+    page === 'oauth-callback'
+    && ['kakao', 'google'].includes(parameters.provider)
+  ) {
+    return `/oauth/${parameters.provider}/callback`
+  }
   if (page === 'emotion-record') return '/records/new'
   if (page === 'emotion-history') return '/records'
   if (page === 'emotion-record-detail' && emotionRecordId) {

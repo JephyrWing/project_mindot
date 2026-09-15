@@ -21,6 +21,7 @@ const authPaths = [
 const isAuthRequest = (url = '') => {
   const pathname = new URL(url, 'http://localhost:8080').pathname
   return authPaths.includes(pathname)
+    || pathname.startsWith('/api/auth/oauth/')
 }
 
 // 관리자 화면에서 자체 안내할 관리자 API 요청 여부 확인.
