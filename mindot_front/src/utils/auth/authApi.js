@@ -5,6 +5,22 @@ import {
   setUserRole,
 } from './tokenStorage.js'
 
+// 프론트에서 허용할 소셜 로그인 제공자 경로 목록 설정.
+const supportedSocialProviders = new Set(['kakao', 'google'])
+
+// 로그인 응답의 Access Token과 회원 권한을 현재 브라우저 세션에 저장하는 처리.
+const saveAuthentication = (data) => {
+  setAccessToken(data.accessToken)
+  setUserRole(data.userRole)
+}
+
+// 동적 API 경로에 사용할 소셜 로그인 제공자 값 검증.
+const validateSocialProvider = (provider) => {
+  if (!supportedSocialProviders.has(provider)) {
+    throw new Error('지원하지 않는 소셜 로그인 제공자입니다.')
+  }
+}
+
 export const createAuthApi = (client) => ({
   // 입력받은 회원 정보를 백엔드 회원가입 API로 전달하는 처리.
   signup: async (account) => {
@@ -24,8 +40,45 @@ export const createAuthApi = (client) => ({
       { skipAuth: true },
     )
 
-    setAccessToken(data.accessToken)
-    setUserRole(data.userRole)
+    saveAuthentication(data)
+    return data
+  },
+
+  // 백엔드에서 CSRF 방지 state 쿠키와 소셜 제공자 인가 URL을 발급받는 처리.
+  getSocialAuthorizationUrl: async (provider) => {
+    validateSocialProvider(provider)
+
+    const { data } = await client.get(
+      `/api/auth/oauth/${provider}/authorize`,
+      { skipAuth: true },
+    )
+
+    return data
+  },
+
+  // 소셜 제공자 콜백의 인가 코드와 state를 백엔드로 전달하는 처리.
+  completeSocialLogin: async (provider, callbackData) => {
+    validateSocialProvider(provider)
+
+    const { data } = await client.post(
+      `/api/auth/oauth/${provider}`,
+      callbackData,
+      { skipAuth: true },
+    )
+
+    if (!data.signupRequired) saveAuthentication(data)
+    return data
+  },
+
+  // 신규 소셜 회원의 필수 동의를 제출하고 발급된 로그인 정보를 저장하는 처리.
+  completeSocialSignup: async (signupTicket, agreements) => {
+    const { data } = await client.post(
+      '/api/auth/oauth/signup',
+      { signupTicket, ...agreements },
+      { skipAuth: true },
+    )
+
+    saveAuthentication(data)
     return data
   },
 
@@ -38,4 +91,11 @@ export const createAuthApi = (client) => ({
   },
 })
 
-export const { signup, login, logout } = createAuthApi(httpClient)
+export const {
+  signup,
+  login,
+  logout,
+  getSocialAuthorizationUrl,
+  completeSocialLogin,
+  completeSocialSignup,
+} = createAuthApi(httpClient)

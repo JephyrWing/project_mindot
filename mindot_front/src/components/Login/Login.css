@@ -161,6 +161,52 @@
   font-size: 13px;
 }
 
+/* 이메일 로그인과 소셜 로그인 사이의 단순 구분선 및 안내 문구 설정. */
+.login-social-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0 16px;
+  color: var(--mindot-text-muted);
+  font-size: 12px;
+}
+
+.login-social-divider::before,
+.login-social-divider::after {
+  height: 1px;
+  flex: 1;
+  background: var(--mindot-border);
+  content: '';
+}
+
+/* 카카오와 Google 로그인 버튼의 동일한 크기와 단색 배치 설정. */
+.login-social-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.login-social-actions button {
+  min-height: 48px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  color: var(--mindot-primary-strong);
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+.login-social-actions button:not(:disabled):hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+.login-social-actions button:disabled {
+  color: var(--mindot-disabled);
+  border-color: var(--mindot-border);
+  background: var(--mindot-surface-muted);
+  cursor: wait;
+}
+
 /* 회원가입 이동 안내와 버튼의 중앙 정렬. */
 .login-signup-guide {
   display: flex;

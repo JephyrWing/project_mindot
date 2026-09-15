@@ -1,11 +1,25 @@
 import { useState } from 'react'
 // 여러 화면에서 공통으로 사용하는 Mindot 로고 불러오기.
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
-import { login } from '../../utils/auth/authApi.js'
+import {
+  getSocialAuthorizationUrl,
+  login,
+} from '../../utils/auth/authApi.js'
 import './Login.css'
 
 // 브라우저에 저장할 이메일 데이터의 식별 키 설정.
 const rememberedEmailKey = 'mindot.rememberedEmail'
+
+// 소셜 로그인 시작 API 오류를 사용자가 이해할 수 있는 안내 문구로 변환.
+const getSocialLoginError = (error) => {
+  if (!error.response) {
+    return '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
+  }
+
+  return error.response.data?.message
+    || error.response.data?.detail
+    || '소셜 로그인을 시작하지 못했습니다. 잠시 후 다시 시도해 주세요.'
+}
 
 // 이메일과 비밀번호를 입력받는 기본 로그인 컴포넌트 정의.
 function Login({ onLoginSuccess, onSignUp, onHome }) {
@@ -21,6 +35,8 @@ function Login({ onLoginSuccess, onSignUp, onHome }) {
   )
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [loginError, setLoginError] = useState('')
+  // 카카오 또는 Google 로그인 시작 요청의 진행 제공자 상태 관리.
+  const [socialLoginProvider, setSocialLoginProvider] = useState('')
 
   // 로그인 API 호출과 기존 이메일 기억하기 동작 처리.
   const handleSubmit = async (event) => {
@@ -47,6 +63,27 @@ function Login({ onLoginSuccess, onSignUp, onHome }) {
       setLoginError('로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.')
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  // 백엔드에서 발급한 소셜 제공자 인가 페이지 주소로 브라우저 이동 처리.
+  const handleSocialLogin = async (provider) => {
+    if (socialLoginProvider || isSubmitting) return
+
+    setSocialLoginProvider(provider)
+    setLoginError('')
+
+    try {
+      const { authorizationUrl } = await getSocialAuthorizationUrl(provider)
+
+      if (!authorizationUrl) {
+        throw new Error('소셜 로그인 주소가 없습니다.')
+      }
+
+      window.location.assign(authorizationUrl)
+    } catch (error) {
+      setLoginError(getSocialLoginError(error))
+      setSocialLoginProvider('')
     }
   }
 
@@ -113,6 +150,33 @@ function Login({ onLoginSuccess, onSignUp, onHome }) {
             {isSubmitting ? '로그인 중...' : '로그인'}
           </button>
         </form>
+
+        {/* 이메일 로그인과 소셜 로그인 선택 영역을 구분하는 안내 배치. */}
+        <div className="login-social-divider" aria-hidden="true">
+          <span>또는</span>
+        </div>
+
+        {/* 백엔드에서 발급한 안전한 인가 URL을 사용하는 소셜 로그인 버튼 배치. */}
+        <div className="login-social-actions" aria-label="소셜 로그인">
+          <button
+            type="button"
+            onClick={() => handleSocialLogin('kakao')}
+            disabled={Boolean(socialLoginProvider) || isSubmitting}
+          >
+            {socialLoginProvider === 'kakao'
+              ? '카카오 연결 중...'
+              : '카카오로 계속하기'}
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSocialLogin('google')}
+            disabled={Boolean(socialLoginProvider) || isSubmitting}
+          >
+            {socialLoginProvider === 'google'
+              ? 'Google 연결 중...'
+              : 'Google로 계속하기'}
+          </button>
+        </div>
 
         {/* 회원가입 화면으로 이동하기 위한 안내와 버튼 배치. */}
         <p className="login-signup-guide">
