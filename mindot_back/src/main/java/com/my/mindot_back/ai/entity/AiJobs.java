@@ -38,10 +38,16 @@ import java.time.Instant;
                         columnList = "user_id, created_at DESC"
                 ),
 
-                // 특정 대상에 대한 작업 종류별 실행 이력을 최신순으로 조회할 때 사용
+                // 사용자와 대상 Entity, 작업 종류가 일치하는 가장 최근 작업 조회
                 @Index(
-                        name = "idx_ai_jobs_entity_operation_created_at",
-                        columnList = "entity_type, entity_id, operation, created_at DESC"
+                        name = "idx_ai_jobs_user_entity_operation_id",
+                        columnList = "user_id, entity_type, entity_id, operation, id DESC"
+                ),
+
+                // Entity ID가 아직 정해지지 않은 요청의 멱등성 키 중복 조회
+                @Index(
+                        name = "idx_ai_jobs_user_operation_idempotency_id",
+                        columnList = "user_id, entity_type, operation, idempotency_key, id DESC"
                 )
         }
 )
