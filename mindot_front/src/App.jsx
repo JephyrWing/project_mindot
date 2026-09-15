@@ -21,6 +21,7 @@ import NetworkStatus from './components/NetworkStatus/NetworkStatus.jsx'
 import PwaInstallPrompt from './components/PwaInstallPrompt/PwaInstallPrompt.jsx'
 import { logout } from './utils/auth/authApi.js'
 import { getAccessToken } from './utils/auth/tokenStorage.js'
+import { authExpiredEventName } from './utils/auth/authEvents.js'
 import { createAppPath, readAppRoute } from './utils/routing/appRouter.js'
 
 // 브라우저 주소에서 최초 화면과 상세 식별자를 읽어 오는 초기 라우트 설정.
@@ -153,6 +154,26 @@ function App() {
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
   }, [isAuthenticated])
+
+  // Access Token 재발급 실패 시 로그인 상태와 보호 화면을 즉시 정리하는 처리.
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      setIsAuthenticated(false)
+      setIsLoginRequiredOpen(true)
+      setCbtEmotionRecordId(null)
+      setCbtResumeSessionId(null)
+      setCbtResumeSession(null)
+      setSelectedEmotionRecordId(null)
+      setSelectedReflectionSessionId(null)
+      window.history.replaceState({ page: 'main' }, '', '/')
+      setCurrentPage('main')
+    }
+
+    window.addEventListener(authExpiredEventName, handleAuthExpired)
+    return () => {
+      window.removeEventListener(authExpiredEventName, handleAuthExpired)
+    }
+  }, [])
 
   // 각 화면의 로고 선택 시 URL과 함께 메인페이지로 이동하는 처리.
   const moveToMain = () => moveToPage('main')
