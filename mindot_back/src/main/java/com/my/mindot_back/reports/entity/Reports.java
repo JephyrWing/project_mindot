@@ -115,7 +115,25 @@ public class Reports {
         return reports;
     }
 
-    // 같은 주의 최신 감정 기록 기준으로 리포트 집계 결과 갱신
+    // 사용자 감정 기록을 바탕으로 월간 리포트 entity 생성
+    public static Reports createMonthly(
+            Users user,
+            LocalDate periodStart,
+            LocalDate periodEnd,
+            Map<String, Object> content
+    ) {
+        Reports reports = new Reports();
+
+        reports.user = user;
+        reports.reportType = ReportType.MONTHLY;
+        reports.periodStart = periodStart;
+        reports.periodEnd = periodEnd;
+        reports.content = new HashMap<>(content);
+
+        return reports;
+    }
+
+    // 같은 기간의 최신 원본 데이터 기준으로 주간·월간 리포트 집계 결과 갱신
     public void updateContent(
             Map<String, Object> content
     ) {
