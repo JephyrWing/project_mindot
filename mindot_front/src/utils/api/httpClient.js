@@ -4,6 +4,7 @@ import {
   getAccessToken,
   setAccessToken,
 } from '../auth/tokenStorage.js'
+import { notifyAuthExpired } from '../auth/authEvents.js'
 
 const apiBaseUrl =
   import.meta.env?.VITE_API_BASE_URL ?? "http://localhost:8080";
@@ -68,6 +69,7 @@ export const createHttpClient = ({
           })
           .catch((refreshError) => {
             clearAuthSession()
+            notifyAuthExpired()
             throw refreshError
           })
           .finally(() => {
