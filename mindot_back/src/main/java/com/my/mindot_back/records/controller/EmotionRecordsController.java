@@ -79,6 +79,47 @@ public class EmotionRecordsController {
         );
     }
 
+    // 로그인한 사용자의 감정 기록을 검색 문장과 의미가 비슷한 순서로 조회
+    @GetMapping("/semantic-search")
+    public EmotionRecordsPageResponseDto searchEmotionRecordsSemantically(
+            @AuthenticationPrincipal Long userId,
+
+            // 자연어 검색 문장, 예: 회사에서 무시당했다고 느낀 일
+            @RequestParam(name = "query")
+            String queryText,
+
+            // ALL / RECENT_7_DAYS / WEEK / MONTH
+            @RequestParam(defaultValue = "ALL")
+            EmotionRecordsListPeriod period,
+
+            // 예: ANXIETY
+            @RequestParam(required = false)
+            String emotionCode,
+
+            // 예: WORK
+            @RequestParam(required = false)
+            String contextCategory,
+
+            // 페이지 번호는 0부터 시작
+            @RequestParam(defaultValue = "0")
+            int page,
+
+            // 프론트가 보내지 않으면 페이지당 5개 조회
+            @RequestParam(defaultValue = "5")
+            int size
+    ) {
+        return emotionRecordsService
+                .searchEmotionRecordsSemantically(
+                        userId,
+                        queryText,
+                        period,
+                        emotionCode,
+                        contextCategory,
+                        page,
+                        size
+                );
+    }
+
     // 로그인한 사용자의 감정 기록 상세 조회 API
     @GetMapping("/{emotionRecordId}")
     public EmotionRecordsDetailResponseDto getEmotionRecordDetail(
@@ -105,11 +146,24 @@ public class EmotionRecordsController {
 
     // FastAPI 분석 실패로 QUICK 상태에 남은 감정 기록 재분석 API
     @PostMapping("/{emotionRecordId}/reanalyze")
-    public EmotionRecordsDetailResponseDto reanalyzeEmotoinRecord(
+    public EmotionRecordsDetailResponseDto reanalyzeEmotionRecord(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long emotionRecordId
     ){
         return  emotionRecordsService.reanalyzeEmotionRecord(
+                userId,
+                emotionRecordId
+        );
+    }
+
+    // 검색 임베딩이 없거나 생성에 실패한 감정 기록의 벡터 재생성 API
+    @PostMapping("/{emotionRecordId}/retry-embedding")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void retrySearchEmbedding(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long emotionRecordId
+    ) {
+        emotionRecordsService.retrySearchEmbedding(
                 userId,
                 emotionRecordId
         );

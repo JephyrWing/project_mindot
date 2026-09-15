@@ -21,6 +21,7 @@ import com.my.mindot_back.safety.dto.SafetyNoticeResponseDto;
 import com.my.mindot_back.safety.service.SafetyEventsService;
 import com.my.mindot_back.users.entity.Users;
 import com.my.mindot_back.users.repository.UsersRepository;
+import com.my.mindot_back.records.repository.EmotionRecordSemanticSearchQuery;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
@@ -34,6 +35,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Arrays;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +44,12 @@ public class EmotionRecordsService {
 
     // 한번의 목록 요청에서 허용하는 최대 감정 기록의 수
     private static final int MAX_PAGE_SIZE = 50;
+
+    // 의미 검색 문장의 최대 길이
+    private static final int MAX_SEMANTIC_QUERY_LENGTH = 500;
+
+    // 관련 없는 기록을 제외하기 위한 최소 코사인 유사도
+    private static final double SEMANTIC_SEARCH_THRESHOLD = 0.7;
 
     // 감정 기록을 저장하는 Repository
     private final EmotionRecordsRepository emotionRecordsRepository;
@@ -53,6 +62,10 @@ public class EmotionRecordsService {
 
     // 원문 저장·AI 결과 반영을 각각 독립 트랜잭션으로 처리
     private final EmotionRecordAiTransactionService emotionRecordAiTransactionService;
+
+    // 감정 기록 원문의 의미 검색 벡터를 비동기로 생성
+    private final EmotionRecordSearchEmbeddingService
+            searchEmbeddingService;
 
     // 감정 기록, CBT 세션과 연결된 AI 작업 이력 삭제
     private final AiJobsRepository aiJobsRepository;
@@ -96,14 +109,40 @@ public class EmotionRecordsService {
 
         analyzeSavedRecord(userId, context);
 
+        // 원문 저장 여부를 다시 확인하므로 멱등 재요청에서도 중복 임베딩이 생성되지 않음
+        searchEmbeddingService.submit(
+                userId,
+                context.emotionRecordId()
+        );
+
         return emotionRecordAiTransactionService
                 .savedResponse(userId, context.emotionRecordId());
     }
 
-    public EmotionRecordsDetailResponseDto reanalyzeEmotionRecord(Long userId, Long emotionRecordId) {
-        var context = emotionRecordAiTransactionService.startReanalysis(userId, emotionRecordId);
+    public EmotionRecordsDetailResponseDto reanalyzeEmotionRecord(
+            Long userId,
+            Long emotionRecordId
+    ) {
+        var context = emotionRecordAiTransactionService
+                .startReanalysis(userId, emotionRecordId);
+
         analyzeSavedRecord(userId, context);
+
+        // 기존 기록에 검색 벡터가 없으면 비동기로 생성
+        searchEmbeddingService.submit(userId, emotionRecordId);
+
         return getEmotionRecordsDetail(userId, emotionRecordId);
+    }
+
+    // 기존 기록 또는 실패한 감정 기록 검색 임베딩 수동 재시도
+    public void retrySearchEmbedding(
+            Long userId,
+            Long emotionRecordId
+    ) {
+        searchEmbeddingService.retry(
+                userId,
+                emotionRecordId
+        );
     }
 
     private void analyzeSavedRecord(
@@ -235,6 +274,94 @@ public class EmotionRecordsService {
                 emotionRecordsPage
         );
     }
+
+    // 검색 문장과 의미가 비슷한 로그인 사용자의 감정 기록을 조회
+    public EmotionRecordsPageResponseDto searchEmotionRecordsSemantically(
+            Long userId,
+            String queryText,
+            EmotionRecordsListPeriod period,
+            String emotionCode,
+            String contextCategory,
+            int page,
+            int size
+    ) {
+        if (queryText == null || queryText.isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "의미 검색어를 입력해 주세요."
+            );
+        }
+
+        String normalizedQueryText = queryText.trim();
+
+        if (normalizedQueryText.length()
+                > MAX_SEMANTIC_QUERY_LENGTH) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "의미 검색어는 500자 이하이어야 합니다."
+            );
+        }
+
+        if (page < 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "페이지 번호는 0 이상이어야 합니다."
+            );
+        }
+
+        if (size < 1 || size > MAX_PAGE_SIZE) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "페이지 크기는 1 이상 50 이하이어야 합니다."
+            );
+        }
+
+        Users user = usersRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED,
+                        "로그인한 사용자를 찾을 수 없습니다."
+                ));
+
+        PeriodRange periodRange = calculatePeriodRange(
+                period,
+                ZoneId.of(user.getTimezone())
+        );
+
+        // 검색 문장만 일회성으로 임베딩하며 DB에는 저장하지 않음
+        float[] queryEmbedding =
+                searchEmbeddingService.embedSearchQuery(
+                        normalizedQueryText
+                );
+
+        EmotionRecordSemanticSearchQuery searchQuery =
+                new EmotionRecordSemanticSearchQuery(
+                        userId,
+                        Arrays.toString(queryEmbedding),
+                        periodRange.startInclusive(),
+                        periodRange.endExclusive(),
+                        normalizeOptionalCode(emotionCode),
+                        normalizeOptionalCode(contextCategory),
+                        SEMANTIC_SEARCH_THRESHOLD
+                );
+
+        Page<EmotionRecords> searchResult =
+                emotionRecordsRepository.searchSemantically(
+                        searchQuery,
+                        PageRequest.of(page, size)
+                );
+
+        return EmotionRecordsPageResponseDto.from(searchResult);
+    }
+
+    // 빈 필터는 조건 없음으로 처리하고 전달된 코드는 DB 형식인 대문자로 통일
+    private String normalizeOptionalCode(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        return value.trim().toUpperCase(Locale.ROOT);
+    }
+
     // ALL, WEEK, MONTH 선택값을 실제 DB 조회용 시각 범위로 변환
     private PeriodRange calculatePeriodRange(
             EmotionRecordsListPeriod period,
