@@ -58,4 +58,17 @@ public class FastApiClientConfig {
                 .requestFactory(requestFactory(Duration.ofSeconds(15)))
                 .build();
     }
+
+    // 카카오 Local 장소 검색 API 호출에 사용하는 전용 HTTP 요청 객체
+    @Bean("kakaoLocalRestClient")
+    public RestClient kakaoLocalRestClient(
+            RestClient.Builder builder
+    ) {
+        return builder
+                .baseUrl("https://dapi.kakao.com")
+                .requestFactory(
+                        requestFactory(Duration.ofSeconds(10))
+                )
+                .build();
+    }
 }

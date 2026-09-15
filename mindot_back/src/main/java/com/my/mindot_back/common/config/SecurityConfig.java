@@ -113,7 +113,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/records/**",
                                 "/api/reflections/**",
-                                "/api/reports/**"
+                                "/api/reports/**",
+                                "/api/centers/**"
                         ).hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
