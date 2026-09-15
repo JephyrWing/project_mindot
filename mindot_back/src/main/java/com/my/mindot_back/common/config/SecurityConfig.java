@@ -98,7 +98,8 @@ public class SecurityConfig {
                                 "/api/auth/refresh",
                                 "/api/auth/logout",
                                 "/api/auth/oauth/kakao",
-                                "/api/auth/oauth/google"
+                                "/api/auth/oauth/google",
+                                "/api/auth/oauth/signup"
                         ).permitAll()
 
                         // 소셜 로그인 시작 URL 요청은 로그인 전에도 허용

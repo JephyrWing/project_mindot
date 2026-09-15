@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import com.my.mindot_back.reports.service.ReportCacheInvalidationService;
 
 /** In-memory entity/repository fixtures only; no server/DB. Prepared, not run. */
 class LegacyReflectionRetryTest {
@@ -51,8 +52,15 @@ class LegacyReflectionRetryTest {
             AiJobs job=a.getArgument(0);long id=20L+saved.size();
             ReflectionTestUtils.setField(job,"id",id);saved.put(id,job);return job;
         });
-        tx=new InsightTransactions(sessions,mock(EmotionRecordsRepository.class),jobs,mock(SessionDistortionsRepository.class),
-            mock(DistortionTypesRepository.class),mock(SafetyEventsService.class));
+        tx = new InsightTransactions(
+                sessions,
+                mock(EmotionRecordsRepository.class),
+                jobs,
+                mock(SessionDistortionsRepository.class),
+                mock(DistortionTypesRepository.class),
+                mock(SafetyEventsService.class),
+                mock(ReportCacheInvalidationService.class)
+        );
     }
 
     @Test void failedLegacyAnswerRestoresThenExplicitlyRetriesWithoutAppendingUser() {
