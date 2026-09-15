@@ -9,6 +9,7 @@ import EmotionRecordDetail from './components/EmotionRecordDetail/EmotionRecordD
 import CBT from './components/CBT/CBT.jsx'
 import WeeklyReport from './components/WeeklyReport/WeeklyReport.jsx'
 import WeeklyReportGraph from './components/WeeklyReportGraph/WeeklyReportGraph.jsx'
+import MonthlyReport from './components/MonthlyReport/MonthlyReport.jsx'
 import CompletedReflection from './components/CompletedReflection/CompletedReflection.jsx'
 import AppIntroModal from './components/AppIntroModal/AppIntroModal.jsx'
 import Center from './components/Center/Center.jsx'
@@ -39,6 +40,7 @@ const protectedPages = new Set([
   'cbt',
   'weekly-report',
   'weekly-report-graph',
+  'monthly-report',
   'completed-reflection',
   'daily-care',
   'breathing',
@@ -415,6 +417,22 @@ function App() {
         onHome={moveToMain}
       />
     )
+  } else if (currentPage === 'monthly-report') {
+    // 백엔드 월간 리포트 API와 연결된 선택 월 요약 화면 렌더링.
+    currentPageContent = (
+      <MonthlyReport
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={() => moveToPage('login')}
+        onLogout={handleLogout}
+        onSignUp={() => moveToPage('signup')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onCenter={() => moveToPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
+        onBack={moveToMain}
+        onHome={moveToMain}
+      />
+    )
   } else if (currentPage === 'completed-reflection') {
     // 주간 리포트에서 선택한 완료 CBT 성찰 결과 상세 화면 렌더링.
     currentPageContent = (
@@ -526,6 +544,7 @@ function App() {
         onEmotionRecord={() => moveToProtectedPage('emotion-record')}
         onEmotionHistory={() => moveToProtectedPage('emotion-history')}
         onWeeklyReport={() => moveToProtectedPage('weekly-report')}
+        onMonthlyReport={() => moveToProtectedPage('monthly-report')}
         onCenter={() => moveToPage('center')}
         onDailyCare={() => moveToProtectedPage('daily-care')}
         onHome={moveToMain}

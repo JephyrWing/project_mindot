@@ -20,6 +20,24 @@ export const createReportsApi = (client) => ({
     return data
   },
 
+  // 로그인 사용자의 선택 월에 이미 생성된 월간 리포트 조회 처리.
+  getMonthlyReport: async (month) => {
+    const { data } = await client.get('/api/reports/monthly', {
+      params: { month },
+    })
+
+    return data
+  },
+
+  // 선택 월의 최신 감정 기록과 CBT 결과를 사용한 월간 리포트 생성 또는 갱신 처리.
+  generateMonthlyReport: async (month) => {
+    const { data } = await client.post('/api/reports/monthly', null, {
+      params: { month },
+    })
+
+    return data
+  },
+
   // 선택 기간 또는 개별 날짜의 지정 내용을 상담용 PDF 파일로 생성하는 처리.
   exportWeeklyReportPdf: async ({
     startDate,
@@ -46,5 +64,7 @@ export const createReportsApi = (client) => ({
 export const {
   getWeeklyReport,
   generateWeeklyReport,
+  getMonthlyReport,
+  generateMonthlyReport,
   exportWeeklyReportPdf,
 } = createReportsApi(httpClient)

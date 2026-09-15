@@ -148,7 +148,7 @@
 /* 주요 동작과 보조 동작을 구분하는 버튼 격자 배치. */
 .main-actions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   margin-top: 28px;
 }
@@ -172,7 +172,8 @@
 
 /* 감정 기록 목록과 주간 리포트 버튼의 옅은 파란색 배경 설정. */
 .main-history-button,
-.main-report-button {
+.main-report-button,
+.main-monthly-report-button {
   border: 1px solid #96b5e4;
   color: var(--mindot-primary-strong);
   background: #ffffff;
@@ -186,7 +187,8 @@
 
 /* 보조 동작 버튼 위에 커서를 올렸을 때 조금 짙은 파란색 강조. */
 .main-history-button:hover,
-.main-report-button:hover {
+.main-report-button:hover,
+.main-monthly-report-button:hover {
   border-color: var(--mindot-primary);
   background: #cbdcf5;
 }
