@@ -86,6 +86,25 @@ function MonthlyReport({
   const [emptyMessage, setEmptyMessage] = useState('')
   const [refreshMessage, setRefreshMessage] = useState('')
   const [reloadCount, setReloadCount] = useState(0)
+  // 날짜별 그래프에서 사용자가 선택한 날짜 상태 관리.
+  const [selectedTrendDate, setSelectedTrendDate] = useState('')
+
+  // 백엔드 날짜별 집계를 그래프 표시가 안전한 숫자 범위로 정규화.
+  const dailyTrends = useMemo(() => (report?.dailyTrends ?? []).map((trend) => ({
+    ...trend,
+    recordCount: Number.isFinite(trend.recordCount) ? trend.recordCount : 0,
+    averageIntensity: Number.isFinite(trend.averageIntensity)
+      ? Math.min(10, Math.max(0, trend.averageIntensity))
+      : null,
+  })), [report])
+
+  // 직접 선택한 날짜 또는 기록이 존재하는 첫 날짜를 상세 표시 대상으로 설정.
+  const selectedDailyTrend = useMemo(() => (
+    dailyTrends.find((trend) => trend.date === selectedTrendDate)
+    ?? dailyTrends.find((trend) => trend.recordCount > 0)
+    ?? dailyTrends[0]
+    ?? null
+  ), [dailyTrends, selectedTrendDate])
 
   // 선택 월 변경 시 저장된 리포트 조회 후 미생성 상태에서는 자동 생성 요청 처리.
   useEffect(() => {
@@ -97,6 +116,7 @@ function MonthlyReport({
       setLoadError('')
       setEmptyMessage('')
       setRefreshMessage('')
+      setSelectedTrendDate('')
 
       try {
         const savedReport = await getMonthlyReport(selectedMonth)
@@ -260,6 +280,76 @@ function MonthlyReport({
               <section className="monthly-report-summary-text" aria-labelledby="monthly-summary-title">
                 <h2 id="monthly-summary-title">이번 달 마음 흐름</h2>
                 <p>{report.summaryText || '표시할 월간 요약이 없습니다.'}</p>
+              </section>
+
+              {/* 백엔드의 날짜별 평균 감정 강도를 한 달 그래프로 표시. */}
+              <section className="monthly-report-chart" aria-labelledby="monthly-chart-title">
+                <header className="monthly-report-chart-heading">
+                  <h2 id="monthly-chart-title">날짜별 감정 강도</h2>
+                  <span>0~10점</span>
+                </header>
+
+                <div className="monthly-report-chart-scroll">
+                  <div className="monthly-report-chart-bars">
+                    {dailyTrends.map((trend) => {
+                      const day = Number(trend.date.slice(-2))
+                      const isSelected = selectedDailyTrend?.date === trend.date
+
+                      return (
+                        <button
+                          className={isSelected
+                            ? 'monthly-report-chart-item is-selected'
+                            : 'monthly-report-chart-item'}
+                          key={trend.date}
+                          type="button"
+                          aria-pressed={isSelected}
+                          aria-label={trend.recordCount > 0
+                            ? `${day}일, 기록 ${trend.recordCount}건, 평균 강도 ${trend.averageIntensity ?? '미입력'}`
+                            : `${day}일, 감정 기록 없음`}
+                          onClick={() => setSelectedTrendDate(trend.date)}
+                        >
+                          <span className="monthly-report-chart-value">
+                            {trend.averageIntensity === null
+                              ? '-'
+                              : trend.averageIntensity.toFixed(1)}
+                          </span>
+                          <span className="monthly-report-chart-track" aria-hidden="true">
+                            <span style={{ height: `${(trend.averageIntensity ?? 0) * 10}%` }} />
+                          </span>
+                          <strong>{day}</strong>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* 선택한 날짜의 기록 수와 평균 강도 및 대표 감정 표시. */}
+                {selectedDailyTrend && (
+                  <dl className="monthly-report-chart-detail" aria-live="polite">
+                    <div>
+                      <dt>선택 날짜</dt>
+                      <dd>{Number(selectedDailyTrend.date.slice(-2))}일</dd>
+                    </div>
+                    <div>
+                      <dt>기록 건수</dt>
+                      <dd>{selectedDailyTrend.recordCount}건</dd>
+                    </div>
+                    <div>
+                      <dt>평균 강도</dt>
+                      <dd>{selectedDailyTrend.averageIntensity === null
+                        ? '기록 없음'
+                        : `${selectedDailyTrend.averageIntensity.toFixed(1)}/10`}</dd>
+                    </div>
+                    <div>
+                      <dt>대표 감정</dt>
+                      <dd>{selectedDailyTrend.recordCount > 0
+                        ? emotionCodeLabels[selectedDailyTrend.dominantEmotionCode]
+                          ?? selectedDailyTrend.dominantEmotionCode
+                          ?? '분석 전'
+                        : '기록 없음'}</dd>
+                    </div>
+                  </dl>
+                )}
               </section>
 
               <button
