@@ -27,6 +27,38 @@ const emotionCodeLabels = {
   OTHER: '기타',
 }
 
+// 백엔드 월간 강도 변화 코드를 사용자 안내 문구로 변환하는 목록 설정.
+const intensityTrendContent = {
+  INCREASED: {
+    label: '후반 강도 높아짐',
+    description: '월 초반보다 후반에 기록한 감정의 평균 강도가 높아졌습니다.',
+  },
+  DECREASED: {
+    label: '후반 강도 낮아짐',
+    description: '월 초반보다 후반에 기록한 감정의 평균 강도가 낮아졌습니다.',
+  },
+  STABLE: {
+    label: '비슷한 흐름',
+    description: '월 초반과 후반에 기록한 감정의 평균 강도가 비슷합니다.',
+  },
+  INSUFFICIENT_DATA: {
+    label: '비교 자료 부족',
+    description: '월 초반과 후반을 비교하려면 감정 강도 기록이 더 필요합니다.',
+  },
+}
+
+// 감정 강도 숫자를 소수점 한 자리의 사용자 표시값으로 변환.
+const formatIntensity = (value) => (
+  Number.isFinite(value) ? `${value.toFixed(1)}/10` : '기록 없음'
+)
+
+// 감정 강도 숫자를 비교 막대에 사용할 0~100 범위의 비율로 변환.
+const getIntensityPercent = (value) => (
+  Number.isFinite(value)
+    ? Math.min(100, Math.max(0, value * 10))
+    : 0
+)
+
 // 브라우저 지역 시각의 연월을 백엔드 요청 형식으로 변환.
 const toMonthValue = (date) => {
   const year = date.getFullYear()
@@ -105,6 +137,10 @@ function MonthlyReport({
     ?? dailyTrends[0]
     ?? null
   ), [dailyTrends, selectedTrendDate])
+
+  // 현재 응답의 초반·후반 변화 코드를 화면 표시용 내용으로 변환.
+  const selectedIntensityTrend = intensityTrendContent[report?.intensityTrend]
+    ?? intensityTrendContent.INSUFFICIENT_DATA
 
   // 선택 월 변경 시 저장된 리포트 조회 후 미생성 상태에서는 자동 생성 요청 처리.
   useEffect(() => {
@@ -280,6 +316,40 @@ function MonthlyReport({
               <section className="monthly-report-summary-text" aria-labelledby="monthly-summary-title">
                 <h2 id="monthly-summary-title">이번 달 마음 흐름</h2>
                 <p>{report.summaryText || '표시할 월간 요약이 없습니다.'}</p>
+              </section>
+
+              {/* 월 초반과 후반의 평균 감정 강도 및 변화 방향 비교 표시. */}
+              <section
+                className="monthly-report-half-trend"
+                aria-labelledby="monthly-half-trend-title"
+              >
+                <header className="monthly-report-half-trend-heading">
+                  <h2 id="monthly-half-trend-title">월 초반·후반 비교</h2>
+                  <strong>{selectedIntensityTrend.label}</strong>
+                </header>
+
+                <div className="monthly-report-half-trend-rows">
+                  <div>
+                    <span>월 초반</span>
+                    <span className="monthly-report-half-trend-track" aria-hidden="true">
+                      <span style={{
+                        width: `${getIntensityPercent(report.firstHalfAverageIntensity)}%`,
+                      }} />
+                    </span>
+                    <strong>{formatIntensity(report.firstHalfAverageIntensity)}</strong>
+                  </div>
+                  <div>
+                    <span>월 후반</span>
+                    <span className="monthly-report-half-trend-track" aria-hidden="true">
+                      <span style={{
+                        width: `${getIntensityPercent(report.secondHalfAverageIntensity)}%`,
+                      }} />
+                    </span>
+                    <strong>{formatIntensity(report.secondHalfAverageIntensity)}</strong>
+                  </div>
+                </div>
+
+                <p>{selectedIntensityTrend.description}</p>
               </section>
 
               {/* 백엔드의 날짜별 평균 감정 강도를 한 달 그래프로 표시. */}
