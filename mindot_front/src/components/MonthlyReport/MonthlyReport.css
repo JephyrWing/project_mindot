@@ -158,6 +158,74 @@
   color: var(--mindot-text-secondary);
 }
 
+/* 월 초반과 후반의 감정 강도 비교 영역을 구분선 아래 배치. */
+.monthly-report-half-trend {
+  margin-top: 26px;
+  border-top: 1px solid var(--mindot-border);
+  padding-top: 24px;
+}
+
+/* 비교 제목과 백엔드 변화 판정 문구의 양쪽 정렬 설정. */
+.monthly-report-half-trend-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.monthly-report-half-trend-heading h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.monthly-report-half-trend-heading strong {
+  color: var(--mindot-primary-strong);
+  font-size: 14px;
+}
+
+/* 초반·후반 비교값을 동일한 기준의 가로 막대로 표시. */
+.monthly-report-half-trend-rows {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.monthly-report-half-trend-rows > div {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) 82px;
+  align-items: center;
+  gap: 12px;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+}
+
+.monthly-report-half-trend-rows > div > strong {
+  color: var(--mindot-text);
+  text-align: right;
+}
+
+/* 평균 강도 비율을 채울 단색 가로 막대의 기준 영역 설정. */
+.monthly-report-half-trend-track {
+  display: block;
+  height: 12px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--mindot-surface-muted);
+}
+
+.monthly-report-half-trend-track > span {
+  display: block;
+  height: 100%;
+  background: var(--mindot-primary);
+}
+
+/* 강도 변화 판정의 설명 문구 설정. */
+.monthly-report-half-trend > p {
+  margin: 14px 0 0;
+  color: var(--mindot-text-muted);
+  font-size: 13px;
+}
+
 /* 날짜별 감정 강도 그래프를 위아래 구분선 사이에 배치. */
 .monthly-report-chart {
   margin-top: 26px;
@@ -357,6 +425,18 @@
 
   .monthly-report-period input {
     width: 100%;
+  }
+
+  .monthly-report-half-trend-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .monthly-report-half-trend-rows > div {
+    grid-template-columns: 58px minmax(0, 1fr) 76px;
+    gap: 8px;
+    font-size: 13px;
   }
 
   .monthly-report-summary {
