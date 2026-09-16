@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Navbar from '../Navbar/Navbar.jsx'
 import {
+  exportMonthlyReportPdf,
   generateMonthlyReport,
   getMonthlyReport,
 } from '../../utils/reports/reportsApi.js'
@@ -24,6 +25,21 @@ const emotionCodeLabels = {
   CALM: '평온',
   GRATITUDE: '감사',
   EXCITEMENT: '설렘',
+  OTHER: '기타',
+}
+
+// 백엔드 상황 코드를 월간 리포트에 표시할 한국어 이름으로 변환하는 목록 설정.
+const contextCategoryLabels = {
+  SOCIAL_EVALUATION: '사회적 평가',
+  PERFORMANCE: '발표·시험',
+  PROMISE: '약속',
+  MISTAKE: '실수',
+  CONFLICT: '갈등',
+  REJECTION: '거절·소외',
+  WORK: '업무',
+  STUDY: '학업',
+  HEALTH: '건강',
+  DAILY_LIFE: '일상',
   OTHER: '기타',
 }
 
@@ -59,6 +75,61 @@ const getIntensityPercent = (value) => (
     : 0
 )
 
+// 코드별 기록 수 객체를 많은 순서의 화면 표시 배열로 변환.
+const createCountItems = (counts, labels) => Object.entries(counts ?? {})
+  .map(([code, count]) => ({
+    code,
+    label: labels[code] ?? code,
+    count: Number(count),
+  }))
+  .filter((item) => Number.isFinite(item.count) && item.count > 0)
+  .sort((firstItem, secondItem) => secondItem.count - firstItem.count)
+
+// 날짜 문자열을 월간 리포트의 간단한 한국어 표시 형식으로 변환.
+const formatReportDate = (dateValue) => {
+  if (!dateValue) return '날짜 정보 없음'
+
+  const date = new Date(`${dateValue}T00:00:00`)
+
+  if (Number.isNaN(date.getTime())) return '날짜 정보 없음'
+
+  return new Intl.DateTimeFormat('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(date)
+}
+
+// ISO 시각을 최근 집계 시각의 한국어 날짜·시간 형식으로 변환.
+const formatSnapshotAt = (dateTimeValue) => {
+  if (!dateTimeValue) return '집계 시각 없음'
+
+  const date = new Date(dateTimeValue)
+
+  if (Number.isNaN(date.getTime())) return '집계 시각 없음'
+
+  return new Intl.DateTimeFormat('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date)
+}
+
+// 백엔드 요약 문장에 포함된 감정·상황 코드를 한국어 이름으로 변환.
+const localizeSummaryText = (summaryText) => {
+  if (!summaryText) return '표시할 월간 요약이 없습니다.'
+
+  return Object.entries({
+    ...emotionCodeLabels,
+    ...contextCategoryLabels,
+  }).reduce(
+    (localizedText, [code, label]) => localizedText.replaceAll(code, label),
+    summaryText,
+  )
+}
+
 // 브라우저 지역 시각의 연월을 백엔드 요청 형식으로 변환.
 const toMonthValue = (date) => {
   const year = date.getFullYear()
@@ -88,8 +159,36 @@ const getMonthlyReportErrorMessage = (error) => {
     return '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
   }
 
+  if (error.response.status === 400) {
+    return '조회할 연월을 다시 확인해 주세요.'
+  }
+
+  if (error.response.status === 401) {
+    return '로그인 정보가 만료되었습니다. 다시 로그인해 주세요.'
+  }
+
   return error.response.data?.message
+    ?? error.response.data?.detail
     ?? '월간 리포트를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
+}
+
+// 월간 PDF 다운로드 오류를 인증·리포트 상태에 맞는 문구로 변환.
+const getMonthlyPdfErrorMessage = (error) => {
+  if (!error.response) {
+    return '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
+  }
+
+  if (error.response.status === 401) {
+    return '로그인 정보가 만료되었습니다. 다시 로그인해 주세요.'
+  }
+
+  if (error.response.status === 404) {
+    return '먼저 선택한 달의 월간 리포트를 생성해 주세요.'
+  }
+
+  return error.response.data?.message
+    ?? error.response.data?.detail
+    ?? '월간 리포트 PDF를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.'
 }
 
 // 월간 감정 기록의 핵심 통계와 월 이동 기능을 제공하는 화면 정의.
@@ -118,6 +217,10 @@ function MonthlyReport({
   const [emptyMessage, setEmptyMessage] = useState('')
   const [refreshMessage, setRefreshMessage] = useState('')
   const [reloadCount, setReloadCount] = useState(0)
+  // 월간 PDF 생성 요청과 결과 안내 상태 관리.
+  const [isExporting, setIsExporting] = useState(false)
+  const [exportError, setExportError] = useState('')
+  const [exportMessage, setExportMessage] = useState('')
   // 날짜별 그래프에서 사용자가 선택한 날짜 상태 관리.
   const [selectedTrendDate, setSelectedTrendDate] = useState('')
 
@@ -142,6 +245,16 @@ function MonthlyReport({
   const selectedIntensityTrend = intensityTrendContent[report?.intensityTrend]
     ?? intensityTrendContent.INSUFFICIENT_DATA
 
+  // 감정·상황 기록 수를 많은 순서의 분포 항목으로 변환.
+  const emotionCountItems = useMemo(
+    () => createCountItems(report?.emotionCounts, emotionCodeLabels),
+    [report],
+  )
+  const contextCountItems = useMemo(
+    () => createCountItems(report?.contextCategoryCounts, contextCategoryLabels),
+    [report],
+  )
+
   // 선택 월 변경 시 저장된 리포트 조회 후 미생성 상태에서는 자동 생성 요청 처리.
   useEffect(() => {
     let isActive = true
@@ -153,6 +266,8 @@ function MonthlyReport({
       setEmptyMessage('')
       setRefreshMessage('')
       setSelectedTrendDate('')
+      setExportError('')
+      setExportMessage('')
 
       try {
         const savedReport = await getMonthlyReport(selectedMonth)
@@ -214,6 +329,33 @@ function MonthlyReport({
       }
     } finally {
       setIsRefreshing(false)
+    }
+  }
+
+  // 선택 월의 백엔드 PDF 파일을 브라우저 다운로드로 제공하는 처리.
+  const handlePdfExport = async () => {
+    if (!report || isExporting || isRefreshing) return
+
+    setIsExporting(true)
+    setExportError('')
+    setExportMessage('')
+
+    try {
+      const pdfBlob = await exportMonthlyReportPdf(selectedMonth)
+      const downloadUrl = window.URL.createObjectURL(pdfBlob)
+      const downloadLink = document.createElement('a')
+
+      downloadLink.href = downloadUrl
+      downloadLink.download = `mindot-monthly-report-${selectedMonth}.pdf`
+      document.body.appendChild(downloadLink)
+      downloadLink.click()
+      downloadLink.remove()
+      window.URL.revokeObjectURL(downloadUrl)
+      setExportMessage('월간 리포트 PDF 다운로드를 시작했습니다.')
+    } catch (error) {
+      setExportError(getMonthlyPdfErrorMessage(error))
+    } finally {
+      setIsExporting(false)
     }
   }
 
@@ -310,12 +452,22 @@ function MonthlyReport({
                 <div>
                   <dt>완료 CBT</dt>
                   <dd>{report.completedCbtCount}회</dd>
+                  <small>
+                    도움 평균 {Number.isFinite(report.averageHelpfulnessScore)
+                      ? `${report.averageHelpfulnessScore.toFixed(1)}/5`
+                      : '미입력'}
+                  </small>
                 </div>
               </dl>
 
+              {/* 백엔드가 실제 집계한 월간 시작일과 종료일 표시. */}
+              <p className="monthly-report-period-caption">
+                집계 기간 · {formatReportDate(report.periodStart)} ~ {formatReportDate(report.periodEnd)}
+              </p>
+
               <section className="monthly-report-summary-text" aria-labelledby="monthly-summary-title">
                 <h2 id="monthly-summary-title">이번 달 마음 흐름</h2>
-                <p>{report.summaryText || '표시할 월간 요약이 없습니다.'}</p>
+                <p>{localizeSummaryText(report.summaryText)}</p>
               </section>
 
               {/* 월 초반과 후반의 평균 감정 강도 및 변화 방향 비교 표시. */}
@@ -422,19 +574,100 @@ function MonthlyReport({
                 )}
               </section>
 
-              <button
-                className="monthly-report-refresh"
-                type="button"
-                onClick={handleRefresh}
-                disabled={isRefreshing}
+              {/* 한 달 동안 기록된 감정과 상황의 횟수 분포 표시. */}
+              <section
+                className="monthly-report-distributions"
+                aria-labelledby="monthly-distributions-title"
               >
-                {isRefreshing ? '갱신 중…' : '최신 기록으로 갱신'}
-              </button>
+                <h2 id="monthly-distributions-title">감정·상황 분포</h2>
+                <div className="monthly-report-distribution-columns">
+                  <section aria-labelledby="monthly-emotion-count-title">
+                    <h3 id="monthly-emotion-count-title">기록한 감정</h3>
+                    {emotionCountItems.length > 0 ? (
+                      <ul>
+                        {emotionCountItems.map((item) => (
+                          <li key={item.code}>
+                            <div>
+                              <span>{item.label}</span>
+                              <strong>{item.count}회</strong>
+                            </div>
+                            <span className="monthly-report-distribution-track" aria-hidden="true">
+                              <span style={{
+                                width: `${(item.count / emotionCountItems[0].count) * 100}%`,
+                              }} />
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p>분류된 감정 기록이 없습니다.</p>
+                    )}
+                  </section>
+
+                  <section aria-labelledby="monthly-context-count-title">
+                    <h3 id="monthly-context-count-title">기록한 상황</h3>
+                    {contextCountItems.length > 0 ? (
+                      <ul>
+                        {contextCountItems.map((item) => (
+                          <li key={item.code}>
+                            <div>
+                              <span>{item.label}</span>
+                              <strong>{item.count}회</strong>
+                            </div>
+                            <span className="monthly-report-distribution-track" aria-hidden="true">
+                              <span style={{
+                                width: `${(item.count / contextCountItems[0].count) * 100}%`,
+                              }} />
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p>분류된 상황 기록이 없습니다.</p>
+                    )}
+                  </section>
+                </div>
+              </section>
+
+              {/* 최신 데이터 갱신과 월간 PDF 저장 기능의 같은 단계 배치. */}
+              <div className="monthly-report-actions">
+                <button
+                  className="monthly-report-refresh"
+                  type="button"
+                  onClick={handleRefresh}
+                  disabled={isRefreshing || isExporting}
+                >
+                  {isRefreshing ? '갱신 중…' : '최신 기록으로 갱신'}
+                </button>
+                <button
+                  className="monthly-report-export"
+                  type="button"
+                  onClick={handlePdfExport}
+                  disabled={isExporting || isRefreshing}
+                >
+                  {isExporting ? 'PDF 준비 중…' : '월간 리포트 PDF 저장'}
+                </button>
+              </div>
+
               {refreshMessage && (
                 <p className="monthly-report-refresh-message" role="status">
                   {refreshMessage}
                 </p>
               )}
+              {exportMessage && (
+                <p className="monthly-report-export-message" role="status">
+                  {exportMessage}
+                </p>
+              )}
+              {exportError && (
+                <p className="monthly-report-export-error" role="alert">
+                  {exportError}
+                </p>
+              )}
+
+              <p className="monthly-report-snapshot">
+                최근 집계 시각 · {formatSnapshotAt(report.sourceSnapshotAt)}
+              </p>
             </>
           ) : (
             <div className="monthly-report-state" role="status">

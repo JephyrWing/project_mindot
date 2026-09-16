@@ -79,7 +79,8 @@
 
 .monthly-report-navigation button,
 .monthly-report-state button,
-.monthly-report-refresh {
+.monthly-report-refresh,
+.monthly-report-export {
   min-height: 44px;
   border: 1px solid var(--mindot-primary-line);
   border-radius: 8px;
@@ -92,13 +93,15 @@
 
 .monthly-report-navigation button:not(:disabled):hover,
 .monthly-report-state button:hover,
-.monthly-report-refresh:not(:disabled):hover {
+.monthly-report-refresh:not(:disabled):hover,
+.monthly-report-export:not(:disabled):hover {
   border-color: var(--mindot-primary);
   background: var(--mindot-primary-soft);
 }
 
 .monthly-report-navigation button:disabled,
-.monthly-report-refresh:disabled {
+.monthly-report-refresh:disabled,
+.monthly-report-export:disabled {
   border-color: var(--mindot-border);
   color: var(--mindot-disabled);
   background: var(--mindot-surface-muted);
@@ -141,6 +144,23 @@
   color: var(--mindot-primary-strong);
   font-weight: 700;
   word-break: keep-all;
+}
+
+/* 완료 CBT 값 아래 평균 도움 점수의 보조 정보 설정. */
+.monthly-report-summary small {
+  display: block;
+  margin-top: 3px;
+  color: var(--mindot-text-muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+/* 백엔드 집계 시작일과 종료일을 요약 바로 아래 표시. */
+.monthly-report-period-caption {
+  margin: 10px 0 0;
+  color: var(--mindot-text-muted);
+  font-size: 12px;
+  text-align: right;
 }
 
 /* 월간 요약 문장을 구분선 아래 단순 정보 영역으로 표시. */
@@ -351,6 +371,80 @@
   word-break: keep-all;
 }
 
+/* 감정과 상황별 기록 횟수 분포를 구분선 아래 배치. */
+.monthly-report-distributions {
+  margin-top: 26px;
+  border-bottom: 1px solid var(--mindot-border);
+  padding-bottom: 24px;
+}
+
+.monthly-report-distributions > h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+/* 감정 분포와 상황 분포의 두 열 배치 설정. */
+.monthly-report-distribution-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 30px;
+  margin-top: 18px;
+}
+
+.monthly-report-distribution-columns section + section {
+  border-left: 1px solid var(--mindot-border);
+  padding-left: 30px;
+}
+
+.monthly-report-distribution-columns h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.monthly-report-distribution-columns ul {
+  display: grid;
+  gap: 14px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.monthly-report-distribution-columns li > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--mindot-text-secondary);
+  font-size: 13px;
+}
+
+.monthly-report-distribution-columns li strong {
+  flex: 0 0 auto;
+  color: var(--mindot-text);
+}
+
+.monthly-report-distribution-columns section > p {
+  margin: 14px 0 0;
+  color: var(--mindot-text-muted);
+  font-size: 13px;
+}
+
+/* 분포별 최다 기록 수를 기준으로 채워지는 단색 가로 막대 설정. */
+.monthly-report-distribution-track {
+  display: block;
+  height: 7px;
+  overflow: hidden;
+  margin-top: 6px;
+  border-radius: 3px;
+  background: var(--mindot-surface-muted);
+}
+
+.monthly-report-distribution-track > span {
+  display: block;
+  height: 100%;
+  background: var(--mindot-primary);
+}
+
 /* 조회 중·오류·빈 기록 상태의 중앙 안내 영역 설정. */
 .monthly-report-state {
   margin-top: 18px;
@@ -372,17 +466,42 @@
   color: var(--mindot-danger);
 }
 
-/* 월간 리포트 갱신 버튼과 완료 안내 문구 설정. */
-.monthly-report-refresh {
-  width: 100%;
+/* 최신 데이터 갱신과 월간 PDF 저장 버튼의 같은 너비 배치. */
+.monthly-report-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
   margin-top: 24px;
 }
 
-.monthly-report-refresh-message {
+.monthly-report-refresh,
+.monthly-report-export {
+  width: 100%;
+}
+
+.monthly-report-refresh-message,
+.monthly-report-export-message,
+.monthly-report-export-error {
   margin: 10px 0 0;
-  color: var(--mindot-success);
   font-size: 13px;
   text-align: center;
+}
+
+.monthly-report-refresh-message,
+.monthly-report-export-message {
+  color: var(--mindot-success);
+}
+
+.monthly-report-export-error {
+  color: var(--mindot-danger);
+}
+
+/* 현재 월간 리포트가 사용한 원본 데이터의 최근 집계 시각 설정. */
+.monthly-report-snapshot {
+  margin: 18px 0 0;
+  color: var(--mindot-text-muted);
+  font-size: 12px;
+  text-align: right;
 }
 
 /* 메인 화면으로 돌아가는 주요 버튼 설정. */
@@ -455,5 +574,21 @@
 
   .monthly-report-chart-detail div:nth-child(3) {
     border-left: 0;
+  }
+
+  .monthly-report-distribution-columns {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  .monthly-report-distribution-columns section + section {
+    border-top: 1px solid var(--mindot-border);
+    border-left: 0;
+    padding-top: 22px;
+    padding-left: 0;
+  }
+
+  .monthly-report-actions {
+    grid-template-columns: 1fr;
   }
 }
