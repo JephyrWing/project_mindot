@@ -1,4 +1,4 @@
-// 감정 기록, 확정 CBT 변경 시 해당 날짜와 겹치는 리포트 캐시만 삭제하는 Service
+// 감정 기록·확정 CBT 변경 시 영향을 받는 주간·월간 리포트 캐시를 삭제하는 Service
 package com.my.mindot_back.reports.service;
 
 import com.my.mindot_back.reports.repository.ReportsRepository;
@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import com.my.mindot_back.reports.entity.ReportType;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -41,11 +42,31 @@ public class ReportCacheInvalidationService {
                         .atZone(zoneId)
                         .toLocalDate())
                 .distinct()
-                .forEach(date -> reportsRepository
-                        .deleteByUser_IdAndPeriodStartLessThanEqualAndPeriodEndGreaterThanEqual(
-                                userId,
-                                date,
-                                date
-                        ));
+                .forEach(date -> {
+                    /*
+                     * 월간 리포트는 변경된 날짜가 포함된 해당 월만 삭제
+                     */
+                    reportsRepository
+                            .deleteByUser_IdAndReportTypeAndPeriodStartLessThanEqualAndPeriodEndGreaterThanEqual(
+                                    userId,
+                                    ReportType.MONTHLY,
+                                    date,
+                                    date
+                            );
+
+                    /*
+                     * 주간 리포트의 반복 패턴은 선택 주를 포함한 최근 8주를 사용
+                     *
+                     * 변경된 날짜가 직접 포함된 주간 리포트뿐 아니라
+                     * 해당 날짜를 최근 8주 범위로 사용하는 이후 주간 리포트도 삭제
+                     */
+                    reportsRepository
+                            .deleteByUser_IdAndReportTypeAndPeriodStartLessThanEqualAndPeriodEndGreaterThanEqual(
+                                    userId,
+                                    ReportType.WEEKLY,
+                                    date.plusWeeks(7),
+                                    date
+                            );
+                });
     }
 }
