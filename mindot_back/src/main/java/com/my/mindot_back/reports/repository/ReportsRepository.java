@@ -18,11 +18,12 @@ public interface ReportsRepository extends JpaRepository<Reports, Long> {
             LocalDate periodEnd
     );
 
-    // 변경 날짜를 포함하는 리포트만 삭제
-    long deleteByUser_IdAndPeriodStartLessThanEqualAndPeriodEndGreaterThanEqual(
+    // 사용자·리포트 유형과 지정된 기간 조건에 해당하는 리포트 삭제
+    long deleteByUser_IdAndReportTypeAndPeriodStartLessThanEqualAndPeriodEndGreaterThanEqual(
             Long userId,
-            LocalDate date,
-            LocalDate sameDate
+            ReportType reportType,
+            LocalDate latestPeriodStart,
+            LocalDate earliestPeriodEnd
     );
 
 }
