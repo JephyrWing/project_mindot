@@ -480,9 +480,11 @@ function WeeklyReport({
           <BrandLogo className="weekly-report-logo" onClick={onHome} />
 
           <h1 id="weekly-report-title">주간 리포트</h1>
-          <p>감정 통계는 감정 발생일, CBT 통계는 성찰 완료일 기준입니다. PDF는 감정 발생일로 선택한 기록과 연결된 CBT를 포함합니다.</p>
           <p className="weekly-report-description">
             선택한 주의 감정 기록과 CBT 성찰 흐름을 확인하는 공간입니다.
+            <span>
+              감정 통계는 감정 발생일, CBT 통계는 성찰 완료일 기준이며 PDF에는 선택한 감정 기록과 연결된 CBT가 포함됩니다.
+            </span>
           </p>
 
           <div className="weekly-report-period">
@@ -507,15 +509,184 @@ function WeeklyReport({
             </button>
           </div>
 
-          {/* 선택한 주의 감정 강도 그래프 화면으로 이동하는 버튼 배치. */}
-          {onGraph && (
-            <button
-              className="weekly-report-graph-button"
-              type="button"
-              onClick={onGraph}
-            >
-              주간 감정 그래프로 보기
-            </button>
+          <h2 className="weekly-report-selected-period">
+            {selectedWeek.label} 요약
+          </h2>
+
+          {isLoading ? (
+            <div className="weekly-report-state" role="status" aria-live="polite">
+              <strong>주간 리포트를 불러오는 중입니다.</strong>
+              <p>선택한 주의 감정 기록을 확인하고 있습니다.</p>
+            </div>
+          ) : loadError ? (
+            <div className="weekly-report-state weekly-report-state--error" role="alert">
+              <strong>주간 리포트를 불러오지 못했습니다.</strong>
+              <p>{loadError}</p>
+              <button
+                type="button"
+                onClick={() => setReloadCount((currentCount) => currentCount + 1)}
+              >
+                다시 불러오기
+              </button>
+            </div>
+          ) : report ? (
+            <>
+              {/* 월간 리포트와 동일한 구분선형 통계 요약 배치. */}
+              <dl className="weekly-report-summary">
+                {summaryItems.map((summaryItem) => (
+                  <div key={summaryItem.label}>
+                    <dt>{summaryItem.label}</dt>
+                    <dd>{summaryItem.value}</dd>
+                  </div>
+                ))}
+              </dl>
+
+              <section
+                className="weekly-report-distributions"
+                aria-labelledby="weekly-report-distributions-title"
+              >
+                <h2 id="weekly-report-distributions-title">기록 분포</h2>
+                <div>
+                  {distributionGroups.map((group) => (
+                    <section key={group.title}>
+                      <h3>{group.title}</h3>
+                      {group.items.length > 0 ? (
+                        <ul>
+                          {group.items.map((item) => (
+                            <li key={item.code}>
+                              <div>
+                                <span>{item.label}</span>
+                                <strong>{item.count}회</strong>
+                              </div>
+                              <span className="weekly-report-distribution-track" aria-hidden="true">
+                                <span style={{
+                                  width: `${(item.count / group.items[0].count) * 100}%`,
+                                }} />
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p>집계할 기록이 없습니다.</p>
+                      )}
+                    </section>
+                  ))}
+                </div>
+              </section>
+
+              <section className="weekly-report-patterns">
+                <h2>성찰로 알아차린 생각 패턴</h2>
+                <p>완료한 CBT 성찰에서 스스로 확인한 생각의 경향을 모아 보여드립니다.</p>
+                {Object.entries(report.distortionChangeCounts?.CONFIRMED_INSIGHT ?? {}).length ? <ul>
+                  {Object.entries(report.distortionChangeCounts.CONFIRMED_INSIGHT).map(([code, count]) => <li key={code}>{distortionLabels[code] ?? code}: {count}회</li>)}
+                </ul> : <p>이번 주 성찰에서 확인한 생각 패턴이 없습니다.</p>}
+              </section>
+
+              <section
+                className="weekly-report-patterns"
+                aria-labelledby="weekly-report-patterns-title"
+              >
+                <h2 id="weekly-report-patterns-title">반복 감정 패턴</h2>
+                {(report.repeatedPatterns ?? []).length > 0 ? (
+                  <ul>
+                    {report.repeatedPatterns.map((pattern, index) => (
+                      <li key={`${pattern.emotionCode}-${pattern.weekday}-${pattern.timeBucket}-${index}`}>
+                        <strong>
+                          {emotionCodeLabels[pattern.emotionCode] ?? pattern.emotionCode}
+                          {' · '}
+                          {pattern.weekday ? `${weekdayLabels[pattern.weekday] ?? pattern.weekday} · ` : ''}
+                          {timeBucketLabels[pattern.timeBucket] ?? pattern.timeBucket}
+                        </strong>
+                        <span>
+                          {patternLevelLabels[pattern.patternLevel] ?? pattern.patternLevel}
+                          {' · '}{pattern.occurrenceCount}회 기록
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>반복 기준을 충족한 감정 패턴이 아직 없습니다.</p>
+                )}
+              </section>
+
+              <section
+                className="weekly-report-evidence"
+                aria-labelledby="weekly-report-emotion-evidence-title"
+              >
+                <h2 id="weekly-report-emotion-evidence-title">근거 감정 기록</h2>
+                {(report.emotionRecordEvidences ?? []).length > 0 ? (
+                  <div>
+                    {report.emotionRecordEvidences.map((evidence) => (
+                      <article key={evidence.emotionRecordId}>
+                        <header>
+                          <strong>
+                            {emotionCodeLabels[evidence.primaryEmotionCode]
+                              ?? evidence.primaryEmotionCode
+                              ?? '분석 전'}
+                            {Number.isFinite(evidence.primaryIntensity)
+                              ? ` · 강도 ${evidence.primaryIntensity}/10`
+                              : ''}
+                          </strong>
+                          <time dateTime={evidence.occurredAt}>
+                            {formatEvidenceDate(evidence.occurredAt)}
+                          </time>
+                        </header>
+                        <p>{evidence.situationText || '상황 정보가 없습니다.'}</p>
+                        {onRecordDetail && (
+                          <button
+                            type="button"
+                            onClick={() => onRecordDetail(evidence.emotionRecordId)}
+                          >
+                            기록 상세 보기
+                          </button>
+                        )}
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <p>리포트에 연결된 감정 기록이 없습니다.</p>
+                )}
+              </section>
+
+              <section
+                className="weekly-report-cbt-summary"
+                aria-labelledby="weekly-report-cbt-evidence-title"
+              >
+                <h2 id="weekly-report-cbt-evidence-title">완료한 CBT 성찰</h2>
+                <p>{(report.completedCbtEvidences ?? []).length > 0
+                  ? `선택한 주에 완료한 CBT 성찰이 ${(report.completedCbtEvidences ?? []).length}건 있습니다.`
+                  : '선택한 주에 완료한 CBT 성찰이 없습니다.'}</p>
+                {(report.completedCbtEvidences ?? []).length > 0 && <button type="button" onClick={() => setShowCompletedCbtList(true)}>
+                  완료한 CBT 성찰 보기
+                </button>}
+              </section>
+
+            </>
+          ) : (
+            <div className="weekly-report-state">
+              <strong>아직 표시할 리포트가 없습니다.</strong>
+              <p>{emptyMessage || '감정 기록을 남기면 이곳에서 한 주의 흐름을 확인할 수 있습니다.'}</p>
+            </div>
+          )}
+
+          {/* 주간 그래프 이동과 최신 데이터 갱신 동작의 공통 위치 배치. */}
+          {(onGraph || report) && (
+            <div className="weekly-report-data-actions">
+              {onGraph && (
+                <button type="button" onClick={onGraph}>
+                  주간 감정 그래프로 보기
+                </button>
+              )}
+              {report && (
+                <button
+                  type="button"
+                  onClick={handleReportRefresh}
+                  disabled={isRefreshing}
+                >
+                  {isRefreshing ? '최신화 중…' : '최신 기록으로 다시 만들기'}
+                </button>
+              )}
+            </div>
           )}
 
           {/* 날짜와 포함 내용을 직접 정하는 상담용 PDF 내보내기 설정 영역 배치. */}
@@ -709,171 +880,10 @@ function WeeklyReport({
             )}
           </section>
 
-          {isLoading ? (
-            <div className="weekly-report-state" role="status" aria-live="polite">
-              <strong>주간 리포트를 불러오는 중입니다.</strong>
-              <p>선택한 주의 감정 기록을 확인하고 있습니다.</p>
-            </div>
-          ) : loadError ? (
-            <div className="weekly-report-state weekly-report-state--error" role="alert">
-              <strong>주간 리포트를 불러오지 못했습니다.</strong>
-              <p>{loadError}</p>
-              <button
-                type="button"
-                onClick={() => setReloadCount((currentCount) => currentCount + 1)}
-              >
-                다시 불러오기
-              </button>
-            </div>
-          ) : report ? (
-            <>
-              <div className="weekly-report-data-actions">
-                <button
-                  type="button"
-                  onClick={handleReportRefresh}
-                  disabled={isRefreshing}
-                >
-                  {isRefreshing ? '최신화 중…' : '최신 기록으로 다시 만들기'}
-                </button>
-              </div>
-
-              <section
-                className="weekly-report-summary"
-                aria-labelledby="weekly-report-summary-title"
-              >
-                <h2 id="weekly-report-summary-title">선택한 주 요약</h2>
-                <div className="weekly-report-summary-grid">
-                  {summaryItems.map((summaryItem) => (
-                    <article key={summaryItem.label}>
-                      <span>{summaryItem.label}</span>
-                      <strong>{summaryItem.value}</strong>
-                    </article>
-                  ))}
-                </div>
-              </section>
-
-              <section
-                className="weekly-report-distributions"
-                aria-labelledby="weekly-report-distributions-title"
-              >
-                <h2 id="weekly-report-distributions-title">기록 분포</h2>
-                <div>
-                  {distributionGroups.map((group) => (
-                    <section key={group.title}>
-                      <h3>{group.title}</h3>
-                      {group.items.length > 0 ? (
-                        <ul>
-                          {group.items.map((item) => (
-                            <li key={item.code}>
-                              <span>{item.label}</span>
-                              <strong>{item.count}회</strong>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p>집계할 기록이 없습니다.</p>
-                      )}
-                    </section>
-                  ))}
-                </div>
-              </section>
-
-              <section className="weekly-report-patterns">
-                <h2>성찰로 알아차린 생각 패턴</h2>
-                <p>완료한 CBT 성찰에서 스스로 확인한 생각의 경향을 모아 보여드립니다.</p>
-                {Object.entries(report.distortionChangeCounts?.CONFIRMED_INSIGHT ?? {}).length ? <ul>
-                  {Object.entries(report.distortionChangeCounts.CONFIRMED_INSIGHT).map(([code, count]) => <li key={code}>{distortionLabels[code] ?? code}: {count}회</li>)}
-                </ul> : <p>이번 주 성찰에서 확인한 생각 패턴이 없습니다.</p>}
-              </section>
-
-              <section
-                className="weekly-report-patterns"
-                aria-labelledby="weekly-report-patterns-title"
-              >
-                <h2 id="weekly-report-patterns-title">반복 감정 패턴</h2>
-                {(report.repeatedPatterns ?? []).length > 0 ? (
-                  <ul>
-                    {report.repeatedPatterns.map((pattern, index) => (
-                      <li key={`${pattern.emotionCode}-${pattern.weekday}-${pattern.timeBucket}-${index}`}>
-                        <strong>
-                          {emotionCodeLabels[pattern.emotionCode] ?? pattern.emotionCode}
-                          {' · '}
-                          {pattern.weekday ? `${weekdayLabels[pattern.weekday] ?? pattern.weekday} · ` : ''}
-                          {timeBucketLabels[pattern.timeBucket] ?? pattern.timeBucket}
-                        </strong>
-                        <span>
-                          {patternLevelLabels[pattern.patternLevel] ?? pattern.patternLevel}
-                          {' · '}{pattern.occurrenceCount}회 기록
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>반복 기준을 충족한 감정 패턴이 아직 없습니다.</p>
-                )}
-              </section>
-
-              <section
-                className="weekly-report-evidence"
-                aria-labelledby="weekly-report-emotion-evidence-title"
-              >
-                <h2 id="weekly-report-emotion-evidence-title">근거 감정 기록</h2>
-                {(report.emotionRecordEvidences ?? []).length > 0 ? (
-                  <div>
-                    {report.emotionRecordEvidences.map((evidence) => (
-                      <article key={evidence.emotionRecordId}>
-                        <header>
-                          <strong>
-                            {emotionCodeLabels[evidence.primaryEmotionCode]
-                              ?? evidence.primaryEmotionCode
-                              ?? '분석 전'}
-                            {Number.isFinite(evidence.primaryIntensity)
-                              ? ` · 강도 ${evidence.primaryIntensity}/10`
-                              : ''}
-                          </strong>
-                          <time dateTime={evidence.occurredAt}>
-                            {formatEvidenceDate(evidence.occurredAt)}
-                          </time>
-                        </header>
-                        <p>{evidence.situationText || '상황 정보가 없습니다.'}</p>
-                        {onRecordDetail && (
-                          <button
-                            type="button"
-                            onClick={() => onRecordDetail(evidence.emotionRecordId)}
-                          >
-                            기록 상세 보기
-                          </button>
-                        )}
-                      </article>
-                    ))}
-                  </div>
-                ) : (
-                  <p>리포트에 연결된 감정 기록이 없습니다.</p>
-                )}
-              </section>
-
-              <section
-                className="weekly-report-cbt-summary"
-                aria-labelledby="weekly-report-cbt-evidence-title"
-              >
-                <h2 id="weekly-report-cbt-evidence-title">완료한 CBT 성찰</h2>
-                <p>{(report.completedCbtEvidences ?? []).length > 0
-                  ? `선택한 주에 완료한 CBT 성찰이 ${(report.completedCbtEvidences ?? []).length}건 있습니다.`
-                  : '선택한 주에 완료한 CBT 성찰이 없습니다.'}</p>
-                {(report.completedCbtEvidences ?? []).length > 0 && <button type="button" onClick={() => setShowCompletedCbtList(true)}>
-                  완료한 CBT 성찰 보기
-                </button>}
-              </section>
-
-              <p className="weekly-report-snapshot">
-                최근 집계 시각 · {formatEvidenceDate(report.sourceSnapshotAt)}
-              </p>
-            </>
-          ) : (
-            <div className="weekly-report-state">
-              <strong>아직 표시할 리포트가 없습니다.</strong>
-              <p>{emptyMessage || '감정 기록을 남기면 이곳에서 한 주의 흐름을 확인할 수 있습니다.'}</p>
-            </div>
+          {report && (
+            <p className="weekly-report-snapshot">
+              최근 집계 시각 · {formatEvidenceDate(report.sourceSnapshotAt)}
+            </p>
           )}
 
           <button

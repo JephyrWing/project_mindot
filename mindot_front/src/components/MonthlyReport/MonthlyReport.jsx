@@ -380,6 +380,9 @@ function MonthlyReport({
           <h1 id="monthly-report-title">월간 리포트</h1>
           <p className="monthly-report-description">
             한 달 동안 기록한 감정과 CBT 성찰의 흐름을 확인하는 공간입니다.
+            <span>
+              감정 통계는 감정 발생일, CBT 통계는 성찰 완료일을 기준으로 집계합니다.
+            </span>
           </p>
 
           {/* 직접 연월 선택과 이전·다음 달 이동 기능 배치. */}
@@ -418,8 +421,9 @@ function MonthlyReport({
           </h2>
 
           {isLoading ? (
-            <div className="monthly-report-state" role="status">
-              월간 리포트를 불러오고 있습니다.
+            <div className="monthly-report-state" role="status" aria-live="polite">
+              <strong>월간 리포트를 불러오는 중입니다.</strong>
+              <p>선택한 달의 감정 기록을 확인하고 있습니다.</p>
             </div>
           ) : loadError ? (
             <div className="monthly-report-state monthly-report-state--error" role="alert">
@@ -452,11 +456,12 @@ function MonthlyReport({
                 <div>
                   <dt>완료 CBT</dt>
                   <dd>{report.completedCbtCount}회</dd>
-                  <small>
-                    도움 평균 {Number.isFinite(report.averageHelpfulnessScore)
-                      ? `${report.averageHelpfulnessScore.toFixed(1)}/5`
-                      : '미입력'}
-                  </small>
+                </div>
+                <div>
+                  <dt>평균 도움</dt>
+                  <dd>{Number.isFinite(report.averageHelpfulnessScore)
+                    ? `${report.averageHelpfulnessScore.toFixed(1)}/5`
+                    : '-'}</dd>
                 </div>
               </dl>
 
@@ -629,7 +634,7 @@ function MonthlyReport({
                 </div>
               </section>
 
-              {/* 최신 데이터 갱신과 월간 PDF 저장 기능의 같은 단계 배치. */}
+              {/* 주간 리포트와 같은 위치의 최신 데이터 갱신 동작 배치. */}
               <div className="monthly-report-actions">
                 <button
                   className="monthly-report-refresh"
@@ -637,15 +642,7 @@ function MonthlyReport({
                   onClick={handleRefresh}
                   disabled={isRefreshing || isExporting}
                 >
-                  {isRefreshing ? '갱신 중…' : '최신 기록으로 갱신'}
-                </button>
-                <button
-                  className="monthly-report-export"
-                  type="button"
-                  onClick={handlePdfExport}
-                  disabled={isExporting || isRefreshing}
-                >
-                  {isExporting ? 'PDF 준비 중…' : '월간 리포트 PDF 저장'}
+                  {isRefreshing ? '최신화 중…' : '최신 기록으로 다시 만들기'}
                 </button>
               </div>
 
@@ -654,16 +651,35 @@ function MonthlyReport({
                   {refreshMessage}
                 </p>
               )}
-              {exportMessage && (
-                <p className="monthly-report-export-message" role="status">
-                  {exportMessage}
-                </p>
-              )}
-              {exportError && (
-                <p className="monthly-report-export-error" role="alert">
-                  {exportError}
-                </p>
-              )}
+
+              {/* 주간 리포트와 같은 독립 내보내기 영역의 월간 PDF 기능 배치. */}
+              <section
+                className="monthly-report-pdf-export"
+                aria-labelledby="monthly-report-export-title"
+              >
+                <div className="monthly-report-export-heading">
+                  <h2 id="monthly-report-export-title">PDF 내보내기</h2>
+                  <p>선택한 달의 감정 기록과 완료한 CBT 요약을 파일로 저장합니다.</p>
+                </div>
+                <button
+                  className="monthly-report-export"
+                  type="button"
+                  onClick={handlePdfExport}
+                  disabled={isExporting || isRefreshing}
+                >
+                  {isExporting ? 'PDF 준비 중…' : '월간 리포트 PDF 저장'}
+                </button>
+                {exportMessage && (
+                  <p className="monthly-report-export-message" role="status">
+                    {exportMessage}
+                  </p>
+                )}
+                {exportError && (
+                  <p className="monthly-report-export-error" role="alert">
+                    {exportError}
+                  </p>
+                )}
+              </section>
 
               <p className="monthly-report-snapshot">
                 최근 집계 시각 · {formatSnapshotAt(report.sourceSnapshotAt)}
