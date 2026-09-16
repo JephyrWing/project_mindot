@@ -118,6 +118,17 @@
   color: var(--mindot-text-secondary);
 }
 
+/* AI 분석 동의 체크 영역의 카드 본문 간격 */
+.settings-consent-form {
+  padding-top: 22px;
+}
+
+.settings-consent-progress {
+  margin: 10px 0 0;
+  color: var(--mindot-text-muted);
+  font-size: 0.875rem;
+}
+
 /* 설정 저장 버튼 */
 .settings-submit {
   min-height: 48px;
@@ -290,6 +301,18 @@
   background: var(--mindot-danger);
 }
 
+/* 되돌릴 수 있는 AI 분석 동의 철회의 일반 확인 버튼 */
+.settings-dialog-consent-confirm {
+  border: 1px solid var(--mindot-primary);
+  color: #ffffff;
+  background: var(--mindot-primary);
+}
+
+.settings-dialog-consent-confirm:hover:not(:disabled) {
+  border-color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-strong);
+}
+
 .settings-dialog-actions button:disabled {
   opacity: 0.65;
   cursor: wait;
@@ -314,4 +337,5 @@
   .settings-withdrawal-button {
     width: 100%;
   }
+
 }

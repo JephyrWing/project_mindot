@@ -9,6 +9,11 @@ import {
   getNotificationPreferences,
   updateNotificationPreferences,
 } from '../../utils/notifications/notificationsApi.js'
+import {
+  getCurrentConsents,
+  grantAiAnalysisConsent,
+  revokeAiAnalysisConsent,
+} from '../../utils/consents/consentsApi.js'
 import './Settings.css'
 
 // API 오류를 설정 화면 안내 문구로 변환
@@ -39,6 +44,11 @@ function Settings({
   const [preferredTime, setPreferredTime] = useState('09:00')
   const [timezone, setTimezone] = useState('Asia/Seoul')
 
+  // AI 분석 동의 상태와 변경 요청 관리
+  const [aiAnalysisConsent, setAiAnalysisConsent] = useState(null)
+  const [isSavingAiConsent, setIsSavingAiConsent] = useState(false)
+  const [isAiConsentDialogOpen, setIsAiConsentDialogOpen] = useState(false)
+
   // 최초 조회와 각 저장 요청의 진행 상태 관리
   const [isLoading, setIsLoading] = useState(true)
   const [isSavingProfile, setIsSavingProfile] = useState(false)
@@ -50,6 +60,8 @@ function Settings({
   const [profileError, setProfileError] = useState('')
   const [notificationMessage, setNotificationMessage] = useState('')
   const [notificationError, setNotificationError] = useState('')
+  const [aiConsentMessage, setAiConsentMessage] = useState('')
+  const [aiConsentError, setAiConsentError] = useState('')
 
   // 회원 탈퇴 확인창과 요청 진행 상태 관리
   const [isWithdrawalOpen, setIsWithdrawalOpen] = useState(false)
@@ -65,9 +77,14 @@ function Settings({
       setLoadError('')
 
       try {
-        const [profileResponse, preferencesResponse] = await Promise.all([
+        const [
+          profileResponse,
+          preferencesResponse,
+          consentsResponse,
+        ] = await Promise.all([
           getMyProfile(),
           getNotificationPreferences(),
+          getCurrentConsents(),
         ])
 
         if (!isActive) return
@@ -82,6 +99,11 @@ function Settings({
           preferencesResponse.timezone
           ?? profileResponse.timezone
           ?? 'Asia/Seoul',
+        )
+        setAiAnalysisConsent(
+          consentsResponse.find(
+            (consent) => consent.consentType === 'AI_ANALYSIS',
+          ) ?? { granted: false, changeable: true },
         )
       } catch (error) {
         if (!isActive) return
@@ -166,6 +188,39 @@ function Settings({
     }
   }
 
+  // AI 분석 동의 철회 또는 재동의 처리
+  const handleAiConsentChange = async (granted) => {
+    if (isSavingAiConsent) return
+
+    setIsSavingAiConsent(true)
+    setAiConsentMessage('')
+    setAiConsentError('')
+
+    try {
+      const updatedConsent = granted
+        ? await grantAiAnalysisConsent()
+        : await revokeAiAnalysisConsent()
+
+      setAiAnalysisConsent(updatedConsent)
+      setAiConsentMessage(
+        granted
+          ? 'AI 분석에 다시 동의했습니다.'
+          : 'AI 분석 동의를 철회했습니다.',
+      )
+      setIsAiConsentDialogOpen(false)
+    } catch (error) {
+      setAiConsentError(
+        getErrorMessage(
+          error,
+          'AI 분석 동의 상태를 변경하지 못했습니다. 잠시 후 다시 시도해 주세요.',
+        ),
+      )
+      setIsAiConsentDialogOpen(false)
+    } finally {
+      setIsSavingAiConsent(false)
+    }
+  }
+
   // 확인 절차를 통과한 회원 탈퇴 요청 처리
   const handleWithdrawal = async () => {
     if (isWithdrawing) return
@@ -205,7 +260,7 @@ function Settings({
       <div className="settings-content">
         <header className="settings-heading">
           <h1>설정</h1>
-          <p>내 프로필과 반복 패턴 알림을 관리할 수 있습니다.</p>
+          <p>내 프로필, AI 분석 동의와 반복 패턴 알림을 관리할 수 있습니다.</p>
         </header>
 
         {isLoading ? (
@@ -279,6 +334,63 @@ function Settings({
                   </p>
                 )}
               </form>
+            </section>
+
+            {/* AI 분석 동의 상태와 변경 기능 영역 */}
+            <section
+              className="settings-card"
+              aria-labelledby="ai-consent-settings-title"
+            >
+              <div className="settings-card__heading">
+                <h2 id="ai-consent-settings-title">AI 분석 동의</h2>
+                <p>
+                  감정 기록 분석과 CBT 성찰 등 AI 기능 사용 여부를 관리합니다.
+                </p>
+              </div>
+
+              <div className="settings-consent-form">
+                <label className="settings-toggle">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(aiAnalysisConsent?.granted)}
+                    disabled={isSavingAiConsent || !aiAnalysisConsent?.changeable}
+                    onChange={(event) => {
+                      if (event.target.checked) {
+                        handleAiConsentChange(true)
+                      } else {
+                        setAiConsentMessage('')
+                        setAiConsentError('')
+                        setIsAiConsentDialogOpen(true)
+                      }
+                    }}
+                  />
+                  <span>
+                    <strong>AI 분석 사용</strong>
+                    <small>
+                      {aiAnalysisConsent?.granted
+                        ? '감정 분석과 CBT 등 AI 기능을 사용할 수 있습니다.'
+                        : '새로운 감정 AI 분석과 CBT 기능이 제한됩니다.'}
+                    </small>
+                  </span>
+                </label>
+
+                {isSavingAiConsent && (
+                  <p className="settings-consent-progress" role="status">
+                    동의 상태를 변경하고 있습니다.
+                  </p>
+                )}
+              </div>
+
+              {aiConsentMessage && (
+                <p className="settings-message settings-message--success" role="status">
+                  {aiConsentMessage}
+                </p>
+              )}
+              {aiConsentError && (
+                <p className="settings-message settings-message--error" role="alert">
+                  {aiConsentError}
+                </p>
+              )}
             </section>
 
             {/* 반복 패턴 알림 수신 여부와 희망 시각 설정 영역 */}
@@ -386,6 +498,52 @@ function Settings({
           </>
         )}
       </div>
+
+      {/* AI 분석 동의 철회 전 제한 기능 확인 */}
+      {isAiConsentDialogOpen && (
+        <div
+          className="settings-dialog-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !isSavingAiConsent) {
+              setIsAiConsentDialogOpen(false)
+            }
+          }}
+        >
+          <section
+            className="settings-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ai-consent-dialog-title"
+            aria-describedby="ai-consent-dialog-description"
+          >
+            <h2 id="ai-consent-dialog-title">AI 분석 동의를 철회할까요?</h2>
+            <p id="ai-consent-dialog-description">
+              철회 후에는 새로운 감정 분석, CBT 성찰 및 검색 연결 기능을
+              사용할 수 없습니다. 기존에 저장된 기록은 유지됩니다.
+            </p>
+
+            <div className="settings-dialog-actions">
+              <button
+                className="settings-dialog-cancel"
+                type="button"
+                disabled={isSavingAiConsent}
+                onClick={() => setIsAiConsentDialogOpen(false)}
+              >
+                취소
+              </button>
+              <button
+                className="settings-dialog-consent-confirm"
+                type="button"
+                disabled={isSavingAiConsent}
+                onClick={() => handleAiConsentChange(false)}
+              >
+                {isSavingAiConsent ? '처리 중…' : '동의 철회'}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
 
       {/* 실수로 탈퇴하지 않도록 최종 확인 단계 제공 */}
       {isWithdrawalOpen && (
