@@ -122,9 +122,43 @@
   cursor: not-allowed;
 }
 
+/* 주간과 월간 리포트를 같은 위치에서 전환하는 두 칸 메뉴 설정. */
+.monthly-report-view-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+  border-bottom: 1px solid var(--mindot-border);
+  padding-bottom: 18px;
+}
+
+.monthly-report-view-switch button {
+  min-height: 44px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  color: var(--mindot-primary-strong);
+  font: inherit;
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.monthly-report-view-switch button:not(:disabled):hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+.monthly-report-view-switch button[aria-current='page'] {
+  border-color: var(--mindot-primary);
+  color: #ffffff;
+  background: var(--mindot-primary);
+  cursor: default;
+}
+
 /* 현재 선택한 월의 요약 제목 간격 설정. */
 .monthly-report-selected-month {
-  margin: 28px 0 0;
+  margin: 24px 0 0;
   font-size: 1.25rem;
 }
 
