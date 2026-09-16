@@ -424,6 +424,7 @@ function App() {
         onCenter={() => moveToPage('center')}
         onDailyCare={() => moveToProtectedPage('daily-care')}
         onGraph={() => moveToPage('weekly-report-graph')}
+        onMonthlyReport={() => moveToPage('monthly-report')}
         onBack={moveToMain}
         onHome={moveToMain}
       />
@@ -456,6 +457,7 @@ function App() {
         onEmotionHistory={() => moveToProtectedPage('emotion-history')}
         onCenter={() => moveToPage('center')}
         onDailyCare={() => moveToProtectedPage('daily-care')}
+        onWeeklyReport={() => moveToPage('weekly-report')}
         onBack={moveToMain}
         onHome={moveToMain}
       />

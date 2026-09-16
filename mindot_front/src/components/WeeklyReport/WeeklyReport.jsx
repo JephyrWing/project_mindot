@@ -163,6 +163,7 @@ function WeeklyReport({
   onCenter,
   onDailyCare,
   onGraph,
+  onMonthlyReport,
   onBack,
   onHome,
 }) {
@@ -508,6 +509,16 @@ function WeeklyReport({
               다음 주 →
             </button>
           </div>
+
+          {/* 주간·월간 리포트 사이의 동일 위치 이동 메뉴 배치. */}
+          <nav className="weekly-report-view-switch" aria-label="리포트 종류 선택">
+            <button type="button" aria-current="page" disabled>
+              주간 리포트
+            </button>
+            <button type="button" onClick={onMonthlyReport}>
+              월간 리포트
+            </button>
+          </nav>
 
           <h2 className="weekly-report-selected-period">
             {selectedWeek.label} 요약

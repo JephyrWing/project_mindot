@@ -114,7 +114,7 @@
 
 /* 현재 선택한 주를 월간 리포트와 같은 요약 제목 단계로 표시. */
 .weekly-report-selected-period {
-  margin: 28px 0 0;
+  margin: 24px 0 0;
   font-size: 1.25rem;
 }
 
@@ -124,6 +124,40 @@
   border-color: var(--mindot-border);
   background: var(--mindot-surface-muted);
   cursor: not-allowed;
+}
+
+/* 주간과 월간 리포트를 같은 위치에서 전환하는 두 칸 메뉴 설정. */
+.weekly-report-view-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+  border-bottom: 1px solid var(--mindot-border);
+  padding-bottom: 18px;
+}
+
+.weekly-report-view-switch button {
+  min-height: 44px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  color: var(--mindot-primary-strong);
+  font: inherit;
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.weekly-report-view-switch button:not(:disabled):hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+.weekly-report-view-switch button[aria-current='page'] {
+  border-color: var(--mindot-primary);
+  color: #ffffff;
+  background: var(--mindot-primary);
+  cursor: default;
 }
 
 /* 선택한 주의 감정 그래프 화면으로 이동하는 버튼 설정. */
