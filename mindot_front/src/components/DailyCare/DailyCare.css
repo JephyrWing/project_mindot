@@ -6,15 +6,14 @@
   background: var(--mindot-page);
 }
 
-/* 주요 콘텐츠의 모바일 안전 영역과 읽기 편한 최대 너비 설정. */
+/* 다른 서비스 화면과 같은 크기의 흰색 테두리 콘텐츠 영역 설정. */
 .daily-care-main {
-  width: min(100%, 760px);
-  margin: 0 auto;
-  padding:
-    48px
-    max(24px, env(safe-area-inset-right, 0px))
-    calc(48px + env(safe-area-inset-bottom, 0px))
-    max(24px, env(safe-area-inset-left, 0px));
+  width: min(calc(100% - 48px), 780px);
+  margin: 56px auto 32px;
+  border: 1px solid var(--mindot-border);
+  border-radius: 14px;
+  padding: 36px;
+  background: var(--mindot-surface);
 }
 
 /* 화면 제목과 최근 기록 안내의 기본 간격 설정. */
@@ -99,7 +98,6 @@
 
 .daily-care-suggestion h2,
 .daily-care-pattern h2,
-.daily-care-tool h2,
 .daily-care-feedback h2 {
   margin: 0;
   font-size: 1.25rem;
@@ -134,7 +132,6 @@
 }
 
 .daily-care-section-heading button,
-.daily-care-tool button,
 .daily-care-record-button {
   min-height: 44px;
   border: 1px solid var(--mindot-primary-line);
@@ -147,7 +144,6 @@
 }
 
 .daily-care-section-heading button:hover,
-.daily-care-tool button:hover,
 .daily-care-record-button:hover {
   border-color: var(--mindot-primary);
   background: var(--mindot-primary-soft);
@@ -259,44 +255,7 @@
   background: var(--mindot-primary-strong);
 }
 
-/* 선택한 호흡 또는 명상 활동을 구분선 안에서 실행하는 영역 설정. */
-.daily-care-tool {
-  margin-top: 28px;
-  border-top: 1px solid var(--mindot-border);
-  border-bottom: 1px solid var(--mindot-border);
-  padding: 26px 0;
-}
-
-.daily-care-timer {
-  display: block;
-  margin-top: 18px;
-  color: var(--mindot-primary-strong);
-  font-size: 2rem;
-  font-weight: 700;
-}
-
-.daily-care-tool > p {
-  margin: 8px 0 0;
-  color: var(--mindot-text-secondary);
-}
-
-.daily-care-tool-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.daily-care-meditation-steps {
-  margin: 18px 0 0;
-  padding-left: 24px;
-  color: var(--mindot-text-secondary);
-}
-
-.daily-care-meditation-steps li + li {
-  margin-top: 8px;
-}
-
-.daily-care-tool .daily-care-tool-wide-button,
+/* 첫 감정 기록 이동 버튼의 전체 너비 설정. */
 .daily-care-record-button {
   width: 100%;
   margin-top: 20px;
@@ -341,7 +300,12 @@
 /* 작은 화면에서 콘텐츠 간격과 활동 버튼의 세로 배치 설정. */
 @media (max-width: 600px) {
   .daily-care-main {
-    padding-top: 36px;
+    width: calc(100% - 24px);
+    margin: 24px auto 20px;
+    padding:
+      24px max(20px, env(safe-area-inset-right, 0px))
+      calc(24px + env(safe-area-inset-bottom, 0px))
+      max(20px, env(safe-area-inset-left, 0px));
   }
 
   .daily-care-intro h1 {
@@ -373,8 +337,7 @@
 
 /* 매우 좁은 화면에서 만족도와 실행 버튼의 세로 배치 설정. */
 @media (max-width: 420px) {
-  .daily-care-feedback-actions,
-  .daily-care-tool-actions {
+  .daily-care-feedback-actions {
     display: grid;
     grid-template-columns: 1fr;
   }

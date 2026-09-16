@@ -107,6 +107,12 @@ public class EmotionRecords {
     @Column(name = "raw_text", nullable = false, columnDefinition = "TEXT")
     private String rawText;
 
+    // 사용자 원문의 의미 기반 검색에 사용하는 1536차원 벡터
+    // 기존 기록과 임베딩 실패 기록을 허용하기 위해 null 저장 가능
+    @JdbcTypeCode(SqlTypes.VECTOR)
+    @Column(name = "search_embedding", columnDefinition = "vector(1536)")
+    private float[] searchEmbedding;
+
     // 객관적 사건 중심 상황
     @Column(name = "situation_text", columnDefinition = "TEXT")
     private String situationText;
@@ -334,6 +340,19 @@ public class EmotionRecords {
 
         // 사용자 확인까지 끝 -> 상태 변경
         this.completionStatus = CompletionStatus.COMPLETE;
+    }
+
+    // OpenAI가 생성한 사용자 원문 검색 벡터를 감정 기록에 반영
+    public void applySearchEmbedding(float[] searchEmbedding) {
+        // PostgreSQL vector(1536) 컬럼에 잘못된 차원의 벡터가 저장되는 것을 차단
+        if (searchEmbedding == null || searchEmbedding.length != 1536) {
+            throw new IllegalArgumentException(
+                    "검색 임베딩 벡터는 1536차원이어야 합니다."
+            );
+        }
+
+        // 외부 배열이 나중에 변경되어 Entity 값까지 바뀌지 않도록 복사해서 저장
+        this.searchEmbedding = searchEmbedding.clone();
     }
 
     // null 값은 JSONB Map에 넣지 않음 (공통 메서드)

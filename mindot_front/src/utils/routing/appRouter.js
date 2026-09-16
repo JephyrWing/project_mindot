@@ -22,9 +22,16 @@ export const readAppRoute = () => {
   const emotionRecordMatch = pathname.match(/^\/records\/(\d+)$/)
   const cbtSessionMatch = pathname.match(/^\/cbt\/sessions\/(\d+)$/)
   const completedReflectionMatch = pathname.match(/^\/reflections\/(\d+)$/)
+  const oauthCallbackMatch = pathname.match(/^\/oauth\/(kakao|google)\/callback$/)
 
   if (pathname === '/login') return { page: 'login' }
   if (pathname === '/signup') return { page: 'signup' }
+  if (oauthCallbackMatch) {
+    return {
+      page: 'oauth-callback',
+      provider: oauthCallbackMatch[1],
+    }
+  }
   if (pathname === '/records/new') return { page: 'emotion-record' }
   if (pathname === '/records') return { page: 'emotion-history' }
   if (emotionRecordMatch) {
@@ -47,6 +54,7 @@ export const readAppRoute = () => {
   }
   if (pathname === '/reports/weekly/graph') return { page: 'weekly-report-graph' }
   if (pathname === '/reports/weekly') return { page: 'weekly-report' }
+  if (pathname === '/reports/monthly') return { page: 'monthly-report' }
   if (completedReflectionMatch) {
     return {
       page: 'completed-reflection',
@@ -54,6 +62,8 @@ export const readAppRoute = () => {
     }
   }
   if (pathname === '/centers') return { page: 'center' }
+  if (pathname === '/daily-care/breathing') return { page: 'breathing' }
+  if (pathname === '/daily-care/meditation') return { page: 'meditation' }
   if (pathname === '/daily-care') return { page: 'daily-care' }
   if (pathname === '/admin') return { page: 'admin' }
 
@@ -67,6 +77,12 @@ export const createAppPath = (page, parameters = {}) => {
 
   if (page === 'login') return '/login'
   if (page === 'signup') return '/signup'
+  if (
+    page === 'oauth-callback'
+    && ['kakao', 'google'].includes(parameters.provider)
+  ) {
+    return `/oauth/${parameters.provider}/callback`
+  }
   if (page === 'emotion-record') return '/records/new'
   if (page === 'emotion-history') return '/records'
   if (page === 'emotion-record-detail' && emotionRecordId) {
@@ -81,10 +97,13 @@ export const createAppPath = (page, parameters = {}) => {
   if (page === 'cbt') return '/cbt'
   if (page === 'weekly-report-graph') return '/reports/weekly/graph'
   if (page === 'weekly-report') return '/reports/weekly'
+  if (page === 'monthly-report') return '/reports/monthly'
   if (page === 'completed-reflection' && reflectionSessionId) {
     return `/reflections/${reflectionSessionId}`
   }
   if (page === 'center') return '/centers'
+  if (page === 'breathing') return '/daily-care/breathing'
+  if (page === 'meditation') return '/daily-care/meditation'
   if (page === 'daily-care') return '/daily-care'
   if (page === 'admin') return '/admin'
 

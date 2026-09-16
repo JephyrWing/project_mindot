@@ -16,11 +16,13 @@ import com.my.mindot_back.records.repository.EmotionRecordsRepository;
 import com.my.mindot_back.records.repository.EmotionRecordsSpecifications;
 import com.my.mindot_back.records.repository.ReflectionSessionsRepository;
 import com.my.mindot_back.records.repository.SessionDistortionsRepository;
-import com.my.mindot_back.reports.repository.ReportsRepository;
+import com.my.mindot_back.reports.service.ReportCacheInvalidationService;
 import com.my.mindot_back.safety.dto.SafetyNoticeResponseDto;
 import com.my.mindot_back.safety.service.SafetyEventsService;
 import com.my.mindot_back.users.entity.Users;
 import com.my.mindot_back.users.repository.UsersRepository;
+import com.my.mindot_back.users.service.ConsentEventsService;
+import com.my.mindot_back.records.repository.EmotionRecordSemanticSearchQuery;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
@@ -34,6 +36,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Arrays;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +45,12 @@ public class EmotionRecordsService {
 
     // 한번의 목록 요청에서 허용하는 최대 감정 기록의 수
     private static final int MAX_PAGE_SIZE = 50;
+
+    // 의미 검색 문장의 최대 길이
+    private static final int MAX_SEMANTIC_QUERY_LENGTH = 500;
+
+    // 관련 없는 기록을 제외하기 위한 최소 코사인 유사도
+    private static final double SEMANTIC_SEARCH_THRESHOLD = 0.7;
 
     // 감정 기록을 저장하는 Repository
     private final EmotionRecordsRepository emotionRecordsRepository;
@@ -54,14 +64,18 @@ public class EmotionRecordsService {
     // 원문 저장·AI 결과 반영을 각각 독립 트랜잭션으로 처리
     private final EmotionRecordAiTransactionService emotionRecordAiTransactionService;
 
+    // 감정 기록 원문의 의미 검색 벡터를 비동기로 생성
+    private final EmotionRecordSearchEmbeddingService
+            searchEmbeddingService;
+
     // 감정 기록, CBT 세션과 연결된 AI 작업 이력 삭제
     private final AiJobsRepository aiJobsRepository;
 
     // 감정 기록에 연결된 CBT 성찰 세션 조회
     private final ReflectionSessionsRepository reflectionSessionsRepository;
 
-    // 감정 기록 변경 시 사용자 리포트 캐시 전체를 무효화
-    private final ReportsRepository reportsRepository;
+    // 감정 기록 변경 시 해당 날짜와 겹치는 리포트 캐시만 무효화
+    private final ReportCacheInvalidationService reportCacheInvalidationService;
 
     // 완료된 CBT 임베딩을 기반으로 유사사례 검색
     private final RagUtils ragUtils;
@@ -77,29 +91,107 @@ public class EmotionRecordsService {
     // 감정 기록에 연결된 최신 안전 안내를 조회
     private final SafetyEventsService  safetyEventsService;
 
+    // 외부 AI 기능 실행 전에 사용자의 최신 AI 분석 동의 상태 확인
+    private final ConsentEventsService consentEventsService;
+
     public EmotionRecordsQuickCreateResponseDto createQuickRecord(
-            Long userId, EmotionRecordsQuickCreateRequestDto dto, String key) {
-        var context = emotionRecordAiTransactionService.createQuickRecordAndStartAiJob(userId, dto, key);
-        analyzeSavedRecord(context);
-        return emotionRecordAiTransactionService.savedResponse(userId, context.emotionRecordId());
+            Long userId,
+            EmotionRecordsQuickCreateRequestDto dto,
+            String key
+    ) {
+        consentEventsService.requireAiAnalysisConsent(userId);
+
+        var context = emotionRecordAiTransactionService
+                .createQuickRecordAndStartAiJob(userId, dto, key);
+
+        // 새 기록이 실제로 생성된 경우에만 해당 날짜 리포트 캐시 삭제
+        // 같은 Idempotency-Key 재요청(dispatch=false)은 새 기록이 아니므로 삭제하지 않음
+        if (context.dispatch()) {
+            reportCacheInvalidationService.invalidateByOccurredAt(
+                    userId,
+                    dto.occurredAt()
+            );
+        }
+
+        analyzeSavedRecord(userId, context);
+
+        // 원문 저장 여부를 다시 확인하므로 멱등 재요청에서도 중복 임베딩이 생성되지 않음
+        searchEmbeddingService.submit(
+                userId,
+                context.emotionRecordId()
+        );
+
+        return emotionRecordAiTransactionService
+                .savedResponse(userId, context.emotionRecordId());
     }
 
-    public EmotionRecordsDetailResponseDto reanalyzeEmotionRecord(Long userId, Long emotionRecordId) {
-        var context = emotionRecordAiTransactionService.startReanalysis(userId, emotionRecordId);
-        analyzeSavedRecord(context);
+    public EmotionRecordsDetailResponseDto reanalyzeEmotionRecord(
+            Long userId,
+            Long emotionRecordId
+    ) {
+        consentEventsService.requireAiAnalysisConsent(userId);
+
+        var context = emotionRecordAiTransactionService
+                .startReanalysis(userId, emotionRecordId);
+
+        analyzeSavedRecord(userId, context);
+
+        // 기존 기록에 검색 벡터가 없으면 비동기로 생성
+        searchEmbeddingService.submit(userId, emotionRecordId);
+
         return getEmotionRecordsDetail(userId, emotionRecordId);
     }
 
-    private void analyzeSavedRecord(EmotionRecordAiJobContext context) {
-        if (!context.dispatch()) return;
+    // 기존 기록 또는 실패한 감정 기록 검색 임베딩 수동 재시도
+    public void retrySearchEmbedding(
+            Long userId,
+            Long emotionRecordId
+    ) {
+        consentEventsService.requireAiAnalysisConsent(userId);
+
+        searchEmbeddingService.retry(
+                userId,
+                emotionRecordId
+        );
+    }
+
+    private void analyzeSavedRecord(
+            Long userId,
+            EmotionRecordAiJobContext context
+    ) {
+        // 이미 처리된 같은 요청은 외부 AI를 다시 호출하지 않음
+        if (!context.dispatch()) {
+            return;
+        }
+
         String failureCode = "FAST_API_ANALYSIS_FAILED";
+
         try {
-            var analysis = fastApiRecordAnalysisClient.analyze(context.rawText());
+            var analysis = fastApiRecordAnalysisClient.analyze(
+                    context.rawText()
+            );
+
             failureCode = "ANALYSIS_COMMIT_FAILED";
-            emotionRecordAiTransactionService.completeAiAnalysis(context.emotionRecordId(), context.aiJobId(), analysis);
+
+            EmotionRecords analyzedRecord =
+                    emotionRecordAiTransactionService.completeAiAnalysis(
+                            context.emotionRecordId(),
+                            context.aiJobId(),
+                            analysis
+                    );
+
+            // AI 분석으로 감정·상황·강도 값이 채워졌으므로 같은 기간 리포트만 삭제
+            reportCacheInvalidationService.invalidateByOccurredAt(
+                    userId,
+                    analyzedRecord.getOccurredAt()
+            );
         } catch (RuntimeException error) {
-            // Includes commit/validation failures; raw storage has already committed.
-            emotionRecordAiTransactionService.failAiAnalysis(context.emotionRecordId(), context.aiJobId(), failureCode);
+            // AI 실패해도 원문 기록은 이미 저장되어 있으므로 작업 실패 상태만 저장
+            emotionRecordAiTransactionService.failAiAnalysis(
+                    context.emotionRecordId(),
+                    context.aiJobId(),
+                    failureCode
+            );
         }
     }
 
@@ -192,6 +284,95 @@ public class EmotionRecordsService {
                 emotionRecordsPage
         );
     }
+
+    // 검색 문장과 의미가 비슷한 로그인 사용자의 감정 기록을 조회
+    public EmotionRecordsPageResponseDto searchEmotionRecordsSemantically(
+            Long userId,
+            String queryText,
+            EmotionRecordsListPeriod period,
+            String emotionCode,
+            String contextCategory,
+            int page,
+            int size
+    ) {
+        if (queryText == null || queryText.isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "의미 검색어를 입력해 주세요."
+            );
+        }
+
+        String normalizedQueryText = queryText.trim();
+
+        if (normalizedQueryText.length()
+                > MAX_SEMANTIC_QUERY_LENGTH) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "의미 검색어는 500자 이하이어야 합니다."
+            );
+        }
+
+        if (page < 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "페이지 번호는 0 이상이어야 합니다."
+            );
+        }
+
+        if (size < 1 || size > MAX_PAGE_SIZE) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "페이지 크기는 1 이상 50 이하이어야 합니다."
+            );
+        }
+
+        Users user = usersRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED,
+                        "로그인한 사용자를 찾을 수 없습니다."
+                ));
+
+        PeriodRange periodRange = calculatePeriodRange(
+                period,
+                ZoneId.of(user.getTimezone())
+        );
+
+        // 검색 문장만 일회성으로 임베딩하며 DB에는 저장하지 않음
+        float[] queryEmbedding =
+                searchEmbeddingService.embedSearchQuery(
+                        userId,
+                        normalizedQueryText
+                );
+
+        EmotionRecordSemanticSearchQuery searchQuery =
+                new EmotionRecordSemanticSearchQuery(
+                        userId,
+                        Arrays.toString(queryEmbedding),
+                        periodRange.startInclusive(),
+                        periodRange.endExclusive(),
+                        normalizeOptionalCode(emotionCode),
+                        normalizeOptionalCode(contextCategory),
+                        SEMANTIC_SEARCH_THRESHOLD
+                );
+
+        Page<EmotionRecords> searchResult =
+                emotionRecordsRepository.searchSemantically(
+                        searchQuery,
+                        PageRequest.of(page, size)
+                );
+
+        return EmotionRecordsPageResponseDto.from(searchResult);
+    }
+
+    // 빈 필터는 조건 없음으로 처리하고 전달된 코드는 DB 형식인 대문자로 통일
+    private String normalizeOptionalCode(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        return value.trim().toUpperCase(Locale.ROOT);
+    }
+
     // ALL, WEEK, MONTH 선택값을 실제 DB 조회용 시각 범위로 변환
     private PeriodRange calculatePeriodRange(
             EmotionRecordsListPeriod period,
@@ -283,8 +464,9 @@ public class EmotionRecordsService {
         // 사용자 최종값 반영 후 PARTIAL에서 COMPLETE로 변경
         emotionRecord.confirm(dto);
 
-        // 확정한 감정, 상황, 강도가 기존 주간 리포트 집계에 반영되도록 캐시 무효화
-        reportsRepository.deleteByUser_Id(userId);
+        // 확정한 감정, 상황, 강도가 반영되도록 해당 날짜 리포트 캐시만 무효화
+        reportCacheInvalidationService
+                .invalidateByOccurredAt(userId, emotionRecord.getOccurredAt());
 
         // JPA Dirty Checking으로 변경 내용을 저장하고 상세 응답 반환
         return EmotionRecordsDetailResponseDto.from(emotionRecord);
@@ -308,14 +490,18 @@ public class EmotionRecordsService {
 
         // 발생 시각 수정과 함께 시간대·평일/주말 값 재계산
         var previousBucket = emotionRecord.getTimeBucket();
+        Instant previousOccurredAt = emotionRecord.getOccurredAt();
         emotionRecord.updateOccurredAt(dto.occurredAt());
         if (previousBucket != emotionRecord.getTimeBucket()) {
             Long sessionId = embeddingTransactions.invalidateForRecord(userId, emotionRecordId);
             if (sessionId != null) events.publishEvent(new EmbeddingRefreshRequested(userId, sessionId));
         }
 
-        // 발생 시각 변경으로 주간 리포트 대상 기간이 달라질 수 있어 캐시 무효화
-        reportsRepository.deleteByUser_Id(userId);
+        reportCacheInvalidationService.invalidateByOccurredAt(
+                userId,
+                previousOccurredAt,
+                emotionRecord.getOccurredAt()
+        );
 
         // JPA Dirty Checking으로 수정값 저장 후 상세 응답 반환
         return EmotionRecordsDetailResponseDto.from(emotionRecord);
@@ -355,8 +541,9 @@ public class EmotionRecordsService {
                 emotionRecord.getId()
         );
 
-        // 감정 기록 삭제 후 통계·반복 패턴이 오래되지 않도록 리포트 캐시 전체 무효화
-        reportsRepository.deleteByUser_Id(userId);
+        // 삭제되는 기록 날짜의 통계·반복 패턴을 갱신하도록 해당 기간 리포트만 무효화
+        reportCacheInvalidationService
+                .invalidateByOccurredAt(userId, emotionRecord.getOccurredAt());
 
         // DB cascade로 CBT 세션, 인지왜곡 라벨, 안전 이벤트 모두 삭제
         emotionRecordsRepository.delete(emotionRecord);
@@ -460,6 +647,8 @@ public class EmotionRecordsService {
             Long userId,
             Long emotionRecordId
     ) {
+        consentEventsService.requireAiAnalysisConsent(userId);
+
         // 본인 소유의 감정 기록만 패턴 분석 가능
         EmotionRecords emotionRecord = emotionRecordsRepository
                 .findByIdAndUser_Id(emotionRecordId, userId)

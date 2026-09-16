@@ -1,5 +1,5 @@
 # Keep the supplied CBT prompts/contracts byte-stable across Windows/Linux.
-mindot_ai/cbt_simple/prompts/*.txt text eol=lf
-mindot_ai/cbt_simple/*contracts.json text eol=lf
-mindot_ai/cbt_simple/distortion-definitions.json text eol=lf
+mindot_ai/cbt_session_agent/prompts/*.txt text eol=lf
+mindot_ai/cbt_session_agent/*contracts.json text eol=lf
+mindot_ai/cbt_session_agent/distortion-definitions.json text eol=lf
 docs/cbt-redesign/** text eol=lf

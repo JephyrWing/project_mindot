@@ -4,7 +4,6 @@ package com.my.mindot_back.users.client;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.my.mindot_back.common.config.GoogleOAuthProperties;
 import com.my.mindot_back.users.dto.OAuthUserInfoDto;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -13,13 +12,21 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 @Component
-@RequiredArgsConstructor
 public class GoogleOAuthClient {
 
-    private final RestClient.Builder restClientBuilder;
+    private final RestClient oauthRestClient;
     private final GoogleOAuthProperties googleOAuthProperties;
+
+    public GoogleOAuthClient(
+            @Qualifier("oauthRestClient") RestClient oauthRestClient,
+            GoogleOAuthProperties googleOAuthProperties
+    ) {
+        this.oauthRestClient = oauthRestClient;
+        this.googleOAuthProperties = googleOAuthProperties;
+    }
 
     // 프론트가 전달한 인가 코드로 구글 사용자 정보를 조회
     public OAuthUserInfoDto getUserInfo(
@@ -58,7 +65,7 @@ public class GoogleOAuthClient {
         form.add("code", authorizationCode);
 
         try {
-            GoogleTokenResponse response = restClientBuilder.build()
+            GoogleTokenResponse response = oauthRestClient
                     .post()
                     .uri("https://oauth2.googleapis.com/token")
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -85,7 +92,7 @@ public class GoogleOAuthClient {
     // 구글 access token으로 사용자 고유 ID와 동의한 정보를 조회
     private GoogleUserInfoResponse requestUserInfo(String accessToken) {
         try {
-            GoogleUserInfoResponse response = restClientBuilder.build()
+            GoogleUserInfoResponse response = oauthRestClient
                     .get()
                     .uri("https://openidconnect.googleapis.com/v1/userinfo")
                     .header("Authorization", "Bearer " + accessToken)

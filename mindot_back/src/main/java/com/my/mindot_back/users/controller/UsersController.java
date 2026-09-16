@@ -86,7 +86,7 @@ public class UsersController {
 
     // 카카오 콜백의 인가 코드로 로그인 완료
     @PostMapping("/oauth/kakao")
-    public ResponseEntity<UsersLoginResponseDto> loginWithKakao(
+    public ResponseEntity<SocialLoginResponseDto> loginWithKakao(
             @Valid @RequestBody OAuthLoginRequestDto dto,
             HttpServletRequest request,
             HttpServletResponse response
@@ -101,7 +101,7 @@ public class UsersController {
 
     // 구글 콜백의 인가 코드로 로그인 완료
     @PostMapping("/oauth/google")
-    public ResponseEntity<UsersLoginResponseDto> loginWithGoogle(
+    public ResponseEntity<SocialLoginResponseDto> loginWithGoogle(
             @Valid @RequestBody OAuthLoginRequestDto dto,
             HttpServletRequest request,
             HttpServletResponse response
@@ -117,10 +117,10 @@ public class UsersController {
     /*
      * 1. 브라우저 HttpOnly state 쿠키와 콜백 state를 한 번만 비교
      * 2. 제공자 API에서 검증된 사용자 정보 조회
-     * 3. 기존 회원 연결 또는 신규 회원 생성
-     * 4. 일반 로그인과 동일하게 Access Token과 Refresh Token 발급
+     * 3. 기존 회원이면 로그인 토큰 발급
+     * 4. 신규 회원이면 토큰 없이 가입 티켓만 반환
      */
-    private ResponseEntity<UsersLoginResponseDto> completeSocialLogin(
+    private ResponseEntity<SocialLoginResponseDto> completeSocialLogin(
             OAuthProvider provider,
             OAuthLoginRequestDto dto,
             HttpServletRequest request,
@@ -133,17 +133,50 @@ public class UsersController {
                 response
         );
 
-        UsersLoginResponseDto loginResponse = socialLoginService.login(
+        SocialLoginResponseDto socialResponse = socialLoginService.login(
                 provider,
                 dto.code(),
                 dto.redirectUri()
         );
 
+        // 신규 회원은 필수 동의 전이므로 로그인 세션을 발급하지 않음
+        if (socialResponse.signupRequired()) {
+            return ResponseEntity.ok()
+                    .cacheControl(CacheControl.noStore())
+                    .body(socialResponse);
+        }
+
+        // 기존 회원에게만 Refresh Token 세션과 쿠키 발급
+        cookieManager.read(request).ifPresent(this::revokeBestEffort);
+        IssuedRefreshToken refreshToken =
+                refreshTokenService.issue(socialResponse.id());
+
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .header(
+                        HttpHeaders.SET_COOKIE,
+                        cookieManager.create(refreshToken).toString()
+                )
+                .body(socialResponse);
+    }
+
+    /*
+     * 신규 소셜 회원의 필수 동의 완료:
+     * 가입 티켓 검증 → 회원·동의 이력 저장 → 로그인 토큰 발급
+     */
+    @PostMapping("/oauth/signup")
+    public ResponseEntity<UsersLoginResponseDto> completeSocialSignup(
+            @Valid @RequestBody SocialSignupCompleteRequestDto dto,
+            HttpServletRequest request
+    ) {
+        UsersLoginResponseDto loginResponse =
+                socialLoginService.completeSignup(dto.signupTicket());
+
         cookieManager.read(request).ifPresent(this::revokeBestEffort);
         IssuedRefreshToken refreshToken =
                 refreshTokenService.issue(loginResponse.id());
 
-        return ResponseEntity.ok()
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .cacheControl(CacheControl.noStore())
                 .header(
                         HttpHeaders.SET_COOKIE,

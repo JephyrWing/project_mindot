@@ -35,17 +35,17 @@ public record UsersSignupRequestDto (
 
     // 이용약관 동의 여부
     // consent_events에 TERMS / GRANTED 이벤트로 저장
-    @AssertTrue
+    @AssertTrue(message = "이용약관에 동의해야 합니다.")
     boolean termsAgreed,
 
     // 개인정보 처리 동의 여부
     // consent_events에 PRIVACY / GRANTED 이벤트로 저장
-    @AssertTrue
+    @AssertTrue(message = "개인정보 처리에 동의해야 합니다.")
     boolean privacyAgreed,
 
     // AI 분석 동의 여부
     // consent_events에 AI_ANALYSIS / GRANTED 이벤트로 저장
-    @AssertTrue
+    @AssertTrue(message = "AI 분석에 동의해야 합니다.")
     boolean aiAnalysisAgreed
 ){
 

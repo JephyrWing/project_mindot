@@ -17,10 +17,15 @@ import java.time.Instant;
 @Table(
         name = "safety_events",
         indexes = {
-                // 특정 감정 기록에서 감지된 안전 이벤트를 조회할 때 사용
+                // 특정 감정 기록의 가장 최근 안전 이벤트를 조회할 때 사용
                 @Index(
-                        name = "idx_safety_events_emotion_record_id",
-                        columnList = "emotion_record_id"
+                        name = "idx_safety_events_record_created_at",
+                        columnList = "emotion_record_id, created_at DESC"
+                ),
+                // AI 작업 삭제 시 연결된 안전 이벤트를 찾아 참조를 해제할 때 사용
+                @Index(
+                        name = "idx_safety_events_ai_job_id",
+                        columnList = "ai_job_id"
                 )
         }
 )

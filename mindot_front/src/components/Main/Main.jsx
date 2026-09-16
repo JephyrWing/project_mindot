@@ -13,6 +13,7 @@ function Main({
   onEmotionRecord,
   onEmotionHistory,
   onWeeklyReport,
+  onMonthlyReport,
   onCenter,
   onDailyCare,
   onHome,
@@ -96,6 +97,13 @@ function Main({
             onClick={onWeeklyReport}
           >
             주간 리포트 보기
+          </button>
+          <button
+            className="main-monthly-report-button"
+            type="button"
+            onClick={onMonthlyReport}
+          >
+            월간 리포트 보기
           </button>
         </div>
       </section>

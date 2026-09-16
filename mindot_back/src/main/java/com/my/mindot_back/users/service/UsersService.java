@@ -5,10 +5,7 @@ import com.my.mindot_back.users.dto.UsersSignupResponseDto;
 import com.my.mindot_back.users.dto.UsersLoginRequestDto;
 import com.my.mindot_back.users.dto.UsersLoginResponseDto;
 import com.my.mindot_back.users.entity.AccountStatus;
-import com.my.mindot_back.users.entity.ConsentEvents;
-import com.my.mindot_back.users.entity.ConsentType;
 import com.my.mindot_back.users.entity.Users;
-import com.my.mindot_back.users.repository.ConsentEventsRepository;
 import com.my.mindot_back.users.repository.UsersRepository;
 import com.my.mindot_back.common.jwt.JwtTokenProvider;
 import jakarta.transaction.Transactional;
@@ -18,21 +15,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
 import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
 public class UsersService {
-    private static final String TERMS_VERSION = "terms-v1";
-    private static final String PRIVACY_VERSION = "privacy-v1";
-    private static final String AI_ANALYSIS_VERSION = "ai-analysis-v1";
-
     // users 테이블 저장·조회 Repository
     private final UsersRepository usersRepository;
 
-    // consent_events 테이블 저장 Repository
-    private final ConsentEventsRepository consentEventsRepository;
+    // 일반·소셜 회원가입이 함께 사용하는 필수 동의 이력 저장 Service
+    private final ConsentEventsService consentEventsService;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -72,28 +64,8 @@ public class UsersService {
         // 저장 후 savedUser에 DB가 생성한 id, createdAt 값 포함됨
         Users savedUser = usersRepository.save(user);
 
-        // 필수 동의 3가지 이벤트로 만듦
-        // 전제: DTO의 @AssertTrue
-        List<ConsentEvents> consentEvents = List.of(
-                ConsentEvents.grant(
-                        savedUser,
-                        ConsentType.TERMS,
-                        TERMS_VERSION
-                ),
-                ConsentEvents.grant(
-                        savedUser,
-                        ConsentType.PRIVACY,
-                        PRIVACY_VERSION
-                ),
-                ConsentEvents.grant(
-                        savedUser,
-                        ConsentType.AI_ANALYSIS,
-                        AI_ANALYSIS_VERSION
-                )
-        );
-
-        // consent_events 테이블에 동의 이력 3건 저장
-        consentEventsRepository.saveAll(consentEvents);
+        // 필수 동의 TERMS·PRIVACY·AI_ANALYSIS 이력 저장
+        consentEventsService.grantRequiredConsents(savedUser);
 
         // Response DTO 반환 (passwordHash 포함 X)
         return UsersSignupResponseDto.from(savedUser);

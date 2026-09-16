@@ -9,29 +9,42 @@ import EmotionRecordDetail from './components/EmotionRecordDetail/EmotionRecordD
 import CBT from './components/CBT/CBT.jsx'
 import WeeklyReport from './components/WeeklyReport/WeeklyReport.jsx'
 import WeeklyReportGraph from './components/WeeklyReportGraph/WeeklyReportGraph.jsx'
+import MonthlyReport from './components/MonthlyReport/MonthlyReport.jsx'
 import CompletedReflection from './components/CompletedReflection/CompletedReflection.jsx'
 import AppIntroModal from './components/AppIntroModal/AppIntroModal.jsx'
 import Center from './components/Center/Center.jsx'
 import DailyCare from './components/DailyCare/DailyCare.jsx'
+import Breathing from './components/Breathing/Breathing.jsx'
+import Meditation from './components/Meditation/Meditation.jsx'
 import Admin from './components/Admin/Admin.jsx'
 import LoginRequiredModal from './components/LoginRequiredModal/LoginRequiredModal.jsx'
 import NetworkStatus from './components/NetworkStatus/NetworkStatus.jsx'
 import PwaInstallPrompt from './components/PwaInstallPrompt/PwaInstallPrompt.jsx'
+import AccessDeniedModal from './components/AccessDeniedModal/AccessDeniedModal.jsx'
+import OAuthCallback from './components/OAuthCallback/OAuthCallback.jsx'
 import { logout } from './utils/auth/authApi.js'
 import { getAccessToken } from './utils/auth/tokenStorage.js'
+import {
+  accessDeniedEventName,
+  authExpiredEventName,
+} from './utils/auth/authEvents.js'
 import { createAppPath, readAppRoute } from './utils/routing/appRouter.js'
 
 // 브라우저 주소에서 최초 화면과 상세 식별자를 읽어 오는 초기 라우트 설정.
 const browserInitialRoute = readAppRoute()
 // 직접 URL로 접근해도 기존 로그인 제한을 유지할 보호 화면 목록 설정.
 const protectedPages = new Set([
+  'emotion-record',
   'emotion-history',
   'emotion-record-detail',
   'cbt',
   'weekly-report',
   'weekly-report-graph',
+  'monthly-report',
   'completed-reflection',
   'daily-care',
+  'breathing',
+  'meditation',
   'admin',
 ])
 // 최초 URL의 보호 화면 접근 가능 여부 확인.
@@ -49,7 +62,9 @@ function App() {
   // 현재 표시할 화면 상태 관리.
   const [currentPage, setCurrentPage] = useState(initialRoute.page)
   // 앱을 처음 열었을 때 서비스 안내창을 표시하기 위한 상태 관리.
-  const [isIntroOpen, setIsIntroOpen] = useState(true)
+  const [isIntroOpen, setIsIntroOpen] = useState(
+    initialRoute.page !== 'oauth-callback',
+  )
   // 브라우저에 저장된 Access Token을 기준으로 로그인 여부 상태 관리.
   const [isAuthenticated, setIsAuthenticated] = useState(
     () => Boolean(getAccessToken()),
@@ -59,6 +74,12 @@ function App() {
   // 비로그인 사용자의 보호 기능 선택 시 안내 모달 표시 상태 관리.
   const [isLoginRequiredOpen, setIsLoginRequiredOpen] = useState(
     isInitialRouteBlocked,
+  )
+  // 로그인 계정의 서비스 접근 권한 부족 안내 모달 표시 상태 관리.
+  const [isAccessDeniedOpen, setIsAccessDeniedOpen] = useState(false)
+  // 소셜 로그인 콜백을 전달한 카카오 또는 Google 제공자 상태 관리.
+  const [oauthProvider, setOauthProvider] = useState(
+    initialRoute.page === 'oauth-callback' ? initialRoute.provider : null,
   )
   // CBT 성찰을 시작할 저장 완료 감정 기록 식별자 상태 관리.
   const [cbtEmotionRecordId, setCbtEmotionRecordId] = useState(
@@ -93,6 +114,9 @@ function App() {
     }
 
     setCurrentPage(page)
+    setOauthProvider(
+      page === 'oauth-callback' ? parameters.provider ?? null : null,
+    )
     setCbtEmotionRecordId(
       page === 'cbt' ? parameters.emotionRecordId ?? null : null,
     )
@@ -127,6 +151,9 @@ function App() {
 
       setCbtResumeSession(null)
       setCurrentPage(route.page)
+      setOauthProvider(
+        route.page === 'oauth-callback' ? route.provider ?? null : null,
+      )
       setCbtEmotionRecordId(
         route.page === 'cbt' ? route.emotionRecordId ?? null : null,
       )
@@ -149,6 +176,37 @@ function App() {
     return () => window.removeEventListener('popstate', handlePopState)
   }, [isAuthenticated])
 
+  // Access Token 재발급 실패 시 로그인 상태와 보호 화면을 즉시 정리하는 처리.
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      setIsAuthenticated(false)
+      setIsLoginRequiredOpen(true)
+      setCbtEmotionRecordId(null)
+      setCbtResumeSessionId(null)
+      setCbtResumeSession(null)
+      setSelectedEmotionRecordId(null)
+      setSelectedReflectionSessionId(null)
+      setOauthProvider(null)
+      window.history.replaceState({ page: 'main' }, '', '/')
+      setCurrentPage('main')
+    }
+
+    window.addEventListener(authExpiredEventName, handleAuthExpired)
+    return () => {
+      window.removeEventListener(authExpiredEventName, handleAuthExpired)
+    }
+  }, [])
+
+  // 일반 서비스 API의 403 응답 수신 시 공통 권한 안내 모달 표시 처리.
+  useEffect(() => {
+    const handleAccessDenied = () => setIsAccessDeniedOpen(true)
+
+    window.addEventListener(accessDeniedEventName, handleAccessDenied)
+    return () => {
+      window.removeEventListener(accessDeniedEventName, handleAccessDenied)
+    }
+  }, [])
+
   // 각 화면의 로고 선택 시 URL과 함께 메인페이지로 이동하는 처리.
   const moveToMain = () => moveToPage('main')
   // 로그인 성공 후 인증 상태 반영과 메인페이지 이동 처리.
@@ -156,6 +214,12 @@ function App() {
     setIsAuthenticated(true)
     setIsLoginRequiredOpen(false)
     moveToMain()
+  }
+  // 소셜 로그인 또는 신규 소셜 회원가입 성공 후 콜백 주소를 메인 주소로 교체하는 처리.
+  const handleSocialLoginSuccess = () => {
+    setIsAuthenticated(true)
+    setIsLoginRequiredOpen(false)
+    moveToPage('main', {}, { replace: true })
   }
   // 로그인 여부 확인 후 보호 화면 이동 또는 로그인 필요 안내 표시 처리.
   const moveToProtectedPage = (pageName) => {
@@ -219,7 +283,18 @@ function App() {
   let currentPageContent
 
   // 로그인 화면 선택 시 로그인 컴포넌트 렌더링.
-  if (currentPage === 'login') {
+  if (currentPage === 'oauth-callback') {
+    // 카카오 또는 Google 제공자 콜백 검증과 신규 회원 동의 화면 렌더링.
+    currentPageContent = (
+      <OAuthCallback
+        key={oauthProvider}
+        provider={oauthProvider}
+        onLoginSuccess={handleSocialLoginSuccess}
+        onLogin={() => moveToPage('login', {}, { replace: true })}
+        onHome={moveToMain}
+      />
+    )
+  } else if (currentPage === 'login') {
     currentPageContent = (
       <Login
         onLoginSuccess={handleLoginSuccess}
@@ -262,7 +337,7 @@ function App() {
         onSignUp={() => moveToPage('signup')}
         onEmotionHistory={() => moveToProtectedPage('emotion-history')}
         onRecordDetail={handleEmotionRecordDetailOpen}
-        onEmotionRecord={() => moveToPage('emotion-record')}
+        onEmotionRecord={() => moveToProtectedPage('emotion-record')}
         onCenter={() => moveToPage('center')}
         onDailyCare={() => moveToProtectedPage('daily-care')}
         onReflectionResume={handleReflectionResume}
@@ -342,6 +417,22 @@ function App() {
         onHome={moveToMain}
       />
     )
+  } else if (currentPage === 'monthly-report') {
+    // 백엔드 월간 리포트 API와 연결된 선택 월 요약 화면 렌더링.
+    currentPageContent = (
+      <MonthlyReport
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={() => moveToPage('login')}
+        onLogout={handleLogout}
+        onSignUp={() => moveToPage('signup')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onCenter={() => moveToPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
+        onBack={moveToMain}
+        onHome={moveToMain}
+      />
+    )
   } else if (currentPage === 'completed-reflection') {
     // 주간 리포트에서 선택한 완료 CBT 성찰 결과 상세 화면 렌더링.
     currentPageContent = (
@@ -387,9 +478,43 @@ function App() {
         onCenter={() => moveToPage('center')}
         onDailyCare={() => moveToProtectedPage('daily-care')}
         onHome={moveToMain}
-        onEmotionRecord={() => moveToPage('emotion-record')}
+        onEmotionRecord={() => moveToProtectedPage('emotion-record')}
         onCBT={handleCbtOpen}
         onReflectionResume={handleReflectionResume}
+        onBreathing={() => moveToProtectedPage('breathing')}
+        onMeditation={() => moveToProtectedPage('meditation')}
+      />
+    )
+  } else if (currentPage === 'breathing') {
+    // 마음 돌봄 추천에서 3분 호흡 선택 시 전용 기본 화면 렌더링.
+    currentPageContent = (
+      <Breathing
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={() => moveToPage('login')}
+        onLogout={handleLogout}
+        onSignUp={() => moveToPage('signup')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onCenter={() => moveToPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
+        onBack={() => moveToPage('daily-care')}
+        onHome={moveToMain}
+      />
+    )
+  } else if (currentPage === 'meditation') {
+    // 마음 돌봄 추천에서 짧은 명상 선택 시 전용 기본 화면 렌더링.
+    currentPageContent = (
+      <Meditation
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={() => moveToPage('login')}
+        onLogout={handleLogout}
+        onSignUp={() => moveToPage('signup')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onCenter={() => moveToPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
+        onBack={() => moveToPage('daily-care')}
+        onHome={moveToMain}
       />
     )
   } else if (currentPage === 'admin') {
@@ -416,9 +541,10 @@ function App() {
         onLogin={() => moveToPage('login')}
         onLogout={handleLogout}
         onSignUp={() => moveToPage('signup')}
-        onEmotionRecord={() => moveToPage('emotion-record')}
+        onEmotionRecord={() => moveToProtectedPage('emotion-record')}
         onEmotionHistory={() => moveToProtectedPage('emotion-history')}
         onWeeklyReport={() => moveToProtectedPage('weekly-report')}
+        onMonthlyReport={() => moveToProtectedPage('monthly-report')}
         onCenter={() => moveToPage('center')}
         onDailyCare={() => moveToProtectedPage('daily-care')}
         onHome={moveToMain}
@@ -443,8 +569,12 @@ function App() {
           onLogin={moveToLoginFromRequiredModal}
         />
       )}
+      {/* 로그인 계정에 선택 기능의 접근 권한이 없을 때 공통 안내 표시. */}
+      {isAccessDeniedOpen && !isIntroOpen && (
+        <AccessDeniedModal onClose={() => setIsAccessDeniedOpen(false)} />
+      )}
       {/* 시작 안내창을 닫은 뒤 PWA 설치 버튼 또는 수동 설치 방법 안내 표시. */}
-      {!isIntroOpen && <PwaInstallPrompt />}
+      {!isIntroOpen && currentPage !== 'oauth-callback' && <PwaInstallPrompt />}
       {/* 네트워크 연결 해제 시 모든 화면에서 서버 기능 제한 안내 표시. */}
       <NetworkStatus />
     </>

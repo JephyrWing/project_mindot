@@ -4,6 +4,7 @@ import com.my.mindot_back.common.auth.RefreshTokenCookieManager;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.bind.MissingRequestHeaderException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.ServletRequestBindingException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 
 // API 처리 중 exception을 낚아서 처리하는 컨트롤러
 @RestControllerAdvice
@@ -89,6 +94,30 @@ public class GlobalExceptionHandler {
                 );
     }
 
+    // 이메일, 소셜 계정,리포트 등의 DB unique 제약 충돌을 409 응답으로 반환
+    @ExceptionHandler (DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleDataIntegrityViolation(
+            DataIntegrityViolationException exception
+    ){
+        return ErrorResponse.builder()
+                .status(HttpStatus.CONFLICT.value())
+                .message("이미 처리되었거나 중복된 요청입니다.")
+                .build();
+    }
+
+    // 해당 API가 지원하지 않는 HTTP 메서드로 요청한 경우 405 반환
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+    public ErrorResponse handleMethodNotSupported(
+            HttpRequestMethodNotSupportedException exception
+    ) {
+        return ErrorResponse.builder()
+                .status(HttpStatus.METHOD_NOT_ALLOWED.value())
+                .message("지원하지 않는 HTTP 요청 방식입니다.")
+                .build();
+    }
+
     // 예상하지 못한 서버 오류는 내부 원인을 노출하지 않고 공통 JSON으로 반환
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -100,6 +129,21 @@ public class GlobalExceptionHandler {
         return ErrorResponse.builder()
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .message("서버 내부 오류가 발생했습니다.")
+                .build();
+    }
+
+    // 필수 쿼리 파라미터 또는 요청 헤더가 누락된 경우 400 반환
+    @ExceptionHandler({
+            MissingServletRequestParameterException.class,
+            MissingRequestHeaderException.class
+    })
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleMissingRequiredRequestValue(
+            ServletRequestBindingException exception
+    ) {
+        return ErrorResponse.builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .message("필수 요청값이 누락되었습니다.")
                 .build();
     }
 
