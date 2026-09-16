@@ -20,3 +20,39 @@
   color: var(--mindot-text);
   font-size: 15px;
 }
+
+/* 로그인 사용자에게 표시하는 알림과 설정 기능의 오른쪽 정렬 */
+.app-navigation-actions {
+  display: inline-flex;
+  margin-left: auto;
+  align-items: center;
+  gap: 2px;
+}
+
+/* 로그인 사용자에게 표시하는 설정 화면 이동 버튼 */
+.app-navigation-settings {
+  display: inline-flex;
+  width: 48px;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: var(--mindot-text);
+  text-decoration: none;
+}
+
+/* 설정 버튼 선택 가능 상태 강조 */
+.app-navigation-settings:hover,
+.app-navigation-settings:active {
+  color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-soft);
+}
+
+/* 외부 아이콘 폰트 없이 표시하는 설정 아이콘 */
+.app-navigation-settings-icon {
+  display: block;
+  font-family: Arial, sans-serif;
+  font-size: 27px;
+  font-weight: 400;
+  line-height: 1;
+}

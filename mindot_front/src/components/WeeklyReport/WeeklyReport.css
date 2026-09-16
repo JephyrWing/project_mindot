@@ -688,6 +688,95 @@
   background: var(--mindot-primary-soft);
 }
 
+/* 주간 리포트의 완료 CBT 목록 진입 요약 영역 설정. */
+.weekly-report-cbt-summary {
+  margin-top: 26px;
+  border-top: 1px solid var(--mindot-border);
+  padding-top: 24px;
+}
+
+.weekly-report-cbt-summary h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.weekly-report-cbt-summary p {
+  margin: 9px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+}
+
+.weekly-report-cbt-summary button,
+.weekly-report-cbt-list article button {
+  min-height: 42px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  margin-top: 14px;
+  padding: 0 14px;
+  color: var(--mindot-primary-strong);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+.weekly-report-cbt-summary button:hover,
+.weekly-report-cbt-list article button:hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+/* 완료 CBT 전용 목록 화면의 건수 표시 설정. */
+.weekly-report-cbt-list-screen h1 {
+  margin-top: 34px;
+}
+
+.weekly-report-cbt-list-count {
+  margin-top: 24px;
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: var(--mindot-primary-strong);
+  font-size: 14px;
+  font-weight: 700;
+  background: var(--mindot-primary-soft);
+}
+
+/* 완료 CBT 항목의 구분선 중심 목록 배치. */
+.weekly-report-cbt-list {
+  margin-top: 12px;
+}
+
+.weekly-report-cbt-list article {
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 20px 0;
+}
+
+.weekly-report-cbt-list article header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.weekly-report-cbt-list article header span {
+  color: var(--mindot-text-muted);
+  font-size: 12px;
+  text-align: right;
+}
+
+.weekly-report-cbt-list article p {
+  margin: 10px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.weekly-report-cbt-list .weekly-report-cbt-before {
+  color: var(--mindot-text-muted);
+  font-size: 13px;
+}
+
 /* 리포트 데이터의 마지막 집계 시각을 우측에 보조 정보로 표시. */
 .weekly-report-snapshot {
   margin: 20px 0 0;

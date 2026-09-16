@@ -26,6 +26,7 @@ export const readAppRoute = () => {
 
   if (pathname === '/login') return { page: 'login' }
   if (pathname === '/signup') return { page: 'signup' }
+  if (pathname === '/settings') return { page: 'settings' }
   if (oauthCallbackMatch) {
     return {
       page: 'oauth-callback',
@@ -77,6 +78,7 @@ export const createAppPath = (page, parameters = {}) => {
 
   if (page === 'login') return '/login'
   if (page === 'signup') return '/signup'
+  if (page === 'settings') return '/settings'
   if (
     page === 'oauth-callback'
     && ['kakao', 'google'].includes(parameters.provider)

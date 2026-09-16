@@ -22,8 +22,13 @@ import NetworkStatus from './components/NetworkStatus/NetworkStatus.jsx'
 import PwaInstallPrompt from './components/PwaInstallPrompt/PwaInstallPrompt.jsx'
 import AccessDeniedModal from './components/AccessDeniedModal/AccessDeniedModal.jsx'
 import OAuthCallback from './components/OAuthCallback/OAuthCallback.jsx'
+import Settings from './components/Settings/Settings.jsx'
+import ScrollToTop from './components/ScrollToTop/ScrollToTop.jsx'
 import { logout } from './utils/auth/authApi.js'
-import { getAccessToken } from './utils/auth/tokenStorage.js'
+import {
+  clearAuthSession,
+  getAccessToken,
+} from './utils/auth/tokenStorage.js'
 import {
   accessDeniedEventName,
   authExpiredEventName,
@@ -46,6 +51,7 @@ const protectedPages = new Set([
   'breathing',
   'meditation',
   'admin',
+  'settings',
 ])
 // 최초 URL의 보호 화면 접근 가능 여부 확인.
 const isInitialRouteBlocked = (
@@ -61,9 +67,9 @@ const initialRoute = isInitialRouteBlocked
 function App() {
   // 현재 표시할 화면 상태 관리.
   const [currentPage, setCurrentPage] = useState(initialRoute.page)
-  // 앱을 처음 열었을 때 서비스 안내창을 표시하기 위한 상태 관리.
+  // 메인 주소로 앱을 처음 열었을 때만 서비스 안내창을 표시하기 위한 상태 관리.
   const [isIntroOpen, setIsIntroOpen] = useState(
-    initialRoute.page !== 'oauth-callback',
+    initialRoute.page === 'main',
   )
   // 브라우저에 저장된 Access Token을 기준으로 로그인 여부 상태 관리.
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -97,6 +103,8 @@ function App() {
       ? initialRoute.emotionRecordId ?? null
       : null,
   )
+  // 감정 기록 상세 화면을 연 이전 화면 상태 관리.
+  const [emotionRecordDetailReturnPage, setEmotionRecordDetailReturnPage] = useState('emotion-history')
   // 주간 리포트에서 선택한 완료 CBT 성찰 세션 식별자 상태 관리.
   const [selectedReflectionSessionId, setSelectedReflectionSessionId] = useState(
     initialRoute.page === 'completed-reflection'
@@ -251,6 +259,18 @@ function App() {
       moveToMain()
     }
   }
+  // 회원 탈퇴 성공 후 로컬 인증 상태와 보호 화면 정보 정리.
+  const handleWithdrawalSuccess = () => {
+    clearAuthSession()
+    setIsAuthenticated(false)
+    setCbtEmotionRecordId(null)
+    setCbtResumeSessionId(null)
+    setCbtResumeSession(null)
+    setSelectedEmotionRecordId(null)
+    setSelectedReflectionSessionId(null)
+    setOauthProvider(null)
+    moveToPage('main', {}, { replace: true })
+  }
   // 저장된 감정 기록 식별자를 보관하고 CBT 화면으로 이동하는 처리.
   const handleCbtOpen = (emotionRecordId) => {
     setCbtEmotionRecordId(emotionRecordId)
@@ -272,7 +292,8 @@ function App() {
     })
   }
   // 목록에서 선택한 감정 기록 식별자를 보관하고 상세 화면으로 이동하는 처리.
-  const handleEmotionRecordDetailOpen = (emotionRecordId) => {
+  const handleEmotionRecordDetailOpen = (emotionRecordId, returnPage = 'emotion-history') => {
+    setEmotionRecordDetailReturnPage(returnPage)
     moveToPage('emotion-record-detail', { emotionRecordId })
   }
   // 완료된 CBT 성찰 식별자를 보관하고 결과 상세 화면으로 이동하는 처리.
@@ -358,7 +379,10 @@ function App() {
         onCenter={() => moveToPage('center')}
         onDailyCare={() => moveToProtectedPage('daily-care')}
         onCBT={handleCbtOpen}
-        onBack={() => moveToPage('emotion-history')}
+        backLabel={emotionRecordDetailReturnPage === 'weekly-report'
+          ? '주간 리포트로 돌아가기'
+          : '목록으로'}
+        onBack={() => moveToPage(emotionRecordDetailReturnPage)}
         onHome={moveToMain}
       />
     )
@@ -392,7 +416,10 @@ function App() {
         onLogout={handleLogout}
         onSignUp={() => moveToPage('signup')}
         onEmotionHistory={() => moveToProtectedPage('emotion-history')}
-        onRecordDetail={handleEmotionRecordDetailOpen}
+        onRecordDetail={(emotionRecordId) => handleEmotionRecordDetailOpen(
+          emotionRecordId,
+          'weekly-report',
+        )}
         onCompletedReflection={handleCompletedReflectionOpen}
         onCenter={() => moveToPage('center')}
         onDailyCare={() => moveToProtectedPage('daily-care')}
@@ -517,6 +544,22 @@ function App() {
         onHome={moveToMain}
       />
     )
+  } else if (currentPage === 'settings') {
+    // 로그인 사용자의 프로필과 반복 패턴 알림 설정 화면 렌더링.
+    currentPageContent = (
+      <Settings
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={() => moveToPage('login')}
+        onLogout={handleLogout}
+        onSignUp={() => moveToPage('signup')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onCenter={() => moveToPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
+        onWithdrawalSuccess={handleWithdrawalSuccess}
+        onHome={moveToMain}
+      />
+    )
   } else if (currentPage === 'admin') {
     // 관리자 URL 접근 시 API 연결 전 기본 관리자 화면 렌더링.
     currentPageContent = (
@@ -575,6 +618,7 @@ function App() {
       )}
       {/* 시작 안내창을 닫은 뒤 PWA 설치 버튼 또는 수동 설치 방법 안내 표시. */}
       {!isIntroOpen && currentPage !== 'oauth-callback' && <PwaInstallPrompt />}
+      {!isIntroOpen && currentPage !== 'oauth-callback' && <ScrollToTop />}
       {/* 네트워크 연결 해제 시 모든 화면에서 서버 기능 제한 안내 표시. */}
       <NetworkStatus />
     </>

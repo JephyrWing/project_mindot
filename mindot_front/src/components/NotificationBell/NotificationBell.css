@@ -1,0 +1,222 @@
+/* 상단 알림 버튼과 알림 목록의 기준 영역 */
+.notification-center {
+  position: relative;
+}
+
+/* 읽지 않은 알림 개수를 표시하는 종 버튼 */
+.notification-bell {
+  position: relative;
+  display: inline-flex;
+  width: 48px;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  padding: 0;
+  color: var(--mindot-text);
+  background: transparent;
+  cursor: pointer;
+}
+
+.notification-bell:hover,
+.notification-bell:active {
+  color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-soft);
+}
+
+.notification-bell svg {
+  width: 25px;
+  height: 25px;
+}
+
+/* 읽지 않은 알림 개수 배지 */
+.notification-badge {
+  position: absolute;
+  top: 4px;
+  right: 2px;
+  min-width: 20px;
+  height: 20px;
+  border: 2px solid var(--mindot-surface);
+  border-radius: 999px;
+  padding: 0 4px;
+  color: #ffffff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 16px;
+  background: var(--mindot-danger);
+}
+
+/* 상단 네비게이션 아래에 펼쳐지는 최근 알림 목록 */
+.notification-panel {
+  position: absolute;
+  z-index: 60;
+  top: calc(100% + 10px);
+  right: 0;
+  width: min(380px, calc(100vw - 24px));
+  max-height: min(560px, calc(100vh - 92px));
+  overflow: auto;
+  border: 1px solid var(--mindot-border);
+  border-radius: 14px;
+  background: var(--mindot-surface);
+  box-shadow: 0 18px 48px rgba(20, 32, 51, 0.2);
+}
+
+.notification-panel__header {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 16px 18px;
+  background: var(--mindot-surface);
+}
+
+.notification-panel__header div {
+  display: flex;
+  flex-direction: column;
+}
+
+.notification-panel__header strong {
+  font-size: 1.0625rem;
+}
+
+.notification-panel__header span {
+  color: var(--mindot-text-muted);
+  font-size: 0.8125rem;
+}
+
+.notification-panel__header button {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--mindot-text);
+  font-size: 26px;
+  line-height: 1;
+  background: transparent;
+  cursor: pointer;
+}
+
+.notification-panel__state {
+  margin: 0;
+  padding: 28px 20px;
+  color: var(--mindot-text-secondary);
+  text-align: center;
+}
+
+.notification-panel__state.is-error {
+  color: var(--mindot-danger);
+}
+
+/* 최근 알림의 세로 목록 */
+.notification-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.notification-list li + li {
+  border-top: 1px solid var(--mindot-border);
+}
+
+.notification-list li {
+  position: relative;
+}
+
+.notification-list__content {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 7px;
+  border: 0;
+  padding: 17px 56px 17px 18px;
+  color: var(--mindot-text);
+  text-align: left;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+.notification-list__content.is-unread {
+  background: var(--mindot-primary-soft);
+}
+
+.notification-list__content:hover {
+  background: var(--mindot-surface-muted);
+}
+
+/* 개별 알림 삭제 버튼의 우측 상단 배치. */
+.notification-list__delete {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  padding: 0;
+  color: var(--mindot-text-muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.notification-list__delete:hover {
+  color: var(--mindot-danger);
+  background: #fff2f2;
+}
+
+.notification-list__delete:disabled {
+  color: var(--mindot-disabled);
+  cursor: wait;
+}
+
+.notification-list__delete svg {
+  width: 18px;
+  height: 18px;
+}
+
+.notification-list__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.notification-list__title i {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--mindot-primary);
+}
+
+.notification-list__message,
+.notification-list__action {
+  color: var(--mindot-text-secondary);
+  font-size: 0.875rem;
+}
+
+.notification-list__action {
+  border-left: 3px solid var(--mindot-primary-line);
+  padding-left: 9px;
+}
+
+.notification-list time {
+  color: var(--mindot-text-muted);
+  font-size: 0.75rem;
+}
+
+@media (max-width: 600px) {
+  .notification-panel {
+    position: fixed;
+    top: calc(64px + env(safe-area-inset-top, 0px));
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+}

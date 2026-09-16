@@ -1,5 +1,6 @@
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Sidebar from '../Sidebar/Sidebar.jsx'
+import NotificationBell from '../NotificationBell/NotificationBell.jsx'
 import './Navbar.css'
 
 // 모든 서비스 화면에서 동일한 상단 네비게이션을 제공하는 공통 컴포넌트 정의.
@@ -36,6 +37,23 @@ function Navbar({
 
       {/* 로고 선택 시 메인 페이지로 이동하는 공통 프로젝트 로고 배치. */}
       <BrandLogo className="app-navigation-brand" onClick={onHome} />
+
+      {/* 로그인 사용자에게만 알림과 설정 화면 이동 기능 표시. */}
+      {isAuthenticated && (
+        <div className="app-navigation-actions">
+          <NotificationBell />
+          <a
+            className="app-navigation-settings"
+            href="/settings"
+            aria-label="설정 열기"
+            title="설정"
+          >
+            <span className="app-navigation-settings-icon" aria-hidden="true">
+              ⚙
+            </span>
+          </a>
+        </div>
+      )}
     </header>
   )
 }
