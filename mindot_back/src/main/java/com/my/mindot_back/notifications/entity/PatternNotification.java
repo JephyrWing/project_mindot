@@ -155,6 +155,10 @@ public class PatternNotification {
     @Column(name = "read_at")
     private Instant readAt;
 
+    // 사용자 목록에서 숨긴 시각
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
     // 탐지된 반복 패턴으로 알림 생성
     public static PatternNotification create(
             Users user,
@@ -199,6 +203,13 @@ public class PatternNotification {
     // 읽음 여부 확인
     public boolean isRead() {
         return readAt != null;
+    }
+
+    // 사용자 알림 목록에서 숨김 처리
+    public void delete() {
+        if (deletedAt == null) {
+            deletedAt = Instant.now();
+        }
     }
 
     @PrePersist

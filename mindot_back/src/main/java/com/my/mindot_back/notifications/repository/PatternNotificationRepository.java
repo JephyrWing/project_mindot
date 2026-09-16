@@ -12,19 +12,19 @@ public interface PatternNotificationRepository
         extends JpaRepository<PatternNotification, Long> {
 
     // 사용자 알림 최신순 조회
-    Page<PatternNotification> findAllByUser_IdOrderByCreatedAtDesc(
+    Page<PatternNotification> findAllByUser_IdAndDeletedAtIsNullOrderByCreatedAtDesc(
             Long userId,
             Pageable pageable
     );
 
     // 사용자 소유 알림 단건 조회
-    Optional<PatternNotification> findByIdAndUser_Id(
+    Optional<PatternNotification> findByIdAndUser_IdAndDeletedAtIsNull(
             Long notificationId,
             Long userId
     );
 
     // 읽지 않은 알림 수 조회
-    long countByUser_IdAndReadAtIsNull(
+    long countByUser_IdAndReadAtIsNullAndDeletedAtIsNull(
             Long userId
     );
 

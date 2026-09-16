@@ -104,9 +104,21 @@
   font-weight: 700;
 }
 
+/* 오늘의 추천이 최근 패턴인지 대체 기준인지 보여 주는 표시 */
+.daily-care-suggestion-basis {
+  display: inline-flex;
+  margin-top: 12px;
+  border-radius: 999px;
+  padding: 4px 10px;
+  color: var(--mindot-primary-strong);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: var(--mindot-primary-soft);
+}
+
 .daily-care-suggestion strong {
   display: block;
-  margin-top: 14px;
+  margin-top: 10px;
   color: var(--mindot-primary-strong);
   font-size: 1.0625rem;
   font-weight: 600;

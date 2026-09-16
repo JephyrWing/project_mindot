@@ -66,6 +66,26 @@
   background: var(--mindot-primary-soft);
 }
 
+/* 주간 리포트에서 연 상세 화면의 하단 복귀 버튼 설정. */
+.emotion-detail-weekly-back {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  margin-top: 30px;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  background: var(--mindot-primary);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.emotion-detail-weekly-back:hover {
+  border-color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-strong);
+}
+
 /* 상세 조회 결과의 상단 정보와 본문 영역 간격 설정. */
 .emotion-detail-result {
   margin-top: 28px;

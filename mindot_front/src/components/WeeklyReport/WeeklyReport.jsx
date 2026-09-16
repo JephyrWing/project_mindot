@@ -204,6 +204,8 @@ function WeeklyReport({
   const [includeFullCbtConversation, setIncludeFullCbtConversation] = useState(false)
   // PDF 내보내기 완료 안내 문구 상태 관리.
   const [exportMessage, setExportMessage] = useState('')
+  // 선택한 주의 완료 CBT 전용 목록 화면 표시 상태 관리.
+  const [showCompletedCbtList, setShowCompletedCbtList] = useState(false)
 
   // 선택한 주의 월요일 요청값과 화면 표시 기간 생성.
   const selectedWeek = getWeekRange(weekOffset)
@@ -406,6 +408,57 @@ function WeeklyReport({
       items: createCountItems(report.timeBucketCounts, timeBucketLabels),
     },
   ] : []
+
+  // 주간 리포트에서 분리한 완료 CBT 전용 목록 화면 반환.
+  if (showCompletedCbtList && report) {
+    const completedCbtEvidences = report.completedCbtEvidences ?? []
+
+    return (
+      <main className="weekly-report-page">
+        <Navbar
+          isAuthenticated={isAuthenticated}
+          isLoggingOut={isLoggingOut}
+          onLogin={onLogin}
+          onLogout={onLogout}
+          onSignUp={onSignUp}
+          onEmotionHistory={onEmotionHistory}
+          onCenter={onCenter}
+          onDailyCare={onDailyCare}
+          onHome={onHome}
+        />
+        <div className="weekly-report-content">
+          <section className="weekly-report-card weekly-report-cbt-list-screen" aria-labelledby="weekly-report-cbt-list-title">
+            <BrandLogo className="weekly-report-logo" onClick={onHome} />
+            <h1 id="weekly-report-cbt-list-title">완료한 CBT 성찰</h1>
+            <p className="weekly-report-description">{selectedWeek.label}에 완료한 성찰을 모아 확인합니다.</p>
+            <div className="weekly-report-cbt-list-count">총 {completedCbtEvidences.length}건</div>
+            <div className="weekly-report-cbt-list">
+              {completedCbtEvidences.map((evidence) => (
+                <article key={evidence.sessionId}>
+                  <header>
+                    <strong>{evidence.confirmedResult ? '성찰 후 정리한 생각' : '대안적 사고 (기존 결과)'}</strong>
+                    <span>
+                      {Number.isFinite(evidence.helpfulnessScore)
+                        ? `도움 정도 ${evidence.helpfulnessScore}/5`
+                        : '도움 정도 미입력'}
+                    </span>
+                  </header>
+                  <p>{evidence.confirmedResult?.afterText ?? evidence.alternativeThoughtText ?? '저장된 생각이 없습니다.'}</p>
+                  {evidence.confirmedResult?.beforeText && <p className="weekly-report-cbt-before">처음 생각 · {evidence.confirmedResult.beforeText}</p>}
+                  {onCompletedReflection && <button type="button" onClick={() => onCompletedReflection(evidence.sessionId)}>
+                    성찰 결과 자세히 보기
+                  </button>}
+                </article>
+              ))}
+            </div>
+            <button className="weekly-report-back-button" type="button" onClick={() => setShowCompletedCbtList(false)}>
+              주간 리포트로 돌아가기
+            </button>
+          </section>
+        </div>
+      </main>
+    )
+  }
 
   // 실제 API 리포트와 기간 탐색 기능을 포함한 주간 리포트 화면 반환.
   return (
@@ -726,11 +779,11 @@ function WeeklyReport({
               </section>
 
               <section className="weekly-report-patterns">
-                <h2>성찰에서 수락한 인지왜곡 유형</h2>
-                <p>확인한 수정 생각과 함께 사용자가 수락한 유형의 횟수입니다.</p>
+                <h2>성찰로 알아차린 생각 패턴</h2>
+                <p>완료한 CBT 성찰에서 스스로 확인한 생각의 경향을 모아 보여드립니다.</p>
                 {Object.entries(report.distortionChangeCounts?.CONFIRMED_INSIGHT ?? {}).length ? <ul>
                   {Object.entries(report.distortionChangeCounts.CONFIRMED_INSIGHT).map(([code, count]) => <li key={code}>{distortionLabels[code] ?? code}: {count}회</li>)}
-                </ul> : <p>새 형식의 성찰에서 수락한 유형이 없습니다.</p>}
+                </ul> : <p>이번 주 성찰에서 확인한 생각 패턴이 없습니다.</p>}
               </section>
 
               <section
@@ -800,39 +853,16 @@ function WeeklyReport({
               </section>
 
               <section
-                className="weekly-report-evidence"
+                className="weekly-report-cbt-summary"
                 aria-labelledby="weekly-report-cbt-evidence-title"
               >
                 <h2 id="weekly-report-cbt-evidence-title">완료한 CBT 성찰</h2>
-                {(report.completedCbtEvidences ?? []).length > 0 ? (
-                  <div>
-                    {report.completedCbtEvidences.map((evidence) => (
-                      <article key={evidence.sessionId}>
-                        <header>
-                          <strong>{evidence.confirmedResult ? '확인한 수정 생각' : '대안적 사고 (기존 결과)'}</strong>
-                          <span>
-                            {Number.isFinite(evidence.helpfulnessScore)
-                              ? `도움 정도 ${evidence.helpfulnessScore}/5`
-                              : '도움 정도 미입력'}
-                          </span>
-                        </header>
-                        <p>{evidence.confirmedResult?.afterText ?? evidence.alternativeThoughtText ?? '저장된 생각이 없습니다.'}</p>
-                        {evidence.confirmedResult && <><p>처음 생각: {evidence.confirmedResult.beforeText}</p><p>{evidence.confirmedResult.comparisonExplanation}</p></>}
-                        {onCompletedReflection && (
-                          /* 완료된 CBT 세션 식별자를 결과 상세 화면으로 전달하는 버튼 배치. */
-                          <button
-                            type="button"
-                            onClick={() => onCompletedReflection(evidence.sessionId)}
-                          >
-                            완료된 CBT 결과 보기
-                          </button>
-                        )}
-                      </article>
-                    ))}
-                  </div>
-                ) : (
-                  <p>선택한 주에 완료한 CBT 성찰이 없습니다.</p>
-                )}
+                <p>{(report.completedCbtEvidences ?? []).length > 0
+                  ? `선택한 주에 완료한 CBT 성찰이 ${(report.completedCbtEvidences ?? []).length}건 있습니다.`
+                  : '선택한 주에 완료한 CBT 성찰이 없습니다.'}</p>
+                {(report.completedCbtEvidences ?? []).length > 0 && <button type="button" onClick={() => setShowCompletedCbtList(true)}>
+                  완료한 CBT 성찰 보기
+                </button>}
               </section>
 
               <p className="weekly-report-snapshot">

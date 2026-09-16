@@ -14,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import com.my.mindot_back.users.dto.UsersProfileResponseDto;
+import com.my.mindot_back.users.dto.UsersProfileUpdateRequestDto;
 
 import java.util.Locale;
 
@@ -118,6 +120,53 @@ public class UsersService {
                 accessToken,
                 user.getUserRole().name()
         );
+    }
+
+    // 로그인 사용자 프로필 조회
+    @Transactional
+    public UsersProfileResponseDto getProfile(Long userId) {
+        // JWT에서 추출한 사용자 ID로 현재 활성 회원 조회
+        Users user = findActiveUser(userId);
+
+        // Entity 내부 인증 정보를 제외한 프로필 정보만 반환
+        return UsersProfileResponseDto.from(user);
+    }
+
+    // 로그인 사용자 프로필 수정
+    @Transactional
+    public UsersProfileResponseDto updateProfile(
+            Long userId,
+            UsersProfileUpdateRequestDto dto
+    ) {
+        // 다른 사용자의 ID를 요청값으로 받지 않고 JWT 사용자만 수정
+        Users user = findActiveUser(userId);
+
+        // 닉네임 앞뒤 공백 제거 후 Entity 변경
+        // 트랜잭션 종료 시 JPA 변경 감지로 UPDATE 실행
+        user.updateDisplayName(dto.displayName().trim());
+
+        // 수정된 프로필 정보 반환
+        return UsersProfileResponseDto.from(user);
+    }
+
+    // 프로필 기능에서 공통으로 사용하는 활성 회원 조회
+    private Users findActiveUser(Long userId) {
+        // JWT에는 사용자가 존재했지만 이후 삭제된 경우 404 처리
+        Users user = usersRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "회원 정보를 찾을 수 없습니다."
+                ));
+
+        // 정지 또는 탈퇴 계정의 프로필 접근 차단
+        if (user.getStatus() != AccountStatus.ACTIVE) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "사용할 수 없는 계정입니다."
+            );
+        }
+
+        return user;
     }
 
 }

@@ -78,4 +78,17 @@ public class PatternNotificationController {
                 notificationId
         );
     }
+
+    // 사용자 소유 알림 삭제
+    @DeleteMapping("/{notificationId}")
+    @ResponseStatus(org.springframework.http.HttpStatus.NO_CONTENT)
+    public void deleteNotification(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long notificationId
+    ) {
+        patternNotificationService.deleteNotification(
+                userId,
+                notificationId
+        );
+    }
 }

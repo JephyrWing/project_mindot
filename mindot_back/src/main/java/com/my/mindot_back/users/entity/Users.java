@@ -98,6 +98,12 @@ public class Users {
         this.googleAccountLink = googleAccountLink;
     }
 
+    // 로그인 사용자의 화면 표시용 닉네임 변경
+    // 변경 시 @PreUpdate에서 updatedAt을 현재 시각으로 갱신
+    public void updateDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
     // DB insert 전 JPA가 자동 실행하는 메서드
     @PrePersist
     void prePersist() {

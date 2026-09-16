@@ -71,6 +71,66 @@
   background: var(--mindot-primary-soft);
 }
 
+/* 화면 설명과 성찰 결과 비교 카드 사이의 여백 설정. */
+.completed-reflection-heading + .cbt-insight-result {
+  margin-top: 28px;
+}
+
+/* 기록 검색 연결 설명과 보조 동작 버튼의 배치. */
+.completed-reflection-search-connection {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+  margin-top: 24px;
+  border-top: 1px solid var(--mindot-border);
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 20px 0;
+}
+
+.completed-reflection-search-connection h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.completed-reflection-search-connection p {
+  margin: 6px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.completed-reflection-search-connection button {
+  min-width: 174px;
+  min-height: 46px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  padding: 0 16px;
+  color: var(--mindot-primary-strong);
+  font: inherit;
+  font-weight: 700;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+.completed-reflection-search-connection button:not(:disabled):hover {
+  border-color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-soft);
+}
+
+.completed-reflection-search-connection button:disabled {
+  border-color: var(--mindot-border);
+  color: var(--mindot-disabled);
+  background: var(--mindot-surface-muted);
+  cursor: wait;
+}
+
+.completed-reflection-embedding-message {
+  margin: 10px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 13px;
+}
+
 /* 세 가지 서술형 CBT 결과를 구분선으로 나누는 영역 설정. */
 .completed-reflection-text-results {
   margin-top: 28px;
@@ -217,6 +277,14 @@
 
   .completed-reflection-heading {
     flex-direction: column;
+  }
+
+  .completed-reflection-search-connection {
+    grid-template-columns: 1fr;
+  }
+
+  .completed-reflection-search-connection button {
+    width: 100%;
   }
 
   .completed-reflection-scores dl {

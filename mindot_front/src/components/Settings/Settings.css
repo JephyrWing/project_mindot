@@ -1,0 +1,317 @@
+/* 설정 화면 전체 영역 */
+.settings-page {
+  min-height: 100vh;
+  background: var(--mindot-page);
+}
+
+/* 설정 카드의 가운데 정렬과 최대 너비 제한 */
+.settings-content {
+  width: min(100% - 32px, 720px);
+  margin: 0 auto;
+  padding: 48px 0 80px;
+}
+
+/* 설정 화면 제목과 안내 문구 */
+.settings-heading {
+  margin-bottom: 24px;
+}
+
+.settings-heading h1 {
+  margin: 0 0 8px;
+}
+
+.settings-heading p {
+  margin: 0;
+  color: var(--mindot-text-secondary);
+}
+
+/* 프로필과 알림 설정을 구분하는 단일 카드 */
+.settings-card {
+  margin-top: 20px;
+  border: 1px solid var(--mindot-border);
+  border-radius: 14px;
+  padding: 28px;
+  background: var(--mindot-surface);
+}
+
+/* 카드 제목과 설명 간격 */
+.settings-card__heading {
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--mindot-border);
+}
+
+.settings-card__heading h2 {
+  margin: 0 0 6px;
+  font-size: 1.25rem;
+}
+
+.settings-card__heading p {
+  margin: 0;
+  color: var(--mindot-text-secondary);
+}
+
+/* 설정 입력 항목의 세로 배치 */
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 22px;
+}
+
+.settings-form > label:not(.settings-toggle) {
+  margin-top: 8px;
+  font-weight: 700;
+}
+
+/* 프로필과 시간 입력창 공통 디자인 */
+.settings-form input[type='email'],
+.settings-form input[type='text'],
+.settings-form input[type='time'] {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--mindot-border-strong);
+  border-radius: 8px;
+  padding: 0 14px;
+  color: var(--mindot-text);
+  background: var(--mindot-surface);
+}
+
+/* 읽기 전용 또는 비활성 입력값 구분 */
+.settings-form input:read-only,
+.settings-form input:disabled {
+  color: var(--mindot-text-muted);
+  background: var(--mindot-surface-muted);
+}
+
+/* 입력 항목 아래의 보조 설명 */
+.settings-field-help {
+  margin: -2px 0 4px;
+  color: var(--mindot-text-muted);
+  font-size: 0.875rem;
+}
+
+/* 알림 사용 여부 체크 영역 */
+.settings-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border: 1px solid var(--mindot-border);
+  border-radius: 10px;
+  padding: 16px;
+  cursor: pointer;
+}
+
+.settings-toggle input {
+  width: 20px;
+  height: 20px;
+  margin: 3px 0 0;
+  accent-color: var(--mindot-primary);
+}
+
+.settings-toggle span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.settings-toggle small {
+  color: var(--mindot-text-secondary);
+}
+
+/* 설정 저장 버튼 */
+.settings-submit {
+  min-height: 48px;
+  margin-top: 14px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  padding: 0 20px;
+  color: #ffffff;
+  font-weight: 700;
+  background: var(--mindot-primary);
+  cursor: pointer;
+}
+
+.settings-submit:not(:disabled):hover {
+  border-color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-strong);
+}
+
+.settings-submit:disabled {
+  border-color: var(--mindot-disabled);
+  background: var(--mindot-disabled);
+  cursor: not-allowed;
+}
+
+/* 저장 성공과 실패 결과 문구 */
+.settings-message {
+  margin: 4px 0 0;
+  font-size: 0.9375rem;
+}
+
+.settings-message--success {
+  color: var(--mindot-success);
+}
+
+.settings-message--error {
+  color: var(--mindot-danger);
+}
+
+/* 최초 조회 중이거나 조회가 실패한 상태 */
+.settings-state {
+  border: 1px solid var(--mindot-border);
+  border-radius: 14px;
+  padding: 28px;
+  background: var(--mindot-surface);
+}
+
+.settings-state p {
+  margin: 8px 0 16px;
+}
+
+.settings-state--error {
+  border-color: #e5a5ad;
+  color: var(--mindot-danger);
+}
+
+.settings-state button {
+  min-height: 44px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  padding: 0 18px;
+  color: #ffffff;
+  font-weight: 700;
+  background: var(--mindot-primary);
+  cursor: pointer;
+}
+
+/* 회원 탈퇴처럼 되돌리기 어려운 작업을 구분하는 카드 */
+.settings-danger-card {
+  border-color: #e5a5ad;
+}
+
+.settings-danger-card .settings-withdrawal {
+  padding-top: 0;
+}
+
+/* 회원 탈퇴 설명과 실행 버튼의 가로 배치 */
+.settings-withdrawal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding-top: 22px;
+}
+
+.settings-withdrawal strong {
+  color: var(--mindot-danger);
+  font-size: 1.125rem;
+}
+
+.settings-withdrawal p {
+  margin: 5px 0 0;
+  color: var(--mindot-text-secondary);
+}
+
+/* 회원 탈퇴 확인창을 여는 위험 작업 버튼 */
+.settings-withdrawal-button {
+  min-width: 112px;
+  min-height: 44px;
+  border: 1px solid var(--mindot-danger);
+  border-radius: 8px;
+  padding: 0 18px;
+  color: var(--mindot-danger);
+  font-weight: 700;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+.settings-withdrawal-button:hover {
+  color: #ffffff;
+  background: var(--mindot-danger);
+}
+
+/* 회원 탈퇴 확인창 뒤의 화면 차단 영역 */
+.settings-dialog-backdrop {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(20, 32, 51, 0.58);
+}
+
+/* 회원 탈퇴 최종 확인창 */
+.settings-dialog {
+  width: min(100%, 440px);
+  border: 1px solid var(--mindot-border);
+  border-radius: 14px;
+  padding: 28px;
+  background: var(--mindot-surface);
+  box-shadow: 0 18px 48px rgba(20, 32, 51, 0.2);
+}
+
+.settings-dialog h2 {
+  margin: 0 0 12px;
+  font-size: 1.375rem;
+}
+
+.settings-dialog p {
+  margin: 0;
+  color: var(--mindot-text-secondary);
+}
+
+/* 탈퇴 확인창의 취소와 최종 탈퇴 버튼 배치 */
+.settings-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.settings-dialog-actions button {
+  min-height: 44px;
+  border-radius: 8px;
+  padding: 0 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.settings-dialog-cancel {
+  border: 1px solid var(--mindot-border-strong);
+  color: var(--mindot-text);
+  background: var(--mindot-surface);
+}
+
+.settings-dialog-confirm {
+  border: 1px solid var(--mindot-danger);
+  color: #ffffff;
+  background: var(--mindot-danger);
+}
+
+.settings-dialog-actions button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+/* 작은 화면에서 카드 여백 축소 */
+@media (max-width: 600px) {
+  .settings-content {
+    width: min(100% - 24px, 720px);
+    padding-top: 28px;
+  }
+
+  .settings-card {
+    padding: 22px 18px;
+  }
+
+  .settings-withdrawal {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .settings-withdrawal-button {
+    width: 100%;
+  }
+}
