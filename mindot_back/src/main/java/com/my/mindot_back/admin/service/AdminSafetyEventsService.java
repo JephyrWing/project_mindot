@@ -3,16 +3,16 @@ package com.my.mindot_back.admin.service;
 
 import com.my.mindot_back.admin.dto.AdminSafetyEventDetailResponseDto;
 import com.my.mindot_back.admin.dto.AdminSafetyEventListResponseDto;
+import com.my.mindot_back.admin.dto.AdminSafetyEventPageResponseDto;
 import com.my.mindot_back.safety.entity.RiskLevel;
 import com.my.mindot_back.safety.repository.SafetyEventsRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -21,18 +21,33 @@ public class AdminSafetyEventsService {
     // 안전 신호 이벤트 조회 Repository
     private final SafetyEventsRepository safetyEventsRepository;
 
-    // 생성 시각 최신순으로 안전 신호 이벤트 목록 조회
+    // 생성 시각 최신순으로 안전 신호 이벤트 목록을 페이징 조회
     @Transactional(readOnly = true)
-    public List<AdminSafetyEventListResponseDto> getSafetyEvents() {
-        return safetyEventsRepository.findAll(
-                        Sort.by(
-                                Sort.Direction.DESC,
-                                "createdAt"
+    public AdminSafetyEventPageResponseDto getSafetyEvents(int page, int size) {
+        if (page < 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "페이지 번호는 0 이상이어야 합니다."
+            );
+        }
+
+        if (size < 1 || size > 50) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "페이지 크기는 1 이상 50 이하이어야 합니다."
+            );
+        }
+
+        return AdminSafetyEventPageResponseDto.from(
+                safetyEventsRepository.findAll(
+                        PageRequest.of(
+                                page,
+                                size,
+                                Sort.by(Sort.Direction.DESC, "createdAt")
+                                        .and(Sort.by(Sort.Direction.DESC, "id"))
                         )
-                )
-                .stream()
-                .map(AdminSafetyEventListResponseDto::from)
-                .toList();
+                ).map(AdminSafetyEventListResponseDto::from)
+        );
     }
 
     // CRISIS 안전 신호에 연결된 감정 기록 원문 상세 조회
