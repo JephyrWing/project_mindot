@@ -11,6 +11,26 @@ import {
 import { getRecentEmotionPatterns } from '../../utils/patterns/patternsApi.js'
 import './DailyCare.css'
 
+// 마음 돌봄 추천 만족도를 브라우저에 보관하기 위한 저장소 키 설정.
+const dailyCareFeedbackStorageKey = 'mindot_daily_care_feedback'
+
+// 같은 브라우저에 저장된 추천 만족도 선택값을 안전하게 복원하는 처리.
+const getSavedDailyCareFeedback = () => {
+  if (typeof window === 'undefined') return ''
+
+  try {
+    const savedFeedback = JSON.parse(
+      window.localStorage.getItem(dailyCareFeedbackStorageKey),
+    )
+
+    return ['helpful', 'later'].includes(savedFeedback?.value)
+      ? savedFeedback.value
+      : ''
+  } catch {
+    return ''
+  }
+}
+
 // 백엔드 감정 코드를 사용자에게 표시할 한국어 이름으로 변환하기 위한 목록 설정.
 const emotionCodeLabels = {
   ANXIETY: '불안',
@@ -223,6 +243,8 @@ function DailyCare({
   const [isOpeningCbt, setIsOpeningCbt] = useState(false)
   // CBT 시작 또는 이어하기 실패 안내 상태 설정.
   const [cbtError, setCbtError] = useState('')
+  // 같은 브라우저에 저장된 추천 만족도 상태 설정.
+  const [selectedFeedback, setSelectedFeedback] = useState(getSavedDailyCareFeedback)
   // 사용자 시간대에서 오늘을 포함한 최근 7일의 서버 전체 건수.
   const [recentRecordCount, setRecentRecordCount] = useState(0)
 
@@ -402,6 +424,25 @@ function DailyCare({
     }
   }
 
+  // 추천 만족도를 브라우저에 보관하고 현재 선택 상태를 갱신하는 처리.
+  const handleFeedbackSave = (feedbackValue) => {
+    const feedback = {
+      value: feedbackValue,
+      emotionRecordId: latestRecord?.emotionRecordId ?? null,
+      savedAt: new Date().toISOString(),
+    }
+
+    try {
+      window.localStorage.setItem(
+        dailyCareFeedbackStorageKey,
+        JSON.stringify(feedback),
+      )
+      setSelectedFeedback(feedbackValue)
+    } catch {
+      setSelectedFeedback('storage-error')
+    }
+  }
+
   // 실제 감정 기록과 마음 돌봄 실행 도구로 구성한 화면 반환.
   return (
     <div className="daily-care-page">
@@ -575,6 +616,40 @@ function DailyCare({
             첫 감정 기록하기
           </button>
         )}
+
+        {/* 추천 만족도를 같은 브라우저에 보관하는 선택 영역. */}
+        <section className="daily-care-feedback" aria-labelledby="daily-care-feedback-title">
+          <h2 id="daily-care-feedback-title">오늘의 제안이 도움이 되었나요?</h2>
+          <p>선택한 의견은 이 브라우저에 저장됩니다.</p>
+          <div className="daily-care-feedback-actions">
+            <button
+              className={selectedFeedback === 'helpful' ? 'is-selected' : ''}
+              type="button"
+              onClick={() => handleFeedbackSave('helpful')}
+              aria-pressed={selectedFeedback === 'helpful'}
+            >
+              도움됐어요
+            </button>
+            <button
+              className={selectedFeedback === 'later' ? 'is-selected' : ''}
+              type="button"
+              onClick={() => handleFeedbackSave('later')}
+              aria-pressed={selectedFeedback === 'later'}
+            >
+              다음에 추천해요
+            </button>
+          </div>
+          {selectedFeedback && selectedFeedback !== 'storage-error' && (
+            <p className="daily-care-message is-success" aria-live="polite">
+              선택한 의견을 저장했습니다.
+            </p>
+          )}
+          {selectedFeedback === 'storage-error' && (
+            <p className="daily-care-message is-error" role="alert">
+              브라우저에 의견을 저장하지 못했습니다.
+            </p>
+          )}
+        </section>
 
       </main>
     </div>

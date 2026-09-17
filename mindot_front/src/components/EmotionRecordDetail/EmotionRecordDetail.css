@@ -326,8 +326,9 @@
   line-height: 1.6;
 }
 
-/* AI 재분석 버튼의 파란색 설정. */
-.emotion-detail-reanalysis button {
+/* AI 재분석 버튼과 패턴 요청 버튼의 공통 파란색 설정. */
+.emotion-detail-reanalysis button,
+.emotion-detail-pattern-heading button {
   flex: 0 0 auto;
   min-height: 44px;
   border: 1px solid var(--mindot-primary);
@@ -342,13 +343,15 @@
 }
 
 /* 활성화된 AI 작업 버튼 위의 진한 파란색 강조. */
-.emotion-detail-reanalysis button:not(:disabled):hover {
+.emotion-detail-reanalysis button:not(:disabled):hover,
+.emotion-detail-pattern-heading button:not(:disabled):hover {
   border-color: var(--mindot-primary-strong);
   background: var(--mindot-primary-strong);
 }
 
 /* AI 작업 요청 중 버튼의 비활성 상태 설정. */
-.emotion-detail-reanalysis button:disabled {
+.emotion-detail-reanalysis button:disabled,
+.emotion-detail-pattern-heading button:disabled {
   border-color: var(--mindot-border);
   color: var(--mindot-disabled);
   background: var(--mindot-surface-muted);
@@ -561,6 +564,101 @@
   overflow-wrap: anywhere;
 }
 
+/* 유사 CBT 사례 기반 패턴 설명 영역의 구분선과 여백 설정. */
+.emotion-detail-pattern {
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 26px 0;
+}
+
+/* 패턴 설명 제목과 요청 버튼의 양쪽 배치. */
+.emotion-detail-pattern-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+/* 패턴 설명 제목의 본문 단계 크기 설정. */
+.emotion-detail-pattern-heading h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+/* 패턴 설명 요청 목적을 알리는 보조 문구 설정. */
+.emotion-detail-pattern-heading p {
+  margin: 8px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 패턴 설명 요청 실패 문구의 경고 색상 설정. */
+.emotion-detail-pattern-error {
+  margin: 14px 0 0;
+  color: var(--mindot-danger);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* 생성된 패턴 설명 결과의 상단 구분선 설정. */
+.emotion-detail-pattern-result {
+  margin-top: 20px;
+  border-top: 1px solid var(--mindot-border);
+  padding-top: 18px;
+}
+
+/* 패턴 분석에 활용된 유사 사례 수 안내 설정. */
+.emotion-detail-pattern-count {
+  margin: 0 0 8px;
+  color: var(--mindot-primary-strong);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* 패턴 설명 항목 목록의 기본 여백 제거. */
+.emotion-detail-pattern-result dl {
+  margin: 0;
+}
+
+/* 패턴 설명 항목의 이름과 내용을 두 열로 배치. */
+.emotion-detail-pattern-result dl > div {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 20px;
+  border-top: 1px solid var(--mindot-border);
+  padding: 16px 0;
+}
+
+/* 패턴 설명 항목 이름의 세미 볼드 설정. */
+.emotion-detail-pattern-result dt {
+  color: var(--mindot-text-secondary);
+  font-weight: 600;
+}
+
+/* 패턴 설명 항목 내용의 줄 간격 설정. */
+.emotion-detail-pattern-result dd {
+  margin: 0;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+/* 반복 인지왜곡 이름의 가로 줄바꿈 배치. */
+.emotion-detail-pattern-codes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* 반복 인지왜곡 이름에 옅은 파란색 단색 적용. */
+.emotion-detail-pattern-codes span {
+  border-radius: 6px;
+  padding: 5px 8px;
+  color: var(--mindot-primary-strong);
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--mindot-primary-soft);
+}
+
 /* 감정 기록과 연결된 CBT 성찰 데이터를 삭제하는 영역의 여백 설정. */
 .emotion-detail-delete {
   padding-top: 28px;
@@ -722,14 +820,16 @@
   .emotion-detail-heading,
   .emotion-detail-summary,
   .emotion-detail-analysis-heading,
-  .emotion-detail-reanalysis {
+  .emotion-detail-reanalysis,
+  .emotion-detail-pattern-heading {
     align-items: flex-start;
     grid-template-columns: 1fr;
     flex-direction: column;
   }
 
   .emotion-detail-heading button,
-  .emotion-detail-reanalysis button {
+  .emotion-detail-reanalysis button,
+  .emotion-detail-pattern-heading button {
     width: 100%;
   }
 
@@ -749,6 +849,11 @@
   }
 
   .emotion-detail-list > div {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .emotion-detail-pattern-result dl > div {
     grid-template-columns: 1fr;
     gap: 6px;
   }

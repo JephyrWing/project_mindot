@@ -29,3 +29,21 @@ test('retry carries no replacement answer and confirm allows all rejected', asyn
   assert.ok(!('afterText' in calls[1][1]))
   assert.equal(calls[1][2].headers['If-Match'], '9')
 })
+
+test('embedding retry sends an empty body with the long request timeout', async () => {
+  const calls = []
+  const api = createReflectionsApi({
+    post: async (...args) => {
+      calls.push(args)
+      return { data: {} }
+    },
+  })
+
+  await api.retryReflectionEmbedding(7)
+
+  assert.deepEqual(calls[0], [
+    '/api/reflections/7/retry-embedding',
+    null,
+    { timeout: 240000 },
+  ])
+})

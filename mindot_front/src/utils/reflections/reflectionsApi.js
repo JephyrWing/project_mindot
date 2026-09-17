@@ -12,6 +12,8 @@ export const createReflectionsApi = (client) => ({
   cancelReflection: async (id, key, revision) => (await client.post(`/api/reflections/${id}/cancel`, null, options(key, revision))).data,
   getOpenReflectionSessions: async () => (await client.get('/api/reflections/open')).data,
   getReflectionSessionDetail: async (id) => (await client.get(`/api/reflections/${id}`)).data,
+  // 확정된 CBT 성찰의 검색 연결 데이터를 다시 생성하는 처리.
+  retryReflectionEmbedding: async (id) => client.post(`/api/reflections/${id}/retry-embedding`, null, { timeout: 240000 }),
 })
 export const { openReflection, submitReflectionAnswer, retryReflection, confirmReflection, cancelReflection,
-  getOpenReflectionSessions, getReflectionSessionDetail } = createReflectionsApi(httpClient)
+  getOpenReflectionSessions, getReflectionSessionDetail, retryReflectionEmbedding } = createReflectionsApi(httpClient)
