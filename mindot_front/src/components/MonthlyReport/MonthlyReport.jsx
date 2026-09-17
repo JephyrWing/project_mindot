@@ -376,7 +376,11 @@ function MonthlyReport({
       />
 
       <div className="monthly-report-content">
-        <section className="monthly-report-card" aria-labelledby="monthly-report-title">
+        <section
+          className="monthly-report-card"
+          aria-labelledby="monthly-report-title"
+          aria-busy={isLoading || isRefreshing}
+        >
           <BrandLogo className="monthly-report-logo" onClick={onHome} />
           <h1 id="monthly-report-title">월간 리포트</h1>
           <p className="monthly-report-description">
