@@ -9,6 +9,13 @@ export const createConsentsApi = (client) => ({
     return data
   },
 
+  // 로그인 사용자의 동의 및 철회 변경 이력 조회.
+  getConsentHistory: async (params = {}) => {
+    const { data } = await client.get('/api/consents/history', { params })
+
+    return data
+  },
+
   // 현재 버전의 AI 분석 동의 저장
   grantAiAnalysisConsent: async () => {
     const { data } = await client.post('/api/consents/AI_ANALYSIS/grant')
@@ -26,6 +33,7 @@ export const createConsentsApi = (client) => ({
 
 export const {
   getCurrentConsents,
+  getConsentHistory,
   grantAiAnalysisConsent,
   revokeAiAnalysisConsent,
 } = createConsentsApi(httpClient)

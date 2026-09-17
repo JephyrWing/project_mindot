@@ -11,6 +11,7 @@ import {
 } from '../../utils/notifications/notificationsApi.js'
 import {
   getCurrentConsents,
+  getConsentHistory,
   grantAiAnalysisConsent,
   revokeAiAnalysisConsent,
 } from '../../utils/consents/consentsApi.js'
@@ -21,6 +22,31 @@ const getErrorMessage = (error, fallbackMessage) => (
   error.response?.data?.message
   ?? fallbackMessage
 )
+
+// 동의 종류와 처리 상태를 사용자에게 표시할 문구 설정.
+const consentTypeLabels = {
+  TERMS: '이용약관',
+  PRIVACY: '개인정보 처리',
+  AI_ANALYSIS: 'AI 분석',
+  COUNSELOR_SHARE: '상담사 공유',
+}
+
+const consentActionLabels = {
+  GRANTED: '동의',
+  REVOKED: '철회',
+}
+
+// 동의 변경 시각을 한국어 날짜와 시간으로 변환.
+const formatConsentHistoryDate = (occurredAt) => new Intl.DateTimeFormat('ko-KR', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+}).format(new Date(occurredAt))
+
+// 한 화면에 표시할 동의 변경 이력 개수 설정.
+const consentHistoryPageSize = 5
 
 // 프로필과 반복 패턴 알림 설정을 관리하는 화면
 function Settings({
@@ -48,6 +74,17 @@ function Settings({
   const [aiAnalysisConsent, setAiAnalysisConsent] = useState(null)
   const [isSavingAiConsent, setIsSavingAiConsent] = useState(false)
   const [isAiConsentDialogOpen, setIsAiConsentDialogOpen] = useState(false)
+
+  // 동의 변경 이력과 페이지 조회 상태 관리.
+  const [consentHistory, setConsentHistory] = useState([])
+  const [consentHistoryPage, setConsentHistoryPage] = useState(0)
+  const [consentHistoryInfo, setConsentHistoryInfo] = useState({
+    totalPages: 0,
+    totalElements: 0,
+  })
+  const [isConsentHistoryLoading, setIsConsentHistoryLoading] = useState(true)
+  const [consentHistoryError, setConsentHistoryError] = useState('')
+  const [consentHistoryReloadCount, setConsentHistoryReloadCount] = useState(0)
 
   // 최초 조회와 각 저장 요청의 진행 상태 관리
   const [isLoading, setIsLoading] = useState(true)
@@ -126,6 +163,46 @@ function Settings({
     }
   }, [])
 
+  // 설정 화면에서 로그인 사용자의 동의 및 철회 이력을 페이지 단위로 조회.
+  useEffect(() => {
+    let isActive = true
+
+    const loadConsentHistory = async () => {
+      setIsConsentHistoryLoading(true)
+      setConsentHistoryError('')
+
+      try {
+        const historyResponse = await getConsentHistory({
+          page: consentHistoryPage,
+          size: consentHistoryPageSize,
+        })
+
+        if (!isActive) return
+
+        setConsentHistory(historyResponse.content ?? [])
+        setConsentHistoryInfo(historyResponse)
+      } catch (error) {
+        if (!isActive) return
+
+        setConsentHistory([])
+        setConsentHistoryError(
+          getErrorMessage(
+            error,
+            '동의 변경 이력을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.',
+          ),
+        )
+      } finally {
+        if (isActive) setIsConsentHistoryLoading(false)
+      }
+    }
+
+    loadConsentHistory()
+
+    return () => {
+      isActive = false
+    }
+  }, [consentHistoryPage, consentHistoryReloadCount])
+
   // 입력한 닉네임을 백엔드 프로필에 반영
   const handleProfileSubmit = async (event) => {
     event.preventDefault()
@@ -202,6 +279,8 @@ function Settings({
         : await revokeAiAnalysisConsent()
 
       setAiAnalysisConsent(updatedConsent)
+      setConsentHistoryPage(0)
+      setConsentHistoryReloadCount((currentCount) => currentCount + 1)
       setAiConsentMessage(
         granted
           ? 'AI 분석에 다시 동의했습니다.'
@@ -390,6 +469,97 @@ function Settings({
                 <p className="settings-message settings-message--error" role="alert">
                   {aiConsentError}
                 </p>
+              )}
+            </section>
+
+            {/* 이용약관과 개인정보 및 AI 분석 동의 변경 이력 조회 영역 */}
+            <section
+              className="settings-card"
+              aria-labelledby="consent-history-title"
+            >
+              <div className="settings-card__heading settings-consent-history-heading">
+                <div>
+                  <h2 id="consent-history-title">동의 변경 이력</h2>
+                  <p>서비스 이용 중 동의하거나 철회한 내역을 확인합니다.</p>
+                </div>
+                {!isConsentHistoryLoading && !consentHistoryError && (
+                  <span>전체 {consentHistoryInfo.totalElements ?? 0}건</span>
+                )}
+              </div>
+
+              {isConsentHistoryLoading ? (
+                <p className="settings-consent-history-state" role="status">
+                  동의 변경 이력을 불러오고 있습니다.
+                </p>
+              ) : consentHistoryError ? (
+                <div className="settings-consent-history-state" role="alert">
+                  <p>{consentHistoryError}</p>
+                  <button
+                    type="button"
+                    onClick={() => setConsentHistoryReloadCount(
+                      (currentCount) => currentCount + 1,
+                    )}
+                  >
+                    다시 불러오기
+                  </button>
+                </div>
+              ) : consentHistory.length === 0 ? (
+                <p className="settings-consent-history-state">
+                  표시할 동의 변경 이력이 없습니다.
+                </p>
+              ) : (
+                <>
+                  <ul className="settings-consent-history-list">
+                    {consentHistory.map((history) => (
+                      <li key={history.consentEventId}>
+                        <div>
+                          <strong>
+                            {consentTypeLabels[history.consentType]
+                              ?? history.consentType}
+                          </strong>
+                          <span>
+                            {history.consentVersion
+                              ? `버전 ${history.consentVersion}`
+                              : '버전 정보 없음'}
+                          </span>
+                        </div>
+                        <div className="settings-consent-history-result">
+                          <span className={`is-${history.action?.toLowerCase()}`}>
+                            {consentActionLabels[history.action] ?? history.action}
+                          </span>
+                          <time dateTime={history.occurredAt}>
+                            {formatConsentHistoryDate(history.occurredAt)}
+                          </time>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {consentHistoryInfo.totalPages > 1 && (
+                    <nav
+                      className="settings-consent-history-pagination"
+                      aria-label="동의 변경 이력 페이지"
+                    >
+                      <button
+                        type="button"
+                        disabled={consentHistoryPage === 0}
+                        onClick={() => setConsentHistoryPage((page) => page - 1)}
+                      >
+                        이전
+                      </button>
+                      <span aria-current="page">
+                        {consentHistoryPage + 1} / {consentHistoryInfo.totalPages}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={consentHistoryPage + 1 >= consentHistoryInfo.totalPages}
+                        onClick={() => setConsentHistoryPage((page) => page + 1)}
+                      >
+                        다음
+                      </button>
+                    </nav>
+                  )}
+                </>
               )}
             </section>
 
