@@ -8,7 +8,6 @@ import EmotionHistory from './components/EmotionHistory/EmotionHistory.jsx'
 import EmotionRecordDetail from './components/EmotionRecordDetail/EmotionRecordDetail.jsx'
 import CBT from './components/CBT/CBT.jsx'
 import WeeklyReport from './components/WeeklyReport/WeeklyReport.jsx'
-import WeeklyReportGraph from './components/WeeklyReportGraph/WeeklyReportGraph.jsx'
 import MonthlyReport from './components/MonthlyReport/MonthlyReport.jsx'
 import CompletedReflection from './components/CompletedReflection/CompletedReflection.jsx'
 import AppIntroModal from './components/AppIntroModal/AppIntroModal.jsx'
@@ -44,7 +43,6 @@ const protectedPages = new Set([
   'emotion-record-detail',
   'cbt',
   'weekly-report',
-  'weekly-report-graph',
   'monthly-report',
   'completed-reflection',
   'daily-care',
@@ -448,25 +446,8 @@ function App() {
         onCompletedReflection={handleCompletedReflectionOpen}
         onCenter={() => moveToPage('center')}
         onDailyCare={() => moveToProtectedPage('daily-care')}
-        onGraph={() => moveToPage('weekly-report-graph')}
         onMonthlyReport={() => moveToPage('monthly-report')}
         onBack={moveToMain}
-        onHome={moveToMain}
-      />
-    )
-  } else if (currentPage === 'weekly-report-graph') {
-    // 선택한 주의 감정 강도 흐름을 보여 주는 그래프 화면 렌더링.
-    currentPageContent = (
-      <WeeklyReportGraph
-        isAuthenticated={isAuthenticated}
-        isLoggingOut={isLoggingOut}
-        onLogin={() => moveToPage('login')}
-        onLogout={handleLogout}
-        onSignUp={() => moveToPage('signup')}
-        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
-        onCenter={() => moveToPage('center')}
-        onDailyCare={() => moveToProtectedPage('daily-care')}
-        onBack={() => moveToPage('weekly-report')}
         onHome={moveToMain}
       />
     )
