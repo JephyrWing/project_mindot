@@ -37,6 +37,14 @@ export const createRecordsApi = (client) => ({
 
     return data
   },
+  // 검색 또는 유사 기록 연결에 사용하는 감정 기록 임베딩의 재생성을 요청하는 처리.
+  retryEmotionRecordEmbedding: async (emotionRecordId) => {
+    await client.post(
+      `/api/records/${emotionRecordId}/retry-embedding`,
+      null,
+      { timeout: 240000 },
+    )
+  },
   // 확정된 감정 기록과 유사한 과거 CBT 사례를 기반으로 패턴 설명을 요청하는 처리.
   getEmotionRecordPatternExplanation: async (emotionRecordId) => {
     const { data } = await client.post(
@@ -66,6 +74,7 @@ export const {
   getEmotionRecordDetail,
   confirmEmotionRecord,
   reanalyzeEmotionRecord,
+  retryEmotionRecordEmbedding,
   getEmotionRecordPatternExplanation,
   updateEmotionRecordOccurredAt,
   deleteEmotionRecord,
