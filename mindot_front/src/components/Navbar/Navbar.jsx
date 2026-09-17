@@ -48,9 +48,19 @@ function Navbar({
             aria-label="설정 열기"
             title="설정"
           >
-            <span className="app-navigation-settings-icon" aria-hidden="true">
-              ⚙
-            </span>
+            <svg
+              className="app-navigation-settings-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M10 2h4l.5 2.2 1.7.7 1.9-1.2 2.8 2.8-1.2 1.9.7 1.7L22 10v4l-2.2.5-.7 1.7 1.2 1.9-2.8 2.8-1.9-1.2-1.7.7L14 22h-4l-.5-2.2-1.7-.7-1.9 1.2-2.8-2.8 1.2-1.9-.7-1.7L2 14v-4l2.2-.5.7-1.7-1.2-1.9 2.8-2.8 1.9 1.2 1.7-.7L10 2Z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
           </a>
         </div>
       )}
