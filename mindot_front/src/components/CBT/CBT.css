@@ -701,28 +701,6 @@
   padding: 16px;
 }
 
-/* 검색 연결 설명과 보조 동작 버튼의 가로 배치. */
-.cbt-search-connection {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 20px;
-  border-top: 1px solid var(--mindot-border);
-  border-bottom: 1px solid var(--mindot-border);
-  padding: 20px 0;
-}
-
-.cbt-search-connection strong {
-  font-size: 15px;
-}
-
-.cbt-search-connection p {
-  margin: 6px 0 0;
-  color: var(--mindot-text-secondary);
-  font-size: 13px;
-  line-height: 1.6;
-}
-
 /* CBT 최종 결과 확정 버튼의 핵심 파란색과 터치 영역 설정. */
 .cbt-confirm-form > button {
   min-height: 48px;
@@ -772,17 +750,6 @@
   line-height: 1.7;
 }
 
-/* 임베딩 재시도 실패 안내의 경고 색상 설정. */
-.cbt-confirmed .cbt-embedding-retry-error {
-  color: var(--mindot-danger);
-}
-
-/* 임베딩 재시도 완료 안내의 성공 색상 설정. */
-.cbt-confirmed .cbt-embedding-retry-success {
-  color: var(--mindot-success);
-  font-weight: 600;
-}
-
 /* URL 직접 진입 시 CBT 세션 조회 상태를 구분선 안에 중앙 배치. */
 .cbt-route-state {
   display: grid;
@@ -817,45 +784,6 @@
 /* CBT URL 재조회 버튼 위의 옅은 파란색 배경 적용. */
 .cbt-route-state button:hover {
   background: var(--mindot-primary-soft);
-}
-
-/* 완료 결과 아래 임베딩 재시도 버튼의 터치 영역과 브랜드 색상 설정. */
-.cbt-embedding-retry-button {
-  width: auto;
-  min-width: 174px;
-  min-height: 46px;
-  border: 1px solid var(--mindot-primary);
-  border-radius: 8px;
-  margin: 0;
-  padding: 0 16px;
-  color: var(--mindot-primary-strong);
-  font: inherit;
-  font-weight: 700;
-  background: var(--mindot-surface);
-  cursor: pointer;
-  touch-action: manipulation;
-}
-
-/* 활성화된 임베딩 재시도 버튼 위의 옅은 브랜드 색상 적용. */
-.cbt-embedding-retry-button:not(:disabled):hover {
-  border-color: var(--mindot-primary-strong);
-  background: var(--mindot-primary-soft);
-}
-
-/* 임베딩 재시도 처리 중 버튼의 비활성 상태 설정. */
-.cbt-embedding-retry-button:disabled {
-  border-color: var(--mindot-border);
-  color: var(--mindot-disabled);
-  background: var(--mindot-surface-muted);
-  cursor: wait;
-}
-
-/* 검색 연결 완료 상태의 성공 색상 설정. */
-.cbt-embedding-retry-success {
-  margin: -12px 0 0;
-  color: #197544;
-  font-size: 14px;
-  font-weight: 600;
 }
 
 /* 진행 중인 CBT 성찰의 이동과 중단 기능을 구분선 아래에 배치. */
@@ -949,13 +877,8 @@
   .cbt-confirm-scores,
   .cbt-distortion-reviews label,
   .cbt-insight-thoughts,
-  .cbt-insight-evidence,
-  .cbt-search-connection {
+  .cbt-insight-evidence {
     grid-template-columns: 1fr;
-  }
-
-  .cbt-embedding-retry-button {
-    width: 100%;
   }
 
   .cbt-session-actions > div {

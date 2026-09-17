@@ -4,7 +4,6 @@ import Navbar from '../Navbar/Navbar.jsx'
 import { getReflectionSessionDetail } from '../../utils/reflections/reflectionsApi.js'
 import './CompletedReflection.css'
 import InsightResult from '../CBT/InsightResult.jsx'
-import { retryReflectionEmbedding } from '../../utils/reflections/reflectionsApi.js'
 
 // 완료 CBT 결과 상세 조회 실패 상태에 맞는 사용자 안내 문구 반환.
 const getReflectionErrorMessage = (error) => {
@@ -56,8 +55,6 @@ function CompletedReflection({
   const [isLoading, setIsLoading] = useState(true)
   // 완료 CBT 성찰 상세 조회 실패 안내 상태 관리.
   const [loadError, setLoadError] = useState('')
-  const [embeddingMessage, setEmbeddingMessage] = useState('')
-  const [isEmbeddingRetrying, setIsEmbeddingRetrying] = useState(false)
   // 사용자가 상세 결과 재조회 버튼을 선택한 횟수 상태 관리.
   const [reloadCount, setReloadCount] = useState(0)
 
@@ -154,31 +151,6 @@ function CompletedReflection({
             <>
               {reflection.confirmedResult && <InsightResult result={reflection.confirmedResult} />}
               {!reflection.confirmedResult && <p>기존 형식으로 저장된 성찰 결과입니다. 새 AFTER 의미로 재분류하지 않았습니다.</p>}
-              <section className="completed-reflection-search-connection">
-                <div>
-                  <h2>기록 검색 연결</h2>
-                  <p>저장한 성찰을 나중에 비슷한 기록과 연결해 찾을 수 있도록 다시 처리합니다.</p>
-                </div>
-                <button
-                  type="button"
-                  disabled={isEmbeddingRetrying}
-                  onClick={async () => {
-                    setIsEmbeddingRetrying(true)
-                    setEmbeddingMessage('')
-                    try {
-                      await retryReflectionEmbedding(sessionId)
-                      setEmbeddingMessage('기록 검색 연결을 완료했습니다.')
-                    } catch {
-                      setEmbeddingMessage('검색 연결을 이미 처리 중이거나 다시 시도할 수 없습니다. 결과 저장은 유지됩니다.')
-                    } finally {
-                      setIsEmbeddingRetrying(false)
-                    }
-                  }}
-                >
-                  {isEmbeddingRetrying ? '연결 중…' : '검색 연결 다시 시도'}
-                </button>
-              </section>
-              {embeddingMessage && <p className="completed-reflection-embedding-message" role="status">{embeddingMessage}</p>}
               {/* Existing evidence and score values remain visible. */}
               <div className="completed-reflection-text-results">
                 <section>

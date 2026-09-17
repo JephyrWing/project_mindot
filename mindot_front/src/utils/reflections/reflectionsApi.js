@@ -12,7 +12,6 @@ export const createReflectionsApi = (client) => ({
   cancelReflection: async (id, key, revision) => (await client.post(`/api/reflections/${id}/cancel`, null, options(key, revision))).data,
   getOpenReflectionSessions: async () => (await client.get('/api/reflections/open')).data,
   getReflectionSessionDetail: async (id) => (await client.get(`/api/reflections/${id}`)).data,
-  retryReflectionEmbedding: async (id) => client.post(`/api/reflections/${id}/retry-embedding`, null, { timeout: 240000 }),
 })
 export const { openReflection, submitReflectionAnswer, retryReflection, confirmReflection, cancelReflection,
-  getOpenReflectionSessions, getReflectionSessionDetail, retryReflectionEmbedding } = createReflectionsApi(httpClient)
+  getOpenReflectionSessions, getReflectionSessionDetail } = createReflectionsApi(httpClient)

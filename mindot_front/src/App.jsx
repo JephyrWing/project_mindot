@@ -63,14 +63,27 @@ const initialRoute = isInitialRouteBlocked
   ? { page: 'main' }
   : browserInitialRoute
 
+// 브라우저에서 시작 안내창을 이미 표시했는지 보관하는 저장소 키 설정.
+const introShownStorageKey = 'mindot.appIntroShown'
+
+// 메인 주소로 처음 진입했고 안내 이력이 없을 때만 시작 안내창 표시 여부 반환.
+const shouldShowIntroInitially = () => {
+  if (initialRoute.page !== 'main') return false
+
+  try {
+    return window.localStorage.getItem(introShownStorageKey) !== 'true'
+  } catch {
+    // 브라우저 저장소를 사용할 수 없는 환경에서는 현재 진입에 한해 안내 표시.
+    return true
+  }
+}
+
 // 애플리케이션의 최상위 화면을 구성하는 루트 컴포넌트 정의.
 function App() {
   // 현재 표시할 화면 상태 관리.
   const [currentPage, setCurrentPage] = useState(initialRoute.page)
-  // 메인 주소로 앱을 처음 열었을 때만 서비스 안내창을 표시하기 위한 상태 관리.
-  const [isIntroOpen, setIsIntroOpen] = useState(
-    initialRoute.page === 'main',
-  )
+  // 브라우저 기준 최초 메인 진입에서만 서비스 안내창을 표시하기 위한 상태 관리.
+  const [isIntroOpen, setIsIntroOpen] = useState(shouldShowIntroInitially)
   // 브라우저에 저장된 Access Token을 기준으로 로그인 여부 상태 관리.
   const [isAuthenticated, setIsAuthenticated] = useState(
     () => Boolean(getAccessToken()),
@@ -111,6 +124,18 @@ function App() {
       ? initialRoute.reflectionSessionId ?? null
       : null,
   )
+
+  // 최초 시작 안내창이 표시되면 이후 재접속에서 반복되지 않도록 표시 이력 저장.
+  useEffect(() => {
+    if (!isIntroOpen) return
+
+    try {
+      window.localStorage.setItem(introShownStorageKey, 'true')
+    } catch {
+      // 저장소 사용이 제한된 환경에서도 현재 안내창 이용은 계속 허용.
+    }
+  }, [isIntroOpen])
+
   // 화면 상태와 상세 식별자를 브라우저 주소에 함께 반영하는 이동 처리.
   const moveToPage = (page, parameters = {}, options = {}) => {
     const nextPath = createAppPath(page, parameters)
