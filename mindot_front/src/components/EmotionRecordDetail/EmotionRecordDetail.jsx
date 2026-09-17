@@ -8,6 +8,7 @@ import {
   getEmotionRecordDetail,
   getEmotionRecordPatternExplanation,
   reanalyzeEmotionRecord,
+  retryEmotionRecordEmbedding,
   updateEmotionRecordOccurredAt,
 } from '../../utils/records/recordsApi.js'
 import './EmotionRecordDetail.css'
@@ -225,6 +226,27 @@ const getReanalysisErrorMessage = (error) => {
   return 'AI 재분석에 실패했습니다. 잠시 후 다시 시도해 주세요.'
 }
 
+// 감정 기록 검색 임베딩 재시도 API 오류 상태에 따른 사용자 안내 문구 반환.
+const getEmbeddingRetryErrorMessage = (error) => {
+  if (!error.response) {
+    return '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
+  }
+  if (error.response.status === 401) {
+    return '로그인 정보가 만료되었습니다. 다시 로그인해 주세요.'
+  }
+  if (error.response.status === 403) {
+    return 'AI 분석 동의 상태를 확인한 뒤 다시 시도해 주세요.'
+  }
+  if (error.response.status === 404) {
+    return '검색 데이터를 복구할 감정 기록을 찾을 수 없습니다.'
+  }
+  if (error.response.status === 502 || error.response.status === 503) {
+    return 'AI 서버가 일시적으로 응답하지 않습니다. 잠시 후 다시 시도해 주세요.'
+  }
+
+  return '검색 데이터를 다시 만들지 못했습니다. 잠시 후 다시 시도해 주세요.'
+}
+
 // 패턴 설명 API 오류 상태에 따른 사용자 안내 문구 반환.
 const getPatternErrorMessage = (error) => {
   if (!error.response) {
@@ -294,6 +316,12 @@ function EmotionRecordDetail({
   const [isReanalyzing, setIsReanalyzing] = useState(false)
   // AI 재분석 결과 안내 문구 상태 설정.
   const [reanalysisMessage, setReanalysisMessage] = useState('')
+  // 감정 기록 검색 임베딩 재시도 API 요청 진행 여부 상태 설정.
+  const [isRetryingEmbedding, setIsRetryingEmbedding] = useState(false)
+  // 검색 임베딩 재시도 성공 또는 실패 안내 문구 상태 설정.
+  const [embeddingRetryMessage, setEmbeddingRetryMessage] = useState('')
+  // 검색 임베딩 재시도 실패 여부 상태 설정.
+  const [isEmbeddingRetryError, setIsEmbeddingRetryError] = useState(false)
   // 유사 CBT 사례 기반 패턴 설명 응답 상태 설정.
   const [patternExplanation, setPatternExplanation] = useState(null)
   // 패턴 설명 API 요청 진행 여부 상태 설정.
@@ -327,6 +355,8 @@ function EmotionRecordDetail({
           setAnalysisMessage('')
           setIsAnalysisError(false)
           setReanalysisMessage('')
+          setEmbeddingRetryMessage('')
+          setIsEmbeddingRetryError(false)
           setPatternExplanation(null)
           setPatternError('')
         }
@@ -531,6 +561,25 @@ function EmotionRecordDetail({
       setReanalysisMessage(getReanalysisErrorMessage(error))
     } finally {
       setIsReanalyzing(false)
+    }
+  }
+
+  // 검색 또는 유사 기록 연결이 정상 작동하지 않을 때 감정 기록 임베딩 재생성 요청.
+  const handleEmbeddingRetry = async () => {
+    if (isRetryingEmbedding) return
+
+    setIsRetryingEmbedding(true)
+    setEmbeddingRetryMessage('')
+    setIsEmbeddingRetryError(false)
+
+    try {
+      await retryEmotionRecordEmbedding(emotionRecordId)
+      setEmbeddingRetryMessage('검색 데이터를 다시 만들었습니다.')
+    } catch (error) {
+      setEmbeddingRetryMessage(getEmbeddingRetryErrorMessage(error))
+      setIsEmbeddingRetryError(true)
+    } finally {
+      setIsRetryingEmbedding(false)
     }
   }
 
@@ -1032,6 +1081,35 @@ function EmotionRecordDetail({
                 <dd>{getDisplayValue(record.details?.behavior)}</dd>
               </div>
             </dl>
+
+            {/* 감정 기록 검색과 유사 기록 연결에 사용하는 임베딩 수동 복구 영역 배치. */}
+            <section
+              className="emotion-detail-embedding"
+              aria-labelledby="emotion-detail-embedding-title"
+            >
+              <div>
+                <h2 id="emotion-detail-embedding-title">검색 데이터 복구</h2>
+                <p>
+                  기록 검색이나 유사 기록 연결이 정상적으로 작동하지 않을 때
+                  검색 데이터를 다시 만들 수 있습니다.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleEmbeddingRetry}
+                disabled={isRetryingEmbedding || isDeleting}
+              >
+                {isRetryingEmbedding ? '다시 만드는 중' : '검색 데이터 다시 만들기'}
+              </button>
+              {embeddingRetryMessage && (
+                <p
+                  className={isEmbeddingRetryError ? 'is-error' : 'is-success'}
+                  role={isEmbeddingRetryError ? 'alert' : 'status'}
+                >
+                  {embeddingRetryMessage}
+                </p>
+              )}
+            </section>
 
             {/* 확정된 기록에 유사 CBT 사례 기반 패턴 설명 요청 및 결과 표시. */}
             {record.completionStatus === 'COMPLETE' && (
