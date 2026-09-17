@@ -114,6 +114,7 @@ class UsersControllerAuthTest {
 
     @Test
     void refreshRotatesCookieAndReturnsNewAccessToken() {
+        when(usersService.canRefresh(1L)).thenReturn(true);
         String oldToken = UUID.randomUUID() + ".old";
         MockHttpServletRequest request = allowedRequest();
         request.setCookies(new Cookie(COOKIE_NAME, oldToken));
@@ -199,6 +200,25 @@ class UsersControllerAuthTest {
                 .isEqualTo(403);
 
         verifyNoInteractions(refreshTokenService);
+    }
+
+    @Test
+    void refreshRejectsWithdrawnUserAndRevokesSession() {
+        String oldToken = UUID.randomUUID() + ".old";
+        String newToken = UUID.randomUUID() + ".new";
+
+        MockHttpServletRequest request = allowedRequest();
+        request.setCookies(new Cookie(COOKIE_NAME, oldToken));
+
+        when(refreshTokenService.rotate(oldToken))
+                .thenReturn(issuedToken(1L, newToken));
+        when(usersService.canRefresh(1L)).thenReturn(false);
+
+        assertThatThrownBy(() -> controller.refresh(request))
+                .isInstanceOf(InvalidRefreshTokenException.class);
+
+        verify(refreshTokenService).revoke(newToken);
+        verify(jwtTokenProvider, never()).createAccessToken(anyLong());
     }
 
     private MockHttpServletRequest allowedRequest() {

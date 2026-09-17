@@ -565,8 +565,8 @@ function Settings({
           >
             <h2 id="withdrawal-dialog-title">정말 탈퇴하시겠습니까?</h2>
             <p id="withdrawal-dialog-description">
-              탈퇴한 계정은 다시 로그인할 수 없습니다.
-              회원 데이터 처리 방식은 서비스 정책에 따라 적용됩니다.
+              탈퇴하면 계정과 저장된 기록이 삭제되며 복구할 수 없습니다.
+              같은 로그인 수단으로 다시 가입해도 이전 기록은 돌아오지 않습니다.
             </p>
 
             <div className="settings-dialog-actions">

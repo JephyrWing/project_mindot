@@ -7,6 +7,9 @@ import com.my.mindot_back.redis.entity.RefreshToken;
 import com.my.mindot_back.redis.repository.RefreshTokenRepository;
 import com.my.mindot_back.redis.repository.RefreshTokenRotationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
@@ -32,6 +35,9 @@ public class RefreshTokenService {
 
     private final SecureRandom secureRandom = new SecureRandom();
     private final Clock clock = Clock.systemUTC();
+
+    private static final String SESSION_KEY_PREFIX = "auth:refresh:";
+    private final StringRedisTemplate redisTemplate;
 
     /**
      * 로그인 성공 시 새로운 Refresh Token 세션 생성
@@ -128,6 +134,35 @@ public class RefreshTokenService {
                         session.getTokenHash()
                 ))
                 .ifPresent(repository::delete);
+    }
+
+    // 회원이 사용 중인 모든 기기의 Refresh Token 세션 삭제
+    public void revokeAllForUser(Long userId) {
+        ScanOptions options = ScanOptions.scanOptions()
+                .match(SESSION_KEY_PREFIX + "*")
+                .count(100)
+                .build();
+
+        try (Cursor<String> keys = redisTemplate.scan(options)) {
+            while (keys.hasNext()) {
+                String key = keys.next();
+                String sessionId = key.substring(SESSION_KEY_PREFIX.length());
+
+                // 만료 세션의 복제 키 등 실제 세션이 아닌 키는 제외
+                try {
+                    UUID.fromString(sessionId);
+                } catch (IllegalArgumentException ignored) {
+                    continue;
+                }
+
+                Object storedUserId = redisTemplate.opsForHash()
+                        .get(key, "userId");
+
+                if (userId.toString().equals(String.valueOf(storedUserId))) {
+                    repository.deleteById(sessionId);
+                }
+            }
+        }
     }
 
     private String createRawToken(String sessionId) {

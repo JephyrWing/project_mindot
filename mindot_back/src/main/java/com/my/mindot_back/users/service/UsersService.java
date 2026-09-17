@@ -169,4 +169,30 @@ public class UsersService {
         return user;
     }
 
+    // 탈퇴하기
+    @Transactional
+    public void withdraw(Long userId) {
+        Users user = usersRepository.findLockedById(userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "회원정보를 찾을 수 없습니다."
+                ));
+
+        if (user.getStatus() != AccountStatus.ACTIVE) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "사용할 수 없는 계정입니다."
+            );
+        }
+
+        usersRepository.delete(user);
+        usersRepository.flush();
+    }
+
+    // 토큰 재발급 대상이 현재 활성 회원인지 확인
+    public boolean canRefresh(Long userId) {
+        return usersRepository.findById(userId)
+                .map(user -> user.getStatus() == AccountStatus.ACTIVE)
+                .orElse(false);
+    }
 }
