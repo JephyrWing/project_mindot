@@ -488,7 +488,15 @@
   margin: 6px 0 0;
   color: var(--mindot-primary-strong);
   font-weight: 700;
-  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* 주간 리포트의 키보드 탐색 위치를 명확히 보여 주는 공통 포커스선 설정. */
+.weekly-report-card button:focus-visible,
+.weekly-report-card input:focus-visible,
+.weekly-report-card select:focus-visible {
+  outline: 3px solid var(--mindot-primary-line);
+  outline-offset: 2px;
 }
 
 /* 실제 리포트 데이터가 없을 때 가로 구분선 영역 설정. */
@@ -879,6 +887,10 @@
   .weekly-report-card {
     border-radius: 12px;
     padding: 28px 20px;
+  }
+
+  .weekly-report-card h1 {
+    font-size: 1.75rem;
   }
 
   .weekly-report-period {

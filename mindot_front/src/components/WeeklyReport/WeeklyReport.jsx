@@ -477,7 +477,11 @@ function WeeklyReport({
       />
 
       <div className="weekly-report-content">
-        <section className="weekly-report-card" aria-labelledby="weekly-report-title">
+        <section
+          className="weekly-report-card"
+          aria-labelledby="weekly-report-title"
+          aria-busy={isLoading || isRefreshing}
+        >
           <BrandLogo className="weekly-report-logo" onClick={onHome} />
 
           <h1 id="weekly-report-title">주간 리포트</h1>
@@ -674,7 +678,7 @@ function WeeklyReport({
 
             </>
           ) : (
-            <div className="weekly-report-state">
+            <div className="weekly-report-state" role="status">
               <strong>아직 표시할 리포트가 없습니다.</strong>
               <p>{emptyMessage || '감정 기록을 남기면 이곳에서 한 주의 흐름을 확인할 수 있습니다.'}</p>
             </div>
