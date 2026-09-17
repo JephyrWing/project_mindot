@@ -6,9 +6,7 @@ import {
   confirmEmotionRecord,
   deleteEmotionRecord,
   getEmotionRecordDetail,
-  getEmotionRecordPatternExplanation,
   reanalyzeEmotionRecord,
-  retryEmotionRecordEmbedding,
   updateEmotionRecordOccurredAt,
 } from '../../utils/records/recordsApi.js'
 import './EmotionRecordDetail.css'
@@ -70,22 +68,6 @@ const relatedPersonTypeLabels = {
   FRIEND: '친구',
   FAMILY: '가족',
   OTHER: '기타',
-}
-
-// 패턴 설명에서 반환된 인지왜곡 코드를 한국어 이름으로 변환하기 위한 목록 설정.
-const distortionCodeLabels = {
-  ALL_OR_NOTHING_THINKING: '흑백논리',
-  CATASTROPHIZING_FORTUNE_TELLING: '파국화·미래예측',
-  DISQUALIFYING_DISCOUNTING_POSITIVE: '긍정적인 면 무시',
-  EMOTIONAL_REASONING: '감정적 추론',
-  LABELING: '낙인찍기',
-  MAGNIFICATION_MINIMIZATION: '과장·축소',
-  MENTAL_FILTER_SELECTIVE_ABSTRACTION: '정신적 여과',
-  MIND_READING: '독심술',
-  OVERGENERALIZATION: '과잉일반화',
-  PERSONALIZATION: '개인화',
-  SHOULD_MUST_STATEMENTS: '당위적 사고',
-  TUNNEL_VISION: '터널 시야',
 }
 
 // 상세 응답을 사용자가 수정할 수 있는 분석 확인 입력값으로 변환.
@@ -226,45 +208,6 @@ const getReanalysisErrorMessage = (error) => {
   return 'AI 재분석에 실패했습니다. 잠시 후 다시 시도해 주세요.'
 }
 
-// 감정 기록 검색 임베딩 재시도 API 오류 상태에 따른 사용자 안내 문구 반환.
-const getEmbeddingRetryErrorMessage = (error) => {
-  if (!error.response) {
-    return '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
-  }
-  if (error.response.status === 401) {
-    return '로그인 정보가 만료되었습니다. 다시 로그인해 주세요.'
-  }
-  if (error.response.status === 403) {
-    return 'AI 분석 동의 상태를 확인한 뒤 다시 시도해 주세요.'
-  }
-  if (error.response.status === 404) {
-    return '검색 데이터를 복구할 감정 기록을 찾을 수 없습니다.'
-  }
-  if (error.response.status === 502 || error.response.status === 503) {
-    return 'AI 서버가 일시적으로 응답하지 않습니다. 잠시 후 다시 시도해 주세요.'
-  }
-
-  return '검색 데이터를 다시 만들지 못했습니다. 잠시 후 다시 시도해 주세요.'
-}
-
-// 패턴 설명 API 오류 상태에 따른 사용자 안내 문구 반환.
-const getPatternErrorMessage = (error) => {
-  if (!error.response) {
-    return '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
-  }
-  if (error.response.status === 401) {
-    return '로그인 정보가 만료되었습니다. 다시 로그인해 주세요.'
-  }
-  if (error.response.status === 404) {
-    return '패턴을 확인할 감정 기록을 찾을 수 없습니다.'
-  }
-  if (error.response.status === 409) {
-    return '패턴 설명에 필요한 완료된 CBT 기록이 아직 충분하지 않습니다.'
-  }
-
-  return '패턴 설명을 만들지 못했습니다. 잠시 후 다시 시도해 주세요.'
-}
-
 // 선택한 감정 기록 한 건을 API로 조회하고 상세 정보를 제공하는 화면 정의.
 function EmotionRecordDetail({
   emotionRecordId,
@@ -316,19 +259,6 @@ function EmotionRecordDetail({
   const [isReanalyzing, setIsReanalyzing] = useState(false)
   // AI 재분석 결과 안내 문구 상태 설정.
   const [reanalysisMessage, setReanalysisMessage] = useState('')
-  // 감정 기록 검색 임베딩 재시도 API 요청 진행 여부 상태 설정.
-  const [isRetryingEmbedding, setIsRetryingEmbedding] = useState(false)
-  // 검색 임베딩 재시도 성공 또는 실패 안내 문구 상태 설정.
-  const [embeddingRetryMessage, setEmbeddingRetryMessage] = useState('')
-  // 검색 임베딩 재시도 실패 여부 상태 설정.
-  const [isEmbeddingRetryError, setIsEmbeddingRetryError] = useState(false)
-  // 유사 CBT 사례 기반 패턴 설명 응답 상태 설정.
-  const [patternExplanation, setPatternExplanation] = useState(null)
-  // 패턴 설명 API 요청 진행 여부 상태 설정.
-  const [isLoadingPattern, setIsLoadingPattern] = useState(false)
-  // 패턴 설명 API 요청 실패 안내 문구 상태 설정.
-  const [patternError, setPatternError] = useState('')
-
   // 화면 진입과 재조회 시 선택한 감정 기록의 상세 정보 요청.
   useEffect(() => {
     let isActive = true
@@ -355,10 +285,6 @@ function EmotionRecordDetail({
           setAnalysisMessage('')
           setIsAnalysisError(false)
           setReanalysisMessage('')
-          setEmbeddingRetryMessage('')
-          setIsEmbeddingRetryError(false)
-          setPatternExplanation(null)
-          setPatternError('')
         }
       } catch (error) {
         if (isActive) {
@@ -561,44 +487,6 @@ function EmotionRecordDetail({
       setReanalysisMessage(getReanalysisErrorMessage(error))
     } finally {
       setIsReanalyzing(false)
-    }
-  }
-
-  // 검색 또는 유사 기록 연결이 정상 작동하지 않을 때 감정 기록 임베딩 재생성 요청.
-  const handleEmbeddingRetry = async () => {
-    if (isRetryingEmbedding) return
-
-    setIsRetryingEmbedding(true)
-    setEmbeddingRetryMessage('')
-    setIsEmbeddingRetryError(false)
-
-    try {
-      await retryEmotionRecordEmbedding(emotionRecordId)
-      setEmbeddingRetryMessage('검색 데이터를 다시 만들었습니다.')
-    } catch (error) {
-      setEmbeddingRetryMessage(getEmbeddingRetryErrorMessage(error))
-      setIsEmbeddingRetryError(true)
-    } finally {
-      setIsRetryingEmbedding(false)
-    }
-  }
-
-  // 확정된 기록과 과거 CBT 사례를 기반으로 한 패턴 설명 요청.
-  const handlePatternExplanation = async () => {
-    if (isLoadingPattern) return
-
-    setIsLoadingPattern(true)
-    setPatternError('')
-
-    try {
-      const explanation = await getEmotionRecordPatternExplanation(emotionRecordId)
-
-      setPatternExplanation(explanation)
-    } catch (error) {
-      setPatternExplanation(null)
-      setPatternError(getPatternErrorMessage(error))
-    } finally {
-      setIsLoadingPattern(false)
     }
   }
 
@@ -1081,97 +969,6 @@ function EmotionRecordDetail({
                 <dd>{getDisplayValue(record.details?.behavior)}</dd>
               </div>
             </dl>
-
-            {/* 감정 기록 검색과 유사 기록 연결에 사용하는 임베딩 수동 복구 영역 배치. */}
-            <section
-              className="emotion-detail-embedding"
-              aria-labelledby="emotion-detail-embedding-title"
-            >
-              <div>
-                <h2 id="emotion-detail-embedding-title">검색 데이터 복구</h2>
-                <p>
-                  기록 검색이나 유사 기록 연결이 정상적으로 작동하지 않을 때
-                  검색 데이터를 다시 만들 수 있습니다.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={handleEmbeddingRetry}
-                disabled={isRetryingEmbedding || isDeleting}
-              >
-                {isRetryingEmbedding ? '다시 만드는 중' : '검색 데이터 다시 만들기'}
-              </button>
-              {embeddingRetryMessage && (
-                <p
-                  className={isEmbeddingRetryError ? 'is-error' : 'is-success'}
-                  role={isEmbeddingRetryError ? 'alert' : 'status'}
-                >
-                  {embeddingRetryMessage}
-                </p>
-              )}
-            </section>
-
-            {/* 확정된 기록에 유사 CBT 사례 기반 패턴 설명 요청 및 결과 표시. */}
-            {record.completionStatus === 'COMPLETE' && (
-              <section
-                className="emotion-detail-pattern"
-                aria-labelledby="emotion-detail-pattern-title"
-              >
-                <div className="emotion-detail-pattern-heading">
-                  <div>
-                    <h2 id="emotion-detail-pattern-title">반복 패턴 설명</h2>
-                    <p>완료한 과거 CBT 사례와 현재 기록의 유사한 흐름을 확인합니다.</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handlePatternExplanation}
-                    disabled={isLoadingPattern || isDeleting}
-                  >
-                    {isLoadingPattern
-                      ? '설명 생성 중'
-                      : patternExplanation ? '다시 설명하기' : '패턴 설명 요청'}
-                  </button>
-                </div>
-
-                {patternError && (
-                  <p className="emotion-detail-pattern-error" role="alert">
-                    {patternError}
-                  </p>
-                )}
-
-                {patternExplanation && (
-                  <div className="emotion-detail-pattern-result" role="status">
-                    <p className="emotion-detail-pattern-count">
-                      유사한 완료 사례 {patternExplanation.similarCaseCount}건을 참고했습니다.
-                    </p>
-                    <dl>
-                      <div>
-                        <dt>반복되는 흐름</dt>
-                        <dd>{getDisplayValue(patternExplanation.patternSummary, '설명 없음')}</dd>
-                      </div>
-                      <div>
-                        <dt>반복된 생각 패턴</dt>
-                        <dd className="emotion-detail-pattern-codes">
-                          {patternExplanation.repeatedDistortionCodes?.length
-                            ? patternExplanation.repeatedDistortionCodes.map((code) => (
-                              <span key={code}>{distortionCodeLabels[code] ?? code}</span>
-                            ))
-                            : '확인된 패턴 없음'}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>도움이 된 대안적 생각</dt>
-                        <dd>{getDisplayValue(patternExplanation.helpfulAlternativeThought, '설명 없음')}</dd>
-                      </div>
-                      <div>
-                        <dt>추천</dt>
-                        <dd>{getDisplayValue(patternExplanation.recommendation, '설명 없음')}</dd>
-                      </div>
-                    </dl>
-                  </div>
-                )}
-              </section>
-            )}
 
             {/* 감정 기록과 연결된 CBT 성찰 데이터를 함께 삭제하는 위험 작업 영역 배치. */}
             <section
