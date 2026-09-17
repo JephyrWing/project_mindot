@@ -231,6 +231,11 @@ public class UsersController {
                 .orElseThrow(InvalidRefreshTokenException::new);
         IssuedRefreshToken refreshToken =
                 refreshTokenService.rotate(oldRefreshToken);
+        if(!usersService.canRefresh(refreshToken.userId())) {
+            refreshTokenService.revoke(refreshToken.value());
+            throw new InvalidRefreshTokenException();
+        }
+
         String accessToken =
                 jwtTokenProvider.createAccessToken(refreshToken.userId());
 
