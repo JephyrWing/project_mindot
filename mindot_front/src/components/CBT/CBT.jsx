@@ -4,7 +4,7 @@ import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Navbar from '../Navbar/Navbar.jsx'
 import InsightResult from './InsightResult.jsx'
 import { newRequestKey, openReflection, submitReflectionAnswer, retryReflection, confirmReflection,
-  cancelReflection, getReflectionSessionDetail, retryReflectionEmbedding } from '../../utils/reflections/reflectionsApi.js'
+  cancelReflection, getReflectionSessionDetail } from '../../utils/reflections/reflectionsApi.js'
 import { confirmEmotionRecord, getEmotionRecordDetail } from '../../utils/records/recordsApi.js'
 import { acceptSessionView } from '../../utils/reflections/sessionView.js'
 import { confirmThoughtForOpen } from '../../utils/reflections/confirmThoughtForOpen.js'
@@ -34,8 +34,6 @@ export default function CBT(props) {
   const [reviews, setReviews] = useState({})
   const [scores, setScores] = useState({})
   const [reload, setReload] = useState(0)
-  // 확정된 CBT 결과의 검색 연결 재처리 결과 안내 상태 설정.
-  const [embeddingMessage, setEmbeddingMessage] = useState('')
   const apply = (next) => {
     if (!acceptSessionView(current.current, next)) return
 
@@ -216,29 +214,6 @@ export default function CBT(props) {
             <p>대화를 통해 정리하고 직접 확인한 생각의 변화입니다.</p>
           </header>
           <InsightResult result={view.confirmedResult} />
-          <div className="cbt-search-connection">
-            <div>
-              <strong>기록 검색 연결</strong>
-              <p>저장한 성찰을 나중에 비슷한 기록과 연결해 찾을 수 있도록 다시 처리합니다.</p>
-            </div>
-            <button
-              className="cbt-embedding-retry-button"
-              type="button"
-              disabled={busy}
-              onClick={() => run(async () => {
-                setEmbeddingMessage('')
-                await retryReflectionEmbedding(view.sessionId)
-                setEmbeddingMessage('기록 검색 연결을 완료했습니다.')
-              })}
-            >
-              {busy ? '연결 중…' : '검색 연결 다시 시도'}
-            </button>
-          </div>
-          {embeddingMessage && (
-            <p className="cbt-embedding-retry-success" role="status">
-              {embeddingMessage}
-            </p>
-          )}
         </section>}
         {!open && <p>{view.status === 'COMPLETED' ? '성찰 결과가 저장됐습니다.' : view.status === 'CANCELLED' ? '성찰을 완전히 중단했습니다. 문답은 보존됩니다.' : '안전을 위해 성찰을 중단했습니다.'}</p>}
         <div className="cbt-session-actions"><div>

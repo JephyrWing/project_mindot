@@ -129,6 +129,118 @@
   font-size: 0.875rem;
 }
 
+/* 동의 변경 이력 제목과 전체 건수의 양쪽 정렬. */
+.settings-consent-history-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.settings-consent-history-heading > span {
+  flex: 0 0 auto;
+  border-radius: 6px;
+  padding: 6px 9px;
+  color: var(--mindot-primary-strong);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  background: var(--mindot-primary-soft);
+}
+
+/* 동의 변경 이력의 로딩과 오류 및 빈 상태 안내. */
+.settings-consent-history-state {
+  margin: 0;
+  padding-top: 22px;
+  color: var(--mindot-text-secondary);
+}
+
+.settings-consent-history-state p {
+  margin: 0 0 12px;
+}
+
+.settings-consent-history-state button,
+.settings-consent-history-pagination button {
+  min-height: 40px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  padding: 0 14px;
+  color: var(--mindot-primary-strong);
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+.settings-consent-history-state button:hover,
+.settings-consent-history-pagination button:not(:disabled):hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+/* 동의 종류와 변경 결과를 구분선으로 나누는 이력 목록. */
+.settings-consent-history-list {
+  margin: 0;
+  padding: 8px 0 0;
+  list-style: none;
+}
+
+.settings-consent-history-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 16px 0;
+}
+
+.settings-consent-history-list li > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.settings-consent-history-list strong {
+  color: var(--mindot-text);
+}
+
+.settings-consent-history-list li > div > span,
+.settings-consent-history-list time {
+  color: var(--mindot-text-secondary);
+  font-size: 0.875rem;
+}
+
+.settings-consent-history-result {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.settings-consent-history-result > span {
+  font-weight: 700;
+}
+
+.settings-consent-history-result > span.is-granted {
+  color: var(--mindot-success);
+}
+
+.settings-consent-history-result > span.is-revoked {
+  color: var(--mindot-danger);
+}
+
+/* 동의 변경 이력의 이전 및 다음 페이지 이동 영역. */
+.settings-consent-history-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding-top: 20px;
+}
+
+.settings-consent-history-pagination button:disabled {
+  border-color: var(--mindot-border);
+  color: var(--mindot-disabled);
+  background: var(--mindot-surface-muted);
+  cursor: not-allowed;
+}
+
 /* 설정 저장 버튼 */
 .settings-submit {
   min-height: 48px;
@@ -336,6 +448,17 @@
 
   .settings-withdrawal-button {
     width: 100%;
+  }
+
+  .settings-consent-history-heading,
+  .settings-consent-history-list li {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .settings-consent-history-result {
+    align-items: flex-start;
+    text-align: left;
   }
 
 }

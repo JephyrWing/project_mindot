@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import Navbar from '../Navbar/Navbar.jsx'
 import OpenReflections from '../OpenReflections/OpenReflections.jsx'
-import { getEmotionRecords } from '../../utils/records/recordsApi.js'
+import {
+  getEmotionRecords,
+  searchEmotionRecordsSemantically,
+} from '../../utils/records/recordsApi.js'
 import './EmotionHistory.css'
 
 // 감정 기록 조회 범위를 선택하기 위한 기간 필터 목록 설정.
@@ -58,15 +61,19 @@ const contextCategoryLabels = {
 }
 
 // 감정 기록 목록 API 오류 상태에 따른 사용자 안내 문구 반환.
-const getHistoryErrorMessage = (error) => {
+const getHistoryErrorMessage = (error, isSemanticSearch = false) => {
   if (!error.response) {
     return '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
   }
   if (error.response.status === 401) {
     return '로그인 정보가 만료되었습니다. 다시 로그인해 주세요.'
   }
+  if (isSemanticSearch && error.response.status === 403) {
+    return '의미 검색은 AI 분석 동의가 필요합니다. 설정에서 동의 상태를 확인해 주세요.'
+  }
 
-  return '감정 기록 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
+  return error.response?.data?.message
+    ?? '감정 기록 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
 }
 
 // 백엔드 목록 응답 한 건을 화면 필터와 카드에서 사용할 구조로 변환.
@@ -117,8 +124,12 @@ function EmotionHistory({
   // 사용자가 선택한 대표 감정 필터를 보관하는 상태 설정.
   const [selectedEmotion, setSelectedEmotion] = useState('all')
 
-  // 사용자가 입력한 감정 기록 검색어를 보관하는 상태 설정.
+  // 검색 입력창 내용과 실제 API 조회에 적용한 검색어를 구분하는 상태 설정.
+  const [searchInput, setSearchInput] = useState('')
   const [searchKeyword, setSearchKeyword] = useState('')
+
+  // 원문 일치 검색과 문장 의미 검색 중 사용자가 선택한 방식을 보관하는 상태 설정.
+  const [searchMode, setSearchMode] = useState('keyword')
 
   // 사용자가 현재 확인 중인 감정 기록 페이지 번호 상태 설정.
   const [currentPage, setCurrentPage] = useState(0)
@@ -146,12 +157,26 @@ function EmotionHistory({
       setLoadError('')
 
       try {
-        const records = await getEmotionRecords({
-          period: selectedPeriod.toUpperCase(), sort: sortOrder.toUpperCase().replaceAll('-', '_'),
+        const commonParams = {
+          period: selectedPeriod.toUpperCase(),
           emotionCode: selectedEmotion === 'all' ? undefined : selectedEmotion,
           contextCategory: selectedContext === 'all' ? undefined : selectedContext,
-          keyword: searchKeyword.trim() || undefined, page: currentPage, size: recordsPerPage,
-        })
+          page: currentPage,
+          size: recordsPerPage,
+        }
+        const isSemanticSearch = searchMode === 'semantic' && Boolean(searchKeyword.trim())
+        const records = isSemanticSearch
+          ? await searchEmotionRecordsSemantically({
+            ...commonParams,
+            query: searchKeyword.trim(),
+          })
+          : await getEmotionRecords({
+            ...commonParams,
+            sort: sortOrder.toUpperCase().replaceAll('-', '_'),
+            keyword: searchMode === 'keyword'
+              ? searchKeyword.trim() || undefined
+              : undefined,
+          })
 
         if (isActive) {
           // Deletion or concurrent filtering can make the last page disappear.
@@ -165,7 +190,10 @@ function EmotionHistory({
       } catch (error) {
         if (isActive) {
           setEmotionRecords([])
-          setLoadError(getHistoryErrorMessage(error))
+          setLoadError(getHistoryErrorMessage(
+            error,
+            searchMode === 'semantic' && Boolean(searchKeyword.trim()),
+          ))
         }
       } finally {
         if (isActive) setIsLoading(false)
@@ -177,7 +205,7 @@ function EmotionHistory({
     return () => {
       isActive = false
     }
-  }, [reloadCount, selectedPeriod, sortOrder, selectedEmotion, selectedContext, searchKeyword, currentPage])
+  }, [reloadCount, selectedPeriod, sortOrder, selectedEmotion, selectedContext, searchKeyword, searchMode, currentPage])
 
   // 선택한 기간에 해당하는 사용자 표시용 한글 문구 탐색.
   const selectedPeriodLabel = historyPeriodFilters.find(
@@ -197,7 +225,9 @@ function EmotionHistory({
 
   // 선택한 기간에 따라 빈 목록의 현재 상태를 설명하는 제목 설정.
   const emptyTitle = normalizedSearchKeyword
-    ? `'${searchKeyword.trim()}' 검색 결과가 없습니다.`
+    ? searchMode === 'semantic'
+      ? `'${searchKeyword.trim()}'와 의미가 비슷한 기록이 없습니다.`
+      : `'${searchKeyword.trim()}' 검색 결과가 없습니다.`
     : selectedEmotion !== 'all'
       ? `${emotionCodeLabels[selectedEmotion] ?? selectedEmotion} 감정 기록이 없습니다.`
     : selectedPeriod === 'all'
@@ -222,14 +252,27 @@ function EmotionHistory({
     setCurrentPage(0)
   }
 
-  // 기록 검색어 변경 후 목록 첫 페이지로 이동하는 처리.
+  // 기록 검색 입력창 내용을 보관하는 처리.
   const handleSearchKeywordChange = (event) => {
-    setSearchKeyword(event.target.value)
+    setSearchInput(event.target.value)
+  }
+
+  // 검색 버튼 선택 시 입력한 문장을 API 조회 조건으로 반영하는 처리.
+  const handleSearchSubmit = (event) => {
+    event.preventDefault()
+    setSearchKeyword(searchInput.trim())
+    setCurrentPage(0)
+  }
+
+  // 검색 방식 변경 후 현재 검색어를 새 방식으로 다시 조회하는 처리.
+  const handleSearchModeChange = (mode) => {
+    setSearchMode(mode)
     setCurrentPage(0)
   }
 
   // 입력한 기록 검색어를 비우고 목록 첫 페이지로 이동하는 처리.
   const handleSearchKeywordClear = () => {
+    setSearchInput('')
     setSearchKeyword('')
     setCurrentPage(0)
   }
@@ -322,6 +365,7 @@ function EmotionHistory({
               id="emotion-history-sort"
               value={sortOrder}
               onChange={handleSortChange}
+              disabled={searchMode === 'semantic' && Boolean(searchKeyword.trim())}
             >
               {historySortOptions.map((option) => (
                 <option value={option.value} key={option.value}>
@@ -331,26 +375,61 @@ function EmotionHistory({
             </select>
           </label>
 
-          {/* 감정 기록 원문에 포함된 단어를 검색하는 입력 영역 배치. */}
-          <div className="emotion-history-search">
+          {/* 원문 일치와 문장 의미 중 감정 기록 검색 방식을 선택하는 입력 영역 배치. */}
+          <form className="emotion-history-search" onSubmit={handleSearchSubmit}>
+            <fieldset className="emotion-history-search-mode">
+              <legend>검색 방법</legend>
+              <div>
+                <button
+                  className={searchMode === 'keyword' ? 'is-selected' : ''}
+                  type="button"
+                  aria-pressed={searchMode === 'keyword'}
+                  onClick={() => handleSearchModeChange('keyword')}
+                >
+                  원문 검색
+                </button>
+                <button
+                  className={searchMode === 'semantic' ? 'is-selected' : ''}
+                  type="button"
+                  aria-pressed={searchMode === 'semantic'}
+                  onClick={() => handleSearchModeChange('semantic')}
+                >
+                  의미 검색
+                </button>
+              </div>
+            </fieldset>
             <label htmlFor="emotion-history-keyword">
               <span>기록 검색</span>
               <input
                 id="emotion-history-keyword"
                 type="search"
-                value={searchKeyword}
+                value={searchInput}
                 onChange={handleSearchKeywordChange}
-                placeholder="기록 원문에서 검색"
+                placeholder={searchMode === 'semantic'
+                  ? '예: 발표 전에 걱정했던 기록'
+                  : '기록 원문에서 검색'}
               />
             </label>
             <button
+              className="emotion-history-search-submit"
+              type="submit"
+              disabled={!searchInput.trim()}
+            >
+              검색
+            </button>
+            <button
               type="button"
               onClick={handleSearchKeywordClear}
-              disabled={!searchKeyword}
+              disabled={!searchInput && !searchKeyword}
             >
               검색어 지우기
             </button>
-          </div>
+          </form>
+          {searchMode === 'semantic' && (
+            <p className="emotion-history-search-help">
+              문장을 입력하면 뜻과 상황이 비슷한 감정 기록을 가까운 순서로 찾습니다.
+            </p>
+          )}
         </div>
 
         {/* 감정 기록 목록 API 요청 중 사용자에게 진행 상태 안내. */}
