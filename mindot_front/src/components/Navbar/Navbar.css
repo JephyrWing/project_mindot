@@ -37,22 +37,21 @@
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  color: var(--mindot-text);
+  color: #000000;
+  background: #ffffff;
   text-decoration: none;
 }
 
 /* 설정 버튼 선택 가능 상태 강조 */
 .app-navigation-settings:hover,
 .app-navigation-settings:active {
-  color: var(--mindot-primary-strong);
-  background: var(--mindot-primary-soft);
+  color: #000000;
+  background: #ffffff;
 }
 
-/* 외부 아이콘 폰트 없이 표시하는 설정 아이콘 */
+/* 기기별 이모지 모양 차이 없이 표시하는 설정 아이콘 */
 .app-navigation-settings-icon {
   display: block;
-  font-family: Arial, sans-serif;
-  font-size: 27px;
-  font-weight: 400;
-  line-height: 1;
+  width: 25px;
+  height: 25px;
 }

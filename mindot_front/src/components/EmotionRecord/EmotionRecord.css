@@ -87,12 +87,108 @@
   background: var(--mindot-surface-muted);
 }
 
-/* 현재 입력 글자 수와 최대 글자 수의 오른쪽 정렬. */
-.emotion-record-count {
+/* 녹음 조작과 글자 수를 입력창 아래 한 줄에 배치 */
+.emotion-record-input-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-top: -10px;
+}
+
+/* 손가락으로 누르기 쉬운 크기를 유지하는 작은 음성 녹음 버튼 */
+.emotion-record-voice-button {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--mindot-primary-strong);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.emotion-record-voice-button svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.emotion-record-voice-button:not(:disabled):hover {
+  background: var(--mindot-primary-soft);
+}
+
+/* 녹음 중에는 같은 버튼을 중지 동작으로 구분 */
+.emotion-record-voice-button.is-recording {
+  border-color: var(--mindot-danger);
+  color: var(--mindot-danger);
+  background: #fff7f7;
+}
+
+.emotion-record-voice-button:disabled {
+  color: var(--mindot-disabled);
+  border-color: var(--mindot-border);
+  background: var(--mindot-surface-muted);
+  cursor: wait;
+}
+
+/* 현재 입력 글자 수와 최대 글자 수의 오른쪽 정렬 */
+.emotion-record-count {
   color: var(--mindot-text-muted);
   font-size: 12px;
   text-align: right;
+  white-space: nowrap;
+}
+
+/* 녹음 내용을 글로 바꾸는 중임을 버튼 없이 안내 */
+.emotion-record-transcribing {
+  margin: -8px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* 음성을 글로 바꾸지 못한 안내와 재시도 동작을 함께 배치 */
+.emotion-record-transcription-feedback {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: -8px;
+}
+
+.emotion-record-transcription-feedback .emotion-record-error {
+  margin: 0;
+}
+
+.emotion-record-retry-button {
+  min-height: 44px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: var(--mindot-primary-strong);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+.emotion-record-retry-button:hover {
+  background: var(--mindot-primary-soft);
 }
 
 /* 입력과 저장 오류 문구의 경고 색상 설정. */
@@ -194,6 +290,28 @@
   color: var(--mindot-text-secondary);
   font-size: 13px;
   font-weight: 600;
+}
+
+/* 기록 완료 뒤 새 기록 작성 버튼을 기존 보조 버튼과 같은 테두리 스타일로 표시 */
+.emotion-record-new-button {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  margin-top: 16px;
+  padding: 10px 16px;
+  color: var(--mindot-primary-strong);
+  font: inherit;
+  font-weight: 700;
+  background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 새 기록 작성 버튼에 마우스를 올렸을 때 기존 보조 색상으로 강조 */
+.emotion-record-new-button:hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
 }
 
 /* 감정 기록 제출과 후속 이동 버튼의 공통 크기 설정. */
