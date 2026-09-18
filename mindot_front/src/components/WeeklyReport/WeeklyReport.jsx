@@ -77,6 +77,15 @@ const toLocalDateValue = (date) => {
   return `${year}-${month}-${day}`
 }
 
+const pdfMaximumDayCount = 31
+
+const getInclusiveDayCount = (startDate, endDate) => (
+  Math.floor(
+    (Date.parse(`${endDate}T00:00:00Z`) - Date.parse(`${startDate}T00:00:00Z`))
+    / 86_400_000,
+  ) + 1
+)
+
 // 사용자가 선택한 주를 기준으로 월요일과 일요일 날짜 범위 계산.
 const getWeekRange = (weekOffset) => {
   const selectedDate = new Date()
@@ -254,7 +263,7 @@ function WeeklyReport({
   )
   // 기간 선택 방식의 PDF 종료일 상태 관리.
   const [pdfEndDate, setPdfEndDate] = useState(
-    () => getWeekRange(0).weekEnd,
+    () => toLocalDateValue(new Date()),
   )
   // 여러 날짜 직접 선택 방식의 현재 날짜 입력값 상태 관리.
   const [pdfDateInput, setPdfDateInput] = useState('')
@@ -371,8 +380,21 @@ function WeeklyReport({
       return
     }
 
+    if (pdfDateInput > todayDate) {
+      setExportError('미래 날짜는 PDF에 포함할 수 없습니다.')
+      setExportMessage('')
+      return
+    }
+
     if (pdfSelectedDates.includes(pdfDateInput)) {
       setExportError('이미 추가한 날짜입니다.')
+      setExportMessage('')
+      return
+    }
+
+
+    if (pdfSelectedDates.length >= pdfMaximumDayCount) {
+      setExportError('PDF에 직접 선택할 수 있는 날짜는 최대 31개입니다.')
       setExportMessage('')
       return
     }
@@ -411,8 +433,31 @@ function WeeklyReport({
       return
     }
 
+
+    if (pdfSelectionMode === 'range'
+      && (pdfStartDate > todayDate || pdfEndDate > todayDate)) {
+      setExportError('미래 날짜는 PDF에 포함할 수 없습니다.')
+      setExportMessage('')
+      return
+    }
+
+    if (pdfSelectionMode === 'range'
+      && getInclusiveDayCount(pdfStartDate, pdfEndDate) > pdfMaximumDayCount) {
+      setExportError('PDF는 최대 31일까지 내보낼 수 있습니다.')
+      setExportMessage('')
+      return
+    }
+
     if (pdfSelectionMode === 'dates' && pdfSelectedDates.length === 0) {
       setExportError('PDF에 포함할 날짜를 하나 이상 추가해 주세요.')
+      setExportMessage('')
+      return
+    }
+
+
+    if (pdfSelectionMode === 'dates'
+      && pdfSelectedDates.some((selectedDate) => selectedDate > todayDate)) {
+      setExportError('미래 날짜는 PDF에 포함할 수 없습니다.')
       setExportMessage('')
       return
     }
