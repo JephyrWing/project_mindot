@@ -47,6 +47,7 @@ const formatConsentHistoryDate = (occurredAt) => new Intl.DateTimeFormat('ko-KR'
 
 // 한 화면에 표시할 동의 변경 이력 개수 설정.
 const consentHistoryPageSize = 5
+const validPreferredTimePattern = /^(?:[01]\d|2[0-3]):[0-5]\d$/
 
 // 프로필과 반복 패턴 알림 설정을 관리하는 화면
 function Settings({
@@ -236,6 +237,12 @@ function Settings({
     event.preventDefault()
 
     if (isSavingNotification) return
+
+    if (patternAlertEnabled && !validPreferredTimePattern.test(preferredTime)) {
+      setNotificationMessage('')
+      setNotificationError('알림 희망 시각을 올바르게 선택해 주세요.')
+      return
+    }
 
     setIsSavingNotification(true)
     setNotificationMessage('')
@@ -603,6 +610,10 @@ function Settings({
                   id="settings-preferred-time"
                   type="time"
                   value={preferredTime}
+                  min="00:00"
+                  max="23:59"
+                  step="60"
+                  required={patternAlertEnabled}
                   disabled={!patternAlertEnabled}
                   onChange={(event) => setPreferredTime(event.target.value)}
                 />
@@ -613,7 +624,9 @@ function Settings({
                 <button
                   className="settings-submit"
                   type="submit"
-                  disabled={isSavingNotification}
+                  disabled={isSavingNotification
+                    || (patternAlertEnabled
+                      && !validPreferredTimePattern.test(preferredTime))}
                 >
                   {isSavingNotification ? '저장 중…' : '알림 설정 저장'}
                 </button>

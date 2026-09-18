@@ -31,6 +31,19 @@ const getSaveErrorMessage = (error) => {
   if (error.response.status === 401) {
     return '로그인 정보가 만료되었습니다. 다시 로그인해 주세요.'
   }
+  if (error.response.status === 403) {
+    return '감정 기록을 저장할 권한이 없습니다.'
+  }
+  if (error.response.status === 404) {
+    return '감정 기록을 저장할 대상을 찾을 수 없습니다. 기록 목록으로 돌아가 주세요.'
+  }
+  if (error.response.status === 409) {
+    return error.response.data?.message
+      || '같은 감정 기록이 이미 처리되었습니다. 현재 결과를 확인해 주세요.'
+  }
+  if (error.response.status >= 500) {
+    return '서버 오류로 저장하지 못했습니다. 작성한 내용을 유지하고 다시 시도해 주세요.'
+  }
   return '저장 결과를 확인하지 못했습니다. 같은 요청으로 다시 확인해 주세요.'
 }
 

@@ -129,6 +129,47 @@
   color: var(--mindot-text-secondary);
 }
 
+.daily-care-suggestion-feedback {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.daily-care-suggestion-feedback > span {
+  color: var(--mindot-text-secondary);
+  font-size: 0.875rem;
+}
+
+.daily-care-suggestion-feedback > div {
+  display: flex;
+  gap: 8px;
+}
+
+.daily-care-suggestion-feedback button {
+  min-height: 40px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  padding: 0 14px;
+  color: var(--mindot-primary-strong);
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+.daily-care-suggestion-feedback button[aria-pressed='true'] {
+  border-color: var(--mindot-primary);
+  color: var(--mindot-surface);
+  background: var(--mindot-primary);
+}
+
+.daily-care-suggestion .daily-care-feedback-status {
+  color: var(--mindot-primary-strong);
+  font-weight: 600;
+}
+
 /* 최신 기록과 완료 CBT 사례를 요청하는 패턴 설명 영역 설정. */
 .daily-care-pattern {
   margin-top: 32px;

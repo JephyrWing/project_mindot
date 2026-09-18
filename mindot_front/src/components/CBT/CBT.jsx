@@ -4,7 +4,7 @@ import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Navbar from '../Navbar/Navbar.jsx'
 import InsightResult from './InsightResult.jsx'
 import { newRequestKey, openReflection, submitReflectionAnswer, retryReflection, confirmReflection,
-  cancelReflection, getReflectionSessionDetail } from '../../utils/reflections/reflectionsApi.js'
+  cancelReflection, getReflectionSessionDetail, retryReflectionEmbedding } from '../../utils/reflections/reflectionsApi.js'
 import { confirmEmotionRecord, getEmotionRecordDetail } from '../../utils/records/recordsApi.js'
 import { acceptSessionView } from '../../utils/reflections/sessionView.js'
 import { confirmThoughtForOpen } from '../../utils/reflections/confirmThoughtForOpen.js'
@@ -34,6 +34,9 @@ export default function CBT(props) {
   const [reviews, setReviews] = useState({})
   const [scores, setScores] = useState({})
   const [reload, setReload] = useState(0)
+  const [isRetryingEmbedding, setIsRetryingEmbedding] = useState(false)
+  const [embeddingMessage, setEmbeddingMessage] = useState('')
+  const [embeddingError, setEmbeddingError] = useState('')
   const apply = (next) => {
     if (!acceptSessionView(current.current, next)) return
 
@@ -167,6 +170,21 @@ export default function CBT(props) {
     if (current.current) apply(await getReflectionSessionDetail(current.current.sessionId))
     else setReload((n) => n + 1)
   })
+  const retryEmbedding = async () => {
+    if (!view?.sessionId || isRetryingEmbedding) return
+
+    setIsRetryingEmbedding(true)
+    setEmbeddingMessage('')
+    setEmbeddingError('')
+    try {
+      await retryReflectionEmbedding(view.sessionId)
+      setEmbeddingMessage('완료 결과의 검색 연결을 다시 준비했습니다.')
+    } catch (e) {
+      setEmbeddingError(errorMessage(e))
+    } finally {
+      setIsRetryingEmbedding(false)
+    }
+  }
   const open = view?.status === 'OPEN'
   const failed = view?.job?.retryable
   const disabled = busy || pending(view)
@@ -214,6 +232,11 @@ export default function CBT(props) {
             <p>대화를 통해 정리하고 직접 확인한 생각의 변화입니다.</p>
           </header>
           <InsightResult result={view.confirmedResult} />
+          <button type="button" disabled={isRetryingEmbedding} onClick={retryEmbedding}>
+            {isRetryingEmbedding ? '검색 연결 준비 중…' : '검색 연결 다시 시도'}
+          </button>
+          {embeddingMessage && <p role="status">{embeddingMessage}</p>}
+          {embeddingError && <p role="alert">{embeddingError}</p>}
         </section>}
         {!open && <p>{view.status === 'COMPLETED' ? '성찰 결과가 저장됐습니다.' : view.status === 'CANCELLED' ? '성찰을 완전히 중단했습니다. 문답은 보존됩니다.' : '안전을 위해 성찰을 중단했습니다.'}</p>}
         <div className="cbt-session-actions"><div>

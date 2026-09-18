@@ -207,60 +207,67 @@ function NotificationBell() {
             </button>
           </header>
 
-          {isLoading ? (
+          {isLoading && notifications.length === 0 ? (
             <p className="notification-panel__state" role="status">
               알림을 불러오고 있습니다.
             </p>
-          ) : loadError ? (
-            <p className="notification-panel__state is-error" role="alert">
-              {loadError}
-            </p>
-          ) : notifications.length === 0 ? (
-            <p className="notification-panel__state">
-              아직 도착한 알림이 없습니다.
-            </p>
           ) : (
-            <ul className="notification-list">
-              {notifications.map((notification) => (
-                <li key={notification.notificationId}>
-                  <button
-                    className={`notification-list__content ${notification.read ? 'is-read' : 'is-unread'}`}
-                    type="button"
-                    onClick={() => handleNotificationRead(notification)}
-                  >
-                    <span className="notification-list__title">
-                      {!notification.read && <i aria-hidden="true" />}
-                      {notification.title}
-                    </span>
-                    <span className="notification-list__message">
-                      {notification.message}
-                    </span>
-                    {notification.recommendedAction && (
-                      <span className="notification-list__action">
-                        {notification.recommendedAction}
-                      </span>
-                    )}
-                    <time dateTime={notification.createdAt}>
-                      {formatNotificationDate(notification.createdAt)}
-                    </time>
-                  </button>
-                  <button
-                    className="notification-list__delete"
-                    type="button"
-                    aria-label={`${notification.title} 알림 삭제`}
-                    disabled={deletingId === notification.notificationId}
-                    onClick={() => handleNotificationDelete(notification)}
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                      <path d="M3 6h18" />
-                      <path d="M8 6V4h8v2" />
-                      <path d="M19 6l-1 14H6L5 6" />
-                      <path d="M10 11v5M14 11v5" />
-                    </svg>
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <>
+              {loadError && (
+                <p className="notification-panel__state is-error" role="alert">
+                  {loadError}
+                </p>
+              )}
+              {notifications.length === 0 ? (
+                !loadError && (
+                  <p className="notification-panel__state">
+                    아직 도착한 알림이 없습니다.
+                  </p>
+                )
+              ) : (
+                <ul className="notification-list">
+                  {notifications.map((notification) => (
+                    <li key={notification.notificationId}>
+                      <button
+                        className={`notification-list__content ${notification.read ? 'is-read' : 'is-unread'}`}
+                        type="button"
+                        onClick={() => handleNotificationRead(notification)}
+                      >
+                        <span className="notification-list__title">
+                          {!notification.read && <i aria-hidden="true" />}
+                          {notification.title}
+                        </span>
+                        <span className="notification-list__message">
+                          {notification.message}
+                        </span>
+                        {notification.recommendedAction && (
+                          <span className="notification-list__action">
+                            {notification.recommendedAction}
+                          </span>
+                        )}
+                        <time dateTime={notification.createdAt}>
+                          {formatNotificationDate(notification.createdAt)}
+                        </time>
+                      </button>
+                      <button
+                        className="notification-list__delete"
+                        type="button"
+                        aria-label={`${notification.title} 알림 삭제`}
+                        disabled={deletingId === notification.notificationId}
+                        onClick={() => handleNotificationDelete(notification)}
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                          <path d="M3 6h18" />
+                          <path d="M8 6V4h8v2" />
+                          <path d="M19 6l-1 14H6L5 6" />
+                          <path d="M10 11v5M14 11v5" />
+                        </svg>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
           )}
         </section>
       )}
