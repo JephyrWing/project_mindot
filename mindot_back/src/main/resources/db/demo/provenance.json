@@ -1,0 +1,21 @@
+{
+  "namespace": "mindot-demo-u1-v1",
+  "anchor_date": "2026-09-18",
+  "timezone": "Asia/Seoul",
+  "source_release": "Mindot-Demo-Seed-Embedded-v1.0-20260918",
+  "source_sql_sha256": "8f09ff289404a6d8b555401dc275aecb540d54dbc217f40c619045b0970bfb9d",
+  "bundled_sql_sha256": "f6efda6e4f5dc7d275a999edc0c17c2b643a4fcbc3088035bcf3fd0da6bd023e",
+  "bundled_sql_bytes": 44133524,
+  "product_source_sha": "9931dd36ea3b6e599851672f0fbc8c164d2c600b",
+  "emotion_records": 1000,
+  "completed_cbt": 200,
+  "distortion_rows": 343,
+  "embedding_model": "text-embedding-3-small",
+  "dimensions": 1536,
+  "stored_vectors": 1400,
+  "adaptations": [
+    "Outer BEGIN/COMMIT removed; JDBC owns transaction",
+    "ID mapping output removed"
+  ],
+  "embeddings": "Precomputed real API results; no startup API calls"
+}

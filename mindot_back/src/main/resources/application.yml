@@ -1,3 +1,7 @@
+mindot:
+  demo-seed:
+    enabled: ${MINDOT_DEMO_SEED_ENABLED:true}
+
 spring:
   application:
     name: mindot_back
