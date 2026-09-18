@@ -49,6 +49,22 @@ class AutomaticPatternExplanationTest {
     }
 
     @Test void tenConfirmedSessionsAllowSearchWithoutDateOrHelpfulnessRestrictions() {
+        prepareSimilarCase();
+        when(ai.explain(any())).thenReturn(new FastApiPatternExplanationResponseDto(
+                "과거에 확인한 유사한 흐름", List.of(), null, "이번에도 비슷하게 느꼈나요?"));
+        var result = service.explainPattern(7L, 1L);
+        assertEquals(1, result.similarCaseCount());
+        assertEquals("과거에 확인한 유사한 흐름", result.patternSummary());
+        verify(sessions).countByUser_IdAndStatusAndUserConfirmedTrueAndEmotionRecord_IdNot(
+                7L, ReflectionSessionStatus.COMPLETED, 1L);
+        verify(sessions, times(3)).existsByEmotionRecord_IdAndStatus(1L, ReflectionSessionStatus.COMPLETED);
+        verifyNoMoreInteractions(sessions);
+        var request = ArgumentCaptor.forClass(FastApiPatternExplanationRequestDto.class);
+        verify(ai).explain(request.capture());
+        assertEquals((short)0, request.getValue().similarCases().get(0).helpfulnessScore());
+    }
+
+    private void prepareSimilarCase() {
         when(sessions.countByUser_IdAndStatusAndUserConfirmedTrueAndEmotionRecord_IdNot(
                 7L, ReflectionSessionStatus.COMPLETED, 1L)).thenReturn(10L);
         var similar = mock(ReflectionSessions.class);
@@ -58,18 +74,35 @@ class AutomaticPatternExplanationTest {
         when(similar.confirmedInsight()).thenReturn(Map.of("userConfirmed", true, "afterText", "확인한 생각"));
         when(similar.confirmedInsightCodes()).thenReturn(List.of());
         when(rag.searchSimilarCases(record)).thenReturn(List.of(similar));
-        when(ai.explain(any())).thenReturn(new FastApiPatternExplanationResponseDto(
-                "과거에 확인한 유사한 흐름", List.of(), null, "이번에도 비슷하게 느꼈나요?"));
-        var result = service.explainPattern(7L, 1L);
-        assertEquals(1, result.similarCaseCount());
-        assertEquals("과거에 확인한 유사한 흐름", result.patternSummary());
-        // The only eligibility query counts completed, user-confirmed sessions excluding this record.
-        verify(sessions).countByUser_IdAndStatusAndUserConfirmedTrueAndEmotionRecord_IdNot(
-                7L, ReflectionSessionStatus.COMPLETED, 1L);
+    }
+
+    @Test void completedCbtDoesNotStartSearchOrGeneration() {
+        when(sessions.existsByEmotionRecord_IdAndStatus(1L, ReflectionSessionStatus.COMPLETED)).thenReturn(true);
+        assertEquals(409, assertThrows(ResponseStatusException.class,
+                () -> service.explainPattern(7L, 1L)).getStatusCode().value());
+        verify(sessions).existsByEmotionRecord_IdAndStatus(1L, ReflectionSessionStatus.COMPLETED);
         verifyNoMoreInteractions(sessions);
-        var request = ArgumentCaptor.forClass(FastApiPatternExplanationRequestDto.class);
-        verify(ai).explain(request.capture());
-        assertEquals((short)0, request.getValue().similarCases().get(0).helpfulnessScore());
+        verifyNoInteractions(rag, ai);
+    }
+
+    @Test void completionDuringSearchSkipsExplanationGeneration() {
+        prepareSimilarCase();
+        when(sessions.existsByEmotionRecord_IdAndStatus(1L, ReflectionSessionStatus.COMPLETED))
+                .thenReturn(false, true);
+        assertEquals(409, assertThrows(ResponseStatusException.class,
+                () -> service.explainPattern(7L, 1L)).getStatusCode().value());
+        verifyNoInteractions(ai);
+    }
+
+    @Test void completionDuringGenerationDiscardsTheLateResult() {
+        prepareSimilarCase();
+        when(sessions.existsByEmotionRecord_IdAndStatus(1L, ReflectionSessionStatus.COMPLETED))
+                .thenReturn(false, false, true);
+        when(ai.explain(any())).thenReturn(new FastApiPatternExplanationResponseDto(
+                "늦은 패턴 응답", List.of(), null, null));
+        assertEquals(409, assertThrows(ResponseStatusException.class,
+                () -> service.explainPattern(7L, 1L)).getStatusCode().value());
+        verify(ai).explain(any());
     }
 
     @Test void noSimilarCaseDoesNotCallTheExplanationModel() {

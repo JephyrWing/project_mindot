@@ -648,6 +648,14 @@ public class EmotionRecordsService {
                 .toList();
     }
 
+    private void requireCbtNotCompletedForPattern(Long emotionRecordId) {
+        if (reflectionSessionsRepository.existsByEmotionRecord_IdAndStatus(
+                emotionRecordId, ReflectionSessionStatus.COMPLETED)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "CBT가 완료된 감정 기록에는 반복 패턴 알림을 제공하지 않습니다.");
+        }
+    }
+
     // 현재 감정 기록과 유사한 완료 CBT를 기반으로 패턴 설명
     @Transactional(readOnly = true)
     public PatternExplanationResponseDto explainPattern(
@@ -674,6 +682,7 @@ public class EmotionRecordsService {
         }
 
         // 현재 기록을 제외한 확정 완료 CBT 건수 검사
+        requireCbtNotCompletedForPattern(emotionRecordId);
         validatePatternAnalysisEligibility(userId, emotionRecordId);
 
         // 확정 AFTER 사례와 구형 수락 유형 사례를 각각의 의미로 조회
@@ -688,6 +697,8 @@ public class EmotionRecordsService {
         }
 
         // 현재 기록과 유사 사례를 FastAPI에 전달해 패턴 설명 생성
+        // 유사도 검색을 기다리는 동안 CBT가 완료되었다면 설명 생성을 생략한다.
+        requireCbtNotCompletedForPattern(emotionRecordId);
         FastApiPatternExplanationResponseDto aiResponse =
                 fastApiPatternExplanationClient.explain(
                         new FastApiPatternExplanationRequestDto(
@@ -700,6 +711,8 @@ public class EmotionRecordsService {
                 );
 
         // AI 응답과 실제 활용된 유사 사례 수를 React 응답으로 반환
+        // 엔티티 캐시가 아닌 상태 쿼리로 생성 중 완료된 CBT의 늦은 응답도 버린다.
+        requireCbtNotCompletedForPattern(emotionRecordId);
         return PatternExplanationResponseDto.from(
                 emotionRecord.getId(),
                 aiResponse,

@@ -39,8 +39,13 @@ class EmotionRecordAnalysisStatusTest {
         ReflectionTestUtils.setField(record, "completionStatus", CompletionStatus.PARTIAL);
         assertEquals("COMPLETED", service.detailResponse(7L, 1L).analysisStatus());
         assertFalse(service.detailResponse(7L, 1L).cbtStarted());
+        assertFalse(service.detailResponse(7L, 1L).cbtCompleted());
         when(sessions.existsByEmotionRecord_Id(1L)).thenReturn(true);
         assertTrue(service.detailResponse(7L, 1L).cbtStarted());
+        assertFalse(service.detailResponse(7L, 1L).cbtCompleted());
+        when(sessions.existsByEmotionRecord_IdAndStatus(1L, ReflectionSessionStatus.COMPLETED)).thenReturn(true);
+        assertTrue(service.detailResponse(7L, 1L).cbtStarted());
+        assertTrue(service.detailResponse(7L, 1L).cbtCompleted());
         verify(jobs, never()).saveAndFlush(any());
     }
     @Test void abandonedAttemptExpiresInsteadOfPollingForever() {
