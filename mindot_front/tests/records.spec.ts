@@ -39,7 +39,7 @@ test.describe('FE-AUTO-007: 감정 기록', () => {
     await expect(input).toHaveValue('가'.repeat(1000))
     await expect(page.getByText('1000/1000')).toBeVisible()
     await page.getByRole('button', { name: '기록하기' }).click()
-    await expect(page.getByRole('heading', { name: '기록 완료' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: '감정 기록 상세' })).toBeVisible()
   })
 
   test('오류: 네트워크 실패 시 작성 중 입력을 보존한다', async ({ page }) => {
@@ -54,7 +54,7 @@ test.describe('FE-AUTO-007: 감정 기록', () => {
     await expect(input).toHaveValue('오늘은 조금 불안했다.')
   })
 
-  test('성공: 응답 유실 후 재시도하면 기록 완료 화면으로 복구한다', async ({ page }) => {
+  test('성공: 응답 유실 후 재시도하면 상세 화면으로 자동 이동한다', async ({ page }) => {
     let firstAttempt = true
     await mockApi(page, (_request, url) => {
       if (url.pathname !== '/api/records/quick') return undefined
@@ -70,10 +70,10 @@ test.describe('FE-AUTO-007: 감정 기록', () => {
     await page.getByRole('button', { name: '기록하기' }).click()
     await expect(page.getByRole('alert')).toContainText('서버에 연결할 수 없습니다')
     await page.getByRole('button', { name: '기록하기' }).click()
-    await expect(page.getByRole('heading', { name: '기록 완료' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: '감정 기록 상세' })).toBeVisible()
   })
 
-  test('성공: 연속 제출은 하나의 완료 화면만 만들고 새 기록은 입력을 초기화한다', async ({ page }) => {
+  test('성공: 연속 제출은 하나의 기록만 저장해 상세로 이동하고 새 기록은 입력을 초기화한다', async ({ page }) => {
     let alreadySaved = false
     await mockApi(page, async (_request, url) => {
       if (url.pathname !== '/api/records/quick') return undefined
@@ -86,8 +86,8 @@ test.describe('FE-AUTO-007: 감정 기록', () => {
     const input = page.getByLabel('지금의 감정')
     await input.fill('오늘은 조금 불안했다.')
     await page.getByRole('button', { name: '기록하기' }).dblclick()
-    await expect(page.getByRole('heading', { name: '기록 완료' })).toBeVisible()
-    await page.getByRole('button', { name: '새 기록 작성' }).click()
+    await expect(page.getByRole('heading', { name: '감정 기록 상세' })).toBeVisible()
+    await page.goto('/records/new')
     await expect(input).toHaveValue('')
     await expect(page.getByRole('status').filter({ hasText: '기록 상태' })).toContainText('작성 전')
   })

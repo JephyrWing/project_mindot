@@ -59,6 +59,10 @@ export const createHttpClient = ({
     async (error) => {
       const originalRequest = error.config
 
+      // Optional background results must not interrupt a successful record save.
+      // Foreground requests retain the normal authentication recovery flow.
+      if (originalRequest?.silentFailure) return Promise.reject(error)
+
       // 일반 서비스 API의 권한 없음 응답을 전역 안내 모달로 전달.
       if (
         error.response?.status === 403

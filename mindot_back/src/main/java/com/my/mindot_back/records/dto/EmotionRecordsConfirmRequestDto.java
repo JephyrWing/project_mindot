@@ -18,6 +18,9 @@ public record EmotionRecordsConfirmRequestDto(
         String automaticThought,
 
         // 사용자가 확인한 대표 감정 코드
+        @jakarta.validation.constraints.NotBlank
+        @jakarta.validation.constraints.Size(max = 50)
+        @jakarta.validation.constraints.Pattern(regexp = "^(?!__CUSTOM_EMOTION__$).*$")
         String primaryEmotionCode,
 
         // 사용자가 확인한 대표 감정 강도
@@ -29,12 +32,18 @@ public record EmotionRecordsConfirmRequestDto(
         List<Map<String, Object>> secondaryEmotions,
 
         // 사용자가 확인한 상황 범주
+        @jakarta.validation.constraints.Size(max = 50)
         String contextCategory,
 
         // 사용자가 확인한 관계 유형
+        @jakarta.validation.constraints.Size(max = 50)
         String relatedPersonType,
 
         // 해석, 신체 반응, 행동 등 추가 구조화 정보
         Map<String, Object> details
 ) {
+    public EmotionRecordsConfirmRequestDto {
+        automaticThought = automaticThought == null || automaticThought.isBlank() ? null : automaticThought.strip();
+        primaryEmotionCode = EmotionNames.normalize(primaryEmotionCode);
+    }
 }

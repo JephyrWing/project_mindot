@@ -160,5 +160,43 @@ class ConfirmedAfterPattern(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn("거절", SYSTEM_PROMPT)
         self.assertNotIn("REJECTED", SYSTEM_PROMPT)
 
+    async def test_alternative_selection_does_not_depend_on_helpfulness_score(self):
+        for version in ("cbt-insight-1", "legacy"):
+            for score in (None, 0, 1, 2, 3, 5):
+                with self.subTest(version=version, score=score):
+                    agent = FakeAgent({
+                        "patternSummary": "과거 유사한 상황에서 확인한 흐름이에요.",
+                        "repeatedDistortionCodes": [],
+                        "helpfulCaseIndex": 1,
+                        "recommendation": "이번에도 비슷한 흐름인지 살펴볼까요?",
+                    })
+                    result = await explain(self.request([
+                        case(1, score=score, version=version, after="확인한 수정 생각"),
+                    ]), agent=agent)
+                    self.assertIsNotNone(result.helpfulAlternativeThought)
+                    self.assertTrue(result.helpfulAlternativeThought.endswith("확인한 수정 생각"))
+                    payload = json.loads(agent.inputs[0]["messages"][0]["content"])
+                    self.assertTrue(payload["similarCases"][0]["helpfulAlternativeCandidate"])
+                    self.assertNotIn("helpfulnessScore", payload["similarCases"][0])
+
+    async def test_empty_thought_and_invalid_selection_still_return_no_alternative(self):
+        for version in ("cbt-insight-1", "legacy"):
+            for after, index in ((None, 1), ("  ", 1), ("확인한 생각", None),
+                                 ("확인한 생각", 0), ("확인한 생각", 2)):
+                with self.subTest(version=version, after=after, index=index):
+                    agent = FakeAgent({
+                        "patternSummary": "과거 유사한 상황에서 확인한 흐름이에요.",
+                        "repeatedDistortionCodes": [],
+                        "helpfulCaseIndex": index,
+                        "recommendation": "이번에도 비슷한 흐름인지 살펴볼까요?",
+                    })
+                    result = await explain(self.request([
+                        case(1, score=5, version=version, after=after),
+                    ]), agent=agent)
+                    self.assertIsNone(result.helpfulAlternativeThought)
+                    if not after or not after.strip():
+                        payload = json.loads(agent.inputs[0]["messages"][0]["content"])
+                        self.assertFalse(payload["similarCases"][0]["helpfulAlternativeCandidate"])
+
     def test_requested_model_is_fixed(self):
         self.assertEqual(PATTERN_MODEL, "gpt-4o-mini")

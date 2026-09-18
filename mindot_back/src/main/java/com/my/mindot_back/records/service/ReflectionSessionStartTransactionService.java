@@ -54,7 +54,7 @@ public class ReflectionSessionStartTransactionService {
                 ));
 
         EmotionRecords emotionRecord = emotionRecordsRepository
-                .findById(emotionRecordId)
+                .findLockedById(emotionRecordId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "감정 기록을 찾을 수 없습니다."

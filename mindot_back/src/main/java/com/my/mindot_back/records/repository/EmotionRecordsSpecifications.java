@@ -34,9 +34,7 @@ public final class EmotionRecordsSpecifications {
         }
 
         // 프론트가 소문자로 보내도 DB의 대문자 감정코드와 비교하도록 변환
-        String normalizedEmotionCode = emotionCode
-                .trim()
-                .toUpperCase(Locale.ROOT);
+        String normalizedEmotionCode = com.my.mindot_back.records.dto.EmotionNames.normalize(emotionCode);
 
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.equal(

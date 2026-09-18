@@ -342,7 +342,19 @@ public class EmotionRecords {
         this.completionStatus = CompletionStatus.COMPLETE;
     }
 
+    // Caller holds the record lock and verifies no session already depends on this thought.
+    public void addCbtThought(String thought) {
+        if (completionStatus != CompletionStatus.COMPLETE || (automaticThought != null && !automaticThought.isBlank()))
+            throw new IllegalStateException("CBT thought can only fill an empty completed record");
+        this.automaticThought = thought;
+    }
+
     // OpenAI가 생성한 사용자 원문 검색 벡터를 감정 기록에 반영
+    public void updateRawText(String rawText) {
+        this.rawText = rawText;
+        this.searchEmbedding = null;
+    }
+
     public void applySearchEmbedding(float[] searchEmbedding) {
         // PostgreSQL vector(1536) 컬럼에 잘못된 차원의 벡터가 저장되는 것을 차단
         if (searchEmbedding == null || searchEmbedding.length != 1536) {

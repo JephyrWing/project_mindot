@@ -1,3 +1,4 @@
+import { emotionCodeLabels, emotionLabel } from '../../utils/records/emotions.js'
 import { useEffect, useMemo, useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Navbar from '../Navbar/Navbar.jsx'
@@ -7,26 +8,6 @@ import {
   getMonthlyReport,
 } from '../../utils/reports/reportsApi.js'
 import './MonthlyReport.css'
-
-// 백엔드 감정 코드를 월간 리포트에 표시할 한국어 이름으로 변환하는 목록 설정.
-const emotionCodeLabels = {
-  ANXIETY: '불안',
-  FEAR: '두려움',
-  ANGER: '분노',
-  FRUSTRATION: '답답함',
-  SADNESS: '슬픔',
-  DISAPPOINTMENT: '실망',
-  SHAME: '수치심',
-  GUILT: '죄책감',
-  LONELINESS: '외로움',
-  JOY: '기쁨',
-  RELIEF: '안도',
-  ACHIEVEMENT: '성취감',
-  CALM: '평온',
-  GRATITUDE: '감사',
-  EXCITEMENT: '설렘',
-  OTHER: '기타',
-}
 
 // 백엔드 상황 코드를 월간 리포트에 표시할 한국어 이름으로 변환하는 목록 설정.
 const contextCategoryLabels = {
@@ -79,7 +60,7 @@ const getIntensityPercent = (value) => (
 const createCountItems = (counts, labels) => Object.entries(counts ?? {})
   .map(([code, count]) => ({
     code,
-    label: labels[code] ?? code,
+    label: labels === emotionCodeLabels ? emotionLabel(code) : labels[code] ?? code,
     count: Number(count),
   }))
   .filter((item) => Number.isFinite(item.count) && item.count > 0)
@@ -118,16 +99,18 @@ const formatSnapshotAt = (dateTimeValue) => {
 }
 
 // 백엔드 요약 문장에 포함된 감정·상황 코드를 한국어 이름으로 변환.
-const localizeSummaryText = (summaryText) => {
+const localizeSummaryText = (summaryText, emotionCounts) => {
   if (!summaryText) return '표시할 월간 요약이 없습니다.'
 
-  return Object.entries({
+  const labels = {
     ...emotionCodeLabels,
     ...contextCategoryLabels,
-  }).reduce(
-    (localizedText, [code, label]) => localizedText.replaceAll(code, label),
-    summaryText,
-  )
+    // Match full stored names first, so e.g. "JOY 뒤의 허전함" is preserved.
+    ...Object.fromEntries(Object.keys(emotionCounts ?? {}).map((code) => [code, emotionLabel(code)])),
+  }
+  const tokens = Object.keys(labels).sort((a, b) => b.length - a.length)
+    .map((code) => code.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+  return summaryText.replace(new RegExp(tokens.join('|'), 'g'), (code) => labels[code])
 }
 
 // 브라우저 지역 시각의 연월을 백엔드 요청 형식으로 변환.
@@ -458,9 +441,7 @@ function MonthlyReport({
                 </div>
                 <div>
                   <dt>주요 감정</dt>
-                  <dd>{emotionCodeLabels[report.dominantEmotionCode]
-                    ?? report.dominantEmotionCode
-                    ?? '기록 없음'}</dd>
+                  <dd>{emotionLabel(report.dominantEmotionCode, '기록 없음')}</dd>
                 </div>
                 <div>
                   <dt>평균 강도</dt>
@@ -487,7 +468,7 @@ function MonthlyReport({
 
               <section className="monthly-report-summary-text" aria-labelledby="monthly-summary-title">
                 <h2 id="monthly-summary-title">이번 달 마음 흐름</h2>
-                <p>{localizeSummaryText(report.summaryText)}</p>
+                <p>{localizeSummaryText(report.summaryText, report.emotionCounts)}</p>
               </section>
 
               {/* 월 초반과 후반의 평균 감정 강도 및 변화 방향 비교 표시. */}
@@ -585,9 +566,7 @@ function MonthlyReport({
                     <div>
                       <dt>대표 감정</dt>
                       <dd>{selectedDailyTrend.recordCount > 0
-                        ? emotionCodeLabels[selectedDailyTrend.dominantEmotionCode]
-                          ?? selectedDailyTrend.dominantEmotionCode
-                          ?? '분석 전'
+                        ? emotionLabel(selectedDailyTrend.dominantEmotionCode)
                         : '기록 없음'}</dd>
                     </div>
                   </dl>

@@ -23,6 +23,7 @@ public class EmotionRecordAiTransactionService {
     private final UsersRepository usersRepository;
     private final AiJobsRepository aiJobsRepository;
     private final SafetyEventsService safetyEventsService;
+    private final com.my.mindot_back.records.repository.ReflectionSessionsRepository reflectionSessionsRepository;
     private final jakarta.persistence.EntityManager entityManager;
 
     @Transactional
@@ -98,6 +99,19 @@ public class EmotionRecordAiTransactionService {
         return EmotionRecordsQuickCreateResponseDto.saved(record,
                 job == null ? "UNKNOWN" : job.getStatus().name(), job == null ? null : job.getErrorCode(),
                 safetyEventsService.getLatestSafetyNotice(recordId));
+    }
+
+    @Transactional
+    public EmotionRecordsDetailResponseDto detailResponse(Long userId, Long recordId) {
+        var record = owned(userId, recordId);
+        var job = latest(record);
+        expire(job);
+        // Legacy QUICK records without a job can be explicitly reanalyzed.
+        String status = record.getCompletionStatus() != CompletionStatus.QUICK ? "COMPLETED"
+                : job == null ? "FAILED" : job.getStatus().name();
+        return EmotionRecordsDetailResponseDto.from(record,
+                safetyEventsService.getLatestSafetyNotice(recordId), status,
+                reflectionSessionsRepository.existsByEmotionRecord_Id(recordId));
     }
 
     private EmotionRecords owned(Long userId, Long recordId) {
