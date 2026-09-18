@@ -589,4 +589,7 @@ gradle-app.setting
 # Local full-stack review packaging (source is committed separately).
 /mindot_ai/artifacts/
 
+# Local generated seed packages, vectors, caches and verification outputs.
+/artifacts/
+
 # End of https://www.toptal.com/developers/gitignore/api/intellij+all,java,python,venv,react,node,gradle,dotenv,linux,windows,pycharm+all
