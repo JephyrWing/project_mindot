@@ -1,8 +1,8 @@
 // Resolve the durable record stage before starting/retrying the separate OPEN.
 export async function confirmThoughtForOpen(id, payload, api) {
   const confirmed = (record) => {
-    if (record.completionStatus !== 'COMPLETE') return false
-    if (record.automaticThought !== payload.automaticThought) {
+    if (record.completionStatus !== 'COMPLETE' || !record.automaticThought?.trim()) return false
+    if (record.automaticThought.trim() !== payload.automaticThought.trim()) {
       const error = new Error('confirmed_thought_conflict')
       error.userMessage = '기록이 다른 생각으로 확정되어 있습니다. 기록 상세에서 저장된 내용을 확인해 주세요.'
       throw error
@@ -13,7 +13,9 @@ export async function confirmThoughtForOpen(id, payload, api) {
   if (confirmed(saved)) return saved
   // The server retains its PARTIAL-only confirmation rule.
   try {
-    const result = await api.confirmEmotionRecord(id, payload)
+    const result = saved.completionStatus === 'COMPLETE'
+      ? await api.updateEmotionRecord(id, { automaticThought: payload.automaticThought })
+      : await api.confirmEmotionRecord(id, payload)
     if (!confirmed(result)) throw new Error('record_confirmation_incomplete')
     return result
   } catch (error) {

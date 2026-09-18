@@ -46,7 +46,7 @@ test.describe('FE-AUTO-029: 네트워크 복구', () => {
     connectionAvailable = true
     await expect(page.getByText('오프라인 상태')).not.toBeVisible()
     await page.getByRole('button', { name: '기록하기' }).click()
-    await expect(page.getByRole('heading', { name: '기록 완료' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: '감정 기록 상세' })).toBeVisible()
   })
 
   test('경계: 오프라인과 온라인 전환 상태를 즉시 갱신한다', async ({ context, page }) => {
@@ -169,6 +169,6 @@ test.describe('FE-AUTO-029: 네트워크 복구', () => {
     await expect(page.getByRole('alert')).toContainText('작성한 내용을 유지하고 다시 시도해 주세요')
     await expect(input).toHaveValue('서버 오류 후 재시도할 입력')
     await page.getByRole('button', { name: '기록하기' }).click()
-    await expect(page.getByRole('heading', { name: '기록 완료' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: '감정 기록 상세' })).toBeVisible()
   })
 })

@@ -67,6 +67,7 @@ public class EmotionRecordsService {
     // 감정 기록 원문의 의미 검색 벡터를 비동기로 생성
     private final EmotionRecordSearchEmbeddingService
             searchEmbeddingService;
+    private final EmotionRecordSearchEmbeddingTransactionService searchEmbeddingTransactions;
 
     // 감정 기록, CBT 세션과 연결된 AI 작업 이력 삭제
     private final AiJobsRepository aiJobsRepository;
@@ -350,7 +351,7 @@ public class EmotionRecordsService {
                         Arrays.toString(queryEmbedding),
                         periodRange.startInclusive(),
                         periodRange.endExclusive(),
-                        normalizeOptionalCode(emotionCode),
+                        EmotionNames.normalize(emotionCode),
                         normalizeOptionalCode(contextCategory),
                         SEMANTIC_SEARCH_THRESHOLD
                 );
@@ -427,15 +428,7 @@ public class EmotionRecordsService {
             Long userId,
             Long emotionRecordId
     ){
-        // 기록 ID와 사용자 ID가 모두 일치하는 기록 조회
-        EmotionRecords emotionRecord = emotionRecordsRepository
-                .findByIdAndUser_Id(emotionRecordId, userId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "감정 기록을 찾을 수 없습니다."
-                ));
-        // 조회한 Entity를 상세 응답 DTO로 변환
-        return EmotionRecordsDetailResponseDto.from(emotionRecord, safetyEventsService.getLatestSafetyNotice(emotionRecordId));
+        return emotionRecordAiTransactionService.detailResponse(userId, emotionRecordId);
     }
 
     // 사용자가 AI 구조화 결과를 수정, 확정
@@ -461,6 +454,8 @@ public class EmotionRecordsService {
                     "확정할 수 있는 감정 기록 상태가 아닙니다."
             );
         }
+        if (reflectionSessionsRepository.existsByEmotionRecord_Id(emotionRecordId))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "CBT가 시작된 기록은 다시 확정할 수 없습니다.");
         // 사용자 최종값 반영 후 PARTIAL에서 COMPLETE로 변경
         emotionRecord.confirm(dto);
 
@@ -472,39 +467,78 @@ public class EmotionRecordsService {
         return EmotionRecordsDetailResponseDto.from(emotionRecord);
     }
 
-    // 감정 기록 발생 시각 수정
+    // All edits share the owner check and the same record lock as CBT OPEN.
     @Transactional
     public EmotionRecordsDetailResponseDto updateEmotionRecord(
-            Long userId,
-            Long emotionRecordId,
-            EmotionRecordsUpdateRequestDto dto
-    ) {
-        // 본인 소유의 감정 기록만 조회
-        EmotionRecords emotionRecord = emotionRecordsRepository
-                .findLockedById(emotionRecordId)
-                .filter(record -> record.getUser().getId().equals(userId))
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "감정 기록을 찾을 수 없습니다."
-                ));
+            Long userId, Long emotionRecordId, EmotionRecordsUpdateRequestDto dto) {
+        if (!dto.isChangeRequested())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "수정할 항목을 입력해 주세요.");
+        var record = emotionRecordsRepository.findLockedById(emotionRecordId)
+                .filter(value -> value.getUser().getId().equals(userId))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "감정 기록을 찾을 수 없습니다."));
 
-        // 발생 시각 수정과 함께 시간대·평일/주말 값 재계산
-        var previousBucket = emotionRecord.getTimeBucket();
-        Instant previousOccurredAt = emotionRecord.getOccurredAt();
-        emotionRecord.updateOccurredAt(dto.occurredAt());
-        if (previousBucket != emotionRecord.getTimeBucket()) {
-            Long sessionId = embeddingTransactions.invalidateForRecord(userId, emotionRecordId);
-            if (sessionId != null) events.publishEvent(new EmbeddingRefreshRequested(userId, sessionId));
+        boolean hasSession = reflectionSessionsRepository.existsByEmotionRecord_Id(emotionRecordId);
+        if (hasSession) {
+            // A lost CBT-thought response may be retried after OPEN; allow only this exact no-op.
+            if (dto.analysis() == null && dto.rawText() == null && dto.occurredAt() == null
+                    && dto.automaticThought() != null
+                    && dto.automaticThought().equals(record.getAutomaticThought()))
+                return emotionRecordAiTransactionService.detailResponse(userId, emotionRecordId);
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "CBT가 시작된 기록은 수정할 수 없습니다.");
         }
+        if (dto.analysis() != null && dto.automaticThought() != null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "생각을 중복 지정할 수 없습니다.");
+        if (dto.rawText() != null && dto.rawText().isBlank())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "기록 원문을 입력해 주세요.");
+        if (dto.analysis() != null || dto.rawText() != null) {
+            if (record.getCompletionStatus() != CompletionStatus.COMPLETE)
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "기록을 확정한 후 수정해 주세요.");
+        }
+        // Validate every requested change before mutating the entity.
+        boolean addThought = dto.automaticThought() != null
+                && validateThoughtAddition(record, dto.automaticThought());
+        Instant previousOccurredAt = record.getOccurredAt();
+        boolean changeTime = dto.occurredAt() != null && !dto.occurredAt().equals(previousOccurredAt);
+        boolean changeRawText = dto.rawText() != null && !dto.rawText().equals(record.getRawText());
+        if (changeRawText) {
+            searchEmbeddingTransactions.invalidate(userId, emotionRecordId);
+            record.updateRawText(dto.rawText());
+            org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                    new org.springframework.transaction.support.TransactionSynchronization() {
+                        @Override public void afterCommit() {
+                            searchEmbeddingService.submit(userId, emotionRecordId);
+                        }
+                    });
+        }
+        if (dto.analysis() != null) record.confirm(dto.analysis());
+        if (addThought) record.addCbtThought(dto.automaticThought());
+        if (changeTime) {
+            var previousBucket = record.getTimeBucket();
+            record.updateOccurredAt(dto.occurredAt());
+            if (previousBucket != record.getTimeBucket()) {
+                Long sessionId = embeddingTransactions.invalidateForRecord(userId, emotionRecordId);
+                if (sessionId != null) events.publishEvent(new EmbeddingRefreshRequested(userId, sessionId));
+            }
+        }
+        if (addThought || changeTime || changeRawText || dto.analysis() != null) {
+            reportCacheInvalidationService.invalidateByOccurredAt(userId, previousOccurredAt, record.getOccurredAt());
+        }
+        return emotionRecordAiTransactionService.detailResponse(userId, emotionRecordId);
+    }
 
-        reportCacheInvalidationService.invalidateByOccurredAt(
-                userId,
-                previousOccurredAt,
-                emotionRecord.getOccurredAt()
-        );
-
-        // JPA Dirty Checking으로 수정값 저장 후 상세 응답 반환
-        return EmotionRecordsDetailResponseDto.from(emotionRecord);
+    private boolean validateThoughtAddition(EmotionRecords record, String thought) {
+        if (thought.isBlank() || thought.length() > 4000)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "생각은 1~4000자로 입력해 주세요.");
+        if (record.getCompletionStatus() != CompletionStatus.COMPLETE)
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "확정된 기록에만 생각을 추가할 수 있습니다.");
+        String existing = record.getAutomaticThought();
+        if (existing != null && !existing.isBlank()) {
+            if (existing.strip().equals(thought)) return false;
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 저장된 생각을 덮어쓸 수 없습니다.");
+        }
+        if (reflectionSessionsRepository.existsByEmotionRecord_Id(record.getId()))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "기존 CBT 세션의 기준 생각을 변경할 수 없습니다.");
+        return true;
     }
 
     // 감정 기록과 연결된 파생 데이터를 함께 삭제
@@ -551,7 +585,7 @@ public class EmotionRecordsService {
 
     // 패턴 분석에 필요한 CBT 데이터가 충분한지 확인
     private void validatePatternAnalysisEligibility(Long userId, Long excludeRecordId) {
-        // 사용자 최종 확인까지 끝난 CBT가 최소 2개 필요
+        // 사용자 최종 확인까지 끝난 서로 다른 CBT 세션이 최소 10개 필요
         long completedSessionCount =
                 reflectionSessionsRepository
                         .countByUser_IdAndStatusAndUserConfirmedTrueAndEmotionRecord_IdNot(
@@ -559,40 +593,13 @@ public class EmotionRecordsService {
                                 ReflectionSessionStatus.COMPLETED, excludeRecordId
                         );
 
-        if (completedSessionCount < 2) {
+        if (completedSessionCount < 10) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "패턴 분석에는 현재 기록을 제외한 확정 완료 CBT 성찰이 최소 2개 필요합니다."
+                    "패턴 분석에는 현재 기록을 제외한 확정 완료 CBT 성찰이 최소 10개 필요합니다."
             );
         }
 
-        // 하루 기록이 아닌, 서로 다른 날짜의 기록이 최소 3개 필요
-        long distinctDateCount =
-                reflectionSessionsRepository
-                        .countDistinctCompletedReflectionDates(userId, excludeRecordId);
-
-        if (distinctDateCount < 3) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "패턴 분석에는 현재 기록을 제외하고 서로 다른 날짜의 확정 사례가 최소 3개 필요합니다."
-            );
-        }
-
-        // 사용자에게 실제로 도움 되었다고 평가한 사례가 하나 이상 필요
-        boolean hasHelpfulSession =
-                reflectionSessionsRepository
-                        .existsByUser_IdAndStatusAndUserConfirmedTrueAndHelpfulnessScoreGreaterThanEqualAndEmotionRecord_IdNot(
-                                userId,
-                                ReflectionSessionStatus.COMPLETED,
-                                (short) 3, excludeRecordId
-                        );
-
-        if (!hasHelpfulSession){
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "패턴 분석에는 도움 점수 3점 이상의 확정 완료 CBT 성찰이 필요합니다."
-            );
-        }
     }
 
     // 현재 감정 기록과 유사한 완료 CBT를 패턴 분석용 DTO로 변환
@@ -666,7 +673,7 @@ public class EmotionRecordsService {
             );
         }
 
-        // 완료/확정 CBT 수, 날짜 수 ,도움 점수 조건 검사
+        // 현재 기록을 제외한 확정 완료 CBT 건수 검사
         validatePatternAnalysisEligibility(userId, emotionRecordId);
 
         // 확정 AFTER 사례와 구형 수락 유형 사례를 각각의 의미로 조회

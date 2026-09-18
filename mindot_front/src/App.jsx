@@ -115,6 +115,7 @@ function App() {
       : null,
   )
   // 감정 기록 상세 화면을 연 이전 화면 상태 관리.
+  const [newlySavedRecord, setNewlySavedRecord] = useState(null)
   const [emotionRecordDetailReturnPage, setEmotionRecordDetailReturnPage] = useState('emotion-history')
   // 주간 리포트에서 선택한 완료 CBT 성찰 세션 식별자 상태 관리.
   const [selectedReflectionSessionId, setSelectedReflectionSessionId] = useState(
@@ -315,7 +316,8 @@ function App() {
     })
   }
   // 목록에서 선택한 감정 기록 식별자를 보관하고 상세 화면으로 이동하는 처리.
-  const handleEmotionRecordDetailOpen = (emotionRecordId, returnPage = 'emotion-history') => {
+  const handleEmotionRecordDetailOpen = (emotionRecordId, returnPage = 'emotion-history', savedRecord = null) => {
+    setNewlySavedRecord(savedRecord)
     setEmotionRecordDetailReturnPage(returnPage)
     moveToPage('emotion-record-detail', { emotionRecordId })
   }
@@ -392,6 +394,8 @@ function App() {
     // 감정 기록 목록에서 선택한 한 건의 상세 조회 화면 렌더링.
     currentPageContent = (
       <EmotionRecordDetail
+        key={selectedEmotionRecordId}
+        initialSavedRecord={Number(newlySavedRecord?.recordId) === Number(selectedEmotionRecordId) ? newlySavedRecord : null}
         emotionRecordId={selectedEmotionRecordId}
         isAuthenticated={isAuthenticated}
         isLoggingOut={isLoggingOut}

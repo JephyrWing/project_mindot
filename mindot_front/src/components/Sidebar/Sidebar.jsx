@@ -157,6 +157,12 @@ function Sidebar({
               <button type="button" onClick={() => moveToPage(onEmotionHistory)}>
                 감정 기록 목록
               </button>
+              <a href="/reports/weekly" onClick={() => setIsOpen(false)}>
+                주간 리포트
+              </a>
+              <a href="/reports/monthly" onClick={() => setIsOpen(false)}>
+                월간 리포트
+              </a>
               <button type="button" onClick={() => moveToPage(onDailyCare)}>
                 일일 마음 돌봄 서비스
               </button>

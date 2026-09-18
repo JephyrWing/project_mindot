@@ -1,3 +1,4 @@
+import { emotionCodeLabels, emotionLabel } from '../../utils/records/emotions.js'
 import { distortionLabels } from '../CBT/distortionLabels.js'
 import { useEffect, useMemo, useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
@@ -8,26 +9,6 @@ import {
   getWeeklyReport,
 } from '../../utils/reports/reportsApi.js'
 import './WeeklyReport.css'
-
-// 백엔드 감정 코드를 사용자에게 표시할 한국어 이름으로 변환하기 위한 목록 설정.
-const emotionCodeLabels = {
-  ANXIETY: '불안',
-  FEAR: '두려움',
-  ANGER: '분노',
-  FRUSTRATION: '답답함',
-  SADNESS: '슬픔',
-  DISAPPOINTMENT: '실망',
-  SHAME: '수치심',
-  GUILT: '죄책감',
-  LONELINESS: '외로움',
-  JOY: '기쁨',
-  RELIEF: '안도',
-  ACHIEVEMENT: '성취감',
-  CALM: '평온',
-  GRATITUDE: '감사',
-  EXCITEMENT: '설렘',
-  OTHER: '기타',
-}
 
 // 백엔드 요일 코드를 사용자에게 표시할 한국어 이름으로 변환하기 위한 목록 설정.
 const weekdayLabels = {
@@ -131,7 +112,7 @@ const createCountItems = (counts, labels) => Object.entries(counts ?? {})
   .sort(([, firstCount], [, secondCount]) => secondCount - firstCount)
   .map(([code, count]) => ({
     code,
-    label: labels[code] ?? code,
+    label: labels === emotionCodeLabels ? emotionLabel(code) : labels[code] ?? code,
     count,
   }))
 
@@ -163,7 +144,7 @@ const createWeeklyGraphItems = (emotionRecordEvidences = []) => {
 
       if (emotionCode) counts[emotionCode] = (counts[emotionCode] ?? 0) + 1
       return counts
-    }, {})
+    }, Object.create(null))
     const representativeEmotionCode = Object.entries(emotionCounts)
       .sort(([firstCode, firstCount], [secondCode, secondCount]) => (
         secondCount - firstCount || firstCode.localeCompare(secondCode)
@@ -180,7 +161,7 @@ const createWeeklyGraphItems = (emotionRecordEvidences = []) => {
       value: averageIntensity === null ? null : Number(averageIntensity.toFixed(1)),
       recordCount: records.length,
       representativeEmotion: representativeEmotionCode
-        ? emotionCodeLabels[representativeEmotionCode] ?? representativeEmotionCode
+        ? emotionLabel(representativeEmotionCode)
         : '분석 전',
     }
   })
@@ -502,7 +483,7 @@ function WeeklyReport({
     { label: '기록 횟수', value: `${report.recordCount}회` },
     {
       label: '주요 감정',
-      value: emotionCodeLabels[report.dominantEmotionCode] ?? '기록 없음',
+      value: emotionLabel(report.dominantEmotionCode, '기록 없음'),
     },
     {
       label: '평균 강도',
@@ -797,7 +778,7 @@ function WeeklyReport({
                     {report.repeatedPatterns.map((pattern, index) => (
                       <li key={`${pattern.emotionCode}-${pattern.weekday}-${pattern.timeBucket}-${index}`}>
                         <strong>
-                          {emotionCodeLabels[pattern.emotionCode] ?? pattern.emotionCode}
+                          {emotionLabel(pattern.emotionCode)}
                           {' · '}
                           {pattern.weekday ? `${weekdayLabels[pattern.weekday] ?? pattern.weekday} · ` : ''}
                           {timeBucketLabels[pattern.timeBucket] ?? pattern.timeBucket}
@@ -825,9 +806,7 @@ function WeeklyReport({
                       <article key={evidence.emotionRecordId}>
                         <header>
                           <strong>
-                            {emotionCodeLabels[evidence.primaryEmotionCode]
-                              ?? evidence.primaryEmotionCode
-                              ?? '분석 전'}
+                            {emotionLabel(evidence.primaryEmotionCode)}
                             {Number.isFinite(evidence.primaryIntensity)
                               ? ` · 강도 ${evidence.primaryIntensity}/10`
                               : ''}

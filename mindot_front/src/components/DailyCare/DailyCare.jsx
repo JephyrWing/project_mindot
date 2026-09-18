@@ -1,3 +1,4 @@
+import { emotionLabel } from '../../utils/records/emotions.js'
 import { useEffect, useMemo, useState } from 'react'
 import Navbar from '../Navbar/Navbar.jsx'
 import {
@@ -23,26 +24,6 @@ const readRecommendationFeedback = () => {
   } catch {
     return ''
   }
-}
-
-// 백엔드 감정 코드를 사용자에게 표시할 한국어 이름으로 변환하기 위한 목록 설정.
-const emotionCodeLabels = {
-  ANXIETY: '불안',
-  FEAR: '두려움',
-  ANGER: '분노',
-  FRUSTRATION: '답답함',
-  SADNESS: '슬픔',
-  DISAPPOINTMENT: '실망',
-  SHAME: '수치심',
-  GUILT: '죄책감',
-  LONELINESS: '외로움',
-  JOY: '기쁨',
-  RELIEF: '안도',
-  ACHIEVEMENT: '성취감',
-  CALM: '평온',
-  GRATITUDE: '감사',
-  EXCITEMENT: '설렘',
-  OTHER: '복합적인 감정',
 }
 
 // 반복 패턴의 요일 코드를 사용자에게 표시할 한국어 이름으로 변환하는 목록 설정.
@@ -117,13 +98,13 @@ const createCareRecommendation = (
 
   if (recentPattern) {
     const emotionCode = recentPattern.emotionCode
-    const emotionLabel = emotionCodeLabels[emotionCode] ?? emotionCode
+    const patternEmotionLabel = emotionLabel(emotionCode, '분석 전 감정', '복합적인 감정')
     const weekdayLabel = recentPattern.weekday
       ? weekdayLabels[recentPattern.weekday] ?? recentPattern.weekday
       : '여러 요일'
     const timeBucketLabel = timeBucketLabels[recentPattern.timeBucket]
       ?? recentPattern.timeBucket
-    const patternDescription = `최근 8주 동안 ${weekdayLabel} ${timeBucketLabel}에 ${emotionLabel} 감정이 ${recentPattern.occurrenceCount}회 기록된 패턴을 기준으로 안내합니다.`
+    const patternDescription = `최근 8주 동안 ${weekdayLabel} ${timeBucketLabel}에 ${patternEmotionLabel} 감정이 ${recentPattern.occurrenceCount}회 기록된 패턴을 기준으로 안내합니다.`
 
     if (anxiousEmotionCodes.includes(emotionCode)) {
       return {
@@ -349,7 +330,7 @@ function DailyCare({
 
   // 최신 감정 기록에서 대표 감정 표시 문구 탐색.
   const latestEmotionLabel = latestRecord
-    ? emotionCodeLabels[latestRecord.primaryEmotionCode] ?? '분석 전 감정'
+    ? emotionLabel(latestRecord.primaryEmotionCode, '분석 전 감정', '복합적인 감정')
     : '기록 없음'
 
   // 추천에 대한 간단한 피드백을 같은 브라우저에 보관.

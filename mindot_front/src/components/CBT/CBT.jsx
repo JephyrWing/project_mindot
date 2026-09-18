@@ -5,7 +5,7 @@ import Navbar from '../Navbar/Navbar.jsx'
 import InsightResult from './InsightResult.jsx'
 import { newRequestKey, openReflection, submitReflectionAnswer, retryReflection, confirmReflection,
   cancelReflection, getReflectionSessionDetail, retryReflectionEmbedding } from '../../utils/reflections/reflectionsApi.js'
-import { confirmEmotionRecord, getEmotionRecordDetail } from '../../utils/records/recordsApi.js'
+import { confirmEmotionRecord, getEmotionRecordDetail, updateEmotionRecord } from '../../utils/records/recordsApi.js'
 import { acceptSessionView } from '../../utils/reflections/sessionView.js'
 import { confirmThoughtForOpen } from '../../utils/reflections/confirmThoughtForOpen.js'
 import './CBT.css'
@@ -25,6 +25,7 @@ export default function CBT(props) {
   const [view, setView] = useState(null)
   const current = useRef(null)
   const requests = useRef(new Map())
+  const running = useRef(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [answer, setAnswer] = useState('')
@@ -103,6 +104,8 @@ export default function CBT(props) {
     return () => { active = false; clearInterval(timer) }
   }, [viewSessionId, viewJobStatus])
   const run = async (action) => {
+    if (running.current) return
+    running.current = true
     setBusy(true); setError('')
     try { await action() }
     catch (e) {
@@ -110,7 +113,7 @@ export default function CBT(props) {
       if (current.current?.sessionId) {
         try { apply(await getReflectionSessionDetail(current.current.sessionId)) } catch { /* Preserve input. */ }
       }
-    } finally { setBusy(false) }
+    } finally { running.current = false; setBusy(false) }
   }
   const openSavedRecord = async () => {
     const result = await send('OPEN', { emotionRecordId }, (key) => openReflection({ emotionRecordId }, key))
@@ -135,7 +138,7 @@ export default function CBT(props) {
         primaryEmotionCode: record.primaryEmotionCode, primaryIntensity: record.primaryIntensity,
         secondaryEmotions: record.secondaryEmotions ?? [], contextCategory: record.contextCategory,
         relatedPersonType: record.relatedPersonType, details: record.details ?? {},
-      }, { confirmEmotionRecord, getEmotionRecordDetail })
+      }, { confirmEmotionRecord, getEmotionRecordDetail, updateEmotionRecord })
       setConfirmedRecord(saved)
       setRecord(null) // This durable stage is complete even if OPEN loses its response.
       await openSavedRecord()

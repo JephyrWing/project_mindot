@@ -184,14 +184,14 @@ public class EmotionRecordsController {
         );
     }
 
-    // 감정 기록 발생 시각 수정 API
+    // CBT 시작 전 기록 수정. 생략한 항목은 유지.
     @PatchMapping("/{emotionRecordId}")
     public EmotionRecordsDetailResponseDto updateEmotionRecord(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long emotionRecordId,
             @Valid @RequestBody EmotionRecordsUpdateRequestDto dto
     ) {
-        // JWT 사용자 ID와 수정할 발생 시각을 Service에 전달
+        // JWT 사용자 ID와 수정할 필드만 Service에 전달
         return emotionRecordsService.updateEmotionRecord(
                 userId,
                 emotionRecordId,

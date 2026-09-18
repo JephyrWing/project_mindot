@@ -1,3 +1,4 @@
+import { emotionCodeLabels, emotionLabel } from '../../utils/records/emotions.js'
 import { useEffect, useState } from 'react'
 import Navbar from '../Navbar/Navbar.jsx'
 import OpenReflections from '../OpenReflections/OpenReflections.jsx'
@@ -24,26 +25,6 @@ const historySortOptions = [
 
 // 한 페이지에 표시할 감정 기록 개수 설정.
 const recordsPerPage = 3
-
-// 백엔드 감정 코드를 사용자에게 표시할 한국어 이름으로 변환하기 위한 목록 설정.
-const emotionCodeLabels = {
-  ANXIETY: '불안',
-  FEAR: '두려움',
-  ANGER: '분노',
-  FRUSTRATION: '답답함',
-  SADNESS: '슬픔',
-  DISAPPOINTMENT: '실망',
-  SHAME: '수치심',
-  GUILT: '죄책감',
-  LONELINESS: '외로움',
-  JOY: '기쁨',
-  RELIEF: '안도',
-  ACHIEVEMENT: '성취감',
-  CALM: '평온',
-  GRATITUDE: '감사',
-  EXCITEMENT: '설렘',
-  OTHER: '기타',
-}
 
 // 백엔드 상황 코드를 사용자에게 표시할 한국어 이름으로 변환하기 위한 목록 설정.
 const contextCategoryLabels = {
@@ -80,7 +61,7 @@ const getHistoryErrorMessage = (error, isSemanticSearch = false) => {
 const normalizeEmotionRecord = (record) => ({
   id: record.emotionRecordId,
   emotionCode: record.primaryEmotionCode ?? '',
-  emotion: emotionCodeLabels[record.primaryEmotionCode] ?? '분석 전',
+  emotion: emotionLabel(record.primaryEmotionCode),
   intensity: Number.isFinite(record.primaryIntensity)
     ? record.primaryIntensity
     : null,
@@ -473,7 +454,7 @@ function EmotionHistory({
                     <strong>{record.emotion}</strong>
                     <span>
                       {record.intensity === null
-                        ? '강도 분석 전'
+                        ? '-'
                         : `강도 ${record.intensity}/10`}
                     </span>
                     <span>{record.context}</span>

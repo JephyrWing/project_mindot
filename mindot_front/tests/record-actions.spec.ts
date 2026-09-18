@@ -10,14 +10,16 @@ test.describe('FE-AUTO-010: 기록 후속 기능', () => {
     await useAuthenticatedSession(page)
   })
 
-  test('오류: 패턴 근거가 부족하면 이유를 안내한다', async ({ page }) => {
+  test('오류: 자동 패턴 요청의 근거가 부족하면 아무 안내도 표시하지 않는다', async ({ page }) => {
     await mockApi(page, (request, url) => {
       if (url.pathname === '/api/records/1' && request.method() === 'GET') return { body: completeRecord() }
       if (url.pathname === '/api/records/1/pattern-explanation') return { status: 409, body: {} }
     })
+    const requested = page.waitForResponse('**/api/records/1/pattern-explanation')
     await page.goto('/records/1')
-    await page.getByRole('button', { name: '패턴 설명 요청' }).click()
-    await expect(page.getByRole('alert')).toContainText('완료된 CBT 기록이 아직 충분하지 않습니다')
+    await requested
+    await expect(page.getByRole('alert')).toHaveCount(0)
+    await expect(page.getByRole('heading', { name: '반복 패턴 알림' })).toHaveCount(0)
   })
 
   test('성공: 유사 사례 기반 패턴 설명을 표시한다', async ({ page }) => {
@@ -36,7 +38,6 @@ test.describe('FE-AUTO-010: 기록 후속 기능', () => {
       }
     })
     await page.goto('/records/1')
-    await page.getByRole('button', { name: '패턴 설명 요청' }).click()
     await expect(page.getByText('평가 상황에서 불안과 미래 예측이 반복됩니다.')).toBeVisible()
   })
 

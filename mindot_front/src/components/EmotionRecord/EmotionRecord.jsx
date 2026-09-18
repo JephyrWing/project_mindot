@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Navbar from '../Navbar/Navbar.jsx'
-import SafetyNoticeModal from '../SafetyNoticeModal/SafetyNoticeModal.jsx'
 import { createQuickRecord } from '../../utils/records/recordsApi.js'
 import useVoiceRecorder from './useVoiceRecorder.js'
 import { transcribeAudio } from '../../utils/stt/sttApi.js'
@@ -9,20 +8,6 @@ import './EmotionRecord.css'
 
 // 감정 기록의 최대 입력 글자 수 설정.
 const maxContentLength = 1000
-// 백엔드 시간대 코드를 사용자 안내 문구로 바꾸기 위한 목록 설정.
-const timeBucketLabels = {
-  DAWN: '새벽',
-  MORNING: '아침',
-  AFTERNOON: '오후',
-  EVENING: '저녁',
-  NIGHT: '밤',
-}
-// 백엔드 평일 및 주말 코드를 사용자 안내 문구로 바꾸기 위한 목록 설정.
-const weekdayTypeLabels = {
-  WEEKDAY: '평일',
-  WEEKEND: '주말',
-}
-
 // 감정 기록 API 오류 상태에 따른 사용자 안내 문구 반환.
 const getSaveErrorMessage = (error) => {
   if (!error.response) {
@@ -46,12 +31,6 @@ const getSaveErrorMessage = (error) => {
   }
   return '저장 결과를 확인하지 못했습니다. 같은 요청으로 다시 확인해 주세요.'
 }
-
-// 저장 시각을 한국어 날짜와 시간 형식으로 변환.
-const formatOccurredAt = (occurredAt) => new Intl.DateTimeFormat('ko-KR', {
-  dateStyle: 'medium',
-  timeStyle: 'short',
-}).format(new Date(occurredAt))
 
 // 공통 네비게이션과 감정 원문 입력 영역을 제공하는 화면 컴포넌트 정의.
 function EmotionRecord({
@@ -78,8 +57,6 @@ function EmotionRecord({
   const [savedRecord, setSavedRecord] = useState(null)
   // 감정 기록 API 요청 실패 문구 상태 관리.
   const [saveError, setSaveError] = useState('')
-  // 감정 기록 응답에서 반환된 안전 안내 모달 정보 상태 관리.
-  const [safetyNotice, setSafetyNotice] = useState(null)
 
   // 직접 작성하면 TEXT, 음성을 글로 바꾼 뒤 수정하면 VOICE_STT로 저장
   const [inputType, setInputType] = useState('TEXT')
@@ -98,7 +75,6 @@ function EmotionRecord({
     recordingError,
     startRecording,
     stopRecording,
-    resetRecording,
   } = useVoiceRecorder()
 
   // 녹음 중에는 기록 저장과 새 음성 변환 요청을 막는다
@@ -213,21 +189,6 @@ function EmotionRecord({
     void startRecording()
   }
 
-  // 저장을 마친 뒤 이전 문장과 음성 상태를 비우고 새 기록을 시작
-  const handleNewRecord = () => {
-    pendingSave.current = null
-    setSavedRecord(null)
-    setContent('')
-    setSaveStatus('idle')
-    setInputType('TEXT')
-    autoAttemptedBlobRef.current = null
-    setTranscriptionError('')
-    setInputError('')
-    setSaveError('')
-    setSafetyNotice(null)
-    resetRecording()
-  }
-
   // 입력한 감정 원문을 백엔드 간편 저장 API로 전달하는 처리.
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -242,7 +203,6 @@ function EmotionRecord({
     saving.current = true
     setSaveStatus('saving')
     setSaveError('')
-    setSafetyNotice(null)
 
     try {
       pendingSave.current ??= {
@@ -254,7 +214,7 @@ function EmotionRecord({
 
       setSavedRecord(record)
       setSaveStatus('saved')
-      setSafetyNotice(record.safetyNotice ?? null)
+      onRecordDetail(record.recordId, 'emotion-history', record)
     } catch (error) {
       setSavedRecord(null)
       setSaveError(getSaveErrorMessage(error))
@@ -262,15 +222,11 @@ function EmotionRecord({
     } finally { saving.current = false }
   }
 
-  // 즉시 안전 안내가 필요한 저장 결과의 안전 우선 안내 여부 설정.
-  const isCrisisNotice = savedRecord?.safetyNotice?.actionCode
-    === 'SHOW_CRISIS_NOTICE'
-
   // 현재 작성 및 저장 상태에 따른 사용자 표시 문구 설정.
   const statusText = {
     idle: '작성 전',
     editing: '작성 중',
-    saving: '저장 중',
+    saving: '저장·구조화 중',
     saved: '저장 완료',
     error: '확인 필요',
   }[saveStatus]
@@ -415,76 +371,13 @@ function EmotionRecord({
                || Boolean(savedRecord)
               }
             >
-              {saveStatus === 'saving' ? '저장 중…' : '기록하기'}
+              {saveStatus === 'saving' ? '저장하고 분석하는 중…' : '기록하기'}
           </button>
 
-          {/* 백엔드 저장 완료 결과의 기록 시각을 요약하여 표시. */}
-          {saveStatus === 'saved' && savedRecord && (
-            <section
-              className="emotion-record-summary"
-              aria-labelledby="emotion-record-summary-title"
-            >
-              <div className="emotion-record-summary-header">
-                <h2 id="emotion-record-summary-title">기록 완료</h2>
-                <span>
-                  {weekdayTypeLabels[savedRecord.weekdayType]
-                    || savedRecord.weekdayType}
-                </span>
-              </div>
-              <p role="status">{savedRecord.analysisStatus === 'FAILED'
-                ? '원문은 저장되었습니다. AI 분석에 실패했으니 상세 화면에서 재분석해 주세요.'
-                : ['PENDING', 'PROCESSING'].includes(savedRecord.analysisStatus)
-                  ? '원문은 저장되었고 AI 분석은 진행 중입니다. 상세 화면에서 상태를 확인해 주세요.'
-                  : '원문 저장이 완료되었습니다.'}</p>
-              <button
-                className="emotion-record-new-button"
-                type="button"
-                onClick={handleNewRecord}
-              >
-                새 기록 작성
-              </button>
-              <dl>
-                <div>
-                  <dt>기록 시각</dt>
-                  <dd>
-                    {formatOccurredAt(savedRecord.occurredAt)} ·{' '}
-                    {timeBucketLabels[savedRecord.timeBucket]
-                      || savedRecord.timeBucket}
-                  </dd>
-                </div>
-              </dl>
-            </section>
-          )}
-
-          {/* 저장 직후 생성된 기록 식별자를 사용한 상세 확인 화면 이동 버튼 표시. */}
-          {saveStatus === 'saved' && savedRecord && (
-            <button
-              className="emotion-record-detail-button"
-              type="button"
-              onClick={() => onRecordDetail(savedRecord.recordId)}
-            >
-              감정 기록 상세 확인하기
-            </button>
-          )}
-
-          {/* 위기 안전 신호가 확인된 기록의 안전 우선 안내 표시. */}
-          {saveStatus === 'saved' && isCrisisNotice && (
-            <p className="emotion-record-safety-guidance" role="status">
-              현재는 CBT 성찰보다 즉시 안전을 확인하고 주변 또는 전문기관에
-              도움을 요청하는 일이 우선입니다.
-            </p>
-          )}
           </form>
         </section>
       </div>
 
-      {/* 간편 감정 기록 응답에 안전 신호가 있을 때 공통 안전 안내 모달 표시. */}
-      {safetyNotice && (
-        <SafetyNoticeModal
-          notice={safetyNotice}
-          onClose={() => setSafetyNotice(null)}
-        />
-      )}
     </main>
   )
 }

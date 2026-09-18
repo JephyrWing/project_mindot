@@ -19,7 +19,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 PATTERN_MODEL = "gpt-4o-mini"
-PATTERN_PROMPT_VERSION = "pattern-explanation-v2"
+PATTERN_PROMPT_VERSION = "pattern-explanation-v3"
 
 
 class ApiModel(BaseModel):
@@ -110,8 +110,8 @@ Mindot은 자기이해 보조 도구이며 의료 진단, 치료 또는 상담�
 - 적절한 코드가 없으면 빈 배열을 반환하세요.
 
 3. helpfulCaseIndex
-- helpfulAlternativeCandidate가 true인 사례 중, 점수가 가장 높은 사례가
-  아니라 현재 기록의 상황과 생각에 의미적으로 가장 잘 맞는 수정 생각의
+- helpfulAlternativeCandidate가 true인 사례 중, 현재 기록의 상황과 생각에
+  의미적으로 가장 잘 맞는 수정 생각의
   caseIndex를 고르세요.
 - 직접적으로 도움될 후보가 없으면 null을 반환하세요.
 
@@ -189,10 +189,8 @@ def _model_payload(request: PatternRequest) -> dict[str, Any]:
                 "automaticThought": case.automaticThought,
                 "confirmedDistortionCodes": sorted(_confirmed_codes(case)),
                 "confirmedAfterText": _confirmed_after_text(case),
-                "helpfulnessScore": case.helpfulnessScore,
                 "helpfulAlternativeCandidate": (
                     _confirmed_after_text(case) is not None
-                    and (case.helpfulnessScore or 0) >= 3
                 ),
             }
             for index, case in enumerate(request.similarCases, start=1)
@@ -243,7 +241,7 @@ def _selected_helpful_alternative(
 
     case = request.similarCases[case_index - 1]
     text = _confirmed_after_text(case)
-    if text is None or (case.helpfulnessScore or 0) < 3:
+    if text is None:
         return None
 
     label = (

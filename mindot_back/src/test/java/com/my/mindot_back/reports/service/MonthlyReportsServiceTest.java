@@ -134,6 +134,24 @@ class MonthlyReportsServiceTest {
     }
 
     @Test
+    void customNamesAreCountedByExactStoredStringAlongsideKnownCodes() {
+        Users user = mock(Users.class);
+        when(user.getTimezone()).thenReturn("Asia/Seoul");
+        when(usersRepository.findLockedById(7L)).thenReturn(Optional.of(user));
+        var customRecords = List.of(
+                emotionRecord("2026-09-03T01:00:00Z", "먹먹함", (short)4, "WORK"),
+                emotionRecord("2026-09-04T01:00:00Z", "먹먹함", (short)5, "WORK"),
+                emotionRecord("2026-09-05T01:00:00Z", "ANXIETY", (short)6, "WORK"),
+                emotionRecord("2026-09-06T01:00:00Z", "MixedCase", (short)6, "WORK"));
+        when(emotionRecordsRepository.findAllByUser_IdAndOccurredAtGreaterThanEqualAndOccurredAtLessThanOrderByOccurredAtAsc(any(), any(), any()))
+                .thenReturn(customRecords);
+        when(reportsRepository.save(any(Reports.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        var response = service.generateMonthlyReport(7L, YearMonth.of(2026, 9));
+        assertThat(response.emotionCounts()).containsEntry("먹먹함", 2L).containsEntry("ANXIETY", 1L).containsEntry("MixedCase", 1L);
+        assertThat(response.dominantEmotionCode()).isEqualTo("먹먹함");
+    }
+
+    @Test
     void generateRejectsMonthWithoutRecordsAndReflections() {
         Users user = mock(Users.class);
         when(user.getTimezone()).thenReturn("Asia/Seoul");

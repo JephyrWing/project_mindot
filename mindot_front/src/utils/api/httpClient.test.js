@@ -209,3 +209,26 @@ const unauthorized = (config) => new AxiosError(
   null,
   response(config, 401, {}),
 )
+
+test('optional background failures do not refresh, clear auth, or emit global error events', async () => {
+  setAccessToken('access-token')
+  const events = []
+  globalThis.window = { dispatchEvent: (event) => events.push(event.type) }
+  let refreshes = 0
+  const apiClient = axios.create({ adapter: async (config) => {
+    assert.equal(config.headers.Authorization, 'Bearer access-token')
+    throw new AxiosError('failed', AxiosError.ERR_BAD_REQUEST, config, null,
+      response(config, config.url.endsWith('denied') ? 403 : 401, {}))
+  } })
+  const refreshClient = axios.create({ adapter: async () => { refreshes++; throw new Error('unexpected refresh') } })
+  try {
+    const client = createHttpClient({ apiClient, refreshClient })
+    await assert.rejects(client.post('/api/denied', {}, { silentFailure: true }))
+    await assert.rejects(client.post('/api/expired', {}, { silentFailure: true }))
+    assert.equal(refreshes, 0)
+    assert.equal(getAccessToken(), 'access-token')
+    assert.deepEqual(events, [])
+  } finally {
+    delete globalThis.window
+  }
+})
