@@ -302,6 +302,46 @@
   background: var(--mindot-primary-soft);
 }
 
+/* 두 관리자 목록의 페이지 이동 버튼을 기존 목록 디자인에 맞춰 배치. */
+.admin-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.admin-pagination button {
+  min-width: 88px;
+  min-height: 44px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  color: var(--mindot-primary-strong);
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+.admin-pagination button:not(:disabled):hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+.admin-pagination button:disabled {
+  border-color: var(--mindot-border);
+  color: var(--mindot-disabled);
+  background: var(--mindot-surface-muted);
+  cursor: not-allowed;
+}
+
+.admin-pagination span {
+  min-width: 64px;
+  color: var(--mindot-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
 /* 관리자 권한 확인과 접근 불가 안내의 중앙 정렬 영역 설정. */
 .admin-access-status {
   padding: 40px 0;

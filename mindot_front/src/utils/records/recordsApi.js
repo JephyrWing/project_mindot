@@ -14,6 +14,12 @@ export const createRecordsApi = (client) => ({
 
     return data
   },
+  // 입력한 문장과 의미가 비슷한 로그인 사용자의 감정 기록 조회 처리.
+  searchEmotionRecordsSemantically: async (params = {}) => {
+    const { data } = await client.get('/api/records/semantic-search', { params })
+
+    return data
+  },
   // 선택한 감정 기록 식별자로 로그인 사용자의 상세 정보를 조회하는 처리.
   getEmotionRecordDetail: async (emotionRecordId) => {
     const { data } = await client.get(`/api/records/${emotionRecordId}`)
@@ -63,6 +69,7 @@ export const createRecordsApi = (client) => ({
 export const {
   createQuickRecord,
   getEmotionRecords,
+  searchEmotionRecordsSemantically,
   getEmotionRecordDetail,
   confirmEmotionRecord,
   reanalyzeEmotionRecord,

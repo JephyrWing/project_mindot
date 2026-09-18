@@ -132,12 +132,31 @@ public class PatternNotificationService {
             );
         }
 
-        // 중요도와 반복 횟수 기준으로 정렬된 첫 번째 패턴 선택
-        RepeatedEmotionPatternDto pattern = patterns.get(0);
-
         ZoneId zoneId = ZoneId.of(user.getTimezone());
         LocalDate windowEnd = LocalDate.now(zoneId);
         LocalDate windowStart = windowEnd.minusDays(55);
+
+        String todayWeekday = windowEnd
+                .getDayOfWeek()
+                .name();
+
+        /*
+         * 특정 요일 패턴은 오늘 요일과 일치할 때만 알림 대상
+         * 요일이 없는 패턴은 여러 요일에 걸친 패턴이므로 요일 제한 없이 대상
+         */
+        RepeatedEmotionPatternDto pattern = patterns.stream()
+                .filter(candidate ->
+                        candidate.weekday() == null
+                                || candidate.weekday()
+                                .equals(todayWeekday)
+                )
+                .findFirst()
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.CONFLICT,
+                                "오늘 알림을 생성할 반복 패턴이 없습니다."
+                        )
+                );
 
         String patternKey = createPatternKey(pattern);
 
@@ -185,7 +204,7 @@ public class PatternNotificationService {
 
         Page<PatternNotification> result =
                 patternNotificationRepository
-                        .findAllByUser_IdOrderByCreatedAtDesc(
+                        .findAllByUser_IdAndDeletedAtIsNullOrderByCreatedAtDesc(
                                 userId,
                                 PageRequest.of(page, size)
                         );
@@ -202,7 +221,9 @@ public class PatternNotificationService {
 
         long unreadCount =
                 patternNotificationRepository
-                        .countByUser_IdAndReadAtIsNull(userId);
+                        .countByUser_IdAndReadAtIsNullAndDeletedAtIsNull(
+                                userId
+                        );
 
         return new UnreadNotificationCountResponseDto(
                 unreadCount
@@ -217,7 +238,7 @@ public class PatternNotificationService {
     ) {
         PatternNotification notification =
                 patternNotificationRepository
-                        .findByIdAndUser_Id(
+                        .findByIdAndUser_IdAndDeletedAtIsNull(
                                 notificationId,
                                 userId
                         )
@@ -233,6 +254,28 @@ public class PatternNotificationService {
         return PatternNotificationResponseDto.from(
                 notification
         );
+    }
+
+    // 사용자 소유 알림 삭제 처리
+    @Transactional
+    public void deleteNotification(
+            Long userId,
+            Long notificationId
+    ) {
+        PatternNotification notification =
+                patternNotificationRepository
+                        .findByIdAndUser_IdAndDeletedAtIsNull(
+                                notificationId,
+                                userId
+                        )
+                        .orElseThrow(() ->
+                                new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND,
+                                        "알림을 찾을 수 없습니다."
+                                )
+                        );
+
+        notification.delete();
     }
 
     // 감정·요일·시간대 조합 식별값 생성

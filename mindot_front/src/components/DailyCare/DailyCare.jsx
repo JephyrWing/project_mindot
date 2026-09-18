@@ -8,10 +8,8 @@ import {
   getOpenReflectionSessions,
   getReflectionSessionDetail,
 } from '../../utils/reflections/reflectionsApi.js'
+import { getRecentEmotionPatterns } from '../../utils/patterns/patternsApi.js'
 import './DailyCare.css'
-
-// 마음 돌봄 추천 만족도를 브라우저에 보관하기 위한 저장소 키 설정.
-const dailyCareFeedbackStorageKey = 'mindot_daily_care_feedback'
 
 // 백엔드 감정 코드를 사용자에게 표시할 한국어 이름으로 변환하기 위한 목록 설정.
 const emotionCodeLabels = {
@@ -31,6 +29,26 @@ const emotionCodeLabels = {
   GRATITUDE: '감사',
   EXCITEMENT: '설렘',
   OTHER: '복합적인 감정',
+}
+
+// 반복 패턴의 요일 코드를 사용자에게 표시할 한국어 이름으로 변환하는 목록 설정.
+const weekdayLabels = {
+  MONDAY: '월요일',
+  TUESDAY: '화요일',
+  WEDNESDAY: '수요일',
+  THURSDAY: '목요일',
+  FRIDAY: '금요일',
+  SATURDAY: '토요일',
+  SUNDAY: '일요일',
+}
+
+// 반복 패턴의 시간대 코드를 사용자에게 표시할 한국어 이름으로 변환하는 목록 설정.
+const timeBucketLabels = {
+  DAWN: '새벽',
+  MORNING: '아침',
+  AFTERNOON: '오후',
+  EVENING: '저녁',
+  NIGHT: '밤',
 }
 
 // 감정 기록과 진행 중 성찰 조회 오류를 사용자 안내 문구로 변환.
@@ -74,34 +92,78 @@ const formatRecordDate = (occurredAt) => {
   }).format(recordDate)
 }
 
-// 최신 감정 기록의 대표 감정과 강도에 맞는 기본 활동 제안 생성.
-const createCareRecommendation = (latestRecord, hasOpenReflection) => {
-  if (!latestRecord) {
-    return {
-      title: '오늘의 마음을 짧게 기록해 보세요.',
-      description: '감정 기록이 쌓이면 현재 마음에 맞는 돌봄 활동을 안내해 드립니다.',
-      activity: 'record',
-    }
-  }
-
-  const emotionCode = latestRecord.primaryEmotionCode
-  const intensity = Number(latestRecord.primaryIntensity)
+// 최근 8주 반복 패턴을 우선하고 없으면 최신 감정으로 기본 활동 제안 생성.
+const createCareRecommendation = (
+  latestRecord,
+  hasOpenReflection,
+  recentPattern,
+) => {
   const anxiousEmotionCodes = ['ANXIETY', 'FEAR', 'ANGER', 'FRUSTRATION']
   const lowEnergyEmotionCodes = ['SADNESS', 'DISAPPOINTMENT', 'LONELINESS', 'GUILT']
+
+  if (recentPattern) {
+    const emotionCode = recentPattern.emotionCode
+    const emotionLabel = emotionCodeLabels[emotionCode] ?? emotionCode
+    const weekdayLabel = recentPattern.weekday
+      ? weekdayLabels[recentPattern.weekday] ?? recentPattern.weekday
+      : '여러 요일'
+    const timeBucketLabel = timeBucketLabels[recentPattern.timeBucket]
+      ?? recentPattern.timeBucket
+    const patternDescription = `최근 8주 동안 ${weekdayLabel} ${timeBucketLabel}에 ${emotionLabel} 감정이 ${recentPattern.occurrenceCount}회 기록된 패턴을 기준으로 안내합니다.`
+
+    if (anxiousEmotionCodes.includes(emotionCode)) {
+      return {
+        title: '3분 호흡으로 반복되는 긴장을 천천히 낮춰 보세요.',
+        description: patternDescription,
+        activity: 'breathing',
+        source: 'pattern',
+      }
+    }
+
+    if (lowEnergyEmotionCodes.includes(emotionCode)) {
+      return {
+        title: '짧은 명상으로 반복되는 마음을 차분히 살펴보세요.',
+        description: patternDescription,
+        activity: 'meditation',
+        source: 'pattern',
+      }
+    }
+
+    return {
+      title: '반복되는 감정을 CBT 성찰로 살펴보세요.',
+      description: patternDescription,
+      activity: 'cbt',
+      source: 'pattern',
+    }
+  }
 
   if (hasOpenReflection) {
     return {
       title: '멈춰 둔 CBT 성찰을 이어가 보세요.',
       description: '최근 감정에서 시작한 대화를 이어서 생각을 차분하게 정리할 수 있습니다.',
       activity: 'cbt',
+      source: 'open-reflection',
     }
   }
+
+  if (!latestRecord) {
+    return {
+      title: '오늘의 마음을 짧게 기록해 보세요.',
+      description: '감정 기록이 쌓이면 현재 마음에 맞는 돌봄 활동을 안내해 드립니다.',
+      activity: 'record',
+      source: 'empty',
+    }
+  }
+
+  const emotionCode = latestRecord.primaryEmotionCode
+  const intensity = Number(latestRecord.primaryIntensity)
 
   if (intensity >= 4 || anxiousEmotionCodes.includes(emotionCode)) {
     return {
       title: '3분 호흡으로 긴장을 천천히 낮춰 보세요.',
       description: '강하게 느껴지는 감정에서 잠시 거리를 둘 수 있도록 호흡을 안내해 드립니다.',
       activity: 'breathing',
+      source: 'latest-record',
     }
   }
 
@@ -110,6 +172,7 @@ const createCareRecommendation = (latestRecord, hasOpenReflection) => {
       title: '짧은 명상으로 지금의 마음을 살펴보세요.',
       description: '마음을 바꾸려 애쓰기보다 현재의 감각과 생각을 차분히 바라보는 시간입니다.',
       activity: 'meditation',
+      source: 'latest-record',
     }
   }
 
@@ -117,6 +180,7 @@ const createCareRecommendation = (latestRecord, hasOpenReflection) => {
     title: '최근 감정을 CBT 성찰로 조금 더 살펴보세요.',
     description: '기록한 생각을 바탕으로 새로운 관점을 찾는 대화를 시작할 수 있습니다.',
     activity: 'cbt',
+    source: 'latest-record',
   }
 }
 
@@ -141,6 +205,8 @@ function DailyCare({
   const [emotionRecords, setEmotionRecords] = useState([])
   // 백엔드에서 조회한 진행 중 CBT 성찰 목록 상태 설정.
   const [openReflections, setOpenReflections] = useState([])
+  // 오늘 기준 최근 8주의 반복 감정 패턴 목록 상태 설정.
+  const [recentPatterns, setRecentPatterns] = useState([])
   // 마음 돌봄 기초 데이터 조회 진행 여부 상태 설정.
   const [isLoading, setIsLoading] = useState(true)
   // 마음 돌봄 기초 데이터 조회 실패 안내 상태 설정.
@@ -157,8 +223,6 @@ function DailyCare({
   const [isOpeningCbt, setIsOpeningCbt] = useState(false)
   // CBT 시작 또는 이어하기 실패 안내 상태 설정.
   const [cbtError, setCbtError] = useState('')
-  // 사용자가 선택한 추천 만족도 상태 설정.
-  const [selectedFeedback, setSelectedFeedback] = useState('')
   // 사용자 시간대에서 오늘을 포함한 최근 7일의 서버 전체 건수.
   const [recentRecordCount, setRecentRecordCount] = useState(0)
 
@@ -172,10 +236,16 @@ function DailyCare({
       setPatternExplanation(null)
       setPatternError('')
 
-      const [recordsResult, recentResult, reflectionsResult] = await Promise.allSettled([
+      const [
+        recordsResult,
+        recentResult,
+        reflectionsResult,
+        patternsResult,
+      ] = await Promise.allSettled([
         getEmotionRecords({ period: 'ALL', sort: 'LATEST', page: 0, size: 1 }),
         getEmotionRecords({ period: 'RECENT_7_DAYS', page: 0, size: 1 }),
         getOpenReflectionSessions(),
+        getRecentEmotionPatterns(),
       ])
 
       if (!isActive) return
@@ -196,12 +266,22 @@ function DailyCare({
         setOpenReflections([])
       }
 
+      if (patternsResult.status === 'fulfilled') {
+        setRecentPatterns(
+          Array.isArray(patternsResult.value) ? patternsResult.value : [],
+        )
+      } else {
+        setRecentPatterns([])
+      }
+
       const failedResult = recordsResult.status === 'rejected'
         ? recordsResult
         : recentResult.status === 'rejected' ? recentResult
         : reflectionsResult.status === 'rejected'
           ? reflectionsResult
-          : null
+          : patternsResult.status === 'rejected'
+            ? patternsResult
+            : null
 
       if (failedResult) {
         setLoadError(getDailyCareErrorMessage(
@@ -231,6 +311,9 @@ function DailyCare({
   // 감정 기록 중 현재 마음 돌봄 기준으로 사용할 최신 기록 탐색.
   const latestRecord = sortedEmotionRecords[0] ?? null
 
+  // 중요도와 반복 횟수 기준으로 정렬된 최근 8주 최우선 패턴 탐색.
+  const primaryRecentPattern = recentPatterns[0] ?? null
+
   // OPEN CBT 목록 중 가장 최근에 생성된 세션 탐색.
   const latestOpenReflection = useMemo(() => [...openReflections].sort(
     (firstSession, secondSession) => (
@@ -239,10 +322,11 @@ function DailyCare({
     ),
   )[0] ?? null, [openReflections])
 
-  // 최신 감정과 진행 중 CBT 여부를 반영한 화면 추천 정보 생성.
+  // 최근 8주 패턴을 우선하고 없으면 진행 중 CBT와 최신 감정을 반영한 추천 생성.
   const careRecommendation = createCareRecommendation(
     latestRecord,
     Boolean(latestOpenReflection),
+    primaryRecentPattern,
   )
 
   // 최신 감정 기록에서 대표 감정 표시 문구 탐색.
@@ -318,25 +402,6 @@ function DailyCare({
     }
   }
 
-  // 추천 만족도를 브라우저에 보관하고 현재 선택 상태를 갱신하는 처리.
-  const handleFeedbackSave = (feedbackValue) => {
-    const feedback = {
-      value: feedbackValue,
-      emotionRecordId: latestRecord?.emotionRecordId ?? null,
-      savedAt: new Date().toISOString(),
-    }
-
-    try {
-      window.localStorage.setItem(
-        dailyCareFeedbackStorageKey,
-        JSON.stringify(feedback),
-      )
-      setSelectedFeedback(feedbackValue)
-    } catch {
-      setSelectedFeedback('storage-error')
-    }
-  }
-
   // 실제 감정 기록과 마음 돌봄 실행 도구로 구성한 화면 반환.
   return (
     <div className="daily-care-page">
@@ -360,7 +425,9 @@ function DailyCare({
           <p>
             {isLoading
               ? '최근 감정 기록을 확인하고 있습니다.'
-              : latestRecord
+              : primaryRecentPattern
+                ? '오늘 기준 최근 8주의 반복 감정 패턴을 우선해 안내합니다.'
+                : latestRecord
                 ? `${formatRecordDate(latestRecord.occurredAt)}에 남긴 기록을 기준으로 안내합니다.`
                 : '아직 감정 기록이 없어 기본 마음 돌봄 활동을 안내합니다.'}
           </p>
@@ -401,6 +468,15 @@ function DailyCare({
         {/* 최신 감정과 진행 중 CBT 상태를 반영한 우선 추천 영역. */}
         <section className="daily-care-suggestion" aria-labelledby="daily-care-suggestion-title">
           <h2 id="daily-care-suggestion-title">오늘의 제안</h2>
+          <span className="daily-care-suggestion-basis">
+            {careRecommendation.source === 'pattern'
+              ? '최근 8주 반복 패턴 기반'
+              : careRecommendation.source === 'latest-record'
+                ? '최근 감정 기록 기반'
+                : careRecommendation.source === 'open-reflection'
+                  ? '진행 중 CBT 기반'
+                  : '기본 추천'}
+          </span>
           <strong>{careRecommendation.title}</strong>
           <p>{careRecommendation.description}</p>
         </section>
@@ -500,39 +576,6 @@ function DailyCare({
           </button>
         )}
 
-        {/* 추천 만족도를 API 추가 전까지 브라우저에 보관하는 선택 영역. */}
-        <section className="daily-care-feedback" aria-labelledby="daily-care-feedback-title">
-          <h2 id="daily-care-feedback-title">오늘의 제안이 도움이 되었나요?</h2>
-          <p>현재 선택 결과는 이 브라우저에만 저장됩니다.</p>
-          <div className="daily-care-feedback-actions">
-            <button
-              className={selectedFeedback === 'helpful' ? 'is-selected' : ''}
-              type="button"
-              onClick={() => handleFeedbackSave('helpful')}
-              aria-pressed={selectedFeedback === 'helpful'}
-            >
-              도움됐어요
-            </button>
-            <button
-              className={selectedFeedback === 'later' ? 'is-selected' : ''}
-              type="button"
-              onClick={() => handleFeedbackSave('later')}
-              aria-pressed={selectedFeedback === 'later'}
-            >
-              다음에 추천해요
-            </button>
-          </div>
-          {selectedFeedback && selectedFeedback !== 'storage-error' && (
-            <p className="daily-care-message is-success" aria-live="polite">
-              선택한 의견을 저장했습니다.
-            </p>
-          )}
-          {selectedFeedback === 'storage-error' && (
-            <p className="daily-care-message is-error" role="alert">
-              브라우저에 의견을 저장하지 못했습니다.
-            </p>
-          )}
-        </section>
       </main>
     </div>
   )

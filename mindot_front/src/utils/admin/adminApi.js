@@ -4,21 +4,27 @@ import httpClient from '../api/httpClient.js'
 export const createAdminApi = (client) => ({
   // 관리자 회원 목록 API의 권한 검사를 이용한 현재 계정 관리자 여부 확인 처리.
   checkAdminAccess: async () => {
-    const { data } = await client.get('/api/admin/users')
+    const { data } = await client.get('/api/admin/users', {
+      params: { page: 0, size: 1 },
+    })
 
     return data
   },
 
-  // 가입일 최신순으로 정렬된 관리자용 회원 기본 정보 목록 조회 처리.
-  getAdminUsers: async () => {
-    const { data } = await client.get('/api/admin/users')
+  // 가입일 최신순으로 정렬된 관리자용 회원 기본 정보 목록을 페이지 단위로 조회.
+  getAdminUsers: async (page = 0, size = 20) => {
+    const { data } = await client.get('/api/admin/users', {
+      params: { page, size },
+    })
 
     return data
   },
 
-  // 관리자에게 허용된 안전 신호 이벤트 목록 조회 처리.
-  getAdminSafetyEvents: async () => {
-    const { data } = await client.get('/api/admin/safety-events')
+  // 관리자에게 허용된 안전 신호 이벤트 목록을 페이지 단위로 조회.
+  getAdminSafetyEvents: async (page = 0, size = 20) => {
+    const { data } = await client.get('/api/admin/safety-events', {
+      params: { page, size },
+    })
 
     return data
   },

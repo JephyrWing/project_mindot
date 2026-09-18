@@ -2,6 +2,13 @@ spring:
   application:
     name: mindot_back
 
+  # 허용된 STT 음성 파일은 임시 파일 대신 메모리에서 처리
+  servlet:
+    multipart:
+      max-file-size: 9MB
+      max-request-size: 10MB
+      file-size-threshold: 10MB
+
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/mindot_db}
     username: ${DB_USER:postgres}
@@ -76,3 +83,10 @@ oauth:
     client-id: ${GOOGLE_CLIENT_ID:}
     client-secret: ${GOOGLE_CLIENT_SECRET:}
     redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:3000/oauth/google/callback}
+
+stt:
+  google:
+    project-id: ${GOOGLE_CLOUD_PROJECT_ID:mindot-508104}
+    location: global
+    language-code: ko-KR
+    model: short

@@ -4,6 +4,8 @@ package com.my.mindot_back.safety.repository;
 import com.my.mindot_back.safety.entity.SafetyEvents;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import java.util.Collection;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,15 +26,18 @@ public interface SafetyEventsRepository
             Long userId
     );
 
-    // 회원별 누적 안전 신호 발생 횟수 집계
+    // 지정한 회원들의 누적 안전 신호 발생 횟수 집계
     @Query("""
-            SELECT
-                safetyEvent.emotionRecords.user.id AS userId,
-                COUNT(safetyEvent) AS safetyEventCount
-            FROM SafetyEvents safetyEvent
-            GROUP BY safetyEvent.emotionRecords.user.id
-            """)
-    List<SafetyEventUserCountProjection> countSafetyEventsByUser();
+        SELECT
+            safetyEvent.emotionRecords.user.id AS userId,
+            COUNT(safetyEvent) AS safetyEventCount
+        FROM SafetyEvents safetyEvent
+        WHERE safetyEvent.emotionRecords.user.id IN :userIds
+        GROUP BY safetyEvent.emotionRecords.user.id
+        """)
+    List<SafetyEventUserCountProjection> countSafetyEventsByUserIds(
+            @Param("userIds") Collection<Long> userIds
+    );
 
     // 회원별 안전 신호 횟수 조회 결과 Projection
     interface SafetyEventUserCountProjection {

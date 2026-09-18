@@ -26,6 +26,7 @@ export const readAppRoute = () => {
 
   if (pathname === '/login') return { page: 'login' }
   if (pathname === '/signup') return { page: 'signup' }
+  if (pathname === '/settings') return { page: 'settings' }
   if (oauthCallbackMatch) {
     return {
       page: 'oauth-callback',
@@ -52,7 +53,6 @@ export const readAppRoute = () => {
       emotionRecordId: parseIdentifier(searchParams.get('emotionRecordId')),
     }
   }
-  if (pathname === '/reports/weekly/graph') return { page: 'weekly-report-graph' }
   if (pathname === '/reports/weekly') return { page: 'weekly-report' }
   if (pathname === '/reports/monthly') return { page: 'monthly-report' }
   if (completedReflectionMatch) {
@@ -77,6 +77,7 @@ export const createAppPath = (page, parameters = {}) => {
 
   if (page === 'login') return '/login'
   if (page === 'signup') return '/signup'
+  if (page === 'settings') return '/settings'
   if (
     page === 'oauth-callback'
     && ['kakao', 'google'].includes(parameters.provider)
@@ -95,7 +96,6 @@ export const createAppPath = (page, parameters = {}) => {
     return `/cbt?emotionRecordId=${emotionRecordId}`
   }
   if (page === 'cbt') return '/cbt'
-  if (page === 'weekly-report-graph') return '/reports/weekly/graph'
   if (page === 'weekly-report') return '/reports/weekly'
   if (page === 'monthly-report') return '/reports/monthly'
   if (page === 'completed-reflection' && reflectionSessionId) {

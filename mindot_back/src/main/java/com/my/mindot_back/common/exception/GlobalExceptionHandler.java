@@ -20,6 +20,8 @@ import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 // API 처리 중 exception을 낚아서 처리하는 컨트롤러
 @RestControllerAdvice
@@ -115,6 +117,30 @@ public class GlobalExceptionHandler {
         return ErrorResponse.builder()
                 .status(HttpStatus.METHOD_NOT_ALLOWED.value())
                 .message("지원하지 않는 HTTP 요청 방식입니다.")
+                .build();
+    }
+
+    // 업로드 용량 제한을 넘긴 음성 요청은 413으로 반환
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    @ResponseStatus(HttpStatus.PAYLOAD_TOO_LARGE)
+    public ErrorResponse handleMaxUploadSizeExceeded(
+            MaxUploadSizeExceededException exception
+    ) {
+        return ErrorResponse.builder()
+                .status(HttpStatus.PAYLOAD_TOO_LARGE.value())
+                .message("음성 파일 크기 제한을 초과했습니다")
+                .build();
+    }
+
+    // 필수 audio 파일 필드가 없으면 400으로 반환
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleMissingRequestPart(
+            MissingServletRequestPartException exception
+    ) {
+        return ErrorResponse.builder()
+                .status(HttpStatus.BAD_REQUEST.value())
+                .message("음성 파일이 누락되었습니다")
                 .build();
     }
 

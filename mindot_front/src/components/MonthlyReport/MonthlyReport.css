@@ -9,18 +9,22 @@
 /* 월간 리포트 단일 카드를 화면 중앙에 배치하는 영역 설정. */
 .monthly-report-content {
   display: flex;
+  min-height: calc(100vh - 72px);
   min-height: calc(100dvh - 72px - env(safe-area-inset-top, 0px));
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 20px max(20px, env(safe-area-inset-right, 0px))
+  padding:
+    20px
+    calc(20px + env(safe-area-inset-right, 0px))
     calc(20px + env(safe-area-inset-bottom, 0px))
-    max(20px, env(safe-area-inset-left, 0px));
+    calc(20px + env(safe-area-inset-left, 0px));
 }
 
 /* 기존 리포트 화면과 동일한 테두리·여백을 적용한 카드 설정. */
 .monthly-report-card {
   width: 100%;
-  max-width: 620px;
+  max-width: 820px;
+  margin: auto 0;
   border: 1px solid var(--mindot-border);
   border-radius: 14px;
   padding: 40px;
@@ -36,11 +40,21 @@
 /* 월간 리포트 제목과 안내 문구의 단계별 간격 설정. */
 .monthly-report-card h1 {
   margin: 30px 0 0;
+  font-size: 2rem;
 }
 
 .monthly-report-description {
   margin: 10px 0 0;
   color: var(--mindot-text-secondary);
+  line-height: 1.7;
+}
+
+/* 통계의 집계 기준을 주간 리포트와 같은 보조 문구로 표시. */
+.monthly-report-description span {
+  display: block;
+  margin-top: 6px;
+  color: var(--mindot-text-muted);
+  font-size: 13px;
 }
 
 /* 선택 연월 이름과 입력창의 양쪽 배치 설정. */
@@ -61,7 +75,7 @@
 }
 
 .monthly-report-period input {
-  min-height: 42px;
+  min-height: 44px;
   border: 1px solid var(--mindot-border-strong);
   border-radius: 8px;
   padding: 0 10px;
@@ -79,7 +93,8 @@
 
 .monthly-report-navigation button,
 .monthly-report-state button,
-.monthly-report-refresh {
+.monthly-report-refresh,
+.monthly-report-export {
   min-height: 44px;
   border: 1px solid var(--mindot-primary-line);
   border-radius: 8px;
@@ -92,29 +107,65 @@
 
 .monthly-report-navigation button:not(:disabled):hover,
 .monthly-report-state button:hover,
-.monthly-report-refresh:not(:disabled):hover {
+.monthly-report-refresh:not(:disabled):hover,
+.monthly-report-export:not(:disabled):hover {
   border-color: var(--mindot-primary);
   background: var(--mindot-primary-soft);
 }
 
 .monthly-report-navigation button:disabled,
-.monthly-report-refresh:disabled {
+.monthly-report-refresh:disabled,
+.monthly-report-export:disabled {
   border-color: var(--mindot-border);
   color: var(--mindot-disabled);
   background: var(--mindot-surface-muted);
   cursor: not-allowed;
 }
 
+/* 주간과 월간 리포트를 같은 위치에서 전환하는 두 칸 메뉴 설정. */
+.monthly-report-view-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+  border-bottom: 1px solid var(--mindot-border);
+  padding-bottom: 18px;
+}
+
+.monthly-report-view-switch button {
+  min-height: 44px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  color: var(--mindot-primary-strong);
+  font: inherit;
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.monthly-report-view-switch button:not(:disabled):hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+.monthly-report-view-switch button[aria-current='page'] {
+  border-color: var(--mindot-primary);
+  color: #ffffff;
+  background: var(--mindot-primary);
+  cursor: default;
+}
+
 /* 현재 선택한 월의 요약 제목 간격 설정. */
 .monthly-report-selected-month {
-  margin: 28px 0 0;
+  margin: 24px 0 0;
   font-size: 1.25rem;
 }
 
-/* 네 개의 핵심 통계를 한 행의 구분선 구조로 표시. */
+/* 다섯 개의 핵심 통계를 주간 리포트와 같은 구분선 구조로 표시. */
 .monthly-report-summary {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   margin: 18px 0 0;
   border-top: 1px solid var(--mindot-border);
   border-bottom: 1px solid var(--mindot-border);
@@ -140,12 +191,30 @@
   margin: 6px 0 0;
   color: var(--mindot-primary-strong);
   font-weight: 700;
-  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* 월간 리포트의 키보드 탐색 위치를 명확히 보여 주는 공통 포커스선 설정. */
+.monthly-report-card button:focus-visible,
+.monthly-report-card input:focus-visible,
+.monthly-report-card select:focus-visible {
+  outline: 3px solid var(--mindot-primary-line);
+  outline-offset: 2px;
+}
+
+/* 백엔드 집계 시작일과 종료일을 요약 바로 아래 표시. */
+.monthly-report-period-caption {
+  margin: 10px 0 0;
+  color: var(--mindot-text-muted);
+  font-size: 12px;
+  text-align: right;
 }
 
 /* 월간 요약 문장을 구분선 아래 단순 정보 영역으로 표시. */
 .monthly-report-summary-text {
-  margin-top: 24px;
+  margin-top: 26px;
+  border-top: 1px solid var(--mindot-border);
+  padding-top: 24px;
 }
 
 .monthly-report-summary-text h2 {
@@ -158,9 +227,278 @@
   color: var(--mindot-text-secondary);
 }
 
+/* 월 초반과 후반의 감정 강도 비교 영역을 구분선 아래 배치. */
+.monthly-report-half-trend {
+  margin-top: 26px;
+  border-top: 1px solid var(--mindot-border);
+  padding-top: 24px;
+}
+
+/* 비교 제목과 백엔드 변화 판정 문구의 양쪽 정렬 설정. */
+.monthly-report-half-trend-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.monthly-report-half-trend-heading h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.monthly-report-half-trend-heading strong {
+  color: var(--mindot-primary-strong);
+  font-size: 14px;
+}
+
+/* 초반·후반 비교값을 동일한 기준의 가로 막대로 표시. */
+.monthly-report-half-trend-rows {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.monthly-report-half-trend-rows > div {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) 82px;
+  align-items: center;
+  gap: 12px;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+}
+
+.monthly-report-half-trend-rows > div > strong {
+  color: var(--mindot-text);
+  text-align: right;
+}
+
+/* 평균 강도 비율을 채울 단색 가로 막대의 기준 영역 설정. */
+.monthly-report-half-trend-track {
+  display: block;
+  height: 12px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--mindot-surface-muted);
+}
+
+.monthly-report-half-trend-track > span {
+  display: block;
+  height: 100%;
+  background: var(--mindot-primary);
+}
+
+/* 강도 변화 판정의 설명 문구 설정. */
+.monthly-report-half-trend > p {
+  margin: 14px 0 0;
+  color: var(--mindot-text-muted);
+  font-size: 13px;
+}
+
+/* 날짜별 감정 강도 그래프를 위아래 구분선 사이에 배치. */
+.monthly-report-chart {
+  margin-top: 26px;
+  border-top: 1px solid var(--mindot-border);
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 24px 0;
+}
+
+/* 그래프 제목과 강도 기준의 양쪽 정렬 설정. */
+.monthly-report-chart-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.monthly-report-chart-heading h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.monthly-report-chart-heading span {
+  color: var(--mindot-text-muted);
+  font-size: 13px;
+}
+
+/* 모바일에서도 한 달 전체 막대를 확인할 수 있는 가로 스크롤 영역 설정. */
+.monthly-report-chart-scroll {
+  overflow-x: auto;
+  margin-top: 18px;
+  padding: 3px 2px 10px;
+  scrollbar-width: thin;
+}
+
+/* 월의 모든 날짜를 같은 너비의 연속 막대로 배치. */
+.monthly-report-chart-bars {
+  display: flex;
+  gap: 6px;
+  min-width: max-content;
+  height: 190px;
+}
+
+/* 날짜별 점수·막대·일자 정보를 세로로 배치하는 버튼 설정. */
+.monthly-report-chart-item {
+  display: grid;
+  grid-template-rows: 22px 1fr 22px;
+  gap: 6px;
+  width: 26px;
+  min-width: 26px;
+  border: 0;
+  padding: 0;
+  color: var(--mindot-text-secondary);
+  font-size: 12px;
+  background: transparent;
+  text-align: center;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.monthly-report-chart-value {
+  overflow: hidden;
+  font-size: 10px;
+  font-weight: 600;
+  text-overflow: clip;
+}
+
+/* 감정 강도 막대의 기준 높이와 옅은 배경 설정. */
+.monthly-report-chart-track {
+  display: flex;
+  min-height: 0;
+  align-items: flex-end;
+  overflow: hidden;
+  border-radius: 5px 5px 2px 2px;
+  background: var(--mindot-surface-muted);
+}
+
+/* 평균 강도에 비례하여 채워지는 단색 브랜드 막대 설정. */
+.monthly-report-chart-track > span {
+  display: block;
+  width: 100%;
+  background: var(--mindot-primary);
+}
+
+.monthly-report-chart-item:hover .monthly-report-chart-track {
+  background: #d9e7f8;
+}
+
+/* 선택한 날짜 막대의 키보드·마우스 공통 식별선 설정. */
+.monthly-report-chart-item.is-selected .monthly-report-chart-track {
+  outline: 2px solid var(--mindot-primary);
+  outline-offset: 2px;
+}
+
+/* 선택 날짜의 세부 통계를 중첩 카드 없이 구분선 행으로 표시. */
+.monthly-report-chart-detail {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 16px 0 0;
+  border-top: 1px solid var(--mindot-border);
+  padding-top: 16px;
+}
+
+.monthly-report-chart-detail div {
+  min-width: 0;
+  padding: 0 8px;
+  text-align: center;
+}
+
+.monthly-report-chart-detail div + div {
+  border-left: 1px solid var(--mindot-border);
+}
+
+.monthly-report-chart-detail dt {
+  color: var(--mindot-text-muted);
+  font-size: 12px;
+}
+
+.monthly-report-chart-detail dd {
+  margin: 5px 0 0;
+  color: var(--mindot-text);
+  font-size: 14px;
+  font-weight: 600;
+  word-break: keep-all;
+}
+
+/* 감정과 상황별 기록 횟수 분포를 구분선 아래 배치. */
+.monthly-report-distributions {
+  margin-top: 26px;
+  border-bottom: 1px solid var(--mindot-border);
+  padding-bottom: 24px;
+}
+
+.monthly-report-distributions > h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+/* 감정 분포와 상황 분포의 두 열 배치 설정. */
+.monthly-report-distribution-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 30px;
+  margin-top: 18px;
+}
+
+.monthly-report-distribution-columns section + section {
+  border-left: 1px solid var(--mindot-border);
+  padding-left: 30px;
+}
+
+.monthly-report-distribution-columns h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.monthly-report-distribution-columns ul {
+  display: grid;
+  gap: 14px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.monthly-report-distribution-columns li > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--mindot-text-secondary);
+  font-size: 13px;
+}
+
+.monthly-report-distribution-columns li strong {
+  flex: 0 0 auto;
+  color: var(--mindot-text);
+}
+
+.monthly-report-distribution-columns section > p {
+  margin: 14px 0 0;
+  color: var(--mindot-text-muted);
+  font-size: 13px;
+}
+
+/* 분포별 최다 기록 수를 기준으로 채워지는 단색 가로 막대 설정. */
+.monthly-report-distribution-track {
+  display: block;
+  height: 7px;
+  overflow: hidden;
+  margin-top: 6px;
+  border-radius: 3px;
+  background: var(--mindot-surface-muted);
+}
+
+.monthly-report-distribution-track > span {
+  display: block;
+  height: 100%;
+  background: var(--mindot-primary);
+}
+
 /* 조회 중·오류·빈 기록 상태의 중앙 안내 영역 설정. */
 .monthly-report-state {
-  margin-top: 18px;
+  margin-top: 28px;
+  border-top: 1px solid var(--mindot-border);
+  border-bottom: 1px solid var(--mindot-border);
   padding: 24px 0;
   color: var(--mindot-text-secondary);
   text-align: center;
@@ -168,6 +506,9 @@
 
 .monthly-report-state p {
   margin: 8px 0 0;
+  color: var(--mindot-text-muted);
+  font-size: 14px;
+  line-height: 1.7;
 }
 
 .monthly-report-state button {
@@ -179,17 +520,83 @@
   color: var(--mindot-danger);
 }
 
-/* 월간 리포트 갱신 버튼과 완료 안내 문구 설정. */
-.monthly-report-refresh {
-  width: 100%;
+.monthly-report-state--error p {
+  color: var(--mindot-danger);
+}
+
+/* 최신 데이터 갱신과 월간 PDF 저장 버튼의 같은 너비 배치. */
+.monthly-report-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
   margin-top: 24px;
 }
 
-.monthly-report-refresh-message {
+.monthly-report-refresh,
+.monthly-report-export {
+  width: 100%;
+}
+
+/* 갱신 버튼이 하나일 때 전체 너비를 사용하는 설정. */
+.monthly-report-actions button:only-child {
+  grid-column: 1 / -1;
+}
+
+/* 주간 리포트와 동일한 위치와 구분선을 사용하는 월간 PDF 영역 설정. */
+.monthly-report-pdf-export {
+  margin-top: 26px;
+  border-top: 1px solid var(--mindot-border);
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 24px 0;
+}
+
+.monthly-report-export-heading h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.monthly-report-export-heading p {
+  margin: 8px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.monthly-report-pdf-export .monthly-report-export {
+  min-height: 48px;
+  margin-top: 20px;
+  color: #ffffff;
+  background: var(--mindot-primary);
+}
+
+.monthly-report-pdf-export .monthly-report-export:not(:disabled):hover {
+  border-color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-strong);
+}
+
+.monthly-report-refresh-message,
+.monthly-report-export-message,
+.monthly-report-export-error {
   margin: 10px 0 0;
-  color: var(--mindot-success);
   font-size: 13px;
   text-align: center;
+}
+
+.monthly-report-refresh-message,
+.monthly-report-export-message {
+  color: var(--mindot-success);
+}
+
+.monthly-report-export-error {
+  color: var(--mindot-danger);
+}
+
+/* 현재 월간 리포트가 사용한 원본 데이터의 최근 집계 시각 설정. */
+.monthly-report-snapshot {
+  margin: 18px 0 0;
+  color: var(--mindot-text-muted);
+  font-size: 12px;
+  text-align: right;
 }
 
 /* 메인 화면으로 돌아가는 주요 버튼 설정. */
@@ -224,6 +631,10 @@
     padding: 28px 20px;
   }
 
+  .monthly-report-card h1 {
+    font-size: 1.75rem;
+  }
+
   .monthly-report-period {
     align-items: flex-start;
     flex-direction: column;
@@ -234,6 +645,18 @@
     width: 100%;
   }
 
+  .monthly-report-half-trend-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .monthly-report-half-trend-rows > div {
+    grid-template-columns: 58px minmax(0, 1fr) 76px;
+    gap: 8px;
+    font-size: 13px;
+  }
+
   .monthly-report-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     row-gap: 18px;
@@ -241,5 +664,35 @@
 
   .monthly-report-summary div:nth-child(3) {
     border-left: 0;
+  }
+
+  .monthly-report-summary div:nth-child(5) {
+    grid-column: 1 / -1;
+    border-left: 0;
+  }
+
+  .monthly-report-chart-detail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 16px;
+  }
+
+  .monthly-report-chart-detail div:nth-child(3) {
+    border-left: 0;
+  }
+
+  .monthly-report-distribution-columns {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  .monthly-report-distribution-columns section + section {
+    border-top: 1px solid var(--mindot-border);
+    border-left: 0;
+    padding-top: 22px;
+    padding-left: 0;
+  }
+
+  .monthly-report-actions {
+    grid-template-columns: 1fr;
   }
 }

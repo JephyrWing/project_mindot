@@ -146,6 +146,41 @@
   padding-top: 16px;
 }
 
+/* 원문 검색과 의미 검색을 전환하는 버튼 묶음 배치. */
+.emotion-history-search-mode {
+  flex: 0 0 auto;
+}
+
+.emotion-history-search-mode > div {
+  display: flex;
+  gap: 6px;
+}
+
+.emotion-history-search-mode button.is-selected {
+  border-color: var(--mindot-primary);
+  color: #ffffff;
+  background: var(--mindot-primary);
+}
+
+.emotion-history-search button.emotion-history-search-submit:not(:disabled) {
+  border-color: var(--mindot-primary);
+  color: #ffffff;
+  background: var(--mindot-primary);
+}
+
+.emotion-history-search button.emotion-history-search-submit:not(:disabled):hover {
+  border-color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-strong);
+}
+
+/* 의미 검색 방식과 결과 정렬 기준에 대한 사용자 안내. */
+.emotion-history-search-help {
+  grid-column: 1 / -1;
+  margin: -10px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 0.875rem;
+}
+
 /* 기록 검색 입력 영역의 남은 가로 공간 사용 설정. */
 .emotion-history-search label {
   min-width: 0;
@@ -198,6 +233,13 @@
 
 /* 검색어가 없을 때 초기화 버튼의 비활성 상태 설정. */
 .emotion-history-search button:disabled {
+  border-color: var(--mindot-border);
+  color: var(--mindot-disabled);
+  background: var(--mindot-surface-muted);
+  cursor: not-allowed;
+}
+
+.emotion-history-controls select:disabled {
   border-color: var(--mindot-border);
   color: var(--mindot-disabled);
   background: var(--mindot-surface-muted);
@@ -447,6 +489,15 @@
     grid-column: 1;
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .emotion-history-search-mode,
+  .emotion-history-search-mode > div {
+    width: 100%;
+  }
+
+  .emotion-history-search-mode button {
+    flex: 1;
   }
 
   .emotion-history-search button {

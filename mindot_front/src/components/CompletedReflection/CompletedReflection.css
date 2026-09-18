@@ -71,6 +71,11 @@
   background: var(--mindot-primary-soft);
 }
 
+/* 화면 설명과 성찰 결과 비교 카드 사이의 여백 설정. */
+.completed-reflection-heading + .cbt-insight-result {
+  margin-top: 28px;
+}
+
 /* 세 가지 서술형 CBT 결과를 구분선으로 나누는 영역 설정. */
 .completed-reflection-text-results {
   margin-top: 28px;

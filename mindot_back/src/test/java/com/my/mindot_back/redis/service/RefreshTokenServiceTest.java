@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -37,6 +38,9 @@ class RefreshTokenServiceTest {
 
     private RefreshTokenService service;
 
+    @Mock
+    private StringRedisTemplate redisTemplate;
+
     @BeforeEach
     void setUp() {
         service = new RefreshTokenService(
@@ -45,7 +49,8 @@ class RefreshTokenServiceTest {
                 new RefreshTokenProperties(
                         Duration.ofDays(14),
                         Duration.ofDays(30)
-                )
+                ),
+                redisTemplate
         );
     }
 

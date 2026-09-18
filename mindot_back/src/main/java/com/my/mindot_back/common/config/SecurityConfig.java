@@ -114,7 +114,8 @@ public class SecurityConfig {
                                 "/api/records/**",
                                 "/api/reflections/**",
                                 "/api/reports/**",
-                                "/api/centers/**"
+                                "/api/centers/**",
+                                "/api/stt/**"
                         ).hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 

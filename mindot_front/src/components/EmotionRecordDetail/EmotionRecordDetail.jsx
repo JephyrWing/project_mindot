@@ -255,9 +255,11 @@ function EmotionRecordDetail({
   onCenter,
   onDailyCare,
   onCBT,
+  backLabel = '목록으로',
   onBack,
   onHome,
 }) {
+  const isWeeklyReportReturn = backLabel === '주간 리포트로 돌아가기'
   // 백엔드에서 조회한 감정 기록 상세 정보 상태 설정.
   const [record, setRecord] = useState(null)
   // 감정 기록 상세 API 요청 진행 여부 상태 설정.
@@ -298,7 +300,6 @@ function EmotionRecordDetail({
   const [isLoadingPattern, setIsLoadingPattern] = useState(false)
   // 패턴 설명 API 요청 실패 안내 문구 상태 설정.
   const [patternError, setPatternError] = useState('')
-
   // 화면 진입과 재조회 시 선택한 감정 기록의 상세 정보 요청.
   useEffect(() => {
     let isActive = true
@@ -631,7 +632,7 @@ function EmotionRecordDetail({
             <h1 id="emotion-detail-title">감정 기록 상세</h1>
             <p>선택한 날의 감정과 생각을 자세히 확인하는 공간입니다.</p>
           </div>
-          <button type="button" onClick={onBack}>목록으로</button>
+          {!isWeeklyReportReturn && <button type="button" onClick={onBack}>{backLabel}</button>}
         </div>
 
         {isLoading ? (
@@ -646,7 +647,7 @@ function EmotionRecordDetail({
             <h2>상세 정보를 불러오지 못했습니다.</h2>
             <p>{loadError}</p>
             <div className="emotion-detail-state-actions">
-              <button type="button" onClick={onBack}>목록으로</button>
+              <button type="button" onClick={onBack}>{backLabel}</button>
               {emotionRecordId && (
                 <button
                   type="button"
@@ -1151,6 +1152,16 @@ function EmotionRecordDetail({
                 </p>
               )}
             </section>
+
+            {isWeeklyReportReturn && (
+              <button
+                className="emotion-detail-weekly-back"
+                type="button"
+                onClick={onBack}
+              >
+                주간 리포트로 돌아가기
+              </button>
+            )}
           </div>
         ) : null}
       </section>

@@ -39,15 +39,23 @@
 
 /* 주간 리포트 제목의 Noto Sans KR 크기와 간격 설정. */
 .weekly-report-card h1 {
-  margin: 36px 0 0;
+  margin: 30px 0 0;
   font-size: 2rem;
 }
 
 /* 주간 리포트 안내 문구의 명도 대비 설정. */
 .weekly-report-description {
-  margin: 12px 0 0;
-  color: var(--mindot-text-muted);
+  margin: 10px 0 0;
+  color: var(--mindot-text-secondary);
   line-height: 1.7;
+}
+
+/* 통계와 PDF의 집계 기준을 제목 설명 아래 보조 문구로 표시. */
+.weekly-report-description span {
+  display: block;
+  margin-top: 6px;
+  color: var(--mindot-text-muted);
+  font-size: 13px;
 }
 
 /* 현재 리포트 기간을 한쪽 강조선 없이 가로 구분선으로 표시. */
@@ -56,10 +64,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-top: 28px;
+  margin-top: 26px;
   border-top: 1px solid var(--mindot-border);
   border-bottom: 1px solid var(--mindot-border);
-  padding: 16px 0;
+  padding: 14px 0;
   background: transparent;
 }
 
@@ -79,20 +87,21 @@
 
 /* 이전 주와 다음 주 이동 버튼의 가로 배치. */
 .weekly-report-navigation {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-  margin-top: 14px;
+  margin-top: 12px;
 }
 
 /* 주간 이동 버튼의 크기와 옅은 파란색 배경 설정. */
 .weekly-report-navigation button {
   width: 100%;
-  min-height: 48px;
+  min-height: 44px;
   border: 1px solid var(--mindot-primary-line);
   border-radius: 8px;
   color: var(--mindot-primary-strong);
   font-weight: 600;
-  background: var(--mindot-primary-soft);
+  background: var(--mindot-surface);
   cursor: pointer;
   touch-action: manipulation;
 }
@@ -100,7 +109,13 @@
 /* 사용 가능한 주간 이동 버튼 위의 조금 짙은 파란색 강조. */
 .weekly-report-navigation button:not(:disabled):hover {
   border-color: var(--mindot-primary);
-  background: #d9e7f8;
+  background: var(--mindot-primary-soft);
+}
+
+/* 현재 선택한 주를 월간 리포트와 같은 요약 제목 단계로 표시. */
+.weekly-report-selected-period {
+  margin: 24px 0 0;
+  font-size: 1.25rem;
 }
 
 /* 미래 주간으로 이동할 수 없는 버튼의 비활성화 상태 설정. */
@@ -111,32 +126,46 @@
   cursor: not-allowed;
 }
 
-/* 선택한 주의 감정 그래프 화면으로 이동하는 버튼 설정. */
-.weekly-report-graph-button {
-  width: 100%;
-  min-height: 48px;
-  border: 1px solid var(--mindot-primary);
+/* 주간과 월간 리포트를 같은 위치에서 전환하는 두 칸 메뉴 설정. */
+.weekly-report-view-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+  border-bottom: 1px solid var(--mindot-border);
+  padding-bottom: 18px;
+}
+
+.weekly-report-view-switch button {
+  min-height: 44px;
+  border: 1px solid var(--mindot-primary-line);
   border-radius: 8px;
-  margin-top: 12px;
-  color: #ffffff;
-  font-weight: 700;
-  background: var(--mindot-primary);
+  color: var(--mindot-primary-strong);
+  font: inherit;
+  font-weight: 600;
+  background: var(--mindot-surface);
   cursor: pointer;
   touch-action: manipulation;
 }
 
-/* 감정 그래프 이동 버튼 위의 진한 파란색 강조. */
-.weekly-report-graph-button:hover {
-  border-color: var(--mindot-primary-strong);
-  background: var(--mindot-primary-strong);
+.weekly-report-view-switch button:not(:disabled):hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+.weekly-report-view-switch button[aria-current='page'] {
+  border-color: var(--mindot-primary);
+  color: #ffffff;
+  background: var(--mindot-primary);
+  cursor: default;
 }
 
 /* 날짜와 포함 범위를 지정하는 PDF 내보내기 영역의 구분선 설정. */
 .weekly-report-export {
-  margin-top: 30px;
+  margin-top: 26px;
   border-top: 1px solid var(--mindot-border);
   border-bottom: 1px solid var(--mindot-border);
-  padding: 26px 0;
+  padding: 24px 0;
 }
 
 /* PDF 내보내기 제목과 안내 문구의 간격 설정. */
@@ -406,47 +435,179 @@
   line-height: 1.6;
 }
 
-/* 기록 횟수와 주요 감정 및 평균 강도를 묶는 요약 영역 설정. */
+/* 월간 리포트와 같은 다섯 열 구분선 구조의 주간 요약 설정. */
 .weekly-report-summary {
-  margin-top: 28px;
-}
-
-/* 주간 요약 제목의 Noto Sans KR 크기 설정. */
-.weekly-report-summary h2 {
-  margin: 0;
-  font-size: 1.5625rem;
-}
-
-/* 세 가지 주간 요약 정보를 동일한 너비로 배치하는 격자 설정. */
-.weekly-report-summary-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-  gap: 16px;
-  margin-top: 16px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin: 18px 0 0;
+  border-top: 1px solid var(--mindot-border);
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 18px 0;
 }
 
-/* 각 주간 요약 항목을 중첩 카드 없이 상단 구분선으로 표시. */
-.weekly-report-summary-grid article {
+/* 각 주간 핵심 통계의 동일 너비와 중앙 정렬 설정. */
+.weekly-report-summary div {
   min-width: 0;
-  border-top: 2px solid var(--mindot-primary-line);
-  padding: 16px 0 0;
-  background: transparent;
+  padding: 0 10px;
   text-align: center;
 }
 
-/* 요약 항목 이름의 보조 글자색 설정. */
-.weekly-report-summary-grid span {
-  display: block;
+/* 인접한 통계 사이의 단일 세로 구분선 설정. */
+.weekly-report-summary div + div {
+  border-left: 1px solid var(--mindot-border);
+}
+
+/* 주간 통계 항목 이름의 보조 글자색 설정. */
+.weekly-report-summary dt {
   color: var(--mindot-text-muted);
   font-size: 12px;
 }
 
-/* 각 요약의 핵심 값에 브랜드 색상 적용. */
-.weekly-report-summary-grid strong {
-  display: block;
-  margin-top: 8px;
+/* 주간 통계 핵심 값의 브랜드 색상 적용. */
+.weekly-report-summary dd {
+  margin: 6px 0 0;
   color: var(--mindot-primary-strong);
-  font-size: 16px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* 주간 리포트 안에서 요일별 감정 강도를 표시하는 그래프 영역 설정. */
+.weekly-report-graph-chart {
+  margin-top: 30px;
+  border-top: 1px solid var(--mindot-border);
+  padding-top: 24px;
+}
+
+/* 그래프 제목과 점수 기준의 양쪽 배치. */
+.weekly-report-graph-chart-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* 그래프 제목의 다른 리포트 상세 영역과 동일한 크기 설정. */
+.weekly-report-graph-chart-heading h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+/* 그래프 점수 기준의 보조 정보 설정. */
+.weekly-report-graph-chart-heading span {
+  color: var(--mindot-text-muted);
+  font-size: 13px;
+}
+
+/* 일곱 개 요일 막대의 같은 간격 배치. */
+.weekly-report-graph-bars {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(28px, 1fr));
+  gap: 12px;
+  height: 220px;
+  margin-top: 18px;
+}
+
+/* 각 요일의 평균값과 막대 및 요일 이름의 세로 배치. */
+.weekly-report-graph-item {
+  display: grid;
+  grid-template-rows: 24px 1fr 24px;
+  gap: 8px;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  color: var(--mindot-text-secondary);
+  font: inherit;
+  font-size: 13px;
+  background: transparent;
+  text-align: center;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+/* 요일별 감정 강도 평균값의 강조 설정. */
+.weekly-report-graph-value {
+  font-weight: 600;
+}
+
+/* 감정 강도 막대가 채워질 기준 영역 설정. */
+.weekly-report-graph-track {
+  display: flex;
+  min-height: 0;
+  align-items: flex-end;
+  overflow: hidden;
+  border-radius: 6px 6px 2px 2px;
+  background: var(--mindot-surface-muted);
+}
+
+/* 평균 강도에 비례하여 채워지는 브랜드 색상 막대 설정. */
+.weekly-report-graph-track > span {
+  display: block;
+  width: 100%;
+  background: var(--mindot-primary);
+}
+
+/* 선택 가능한 요일 막대 위의 옅은 파란색 강조 설정. */
+.weekly-report-graph-item:hover .weekly-report-graph-track {
+  background: #d9e7f8;
+}
+
+/* 현재 선택한 요일 막대의 명확한 테두리 강조 설정. */
+.weekly-report-graph-item.is-selected .weekly-report-graph-track {
+  outline: 2px solid var(--mindot-primary);
+  outline-offset: 2px;
+}
+
+/* 선택한 요일의 건수와 평균 및 대표 감정의 구분선형 배치. */
+.weekly-report-graph-details {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 24px 0 0;
+  border-top: 1px solid var(--mindot-border);
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 16px 0;
+}
+
+/* 그래프 상세 통계 항목의 같은 너비와 중앙 정렬 설정. */
+.weekly-report-graph-details div {
+  min-width: 0;
+  padding: 0 10px;
+  text-align: center;
+}
+
+/* 인접한 그래프 상세 통계 사이의 세로 구분선 설정. */
+.weekly-report-graph-details div + div {
+  border-left: 1px solid var(--mindot-border);
+}
+
+/* 그래프 상세 통계 이름의 보조 글자색 설정. */
+.weekly-report-graph-details dt {
+  color: var(--mindot-text-muted);
+  font-size: 12px;
+}
+
+/* 그래프 상세 통계 값의 강조와 줄바꿈 설정. */
+.weekly-report-graph-details dd {
+  margin: 5px 0 0;
+  color: var(--mindot-text);
+  font-size: 14px;
+  font-weight: 600;
+  word-break: keep-all;
+}
+
+/* 그래프 집계 기준의 보조 안내 문구 설정. */
+.weekly-report-graph-note {
+  margin: 18px 0 0;
+  color: var(--mindot-text-muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* 주간 리포트의 키보드 탐색 위치를 명확히 보여 주는 공통 포커스선 설정. */
+.weekly-report-card button:focus-visible,
+.weekly-report-card input:focus-visible,
+.weekly-report-card select:focus-visible {
+  outline: 3px solid var(--mindot-primary-line);
+  outline-offset: 2px;
 }
 
 /* 실제 리포트 데이터가 없을 때 가로 구분선 영역 설정. */
@@ -510,7 +671,7 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-  margin-top: 18px;
+  margin-top: 24px;
 }
 
 /* 주간 리포트 보조 동작 버튼의 흰색 배경과 브랜드 테두리 설정. */
@@ -592,16 +753,37 @@
   list-style: none;
 }
 
-/* 분포 항목 이름과 횟수의 양쪽 정렬 설정. */
+/* 월간 리포트와 같은 분포 막대 구조의 항목 설정. */
 .weekly-report-distributions li {
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 10px 0;
+}
+
+/* 분포 항목 이름과 횟수의 양쪽 정렬 설정. */
+.weekly-report-distributions li > div {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  border-bottom: 1px solid var(--mindot-border);
-  padding: 10px 0;
   color: var(--mindot-text-secondary);
   font-size: 14px;
+}
+
+/* 각 분포의 최대 횟수를 기준으로 계산한 막대 영역 설정. */
+.weekly-report-distribution-track {
+  display: block;
+  height: 5px;
+  margin-top: 7px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--mindot-primary-soft);
+}
+
+.weekly-report-distribution-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--mindot-primary);
 }
 
 /* 분포가 없는 경우의 보조 안내 색상 설정. */
@@ -688,6 +870,95 @@
   background: var(--mindot-primary-soft);
 }
 
+/* 주간 리포트의 완료 CBT 목록 진입 요약 영역 설정. */
+.weekly-report-cbt-summary {
+  margin-top: 26px;
+  border-top: 1px solid var(--mindot-border);
+  padding-top: 24px;
+}
+
+.weekly-report-cbt-summary h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.weekly-report-cbt-summary p {
+  margin: 9px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+}
+
+.weekly-report-cbt-summary button,
+.weekly-report-cbt-list article button {
+  min-height: 42px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  margin-top: 14px;
+  padding: 0 14px;
+  color: var(--mindot-primary-strong);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+.weekly-report-cbt-summary button:hover,
+.weekly-report-cbt-list article button:hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+/* 완료 CBT 전용 목록 화면의 건수 표시 설정. */
+.weekly-report-cbt-list-screen h1 {
+  margin-top: 34px;
+}
+
+.weekly-report-cbt-list-count {
+  margin-top: 24px;
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: var(--mindot-primary-strong);
+  font-size: 14px;
+  font-weight: 700;
+  background: var(--mindot-primary-soft);
+}
+
+/* 완료 CBT 항목의 구분선 중심 목록 배치. */
+.weekly-report-cbt-list {
+  margin-top: 12px;
+}
+
+.weekly-report-cbt-list article {
+  border-bottom: 1px solid var(--mindot-border);
+  padding: 20px 0;
+}
+
+.weekly-report-cbt-list article header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.weekly-report-cbt-list article header span {
+  color: var(--mindot-text-muted);
+  font-size: 12px;
+  text-align: right;
+}
+
+.weekly-report-cbt-list article p {
+  margin: 10px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.weekly-report-cbt-list .weekly-report-cbt-before {
+  color: var(--mindot-text-muted);
+  font-size: 13px;
+}
+
 /* 리포트 데이터의 마지막 집계 시각을 우측에 보조 정보로 표시. */
 .weekly-report-snapshot {
   margin: 20px 0 0;
@@ -717,7 +988,7 @@
 }
 
 /* 작은 화면에서 카드 여백과 기간 정보를 세로로 조정. */
-@media (max-width: 480px) {
+@media (max-width: 560px) {
   .weekly-report-content {
     align-items: flex-start;
     padding-right: 14px;
@@ -727,6 +998,10 @@
   .weekly-report-card {
     border-radius: 12px;
     padding: 28px 20px;
+  }
+
+  .weekly-report-card h1 {
+    font-size: 1.75rem;
   }
 
   .weekly-report-period {
@@ -745,6 +1020,34 @@
   .weekly-report-data-actions,
   .weekly-report-distributions > div {
     grid-template-columns: 1fr;
+  }
+
+  .weekly-report-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 18px;
+  }
+
+  .weekly-report-summary div:nth-child(3),
+  .weekly-report-summary div:nth-child(5) {
+    border-left: 0;
+  }
+
+  .weekly-report-summary div:nth-child(5) {
+    grid-column: 1 / -1;
+  }
+
+  .weekly-report-graph-bars {
+    gap: 6px;
+    height: 190px;
+  }
+
+  .weekly-report-graph-details {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 16px;
+  }
+
+  .weekly-report-graph-details div:nth-child(3) {
+    border-left: 0;
   }
 
   .weekly-report-export-dates label > div {
