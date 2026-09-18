@@ -17,6 +17,7 @@ public record EmotionRecordsDetailResponseDto (
         String completionStatus,
         String analysisStatus,
         boolean cbtStarted,
+        boolean cbtCompleted,
 
         String situationText,
         String automaticThought,
@@ -48,11 +49,12 @@ public record EmotionRecordsDetailResponseDto (
 
     public static EmotionRecordsDetailResponseDto from(
             EmotionRecords emotionRecord, SafetyNoticeResponseDto safetyNotice, String analysisStatus) {
-        return from(emotionRecord, safetyNotice, analysisStatus, false);
+        return from(emotionRecord, safetyNotice, analysisStatus, false, false);
     }
 
     public static EmotionRecordsDetailResponseDto from(
-            EmotionRecords emotionRecord, SafetyNoticeResponseDto safetyNotice, String analysisStatus, boolean cbtStarted) {
+            EmotionRecords emotionRecord, SafetyNoticeResponseDto safetyNotice, String analysisStatus,
+            boolean cbtStarted, boolean cbtCompleted) {
         return new EmotionRecordsDetailResponseDto(
                 emotionRecord.getId(),
                 emotionRecord.getRawText(),
@@ -62,6 +64,7 @@ public record EmotionRecordsDetailResponseDto (
                 emotionRecord.getCompletionStatus().name(),
                 analysisStatus,
                 cbtStarted,
+                cbtCompleted,
 
                 emotionRecord.getSituationText(),
                 emotionRecord.getAutomaticThought(),

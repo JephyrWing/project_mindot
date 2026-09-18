@@ -22,6 +22,7 @@ public interface ReflectionSessionsRepository
     @Query("select s.emotionRecord.id from ReflectionSessions s where s.id = :id")
     Optional<Long> findRecordIdBySessionId(@Param("id") Long id);
     boolean existsByEmotionRecord_Id(Long emotionRecordId);
+    boolean existsByEmotionRecord_IdAndStatus(Long emotionRecordId, ReflectionSessionStatus status);
 
     // 감정 기록과 로그인 사용자에게 연결된 CBT 성찰 세션 조회
     Optional <ReflectionSessions> findByEmotionRecord_IdAndUser_Id(

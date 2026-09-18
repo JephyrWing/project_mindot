@@ -111,7 +111,8 @@ public class EmotionRecordAiTransactionService {
                 : job == null ? "FAILED" : job.getStatus().name();
         return EmotionRecordsDetailResponseDto.from(record,
                 safetyEventsService.getLatestSafetyNotice(recordId), status,
-                reflectionSessionsRepository.existsByEmotionRecord_Id(recordId));
+                reflectionSessionsRepository.existsByEmotionRecord_Id(recordId),
+                reflectionSessionsRepository.existsByEmotionRecord_IdAndStatus(recordId, ReflectionSessionStatus.COMPLETED));
     }
 
     private EmotionRecords owned(Long userId, Long recordId) {

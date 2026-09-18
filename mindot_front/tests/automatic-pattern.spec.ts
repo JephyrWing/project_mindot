@@ -6,6 +6,57 @@ const pattern = { similarCaseCount: 4, patternSummary: '과거 비슷한 상황�
   recommendation: '이번에도 비슷한 흐름인지 살펴볼까요?' }
 test.beforeEach(async ({ page }) => useAuthenticatedSession(page))
 
+test('CBT 완료 기록을 다시 열면 패턴 요청과 알림을 모두 생략한다', async ({ page }) => {
+  let calls = 0
+  await mockApi(page, (_request, url) => {
+    if (url.pathname === '/api/records/1') return { body: completeRecord({ cbtStarted: true, cbtCompleted: true }) }
+    if (url.pathname.endsWith('/pattern-explanation')) { calls++; return { body: pattern } }
+  })
+  await page.goto('/records/1')
+  await expect(page.getByText('팀 발표 직전', { exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '반복 패턴 알림' })).toHaveCount(0)
+  expect(calls).toBe(0)
+})
+
+test('CBT가 진행 중이면 기존처럼 결과가 있는 패턴 알림을 표시한다', async ({ page }) => {
+  let calls = 0
+  await mockApi(page, (_request, url) => {
+    if (url.pathname === '/api/records/1') return { body: completeRecord({ cbtStarted: true, cbtCompleted: false }) }
+    if (url.pathname.endsWith('/pattern-explanation')) { calls++; return { body: pattern } }
+  })
+  await page.goto('/records/1')
+  await expect(page.getByText(pattern.patternSummary)).toBeVisible()
+  expect(calls).toBe(1)
+})
+
+test('CBT 완료 후 상세로 돌아와도 이전의 늦은 패턴 응답을 표시하지 않는다', async ({ page }) => {
+  let completed = false
+  let calls = 0
+  let release!: () => void
+  const pending = new Promise<void>((resolve) => { release = resolve })
+  await mockApi(page, async (_request, url) => {
+    if (url.pathname === '/api/records/1') return { body: completeRecord({ cbtStarted: true, cbtCompleted: completed }) }
+    if (url.pathname.endsWith('/pattern-explanation')) {
+      calls++
+      await pending
+      return { body: pattern }
+    }
+  })
+  await page.goto('/records/1')
+  await expect.poll(() => calls).toBe(1)
+  await page.getByRole('button', { name: 'CBT 검사 하기' }).click()
+  await expect(page.getByRole('heading', { name: 'CBT 성찰', exact: true })).toBeVisible()
+  // Simulate the persisted completed session before returning to the same record.
+  completed = true
+  await page.goBack()
+  await expect(page.getByText('팀 발표 직전', { exact: true })).toBeVisible()
+  const response = page.waitForResponse('**/pattern-explanation')
+  release()
+  await response
+  await expect(page.getByRole('heading', { name: '반복 패턴 알림' })).toHaveCount(0)
+  expect(calls).toBe(1)
+})
+
 test('확정 직후 한 번 자동 요청하며 결과를 기다리지 않고 저장을 완료한다', async ({ page }) => {
   let calls = 0
   let release!: () => void

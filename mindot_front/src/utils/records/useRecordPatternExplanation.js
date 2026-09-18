@@ -6,6 +6,7 @@ export default function useRecordPatternExplanation(recordId, record, enabled) {
   const requests = useRef(new Map())
   const [result, setResult] = useState(null)
   const key = record?.completionStatus === 'COMPLETE'
+    && !record.cbtCompleted
     && String(record.emotionRecordId) === String(recordId)
     ? JSON.stringify([recordId, record.rawText, record.situationText, record.automaticThought,
       record.primaryEmotionCode, record.primaryIntensity, record.contextCategory,
@@ -26,6 +27,6 @@ export default function useRecordPatternExplanation(recordId, record, enabled) {
     return () => { active = false }
   }, [enabled, key, recordId])
 
-  // Hide results immediately while editing or when moving to another record/version.
+  // Hide cached/late results immediately after CBT completion or a record/version change.
   return enabled && result?.key === key ? result?.value : null
 }
