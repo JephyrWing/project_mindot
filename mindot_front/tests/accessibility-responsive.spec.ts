@@ -10,6 +10,10 @@ const majorRoutes = [
   '/daily-care',
   '/settings',
   '/centers',
+  '/about',
+  '/terms',
+  '/privacy',
+  '/about/research',
 ]
 
 test.describe('FE-AUTO-030: 접근성·반응형', () => {

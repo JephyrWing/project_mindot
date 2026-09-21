@@ -14,6 +14,14 @@ test.describe('FE-AUTO-001: 라우팅·권한', () => {
     await expect(page.getByRole('heading', { name: '관련 기관 찾기' })).toBeVisible()
   })
 
+  test('성공: 비로그인 사용자도 서비스·정책 페이지에 직접 접근한다', async ({ page }) => {
+    await useGuestSession(page)
+    await mockApi(page)
+    await page.goto('/about/research')
+    await expect(page).toHaveURL('/about/research')
+    await expect(page.getByRole('heading', { name: '연구 근거·AI 해석 한계' })).toBeVisible()
+  })
+
   test('오류: 비로그인 사용자의 보호 화면 접근을 차단한다', async ({ page }) => {
     await useGuestSession(page)
     await mockApi(page)

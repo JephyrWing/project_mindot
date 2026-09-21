@@ -75,6 +75,7 @@
     18px
     max(20px, env(safe-area-inset-bottom));
   background: var(--mindot-surface);
+  overflow-y: auto;
   transform: translateX(-105%);
   transition: transform 200ms ease;
 }
@@ -174,6 +175,27 @@
   color: var(--mindot-disabled);
   background: var(--mindot-surface-muted);
   cursor: wait;
+}
+
+/* 공개 서비스·정책 문서를 한 묶음으로 구분하는 사이드바 영역. */
+.main-sidebar__policy-links {
+  display: grid;
+  gap: 7px;
+  border-top: 1px solid var(--mindot-border);
+  margin-top: 6px;
+  padding-top: 14px;
+}
+
+.main-sidebar__policy-links > span {
+  color: var(--mindot-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.main-sidebar__navigation .main-sidebar__policy-links a {
+  min-height: 42px;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 /* 움직임 감소 설정 사용자를 위한 전환 효과 제거. */

@@ -105,6 +105,22 @@
   accent-color: var(--mindot-primary);
 }
 
+.oauth-consent-documents {
+  margin: 14px 0 0;
+  color: var(--mindot-text-muted);
+  font-size: 12px;
+}
+
+.oauth-consent-documents a {
+  color: var(--mindot-primary-strong);
+  font-weight: 600;
+}
+
+.oauth-consent-documents a:focus-visible {
+  outline: 3px solid var(--mindot-primary-line);
+  outline-offset: 2px;
+}
+
 .oauth-consent-form > button,
 .oauth-callback-status button {
   width: 100%;

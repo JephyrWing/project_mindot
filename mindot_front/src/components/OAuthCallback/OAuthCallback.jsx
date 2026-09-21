@@ -228,6 +228,10 @@ function OAuthCallback({ provider, onLoginSuccess, onLogin, onHome }) {
                   <span>AI 분석 동의</span>
                 </label>
               </fieldset>
+              <p className="oauth-consent-documents">
+                가입 전에 <a href="/terms" target="_blank" rel="noreferrer">이용약관</a>과{' '}
+                <a href="/privacy" target="_blank" rel="noreferrer">개인정보 처리방침</a>을 확인해 주세요.
+              </p>
 
               {callbackError && <p className="oauth-callback-error" role="alert">{callbackError}</p>}
 
