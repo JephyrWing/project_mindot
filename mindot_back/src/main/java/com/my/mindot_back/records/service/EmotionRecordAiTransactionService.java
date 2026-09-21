@@ -58,8 +58,24 @@ public class EmotionRecordAiTransactionService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "재분석할 수 있는 감정 기록 상태가 아닙니다.");
         var prior = latest(record);
         expire(prior);
-        if (processing(prior)) return context(record, prior, false);
-        return context(record, newJob(record, UUID.randomUUID().toString(), Map.of("kind", "REANALYZE")), true);
+
+        // 이미 처리 중인 재분석 작업이 있으면 중복 요청을 거부
+        if (processing(prior)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "이미 감정 기록을 분석하고 있습니다."
+            );
+        }
+
+        return context(
+                record,
+                newJob(
+                        record,
+                        UUID.randomUUID().toString(),
+                        Map.of("kind", "REANALYZE")
+                ),
+                true
+        );
     }
 
     @Transactional

@@ -102,11 +102,11 @@ public class UsersService {
                  );
         }
 
-        // ACTIVE가 아니면 로그인 불가
+        // 계정 상태를 노출하지 않도록 다른 로그인 실패와 같은 응답을 반환
         if (user.getStatus() != AccountStatus.ACTIVE) {
             throw new ResponseStatusException(
                     HttpStatus.UNAUTHORIZED,
-                    "로그인할 수 없는 계정입니다."
+                    "이메일 또는 비밀번호가 올바르지 않습니다."
             );
         }
 

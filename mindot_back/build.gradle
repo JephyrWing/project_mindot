@@ -51,6 +51,10 @@ dependencies {
 	// Google Speech-to-Text
 	implementation platform('com.google.cloud:libraries-bom:26.86.0')
 	implementation 'com.google.cloud:google-cloud-speech'
+	// 운영과 동일한 PostgreSQL 기반 통합 테스트 환경
+	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+	testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+	testImplementation 'org.testcontainers:testcontainers-postgresql'
 }
 
 jar {
