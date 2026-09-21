@@ -9,6 +9,7 @@ import EmotionRecordDetail from './components/EmotionRecordDetail/EmotionRecordD
 import CBT from './components/CBT/CBT.jsx'
 import WeeklyReport from './components/WeeklyReport/WeeklyReport.jsx'
 import MonthlyReport from './components/MonthlyReport/MonthlyReport.jsx'
+import EmotionInsights from './components/EmotionInsights/EmotionInsights.jsx'
 import CompletedReflection from './components/CompletedReflection/CompletedReflection.jsx'
 import AppIntroModal from './components/AppIntroModal/AppIntroModal.jsx'
 import Center from './components/Center/Center.jsx'
@@ -45,6 +46,7 @@ const protectedPages = new Set([
   'cbt',
   'weekly-report',
   'monthly-report',
+  'emotion-insights',
   'completed-reflection',
   'daily-care',
   'breathing',
@@ -483,6 +485,22 @@ function App() {
         onDailyCare={() => moveToProtectedPage('daily-care')}
         onWeeklyReport={() => moveToPage('weekly-report')}
         onBack={moveToMain}
+        onHome={moveToMain}
+      />
+    )
+  } else if (currentPage === 'emotion-insights') {
+    // 확정된 감정 기록을 시간대·상황·관계별로 비교하는 전용 인사이트 화면 렌더링.
+    currentPageContent = (
+      <EmotionInsights
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={() => moveToPage('login')}
+        onLogout={handleLogout}
+        onSignUp={() => moveToPage('signup')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onCenter={() => moveToPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
+        onBack={() => moveToPage('emotion-history')}
         onHome={moveToMain}
       />
     )

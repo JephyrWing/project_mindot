@@ -64,6 +64,7 @@ export const readAppRoute = () => {
   }
   if (pathname === '/reports/weekly') return { page: 'weekly-report', weekStart }
   if (pathname === '/reports/monthly') return { page: 'monthly-report' }
+  if (pathname === '/insights/emotions') return { page: 'emotion-insights' }
   if (completedReflectionMatch) {
     return {
       page: 'completed-reflection',
@@ -113,6 +114,7 @@ export const createAppPath = (page, parameters = {}) => {
   if (page === 'cbt') return '/cbt'
   if (page === 'weekly-report') return `/reports/weekly${isWeekStart(parameters.weekStart) ? `?weekStart=${parameters.weekStart}` : ''}`
   if (page === 'monthly-report') return '/reports/monthly'
+  if (page === 'emotion-insights') return '/insights/emotions'
   if (page === 'completed-reflection' && reflectionSessionId) {
     return `/reflections/${reflectionSessionId}${returnQuery}`
   }
