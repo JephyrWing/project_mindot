@@ -53,13 +53,17 @@ function Center({
   const districtNames = getDistrictNames(selectedRegion)
   // 선택한 시·군·구에 포함된 읍·면·동 목록 계산.
   const townNames = getTownNames(selectedRegion, selectedDistrict)
-  // 모든 검색 조건이 선택되었는지 확인하는 상태 계산.
+  // 최소 필수 조건인 시·도와 기관 유형이 선택되었는지 확인.
   const isSearchReady = Boolean(
     selectedRegion
-    && selectedDistrict
-    && selectedTown
     && selectedType,
   )
+  // 검색 결과에는 사용자가 선택한 지역 단계까지만 표시.
+  const selectedLocationLabel = [
+    selectedRegion,
+    selectedDistrict,
+    selectedTown,
+  ].filter(Boolean).join(' ')
   // 선택된 기관 유형의 사용자 표시용 이름 탐색.
   const selectedTypeLabel = centerTypes.find(
     (centerType) => centerType.value === selectedType,
@@ -158,7 +162,7 @@ function Center({
           onSubmit={handleSearch}
         >
           <label htmlFor="center-region">
-            <span>시·도</span>
+            <span>시·도 (필수)</span>
             <select
               id="center-region"
               value={selectedRegion}
@@ -176,15 +180,14 @@ function Center({
           </label>
 
           <label htmlFor="center-district">
-            <span>시·군·구</span>
+            <span>시·군·구 (선택)</span>
             <select
               id="center-district"
               value={selectedDistrict}
               onChange={handleDistrictChange}
-              disabled={!selectedRegion}
             >
-              <option value="" disabled>
-                {selectedRegion ? '시·군·구 선택' : '시·도 선택 후 이용 가능'}
+              <option value="">
+                전체 시·군·구
               </option>
               {districtNames.map((districtName) => (
                 <option key={districtName} value={districtName}>
@@ -195,7 +198,7 @@ function Center({
           </label>
 
           <label htmlFor="center-town">
-            <span>읍·면·동</span>
+            <span>읍·면·동 (선택)</span>
             <select
               id="center-town"
               value={selectedTown}
@@ -203,10 +206,9 @@ function Center({
                 setSelectedTown(event.target.value)
                 resetSearchResult()
               }}
-              disabled={!selectedDistrict}
             >
-              <option value="" disabled>
-                {selectedDistrict ? '읍·면·동 선택' : '시·군·구 선택 후 이용 가능'}
+              <option value="">
+                전체 읍·면·동
               </option>
               {townNames.map((townName) => (
                 <option key={townName} value={townName}>
@@ -217,7 +219,7 @@ function Center({
           </label>
 
           <label htmlFor="center-type">
-            <span>기관 유형</span>
+            <span>기관 유형 (필수)</span>
             <select
               id="center-type"
               value={selectedType}
@@ -241,8 +243,8 @@ function Center({
           <div className="center-search-action">
             <p>
               {isSearchReady
-                ? '선택한 조건으로 기관을 검색할 수 있습니다.'
-                : '지역과 기관 유형을 모두 선택해 주세요.'}
+                ? '선택한 지역 범위에서 기관을 검색할 수 있습니다.'
+                : '시·도와 기관 유형을 선택해 주세요.'}
             </p>
             <button
               type="submit"
@@ -267,7 +269,7 @@ function Center({
               <div>
                 <h2>기관 검색 결과</h2>
                 <p>
-                  {selectedRegion} {selectedDistrict} {selectedTown}
+                  {selectedLocationLabel}
                   {' · '}
                   {selectedTypeLabel}
                 </p>

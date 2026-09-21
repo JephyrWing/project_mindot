@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.stream.Stream;
+
 @Service
 @RequiredArgsConstructor
 public class CenterSearchService {
@@ -33,11 +35,11 @@ public class CenterSearchService {
             int size
     ) {
         String normalizedRegion =
-                normalizeLocation(region, "시·도");
+                normalizeRequiredLocation(region, "시·도");
         String normalizedDistrict =
-                normalizeLocation(district, "시·군·구");
+                normalizeOptionalLocation(district, "시·군·구");
         String normalizedTown =
-                normalizeLocation(town, "읍·면·동");
+                normalizeOptionalLocation(town, "읍·면·동");
 
         if (centerType == null) {
             throw new ResponseStatusException(
@@ -60,13 +62,15 @@ public class CenterSearchService {
             );
         }
 
-        // 예: 경기도 가평군 가평읍 정신건강복지센터
+        // 선택한 지역 단계까지만 포함. 예: 대구광역시 중구 심리상담센터
         String query = String.join(
                 " ",
-                normalizedRegion,
-                normalizedDistrict,
-                normalizedTown,
-                centerType.getSearchKeyword()
+                Stream.of(
+                        normalizedRegion,
+                        normalizedDistrict,
+                        normalizedTown,
+                        centerType.getSearchKeyword()
+                ).filter(location -> !location.isBlank()).toList()
         );
 
         return kakaoLocalClient.search(
@@ -77,7 +81,7 @@ public class CenterSearchService {
         );
     }
 
-    private String normalizeLocation(
+    private String normalizeRequiredLocation(
             String location,
             String fieldName
     ) {
@@ -86,6 +90,26 @@ public class CenterSearchService {
                     HttpStatus.BAD_REQUEST,
                     fieldName + "를 선택해 주세요."
             );
+        }
+
+        String normalizedLocation = location.trim();
+
+        if (normalizedLocation.length() > MAX_LOCATION_LENGTH) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    fieldName + "는 50자 이하이어야 합니다."
+            );
+        }
+
+        return normalizedLocation;
+    }
+
+    private String normalizeOptionalLocation(
+            String location,
+            String fieldName
+    ) {
+        if (location == null || location.isBlank()) {
+            return "";
         }
 
         String normalizedLocation = location.trim();
