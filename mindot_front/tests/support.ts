@@ -65,6 +65,17 @@ export async function mockApi(page: Page, resolver?: ApiResolver) {
         && request.method() === 'GET'
       ) {
         response = { body: { ...emptyPage, size: 3 } }
+      } else if (
+        /^\/api\/records\/\d+\/questions\/missing$/.test(url.pathname)
+        && request.method() === 'GET'
+      ) {
+        response = {
+          body: {
+            emotionRecordId: Number(url.pathname.split('/')[3]),
+            completionStatus: 'PARTIAL',
+            questions: [],
+          },
+        }
       } else if (url.pathname === '/api/patterns/recent') {
         response = { body: [] }
       } else if (url.pathname === '/api/consents/history') {
