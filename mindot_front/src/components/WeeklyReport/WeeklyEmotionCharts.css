@@ -1,0 +1,57 @@
+.weekly-scatter, .weekly-emotion-distributions { margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--mindot-border); }
+.weekly-scatter header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
+.weekly-scatter h2, .weekly-emotion-distributions h2 { font-size: 18px; margin: 0; }
+.weekly-scatter header > span, .weekly-chart-guide { color: var(--mindot-text-muted); font-size: 13px; line-height: 1.7; }
+.weekly-scatter-layout { display: grid; grid-template-columns: minmax(0, 75%) minmax(0, 25%); align-items: start; }
+.weekly-scatter-filter { min-width: 0; margin: 45px 0 0 14px; padding: 12px; border: 1px solid var(--mindot-border); border-radius: 12px; background: #f8faff; }
+.weekly-scatter-filter legend { float: none; width: auto; padding: 0 4px; margin: 0; font-size: 13px; font-weight: 700; }
+.weekly-scatter-filter-option { display: flex; align-items: center; gap: 7px; min-height: 44px; margin-top: 6px; padding: 6px 8px; border: 1px solid transparent; border-radius: 8px; font-size: 13px; cursor: pointer; }
+.weekly-scatter-filter-option input { accent-color: var(--mindot-primary); flex-shrink: 0; }
+.weekly-scatter-filter-option:has(input:checked) { background: #e9f1ff; border-color: #b5cdf5; }
+.weekly-scatter-filter-option.is-negative:has(input:checked) { background: #fff0f3; border-color: #ffb8c5; }
+.weekly-scatter-filter-option.is-negative input { accent-color: #ff7a90; }
+.weekly-scatter-filter-option.is-positive:has(input:checked) { background: #edf7ff; border-color: #a4d9ff; }
+.weekly-scatter-filter-option.is-positive input { accent-color: #45a9f8; }
+.weekly-scatter-filter-option:focus-within { outline: 2px solid var(--mindot-primary); outline-offset: 2px; }
+.weekly-scatter-filter p { margin: 12px 0 0; color: var(--mindot-text-muted); font-size: 11px; line-height: 1.7; overflow-wrap: anywhere; }
+.weekly-scatter-frame { position: relative; padding: 40px 22px 22px 55px; margin-top: 15px; }
+.weekly-scatter-days { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 24px; text-align: center; font-size: 14px; font-weight: 600; }
+.weekly-scatter-times { position: absolute; left: 0; top: 85px; bottom: 22px; width: 43px; font-size: 11px; color: var(--mindot-text-muted); }
+.weekly-scatter-times span { position: absolute; right: 0; transform: translateY(-50%); }
+.weekly-scatter-plot { position: relative; height: 360px; background: repeating-linear-gradient(to right, transparent 0%, transparent calc(100% / 7 - 1px), #e9ecf1 calc(100% / 7 - 1px), #e9ecf1 calc(100% / 7)); }
+.weekly-scatter-gridline { position: absolute; left: 0; right: 0; border-top: 1px dashed #dce2ea; pointer-events: none; }
+.weekly-scatter-hit { position: absolute; display: grid; place-items: center; width: 44px; height: 44px; transform: translate(-50%, -50%); padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; touch-action: manipulation; }
+.weekly-scatter-dot { display: block; box-sizing: border-box; border: 2px solid; border-radius: 50%; pointer-events: none; }
+.weekly-scatter-hit:hover, .weekly-scatter-hit:focus-visible { z-index: 2; outline: 2px solid var(--mindot-primary); background: #e6effa80; }
+.weekly-scatter-tooltip { position: absolute; z-index: 4; width: 220px; max-width: 100%; box-sizing: border-box; display: grid; gap: 5px; padding: 12px; border: 1px solid var(--mindot-border); border-radius: 10px; background: white; box-shadow: 0 6px 20px #26344d20; font-size: 12px; overflow-wrap: anywhere; }
+.weekly-scatter-tooltip > div { display: flex; justify-content: space-between; gap: 10px; }
+.weekly-scatter-tooltip button { min-height: 40px; border: 0; background: #edf3fb; color: var(--mindot-primary-strong); border-radius: 6px; padding: 0 10px; cursor: pointer; }
+.weekly-emotion-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 18px 0 12px; padding: 0; font-size: 13px; }
+.weekly-emotion-legend-heading { margin: 20px 0 0; font-size: 14px; }
+.weekly-emotion-legend li { display: flex; align-items: center; gap: 5px; overflow-wrap: anywhere; max-width: 100%; }
+.weekly-emotion-legend i, .weekly-scatter-records i { display: inline-block; flex-shrink: 0; width: 10px; height: 10px; border-radius: 50%; }
+.weekly-emotion-legend li > span { color: var(--mindot-text-muted); white-space: nowrap; }
+.weekly-scatter-records { padding: 14px; background: #f5f7fb; border-radius: 10px; font-size: 13px; }
+.weekly-scatter-records summary { cursor: pointer; line-height: 1.8; }
+.weekly-scatter-records ul { list-style: none; margin: 10px 0 0; padding: 0; max-height: 340px; overflow: auto; }
+.weekly-scatter-records li { display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--mindot-border); }
+.weekly-scatter-records button { flex: 1; min-height: 44px; padding: 10px 0; text-align: left; color: var(--mindot-text); border: 0; background: transparent; cursor: pointer; overflow-wrap: anywhere; }
+.weekly-scatter-records button span { display: block; color: var(--mindot-primary-strong); font-size: 12px; }
+.weekly-emotion-distribution-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 30px; }
+.weekly-stacked h3 { margin: 20px 0 14px; font-size: 15px; }
+.weekly-stacked ul { list-style: none; padding: 0; margin: 0; }
+.weekly-stacked li { margin-bottom: 16px; }
+.weekly-stacked-heading { display: flex; justify-content: space-between; font-size: 13px; }
+.weekly-stacked-track { height: 14px; margin-top: 7px; background: #f0f2f5; border-radius: 4px; overflow: hidden; }
+.weekly-stacked-bar { display: flex; height: 100%; }
+.weekly-stacked-counts { margin: 5px 0 0; font-size: 11px; line-height: 1.6; color: var(--mindot-text-muted); overflow-wrap: anywhere; }
+@media (max-width: 560px) {
+  .weekly-scatter-layout { display: flex; flex-direction: column; }
+  .weekly-scatter-frame { width: 100%; box-sizing: border-box; }
+  .weekly-scatter-filter { order: -1; width: 100%; box-sizing: border-box; margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 4px; padding: 8px; }
+  .weekly-scatter-filter-option { flex: 1; justify-content: center; gap: 4px; margin: 0; padding: 6px 2px; font-size: 12px; white-space: nowrap; }
+  .weekly-scatter-filter p { flex-basis: 100%; margin: 6px 4px 0; }
+  .weekly-emotion-distribution-grid { grid-template-columns: 1fr; gap: 4px; }
+  .weekly-scatter-frame { padding-right: 12px; padding-left: 42px; }
+  .weekly-scatter-times { width: 36px; font-size: 10px; }
+}

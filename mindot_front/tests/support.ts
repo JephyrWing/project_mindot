@@ -51,7 +51,9 @@ export async function mockApi(page: Page, resolver?: ApiResolver) {
     let response = overridden
 
     if (!response) {
-      if (url.pathname === '/api/notifications/unread-count') {
+      if (url.pathname === '/api/users/me' && request.method() === 'GET') {
+        response = { body: { timezone: 'Asia/Seoul' } }
+      } else if (url.pathname === '/api/notifications/unread-count') {
         response = { body: { unreadCount: 0 } }
       } else if (
         url.pathname === '/api/reflections/open'
@@ -179,6 +181,13 @@ export const weeklyReport = (overrides: Record<string, unknown> = {}) => ({
     },
   ],
   emotionRecordEvidences: [
+    {
+      emotionRecordId: 2,
+      occurredAt: '2026-09-14T01:30:00Z',
+      primaryEmotionCode: 'ANXIETY',
+      primaryIntensity: 6,
+      situationText: '회의 전',
+    },
     {
       emotionRecordId: 1,
       occurredAt: '2026-09-15T01:30:00Z',
