@@ -35,6 +35,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
 import java.util.Locale;
@@ -429,6 +430,182 @@ public class EmotionRecordsService {
             Long emotionRecordId
     ){
         return emotionRecordAiTransactionService.detailResponse(userId, emotionRecordId);
+    }
+
+    // PARTIAL 감정 기록에서 비어 있는 구조화 항목의 보완 질문 조회
+    @Transactional(readOnly = true)
+    public EmotionRecordMissingQuestionsResponseDto getMissingQuestions(
+            Long userId,
+            Long emotionRecordId
+    ) {
+        EmotionRecords emotionRecord = emotionRecordsRepository
+                .findByIdAndUser_Id(emotionRecordId, userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "감정 기록을 찾을 수 없습니다."
+                ));
+
+        if (emotionRecord.getCompletionStatus() == CompletionStatus.QUICK) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "AI 분석이 완료된 감정 기록만 보완 질문을 조회할 수 있습니다."
+            );
+        }
+
+        List<EmotionRecordMissingQuestionsResponseDto.MissingQuestion>
+                questions = new ArrayList<>();
+
+        if (emotionRecord.getCompletionStatus() == CompletionStatus.PARTIAL) {
+            addMissingQuestion(
+                    questions,
+                    isBlank(emotionRecord.getSituationText()),
+                    "situationText",
+                    "어떤 상황에서 이런 감정을 느꼈나요?",
+                    false
+            );
+            addMissingQuestion(
+                    questions,
+                    isBlank(emotionRecord.getAutomaticThought()),
+                    "automaticThought",
+                    "그때 자동으로 떠오른 생각은 무엇이었나요?",
+                    false
+            );
+            addMissingQuestion(
+                    questions,
+                    isBlank(emotionRecord.getPrimaryEmotionCode()),
+                    "primaryEmotionCode",
+                    "그때 가장 크게 느낀 감정은 무엇이었나요?",
+                    true
+            );
+            addMissingQuestion(
+                    questions,
+                    emotionRecord.getPrimaryIntensity() == null,
+                    "primaryIntensity",
+                    "그 감정의 강도는 0부터 10 중 어느 정도였나요?",
+                    false
+            );
+            addMissingQuestion(
+                    questions,
+                    isBlank(emotionRecord.getContextCategory()),
+                    "contextCategory",
+                    "이 상황은 어떤 종류에 가까운가요?",
+                    false
+            );
+            addMissingQuestion(
+                    questions,
+                    isBlank(emotionRecord.getRelatedPersonType()),
+                    "relatedPersonType",
+                    "이 상황과 관련된 사람이 있었나요?",
+                    false
+            );
+            addMissingQuestion(
+                    questions,
+                    isMissingDetail(
+                            emotionRecord.getDetails(),
+                            "bodyReaction"
+                    ),
+                    "bodyReaction",
+                    "그때 몸에서 느껴진 반응이 있었나요?",
+                    false
+            );
+            addMissingQuestion(
+                    questions,
+                    isMissingDetail(
+                            emotionRecord.getDetails(),
+                            "behavior"
+                    ),
+                    "behavior",
+                    "그때 어떻게 행동했나요?",
+                    false
+            );
+        }
+
+        return new EmotionRecordMissingQuestionsResponseDto(
+                emotionRecord.getId(),
+                emotionRecord.getCompletionStatus().name(),
+                List.copyOf(questions)
+        );
+    }
+
+    // 사용자가 AI 구조화 제안을 거절하면 원문을 제외한 제안값 제거
+    @Transactional
+    public EmotionRecordsDetailResponseDto rejectEmotionRecordAnalysis(
+            Long userId,
+            Long emotionRecordId
+    ) {
+        EmotionRecords emotionRecord = emotionRecordsRepository
+                .findLockedById(emotionRecordId)
+                .filter(record -> record.getUser().getId().equals(userId))
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "감정 기록을 찾을 수 없습니다."
+                ));
+
+        if (emotionRecord.getCompletionStatus() != CompletionStatus.PARTIAL) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "거절할 수 있는 AI 제안 상태가 아닙니다."
+            );
+        }
+
+        if (reflectionSessionsRepository
+                .existsByEmotionRecord_Id(emotionRecordId)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "CBT가 시작된 기록의 AI 제안은 거절할 수 없습니다."
+            );
+        }
+
+        emotionRecord.rejectAiAnalysis();
+        reportCacheInvalidationService.invalidateByOccurredAt(
+                userId,
+                emotionRecord.getOccurredAt()
+        );
+
+        return EmotionRecordsDetailResponseDto.from(
+                emotionRecord,
+                safetyEventsService.getLatestSafetyNotice(emotionRecordId),
+                "REJECTED",
+                false,
+                false
+        );
+    }
+
+    private void addMissingQuestion(
+            List<EmotionRecordMissingQuestionsResponseDto.MissingQuestion>
+                    questions,
+            boolean missing,
+            String fieldName,
+            String question,
+            boolean required
+    ) {
+        if (missing) {
+            questions.add(
+                    new EmotionRecordMissingQuestionsResponseDto
+                            .MissingQuestion(
+                            fieldName,
+                            question,
+                            required
+                    )
+            );
+        }
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    private boolean isMissingDetail(
+            java.util.Map<String, Object> details,
+            String key
+    ) {
+        if (details == null) {
+            return true;
+        }
+
+        Object value = details.get(key);
+        return value == null
+                || value instanceof String text && text.isBlank();
     }
 
     // 사용자가 AI 구조화 결과를 수정, 확정

@@ -132,6 +132,19 @@ public class EmotionRecordsController {
         );
     }
 
+    // PARTIAL 감정 기록에서 누락된 구조화 항목의 보완 질문 조회 API
+    @GetMapping("/{emotionRecordId}/questions/missing")
+    public EmotionRecordMissingQuestionsResponseDto
+    getMissingQuestions(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long emotionRecordId
+    ) {
+        return emotionRecordsService.getMissingQuestions(
+                userId,
+                emotionRecordId
+        );
+    }
+
     // 현재 감정 기록과 유사한 완료 CBT를 기반으로 패턴 설명 생성하는 API
     @PostMapping("/{emotionRecordId}/pattern-explanation")
     public  PatternExplanationResponseDto explainPattern(
@@ -151,6 +164,18 @@ public class EmotionRecordsController {
             @PathVariable Long emotionRecordId
     ){
         return  emotionRecordsService.reanalyzeEmotionRecord(
+                userId,
+                emotionRecordId
+        );
+    }
+
+    // AI 구조화 제안을 거절하고 사용자가 작성한 원문만 유지하는 API
+    @PostMapping("/{emotionRecordId}/reject")
+    public EmotionRecordsDetailResponseDto rejectEmotionRecordAnalysis(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long emotionRecordId
+    ) {
+        return emotionRecordsService.rejectEmotionRecordAnalysis(
                 userId,
                 emotionRecordId
         );

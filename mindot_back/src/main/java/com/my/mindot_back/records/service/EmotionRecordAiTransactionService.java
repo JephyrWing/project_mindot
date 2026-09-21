@@ -67,6 +67,9 @@ public class EmotionRecordAiTransactionService {
             );
         }
 
+        // 새 분석 요청부터는 이전 제안 거절 상태를 더 이상 노출하지 않음
+        record.resetAiAnalysisRejection();
+
         return context(
                 record,
                 newJob(
@@ -123,7 +126,8 @@ public class EmotionRecordAiTransactionService {
         var job = latest(record);
         expire(job);
         // Legacy QUICK records without a job can be explicitly reanalyzed.
-        String status = record.getCompletionStatus() != CompletionStatus.QUICK ? "COMPLETED"
+        String status = record.isAiAnalysisRejected() ? "REJECTED"
+                : record.getCompletionStatus() != CompletionStatus.QUICK ? "COMPLETED"
                 : job == null ? "FAILED" : job.getStatus().name();
         return EmotionRecordsDetailResponseDto.from(record,
                 safetyEventsService.getLatestSafetyNotice(recordId), status,

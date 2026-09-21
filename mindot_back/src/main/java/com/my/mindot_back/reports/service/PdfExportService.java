@@ -373,12 +373,12 @@ public class PdfExportService {
             writeCbtTextIfPresent(writer,"처음 생각",reflectionSession.confirmedBeforeText());
             var confirmed=reflectionSession.confirmedInsight();
             if(confirmed!=null) {
-                writeCbtTextIfPresent(writer,"생각을 수정한 이유",(String)confirmed.get("comparisonExplanation"));
-                @SuppressWarnings("unchecked") var suggestions=(List<Map<String,Object>>)confirmed.get("suggestions");
-                for(var suggestion:suggestions) {
-                    String code=(String)suggestion.get("code");
-                    writeCbtTextIfPresent(writer,code+(reflectionSession.confirmedInsightCodes().contains(code)?" (수락)":" (거부)"),(String)suggestion.get("explanation"));
-                }
+                writeCbtTextIfPresent(
+                        writer,
+                        "생각을 수정한 이유",
+                        stringValue(confirmed.get("comparisonExplanation"))
+                );
+                writeConfirmedSuggestions(writer, confirmed);
             }
             writer.writeLine(
                     "같은 처음 생각에 대한 확신도: "
@@ -420,6 +420,74 @@ public class PdfExportService {
         }
     }
 
+    // CBT 결과 형식이 달라도 유효한 제안만 PDF에 포함
+    private void writeConfirmedSuggestions(
+            PdfPageWriter writer,
+            Map<String, Object> confirmed
+    ) throws IOException {
+        Set<String> confirmedCodes = confirmedCodes(
+                confirmed.get("reviews")
+        );
+        Object suggestionsValue = confirmed.get("suggestions");
+
+        if (!(suggestionsValue instanceof List<?> suggestions)) {
+            return;
+        }
+
+        for (Object suggestionValue : suggestions) {
+            if (!(suggestionValue instanceof Map<?, ?> suggestion)) {
+                continue;
+            }
+
+            String code = stringValue(suggestion.get("code"));
+            String explanation = stringValue(
+                    suggestion.get("explanation")
+            );
+
+            if (code == null || code.isBlank()) {
+                continue;
+            }
+
+            writeCbtTextIfPresent(
+                    writer,
+                    code + (confirmedCodes.contains(code)
+                            ? " (수락)"
+                            : " (거부)"),
+                    explanation
+            );
+        }
+    }
+
+    // 사용자 검토 목록에서 수락한 인지왜곡 코드만 안전하게 추출
+    private Set<String> confirmedCodes(Object reviewsValue) {
+        if (!(reviewsValue instanceof List<?> reviews)) {
+            return Set.of();
+        }
+
+        java.util.HashSet<String> codes = new java.util.HashSet<>();
+
+        for (Object reviewValue : reviews) {
+            if (!(reviewValue instanceof Map<?, ?> review)) {
+                continue;
+            }
+
+            String code = stringValue(review.get("code"));
+            String reviewStatus = stringValue(
+                    review.get("reviewStatus")
+            );
+
+            if (code != null && "CONFIRMED".equals(reviewStatus)) {
+                codes.add(code);
+            }
+        }
+
+        return Set.copyOf(codes);
+    }
+
+    private String stringValue(Object value) {
+        return value instanceof String text ? text : null;
+    }
+
     // 점수가 없는 경우 PDF에 "-"로 표시
     private String scoreOrDash(
             Short score
@@ -434,6 +502,10 @@ public class PdfExportService {
     ) throws IOException {
         writer.writeAccentLine("대화 전체", 11f);
         writer.addSpace(4f);
+
+        if (questionAnswers == null) {
+            return;
+        }
 
         for (Map<String, Object> questionAnswer : questionAnswers) {
             if(questionAnswer.get("content") instanceof String content && questionAnswer.get("role") instanceof String role) {
