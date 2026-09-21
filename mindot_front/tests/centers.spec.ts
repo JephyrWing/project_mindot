@@ -47,6 +47,38 @@ test.describe('FE-AUTO-027: 기관 검색', () => {
     await expect(page.getByRole('button', { name: '기관 검색하기' })).toBeDisabled()
   })
 
+  test('성공: 전국 17개 시·도와 대구의 하위 지역을 선택할 수 있다', async ({ page }) => {
+    const regionOptions = await page
+      .locator('#center-region option:not([disabled])')
+      .allTextContents()
+
+    expect(regionOptions).toHaveLength(17)
+    expect(regionOptions).toEqual(expect.arrayContaining([
+      '서울특별시',
+      '부산광역시',
+      '대구광역시',
+      '인천광역시',
+      '광주광역시',
+      '대전광역시',
+      '울산광역시',
+      '세종특별자치시',
+      '경기도',
+      '강원특별자치도',
+      '충청북도',
+      '충청남도',
+      '전북특별자치도',
+      '전라남도',
+      '경상북도',
+      '경상남도',
+      '제주특별자치도',
+    ]))
+
+    await page.locator('#center-region').selectOption('대구광역시')
+    await expect(page.locator('#center-district')).toContainText('중구')
+    await page.locator('#center-district').selectOption('중구')
+    await expect(page.locator('#center-town')).toContainText('동인동')
+  })
+
   test('경계: 상위 지역을 바꾸면 하위 지역 선택을 초기화한다', async ({ page }) => {
     await selectCenterConditions(page)
     await page.locator('#center-region').selectOption('경기도')
