@@ -183,7 +183,7 @@ for (const path of ['/records', '/daily-care', '/reports/weekly', '/reports/mont
       if (url.pathname === '/api/reports/weekly') return { body: weeklyReport({ dominantEmotionCode: custom, emotionCounts: { [custom]: 2, ANXIETY: 1 } }) }
       if (url.pathname === '/api/reports/monthly') return { body: monthlyReport('2026-09', { dominantEmotionCode: custom, emotionCounts: { [custom]: 2, ANXIETY: 1 } }) }
     })
-    await page.goto(path)
+    await page.goto(path === '/reports/weekly' ? `${path}?weekStart=2026-09-14` : path)
     await expect(page.getByText(custom, { exact: true }).first()).toBeVisible()
   })
 }

@@ -435,10 +435,10 @@
   line-height: 1.6;
 }
 
-/* 월간 리포트와 같은 다섯 열 구분선 구조의 주간 요약 설정. */
+/* 월간 리포트와 같은 네 열 구분선 구조의 주간 요약 설정. */
 .weekly-report-summary {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   margin: 18px 0 0;
   border-top: 1px solid var(--mindot-border);
   border-bottom: 1px solid var(--mindot-border);
@@ -1027,14 +1027,10 @@
     row-gap: 18px;
   }
 
-  .weekly-report-summary div:nth-child(3),
-  .weekly-report-summary div:nth-child(5) {
+  .weekly-report-summary div:nth-child(3) {
     border-left: 0;
   }
 
-  .weekly-report-summary div:nth-child(5) {
-    grid-column: 1 / -1;
-  }
 
   .weekly-report-graph-bars {
     gap: 6px;

@@ -1,3 +1,5 @@
+import { isWeekStart } from '../reports/weeklyReportData.js'
+
 // URL에서 사용하는 숫자 식별자를 유효한 양의 정수로 변환.
 const parseIdentifier = (value) => {
   if (!/^\d+$/.test(value ?? '')) return null
@@ -19,6 +21,8 @@ const normalizePathname = (pathname) => {
 export const readAppRoute = () => {
   const pathname = normalizePathname(window.location.pathname)
   const searchParams = new URLSearchParams(window.location.search)
+  const weekStart = isWeekStart(searchParams.get('weekStart')) ? searchParams.get('weekStart') : null
+  const returnWeek = isWeekStart(searchParams.get('returnWeek')) ? searchParams.get('returnWeek') : null
   const emotionRecordMatch = pathname.match(/^\/records\/(\d+)$/)
   const cbtSessionMatch = pathname.match(/^\/cbt\/sessions\/(\d+)$/)
   const completedReflectionMatch = pathname.match(/^\/reflections\/(\d+)$/)
@@ -43,6 +47,7 @@ export const readAppRoute = () => {
     return {
       page: 'emotion-record-detail',
       emotionRecordId: parseIdentifier(emotionRecordMatch[1]),
+      returnWeek,
     }
   }
   if (cbtSessionMatch) {
@@ -57,12 +62,13 @@ export const readAppRoute = () => {
       emotionRecordId: parseIdentifier(searchParams.get('emotionRecordId')),
     }
   }
-  if (pathname === '/reports/weekly') return { page: 'weekly-report' }
+  if (pathname === '/reports/weekly') return { page: 'weekly-report', weekStart }
   if (pathname === '/reports/monthly') return { page: 'monthly-report' }
   if (completedReflectionMatch) {
     return {
       page: 'completed-reflection',
       reflectionSessionId: parseIdentifier(completedReflectionMatch[1]),
+      returnWeek,
     }
   }
   if (pathname === '/centers') return { page: 'center' }
@@ -78,6 +84,7 @@ export const readAppRoute = () => {
 export const createAppPath = (page, parameters = {}) => {
   const emotionRecordId = parseIdentifier(String(parameters.emotionRecordId ?? ''))
   const reflectionSessionId = parseIdentifier(String(parameters.reflectionSessionId ?? ''))
+  const returnQuery = isWeekStart(parameters.returnWeek) ? `?returnWeek=${parameters.returnWeek}` : ''
 
   if (page === 'login') return '/login'
   if (page === 'signup') return '/signup'
@@ -95,7 +102,7 @@ export const createAppPath = (page, parameters = {}) => {
   if (page === 'emotion-record') return '/records/new'
   if (page === 'emotion-history') return '/records'
   if (page === 'emotion-record-detail' && emotionRecordId) {
-    return `/records/${emotionRecordId}`
+    return `/records/${emotionRecordId}${returnQuery}`
   }
   if (page === 'cbt' && reflectionSessionId) {
     return `/cbt/sessions/${reflectionSessionId}`
@@ -104,10 +111,10 @@ export const createAppPath = (page, parameters = {}) => {
     return `/cbt?emotionRecordId=${emotionRecordId}`
   }
   if (page === 'cbt') return '/cbt'
-  if (page === 'weekly-report') return '/reports/weekly'
+  if (page === 'weekly-report') return `/reports/weekly${isWeekStart(parameters.weekStart) ? `?weekStart=${parameters.weekStart}` : ''}`
   if (page === 'monthly-report') return '/reports/monthly'
   if (page === 'completed-reflection' && reflectionSessionId) {
-    return `/reflections/${reflectionSessionId}`
+    return `/reflections/${reflectionSessionId}${returnQuery}`
   }
   if (page === 'center') return '/centers'
   if (page === 'breathing') return '/daily-care/breathing'
