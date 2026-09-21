@@ -582,7 +582,7 @@ gradle-app.setting
 # Local project documentation
 /docs/
 
-/mindot_ai/tests/
+/mindot_ai/tests/cbt_test/
 
 /mindot_ai/.idea/
 
