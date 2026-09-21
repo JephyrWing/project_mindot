@@ -171,6 +171,14 @@ function Sidebar({
           <button type="button" onClick={() => moveToPage(onCenter)}>
             관련 기관 찾기
           </button>
+          {/* 로그인 여부와 관계없이 확인할 수 있는 서비스·정책 문서 링크. */}
+          <div className="main-sidebar__policy-links">
+            <span>서비스 안내</span>
+            <a href="/about" onClick={() => setIsOpen(false)}>MINDOT 소개</a>
+            <a href="/terms" onClick={() => setIsOpen(false)}>이용약관</a>
+            <a href="/privacy" onClick={() => setIsOpen(false)}>개인정보 처리방침</a>
+            <a href="/about/research" onClick={() => setIsOpen(false)}>연구 근거·AI 한계</a>
+          </div>
           {/* 관리자 권한이 확인된 로그인 사용자에게만 관리자 화면 링크 표시. */}
           {hasAdminRole && (
             <a href="/admin" onClick={() => setIsOpen(false)}>

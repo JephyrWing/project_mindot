@@ -23,6 +23,7 @@ import AccessDeniedModal from './components/AccessDeniedModal/AccessDeniedModal.
 import OAuthCallback from './components/OAuthCallback/OAuthCallback.jsx'
 import Settings from './components/Settings/Settings.jsx'
 import ScrollToTop from './components/ScrollToTop/ScrollToTop.jsx'
+import ServiceInfo from './components/ServiceInfo/ServiceInfo.jsx'
 import { logout } from './utils/auth/authApi.js'
 import {
   clearAuthSession,
@@ -569,6 +570,23 @@ function App() {
         onCenter={() => moveToPage('center')}
         onDailyCare={() => moveToProtectedPage('daily-care')}
         onWithdrawalSuccess={handleWithdrawalSuccess}
+        onHome={moveToMain}
+      />
+    )
+  } else if (['about', 'terms', 'privacy', 'research'].includes(currentPage)) {
+    // 로그인 여부와 관계없이 확인할 수 있는 서비스·정책 안내 화면 렌더링.
+    currentPageContent = (
+      <ServiceInfo
+        pageType={currentPage}
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={() => moveToPage('login')}
+        onLogout={handleLogout}
+        onSignUp={() => moveToPage('signup')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onCenter={() => moveToPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
+        onNavigate={(page) => moveToPage(page)}
         onHome={moveToMain}
       />
     )

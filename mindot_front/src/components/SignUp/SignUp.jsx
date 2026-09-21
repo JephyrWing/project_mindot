@@ -392,6 +392,10 @@ function SignUp({ onSignUpSuccess, onHome }) {
               <span>AI 분석 동의</span>
             </label>
           </fieldset>
+          <p className="signup-consent-documents">
+            가입 전에 <a href="/terms" target="_blank" rel="noreferrer">이용약관</a>과{' '}
+            <a href="/privacy" target="_blank" rel="noreferrer">개인정보 처리방침</a>을 확인해 주세요.
+          </p>
 
           {/* 회원가입 요청 실패 시 사용자 안내 문구 표시. */}
           {signUpError && (

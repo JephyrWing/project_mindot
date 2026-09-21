@@ -182,6 +182,23 @@
   cursor: not-allowed;
 }
 
+/* 가입 동의 전에 약관과 개인정보 처리방침을 별도 창에서 확인하는 링크. */
+.signup-consent-documents {
+  margin: -2px 0 0;
+  color: var(--mindot-text-muted);
+  font-size: 12px;
+}
+
+.signup-consent-documents a {
+  color: var(--mindot-primary-strong);
+  font-weight: 600;
+}
+
+.signup-consent-documents a:focus-visible {
+  outline: 3px solid var(--mindot-primary-line);
+  outline-offset: 2px;
+}
+
 /* 회원가입 제출 버튼의 크기와 핵심 파란색 설정. */
 .signup-form > button {
   min-height: 48px;
