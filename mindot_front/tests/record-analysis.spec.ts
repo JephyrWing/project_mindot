@@ -98,6 +98,60 @@ test.describe('FE-AUTO-009: 감정 분석 편집', () => {
     await expect(page.getByText('수정한 분석 결과를 최종 확정했습니다.')).toBeVisible()
     await expect(page.getByText('사용자 확정값')).toBeVisible()
   })
+
+  test('성공: AI 제안을 거절하고 원문만 간편 기록으로 유지한다', async ({ page }) => {
+    let rejectCalls = 0
+    let confirmCalls = 0
+    await mockApi(page, (request, url) => {
+      if (url.pathname === '/api/records/1' && request.method() === 'GET') {
+        return { body: partialRecord }
+      }
+      if (url.pathname === '/api/records/1/reject' && request.method() === 'POST') {
+        rejectCalls += 1
+        return {
+          body: completeRecord({
+            completionStatus: 'QUICK',
+            analysisStatus: 'REJECTED',
+            situationText: null,
+            automaticThought: null,
+            primaryEmotionCode: null,
+            primaryIntensity: null,
+            secondaryEmotions: [],
+            contextCategory: null,
+            relatedPersonType: null,
+            details: {},
+          }),
+        }
+      }
+      if (url.pathname === '/api/records/1/confirm') {
+        confirmCalls += 1
+      }
+    })
+
+    await page.goto('/records/1')
+    await page.getByRole('button', { name: 'AI 제안 거절하기' }).click()
+
+    await expect(page.getByText('AI 제안을 거절했습니다. 작성한 원문은 그대로 저장됩니다.')).toBeVisible()
+    await expect(page.getByText('제안 거절됨')).toBeVisible()
+    await expect(page.getByRole('button', { name: '다시 분석하기' })).toBeVisible()
+    await expect(page.getByText(partialRecord.rawText)).toBeVisible()
+    expect(rejectCalls).toBe(1)
+    expect(confirmCalls).toBe(0)
+  })
+
+  test('오류: AI 제안 거절 실패를 안내하고 제안 편집 화면을 유지한다', async ({ page }) => {
+    await mockApi(page, (request, url) => {
+      if (url.pathname === '/api/records/1' && request.method() === 'GET') return { body: partialRecord }
+      if (url.pathname === '/api/records/1/reject') return { status: 503, body: {} }
+    })
+
+    await page.goto('/records/1')
+    await page.getByRole('button', { name: 'AI 제안 거절하기' }).click()
+
+    await expect(page.getByRole('alert')).toContainText('AI 제안을 거절하지 못했습니다')
+    await expect(page.getByRole('button', { name: 'AI 제안 거절하기' })).toBeVisible()
+    await expect(page.getByRole('button', { name: '수정한 결과 확정하기' })).toBeVisible()
+  })
 })
 
 

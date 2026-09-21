@@ -9,6 +9,7 @@ import {
   confirmEmotionRecord,
   deleteEmotionRecord,
   getEmotionRecordDetail,
+  rejectEmotionRecordAnalysis,
   reanalyzeEmotionRecord,
   updateEmotionRecord,
 } from '../../utils/records/recordsApi.js'
@@ -169,6 +170,24 @@ const getConfirmErrorMessage = (error) => {
   return '분석 결과를 확정하지 못했습니다. 잠시 후 다시 시도해 주세요.'
 }
 
+// AI 분석 제안 거절 API 오류 상태에 따른 사용자 안내 문구 반환.
+const getRejectErrorMessage = (error) => {
+  if (!error.response) {
+    return '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
+  }
+  if (error.response.status === 401) {
+    return '로그인 정보가 만료되었습니다. 다시 로그인해 주세요.'
+  }
+  if (error.response.status === 404) {
+    return '거절할 감정 기록을 찾을 수 없습니다.'
+  }
+  if (error.response.status === 409) {
+    return '이미 처리되었거나 현재 거절할 수 없는 AI 제안입니다. 새로고침 후 확인해 주세요.'
+  }
+
+  return 'AI 제안을 거절하지 못했습니다. 잠시 후 다시 시도해 주세요.'
+}
+
 // 감정 기록 재분석 API 오류 상태에 따른 사용자 안내 문구 반환.
 const getReanalysisErrorMessage = (error) => {
   if (!error.response) {
@@ -209,6 +228,7 @@ function EmotionRecordDetail({
 }) {
   const analysisRef = useRef(null)
   const confirming = useRef(false)
+  const rejecting = useRef(false)
   const reanalyzing = useRef(false)
   const focused = useRef(false)
   const [safetyNotice, setSafetyNotice] = useState(initialSavedRecord?.safetyNotice ?? null)
@@ -242,6 +262,9 @@ function EmotionRecordDetail({
   const [isEditing, setIsEditing] = useState(false)
   // 분석 결과 확정 API 요청 진행 여부 상태 설정.
   const [isConfirmingAnalysis, setIsConfirmingAnalysis] = useState(false)
+  // AI 분석 제안 거절 API 요청 진행 여부 상태 설정.
+  const [isRejectingAnalysis, setIsRejectingAnalysis] = useState(false)
+  const isAnalysisActionPending = isConfirmingAnalysis || isRejectingAnalysis
   // 분석 결과 확정 성공 또는 실패 안내 상태 설정.
   const [analysisMessage, setAnalysisMessage] = useState('')
   // 분석 결과 확정 실패 여부 상태 설정.
@@ -252,7 +275,8 @@ function EmotionRecordDetail({
   const [reanalysisMessage, setReanalysisMessage] = useState('')
   const [isReanalysisError, setIsReanalysisError] = useState(false)
   const patternExplanation = useRecordPatternExplanation(emotionRecordId, record,
-    !isLoading && !loadError && !isEditing && !isConfirmingAnalysis && !isDeleting && !safetyNotice
+    !isLoading && !loadError && !isEditing && !isConfirmingAnalysis && !isRejectingAnalysis
+      && !isDeleting && !safetyNotice
       && (record?.safetyNotice ?? initialSavedRecord?.safetyNotice)?.actionCode !== 'SHOW_CRISIS_NOTICE')
   const patternNoticeRef = useRef(null)
   const announcedPattern = useRef(null)
@@ -412,7 +436,7 @@ function EmotionRecordDetail({
   // 사용자가 수정한 AI 분석 결과의 유효성을 확인하고 최종 확정 요청.
   const handleAnalysisConfirm = async (event) => {
     event.preventDefault()
-    if (confirming.current || record.cbtStarted) return
+    if (confirming.current || rejecting.current || record.cbtStarted) return
     if (isEditing && !analysisForm.rawText.trim()) {
       setAnalysisMessage('기록 원문을 입력해 주세요.')
       setIsAnalysisError(true)
@@ -509,6 +533,29 @@ function EmotionRecordDetail({
     } finally {
       confirming.current = false
       setIsConfirmingAnalysis(false)
+    }
+  }
+
+  // AI가 제안한 구조화 값은 사용하지 않고 작성한 원문만 간편 기록으로 유지한다.
+  const handleAnalysisReject = async () => {
+    if (rejecting.current || confirming.current || record.cbtStarted) return
+    rejecting.current = true
+    setIsRejectingAnalysis(true)
+    setAnalysisMessage('')
+    setIsAnalysisError(false)
+
+    try {
+      const rejectedRecord = await rejectEmotionRecordAnalysis(emotionRecordId)
+
+      setRecord(rejectedRecord)
+      setAnalysisForm(createAnalysisForm(rejectedRecord))
+      setAnalysisMessage('AI 제안을 거절했습니다. 작성한 원문은 그대로 저장됩니다.')
+    } catch (error) {
+      setAnalysisMessage(getRejectErrorMessage(error))
+      setIsAnalysisError(true)
+    } finally {
+      rejecting.current = false
+      setIsRejectingAnalysis(false)
     }
   }
 
@@ -713,11 +760,15 @@ function EmotionRecordDetail({
                   <p>
                     {record.completionStatus === 'COMPLETE'
                       ? '사용자가 확인하고 확정한 최종 분석 결과입니다.'
+                      : record.analysisStatus === 'REJECTED'
+                        ? 'AI 제안은 거절되었으며 작성한 원문만 저장되어 있습니다.'
                       : 'AI가 원문을 바탕으로 제안한 결과를 확인해 주세요.'}
                   </p>
                 </div>
                 <strong className={`emotion-detail-analysis-source is-${record.completionStatus?.toLowerCase()}`}>
-                  {record.completionStatus === 'COMPLETE' ? '사용자 확정값' : 'AI 제안'}
+                  {record.completionStatus === 'COMPLETE'
+                    ? '사용자 확정값'
+                    : record.analysisStatus === 'REJECTED' ? '제안 거절됨' : 'AI 제안'}
                 </strong>
               </div>
 
@@ -741,7 +792,23 @@ function EmotionRecordDetail({
                 </div>
               )}
 
-              {record.completionStatus === 'QUICK' && record.analysisStatus !== 'FAILED' && (
+              {record.completionStatus === 'QUICK' && record.analysisStatus === 'REJECTED' && (
+                <div className="emotion-detail-reanalysis">
+                  <p>
+                    작성한 원문은 그대로 저장되어 있습니다. 필요하면 AI 분석을 다시 요청할 수 있습니다.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleReanalysis}
+                    disabled={isReanalyzing || isDeleting}
+                  >
+                    {isReanalyzing ? '다시 분석하는 중' : '다시 분석하기'}
+                  </button>
+                </div>
+              )}
+
+              {record.completionStatus === 'QUICK'
+                && !['FAILED', 'REJECTED'].includes(record.analysisStatus) && (
                 <div className="emotion-detail-reanalysis" role="status">
                   <p>{analysisPending
                     ? '원문은 저장되었습니다. AI 분석 중이며 완료 상태를 자동으로 확인합니다.'
@@ -774,13 +841,13 @@ function EmotionRecordDetail({
                     <span>날짜와 시간</span>
                     <input type="datetime-local" value={occurredAtInput} required
                       max={getCurrentDateTimeLocalValue()} step="60"
-                      disabled={isConfirmingAnalysis || isDeleting}
+                      disabled={isAnalysisActionPending || isDeleting}
                       onChange={(event) => setOccurredAtInput(event.target.value)} />
                   </label>}
                   {isEditing && <label className="emotion-detail-analysis-wide">
                     <span>기록 원문</span>
                     <textarea name="rawText" rows="4" required value={analysisForm.rawText}
-                      disabled={isConfirmingAnalysis || isDeleting} onChange={handleAnalysisFieldChange} />
+                      disabled={isAnalysisActionPending || isDeleting} onChange={handleAnalysisFieldChange} />
                   </label>}
                   <label className="emotion-detail-analysis-wide">
                     <span>상황</span>
@@ -788,7 +855,7 @@ function EmotionRecordDetail({
                       name="situationText"
                       rows="3"
                       value={analysisForm.situationText}
-                      disabled={isConfirmingAnalysis || isDeleting}
+                      disabled={isAnalysisActionPending || isDeleting}
                       onChange={handleAnalysisFieldChange}
                     />
                   </label>
@@ -800,7 +867,7 @@ function EmotionRecordDetail({
                       maxLength={MAX_AUTOMATIC_THOUGHT_LENGTH}
                       rows="3"
                       value={analysisForm.automaticThought}
-                      disabled={isConfirmingAnalysis || isDeleting}
+                      disabled={isAnalysisActionPending || isDeleting}
                       onChange={handleAnalysisFieldChange}
                     />
                   </label>
@@ -811,7 +878,7 @@ function EmotionRecordDetail({
                       name="primaryEmotionCode"
                       value={analysisForm.primaryEmotionCode}
                       required
-                      disabled={isConfirmingAnalysis || isDeleting}
+                      disabled={isAnalysisActionPending || isDeleting}
                       onChange={handleAnalysisFieldChange}
                     >
                       <option value="">감정 선택</option>
@@ -825,7 +892,7 @@ function EmotionRecordDetail({
                       <input aria-label="직접 입력 감정 이름" name="customEmotion"
                         value={analysisForm.customEmotion} maxLength={MAX_EMOTION_LENGTH} required
                         placeholder="감정 이름 (50자 이내)"
-                        disabled={isConfirmingAnalysis || isDeleting} onChange={handleAnalysisFieldChange} />
+                        disabled={isAnalysisActionPending || isDeleting} onChange={handleAnalysisFieldChange} />
                     )}
                   </label>
 
@@ -839,7 +906,7 @@ function EmotionRecordDetail({
                       step="1"
                       value={analysisForm.primaryIntensity}
                       placeholder="0~10"
-                      disabled={isConfirmingAnalysis || isDeleting}
+                      disabled={isAnalysisActionPending || isDeleting}
                       onChange={handleAnalysisFieldChange}
                     />
                   </label>
@@ -849,7 +916,7 @@ function EmotionRecordDetail({
                     <select
                       name="contextCategory"
                       value={analysisForm.contextCategory}
-                      disabled={isConfirmingAnalysis || isDeleting || !analysisForm.situationText.trim()}
+                      disabled={isAnalysisActionPending || isDeleting || !analysisForm.situationText.trim()}
                       onChange={handleAnalysisFieldChange}
                     >
                       <option value="">범주 선택</option>
@@ -864,7 +931,7 @@ function EmotionRecordDetail({
                     <select
                       name="relatedPersonType"
                       value={analysisForm.relatedPersonType}
-                      disabled={isConfirmingAnalysis || isDeleting}
+                      disabled={isAnalysisActionPending || isDeleting}
                       onChange={handleAnalysisFieldChange}
                     >
                       <option value="">해당 없음</option>
@@ -883,7 +950,7 @@ function EmotionRecordDetail({
                         <select
                           aria-label={`보조 감정 ${index + 1}`}
                           value={emotion.code}
-                          disabled={isConfirmingAnalysis || isDeleting}
+                          disabled={isAnalysisActionPending || isDeleting}
                           onChange={(event) => handleSecondaryEmotionChange(
                             index,
                             'code',
@@ -903,7 +970,7 @@ function EmotionRecordDetail({
                           step="1"
                           value={emotion.intensity}
                           placeholder="강도 0~10"
-                          disabled={isConfirmingAnalysis || isDeleting}
+                          disabled={isAnalysisActionPending || isDeleting}
                           onChange={(event) => handleSecondaryEmotionChange(
                             index,
                             'intensity',
@@ -912,7 +979,7 @@ function EmotionRecordDetail({
                         />
                         <button
                           type="button"
-                          disabled={isConfirmingAnalysis || isDeleting}
+                          disabled={isAnalysisActionPending || isDeleting}
                           onClick={() => handleSecondaryEmotionRemove(index)}
                         >
                           삭제
@@ -922,7 +989,7 @@ function EmotionRecordDetail({
                     <button
                       className="emotion-detail-secondary-add"
                       type="button"
-                      disabled={isConfirmingAnalysis || isDeleting}
+                      disabled={isAnalysisActionPending || isDeleting}
                       onClick={handleSecondaryEmotionAdd}
                     >
                       보조 감정 추가
@@ -935,7 +1002,7 @@ function EmotionRecordDetail({
                       name="bodyReaction"
                       rows="3"
                       value={analysisForm.bodyReaction}
-                      disabled={isConfirmingAnalysis || isDeleting}
+                      disabled={isAnalysisActionPending || isDeleting}
                       onChange={handleAnalysisFieldChange}
                     />
                   </label>
@@ -946,23 +1013,31 @@ function EmotionRecordDetail({
                       name="behavior"
                       rows="3"
                       value={analysisForm.behavior}
-                      disabled={isConfirmingAnalysis || isDeleting}
+                      disabled={isAnalysisActionPending || isDeleting}
                       onChange={handleAnalysisFieldChange}
                     />
                   </label>
 
                   <div className="emotion-detail-edit-actions">
-                    {isEditing && <button className="emotion-detail-edit-cancel" type="button" disabled={isConfirmingAnalysis || isDeleting}
+                    {isEditing && <button className="emotion-detail-edit-cancel" type="button" disabled={isAnalysisActionPending || isDeleting}
                       onClick={() => {
                         setIsEditing(false)
                         setAnalysisForm(createAnalysisForm(record))
                         setOccurredAtInput(toDateTimeLocalValue(record.occurredAt))
                         setAnalysisMessage('')
                       }}>수정 취소</button>}
+                    {!isEditing && <button
+                      className="emotion-detail-analysis-reject"
+                      type="button"
+                      disabled={isAnalysisActionPending || isDeleting}
+                      onClick={handleAnalysisReject}
+                    >
+                      {isRejectingAnalysis ? '거절 중' : 'AI 제안 거절하기'}
+                    </button>}
                     <button
                       className="emotion-detail-analysis-confirm"
                       type="submit"
-                      disabled={isConfirmingAnalysis || isDeleting}
+                      disabled={isAnalysisActionPending || isDeleting}
                     >
                       {isConfirmingAnalysis ? '저장 중' : isEditing ? '수정 내용 저장하기' : '수정한 결과 확정하기'}
                     </button>

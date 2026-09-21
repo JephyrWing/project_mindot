@@ -35,6 +35,14 @@ export const createRecordsApi = (client) => ({
 
     return data
   },
+  // AI가 제안한 구조화 결과를 거절하고 사용자의 원문만 유지하는 처리.
+  rejectEmotionRecordAnalysis: async (emotionRecordId) => {
+    const { data } = await client.post(
+      `/api/records/${emotionRecordId}/reject`,
+    )
+
+    return data
+  },
   // AI 분석에 실패하여 간편 기록 상태로 남은 감정 기록의 재분석을 요청하는 처리.
   reanalyzeEmotionRecord: async (emotionRecordId) => {
     const { data } = await client.post(
@@ -71,6 +79,7 @@ export const {
   searchEmotionRecordsSemantically,
   getEmotionRecordDetail,
   confirmEmotionRecord,
+  rejectEmotionRecordAnalysis,
   reanalyzeEmotionRecord,
   getEmotionRecordPatternExplanation,
   updateEmotionRecord,
