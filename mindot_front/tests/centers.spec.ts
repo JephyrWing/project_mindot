@@ -43,8 +43,18 @@ test.describe('FE-AUTO-027: 기관 검색', () => {
     await page.goto('/centers')
   })
 
-  test('경계: 검색 조건이 완전하지 않으면 검색 버튼을 비활성화한다', async ({ page }) => {
+  test('경계: 필수·선택 표시와 항상 활성화된 하위 지역 선택창을 제공한다', async ({ page }) => {
+    await expect(page.getByText('시·도 (필수)', { exact: true })).toBeVisible()
+    await expect(page.getByText('기관 유형 (필수)', { exact: true })).toBeVisible()
+    await expect(page.getByText('시·군·구 (선택)', { exact: true })).toBeVisible()
+    await expect(page.getByText('읍·면·동 (선택)', { exact: true })).toBeVisible()
+    await expect(page.locator('#center-district')).toBeEnabled()
+    await expect(page.locator('#center-town')).toBeEnabled()
     await expect(page.getByRole('button', { name: '기관 검색하기' })).toBeDisabled()
+
+    await page.locator('#center-region').selectOption('대구광역시')
+    await page.locator('#center-type').selectOption('MENTAL_HEALTH_CENTER')
+    await expect(page.getByRole('button', { name: '기관 검색하기' })).toBeEnabled()
   })
 
   test('성공: 전국 17개 시·도와 대구의 하위 지역을 선택할 수 있다', async ({ page }) => {
@@ -83,7 +93,41 @@ test.describe('FE-AUTO-027: 기관 검색', () => {
     await selectCenterConditions(page)
     await page.locator('#center-region').selectOption('경기도')
     await expect(page.locator('#center-district')).toHaveValue('')
-    await expect(page.locator('#center-town')).toBeDisabled()
+    await expect(page.locator('#center-town')).toHaveValue('')
+    await expect(page.locator('#center-town')).toBeEnabled()
+  })
+
+  test('성공: 시·도와 기관 유형만으로 해당 지역 전체를 검색한다', async ({ page }) => {
+    await page.locator('#center-region').selectOption('대구광역시')
+    await page.locator('#center-type').selectOption('MENTAL_HEALTH_CENTER')
+
+    const requestPromise = page.waitForRequest(
+      (request) => new URL(request.url()).pathname === '/api/centers',
+    )
+    await page.getByRole('button', { name: '기관 검색하기' }).click()
+    const searchUrl = new URL((await requestPromise).url())
+
+    expect(searchUrl.searchParams.get('region')).toBe('대구광역시')
+    expect(searchUrl.searchParams.get('district') ?? '').toBe('')
+    expect(searchUrl.searchParams.get('town') ?? '').toBe('')
+    await expect(page.getByText('강남 마음건강센터')).toBeVisible()
+  })
+
+  test('성공: 시·군·구까지만 선택해 해당 구 전체를 검색한다', async ({ page }) => {
+    await page.locator('#center-region').selectOption('대구광역시')
+    await page.locator('#center-district').selectOption('중구')
+    await page.locator('#center-type').selectOption('COUNSELING_CENTER')
+
+    const requestPromise = page.waitForRequest(
+      (request) => new URL(request.url()).pathname === '/api/centers',
+    )
+    await page.getByRole('button', { name: '기관 검색하기' }).click()
+    const searchUrl = new URL((await requestPromise).url())
+
+    expect(searchUrl.searchParams.get('region')).toBe('대구광역시')
+    expect(searchUrl.searchParams.get('district')).toBe('중구')
+    expect(searchUrl.searchParams.get('town') ?? '').toBe('')
+    await expect(page.getByText('강남 마음건강센터')).toBeVisible()
   })
 
   test('성공: 완전한 조건으로 기관 연락처와 지도 링크를 표시한다', async ({ page }) => {

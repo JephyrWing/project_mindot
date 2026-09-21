@@ -67,6 +67,80 @@ class CenterSearchServiceTest {
     }
 
     @Test
+    void searchCentersBuildsKakaoKeywordWithRegionOnly() {
+        CenterSearchPageResponseDto expected =
+                new CenterSearchPageResponseDto(
+                        List.of(),
+                        0,
+                        10,
+                        0,
+                        0
+                );
+
+        when(kakaoLocalClient.search(
+                "대구광역시 정신건강복지센터",
+                CenterType.MENTAL_HEALTH_CENTER,
+                0,
+                10
+        )).thenReturn(expected);
+
+        CenterSearchPageResponseDto result =
+                service.searchCenters(
+                        "대구광역시",
+                        null,
+                        " ",
+                        CenterType.MENTAL_HEALTH_CENTER,
+                        0,
+                        10
+                );
+
+        assertThat(result).isSameAs(expected);
+        verify(kakaoLocalClient).search(
+                "대구광역시 정신건강복지센터",
+                CenterType.MENTAL_HEALTH_CENTER,
+                0,
+                10
+        );
+    }
+
+    @Test
+    void searchCentersBuildsKakaoKeywordWithoutTown() {
+        CenterSearchPageResponseDto expected =
+                new CenterSearchPageResponseDto(
+                        List.of(),
+                        0,
+                        10,
+                        0,
+                        0
+                );
+
+        when(kakaoLocalClient.search(
+                "대구광역시 중구 심리상담센터",
+                CenterType.COUNSELING_CENTER,
+                0,
+                10
+        )).thenReturn(expected);
+
+        CenterSearchPageResponseDto result =
+                service.searchCenters(
+                        "대구광역시",
+                        " 중구 ",
+                        null,
+                        CenterType.COUNSELING_CENTER,
+                        0,
+                        10
+                );
+
+        assertThat(result).isSameAs(expected);
+        verify(kakaoLocalClient).search(
+                "대구광역시 중구 심리상담센터",
+                CenterType.COUNSELING_CENTER,
+                0,
+                10
+        );
+    }
+
+    @Test
     void searchCentersRejectsBlankRegion() {
         ResponseStatusException exception = assertThrows(
                 ResponseStatusException.class,
