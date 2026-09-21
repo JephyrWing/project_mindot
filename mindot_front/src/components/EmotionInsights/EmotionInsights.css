@@ -1,0 +1,271 @@
+/* 감정 인사이트 전용 화면의 전체 배경과 기본 글자색 설정. */
+.emotion-insights-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  color: var(--mindot-text);
+  background: var(--mindot-page);
+}
+
+/* 상단 네비게이션 아래 인사이트 내용을 중앙에 배치. */
+.emotion-insights-content {
+  width: min(calc(100% - 40px), 900px);
+  margin: 32px auto;
+}
+
+/* 화면 제목과 기록 목록 이동 버튼을 한 행에 배치. */
+.emotion-insights-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  border: 1px solid var(--mindot-border);
+  border-radius: 14px;
+  padding: 32px;
+  background: var(--mindot-surface);
+}
+
+.emotion-insights-eyebrow {
+  color: var(--mindot-primary-strong);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.emotion-insights-header h1 {
+  margin: 8px 0 0;
+  font-size: 2rem;
+}
+
+.emotion-insights-header p {
+  margin: 10px 0 0;
+  color: var(--mindot-text-secondary);
+  line-height: 1.7;
+}
+
+.emotion-insights-header button,
+.emotion-insights-state button {
+  flex: 0 0 auto;
+  min-height: 44px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  padding: 0 16px;
+  color: var(--mindot-primary-strong);
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+.emotion-insights-header button:hover,
+.emotion-insights-state button:hover {
+  color: #ffffff;
+  background: var(--mindot-primary);
+}
+
+/* 전체 표본 수와 해석 주의 문구를 가로 안내 카드로 표시. */
+.emotion-insights-summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 22px;
+  margin-top: 16px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 12px;
+  padding: 18px 20px;
+  background: var(--mindot-primary-soft);
+}
+
+.emotion-insights-summary strong {
+  color: var(--mindot-primary-strong);
+  font-size: 1.05rem;
+  white-space: nowrap;
+}
+
+.emotion-insights-summary p {
+  margin: 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.emotion-insights-sections {
+  display: grid;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+/* 한 가지 분류 기준의 제목과 그룹 목록을 흰색 카드에 배치. */
+.emotion-insights-section {
+  border: 1px solid var(--mindot-border);
+  border-radius: 14px;
+  padding: 28px;
+  background: var(--mindot-surface);
+}
+
+.emotion-insights-section__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--mindot-border);
+}
+
+.emotion-insights-section__heading h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.emotion-insights-section__heading p {
+  margin: 7px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+}
+
+.emotion-insights-section__heading > span {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 5px 10px;
+  color: var(--mindot-primary-strong);
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--mindot-primary-soft);
+}
+
+.emotion-insights-groups {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+/* 개별 시간대·상황·관계의 감정 분포 항목 설정. */
+.emotion-insights-group {
+  border: 1px solid var(--mindot-border);
+  border-radius: 10px;
+  padding: 16px;
+  background: var(--mindot-surface);
+}
+
+.emotion-insights-group__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.emotion-insights-group__title h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.emotion-insights-group__title span {
+  color: var(--mindot-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* 그룹 내 감정 비율을 누적 가로 막대로 표시. */
+.emotion-insights-bar {
+  display: flex;
+  width: 100%;
+  height: 14px;
+  margin-top: 13px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--mindot-surface-muted);
+}
+
+.emotion-insights-bar span {
+  min-width: 2px;
+}
+
+.emotion-insights-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.emotion-insights-legend li {
+  display: grid;
+  grid-template-columns: 9px auto auto;
+  align-items: center;
+  gap: 6px;
+  color: var(--mindot-text-secondary);
+  font-size: 13px;
+}
+
+.emotion-insights-legend i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.emotion-insights-legend strong {
+  color: var(--mindot-text);
+  font-weight: 700;
+}
+
+/* 조회 중·실패·빈 상태를 같은 크기의 안내 영역으로 표시. */
+.emotion-insights-state,
+.emotion-insights-empty {
+  border: 1px solid var(--mindot-border);
+  border-radius: 12px;
+  padding: 28px;
+  color: var(--mindot-text-secondary);
+  text-align: center;
+  background: var(--mindot-surface);
+}
+
+.emotion-insights-state {
+  margin-top: 18px;
+}
+
+.emotion-insights-empty {
+  margin-top: 18px;
+  background: var(--mindot-surface-muted);
+}
+
+.emotion-insights-state.is-error {
+  border-color: #efb8bd;
+  color: var(--mindot-danger);
+  background: #fff6f7;
+}
+
+.emotion-insights-state p {
+  margin: 0 0 14px;
+}
+
+/* 휴대전화에서는 제목 버튼과 분포 정보를 세로 흐름으로 전환. */
+@media (max-width: 640px) {
+  .emotion-insights-content {
+    width: min(calc(100% - 24px), 900px);
+    margin: 20px auto;
+  }
+
+  .emotion-insights-header {
+    display: grid;
+    padding: 24px 20px;
+  }
+
+  .emotion-insights-header button {
+    width: 100%;
+  }
+
+  .emotion-insights-summary {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .emotion-insights-section {
+    padding: 22px 18px;
+  }
+
+  .emotion-insights-section__heading {
+    display: grid;
+  }
+
+  .emotion-insights-section__heading > span {
+    justify-self: start;
+  }
+}
