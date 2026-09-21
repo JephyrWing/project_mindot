@@ -26,6 +26,14 @@ export const createRecordsApi = (client) => ({
 
     return data
   },
+  // AI 분석 결과에서 비어 있는 항목을 보완 질문으로 조회하는 처리.
+  getMissingInformationQuestions: async (emotionRecordId) => {
+    const { data } = await client.get(
+      `/api/records/${emotionRecordId}/questions/missing`,
+    )
+
+    return data
+  },
   // AI 분석 결과에 사용자가 보완한 감정 기록 내용을 최종 반영하는 처리.
   confirmEmotionRecord: async (emotionRecordId, record) => {
     const { data } = await client.post(
@@ -78,6 +86,7 @@ export const {
   getEmotionRecords,
   searchEmotionRecordsSemantically,
   getEmotionRecordDetail,
+  getMissingInformationQuestions,
   confirmEmotionRecord,
   rejectEmotionRecordAnalysis,
   reanalyzeEmotionRecord,

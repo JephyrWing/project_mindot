@@ -9,6 +9,7 @@ import {
   confirmEmotionRecord,
   deleteEmotionRecord,
   getEmotionRecordDetail,
+  getMissingInformationQuestions,
   rejectEmotionRecordAnalysis,
   reanalyzeEmotionRecord,
   updateEmotionRecord,
@@ -170,6 +171,24 @@ const getConfirmErrorMessage = (error) => {
   return '분석 결과를 확정하지 못했습니다. 잠시 후 다시 시도해 주세요.'
 }
 
+// 누락 정보 보완 질문 조회 API 오류 상태에 따른 사용자 안내 문구 반환.
+const getMissingQuestionsErrorMessage = (error) => {
+  if (!error.response) {
+    return '서버에 연결할 수 없어 보완 질문을 불러오지 못했습니다.'
+  }
+  if (error.response.status === 401) {
+    return '로그인 정보가 만료되어 보완 질문을 불러오지 못했습니다.'
+  }
+  if (error.response.status === 404) {
+    return '보완 질문을 조회할 감정 기록을 찾을 수 없습니다.'
+  }
+  if (error.response.status === 409) {
+    return '현재 기록 상태에서는 보완 질문을 조회할 수 없습니다.'
+  }
+
+  return '보완 질문을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
+}
+
 // AI 분석 제안 거절 API 오류 상태에 따른 사용자 안내 문구 반환.
 const getRejectErrorMessage = (error) => {
   if (!error.response) {
@@ -260,6 +279,11 @@ function EmotionRecordDetail({
   // AI가 제안한 구조화 결과를 사용자가 수정할 입력값 상태 설정.
   const [analysisForm, setAnalysisForm] = useState(() => createAnalysisForm())
   const [isEditing, setIsEditing] = useState(false)
+  // AI 구조화 결과의 누락 항목과 연결된 보완 질문 조회 상태 설정.
+  const [missingQuestions, setMissingQuestions] = useState([])
+  const [isLoadingMissingQuestions, setIsLoadingMissingQuestions] = useState(false)
+  const [missingQuestionsError, setMissingQuestionsError] = useState('')
+  const [missingQuestionsReloadCount, setMissingQuestionsReloadCount] = useState(0)
   // 분석 결과 확정 API 요청 진행 여부 상태 설정.
   const [isConfirmingAnalysis, setIsConfirmingAnalysis] = useState(false)
   // AI 분석 제안 거절 API 요청 진행 여부 상태 설정.
@@ -328,6 +352,41 @@ function EmotionRecordDetail({
       isActive = false
     }
   }, [emotionRecordId, reloadCount, showSafety])
+
+  // AI 구조화가 끝난 PARTIAL 기록에서만 누락 정보 보완 질문을 조회.
+  useEffect(() => {
+    if (!emotionRecordId || record?.completionStatus !== 'PARTIAL') {
+      return undefined
+    }
+
+    let isActive = true
+
+    const loadMissingQuestions = async () => {
+      setIsLoadingMissingQuestions(true)
+      setMissingQuestionsError('')
+
+      try {
+        const response = await getMissingInformationQuestions(emotionRecordId)
+
+        if (isActive) {
+          setMissingQuestions(Array.isArray(response?.questions) ? response.questions : [])
+        }
+      } catch (error) {
+        if (isActive) {
+          setMissingQuestions([])
+          setMissingQuestionsError(getMissingQuestionsErrorMessage(error))
+        }
+      } finally {
+        if (isActive) setIsLoadingMissingQuestions(false)
+      }
+    }
+
+    loadMissingQuestions()
+
+    return () => {
+      isActive = false
+    }
+  }, [emotionRecordId, record?.completionStatus, missingQuestionsReloadCount])
 
   // Only read the already saved record. Never create/reanalyze while polling.
   const analysisPending = ['PENDING', 'PROCESSING'].includes(record?.analysisStatus)
@@ -428,6 +487,14 @@ function EmotionRecordDetail({
         (_, emotionIndex) => emotionIndex !== index,
       ),
     }))
+  }
+
+  // 선택한 보완 질문과 연결된 기존 분석 입력칸으로 이동해 바로 답할 수 있도록 처리.
+  const focusMissingQuestionField = (fieldName) => {
+    const field = analysisRef.current?.querySelector(`[name="${fieldName}"]`)
+
+    field?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    field?.focus({ preventScroll: true })
   }
 
   // Missing thoughts are collected and durably saved in the CBT start flow.
@@ -837,6 +904,57 @@ function EmotionRecordDetail({
                   className="emotion-detail-analysis-form"
                   onSubmit={handleAnalysisConfirm}
                 >
+                  {record.completionStatus === 'PARTIAL' && (
+                    <section
+                      className="emotion-detail-missing-questions"
+                      aria-labelledby="emotion-detail-missing-questions-title"
+                    >
+                      <div>
+                        <h3 id="emotion-detail-missing-questions-title">조금 더 알려 주세요</h3>
+                        <p>AI가 찾지 못한 내용을 보완하면 기록을 더 정확하게 남길 수 있습니다.</p>
+                      </div>
+
+                      {isLoadingMissingQuestions && (
+                        <p className="emotion-detail-missing-questions-state" role="status">
+                          보완 질문을 확인하고 있습니다.
+                        </p>
+                      )}
+
+                      {!isLoadingMissingQuestions && missingQuestionsError && (
+                        <div className="emotion-detail-missing-questions-error">
+                          <p>{missingQuestionsError}</p>
+                          <button
+                            type="button"
+                            onClick={() => setMissingQuestionsReloadCount((count) => count + 1)}
+                          >
+                            다시 불러오기
+                          </button>
+                        </div>
+                      )}
+
+                      {!isLoadingMissingQuestions && !missingQuestionsError && missingQuestions.length > 0 && (
+                        <ol>
+                          {missingQuestions.map((missingQuestion) => (
+                            <li key={missingQuestion.fieldName}>
+                              <button
+                                type="button"
+                                onClick={() => focusMissingQuestionField(missingQuestion.fieldName)}
+                              >
+                                <span>{missingQuestion.question}</span>
+                                <small>{missingQuestion.required ? '필수 답변' : '선택 답변'}</small>
+                              </button>
+                            </li>
+                          ))}
+                        </ol>
+                      )}
+
+                      {!isLoadingMissingQuestions && !missingQuestionsError && missingQuestions.length === 0 && (
+                        <p className="emotion-detail-missing-questions-state">
+                          추가로 보완할 항목이 없습니다. 아래 내용을 확인한 뒤 확정해 주세요.
+                        </p>
+                      )}
+                    </section>
+                  )}
                   {isEditing && <label>
                     <span>날짜와 시간</span>
                     <input type="datetime-local" value={occurredAtInput} required

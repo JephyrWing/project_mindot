@@ -471,6 +471,93 @@
   padding-top: 22px;
 }
 
+/* AI가 채우지 못한 구조화 항목을 질문 형태로 안내하는 영역. */
+.emotion-detail-missing-questions {
+  grid-column: 1 / -1;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 10px;
+  padding: 18px;
+  background: var(--mindot-primary-soft);
+}
+
+.emotion-detail-missing-questions h3 {
+  margin: 0;
+  color: var(--mindot-primary-strong);
+  font-size: 16px;
+}
+
+.emotion-detail-missing-questions > div:first-child > p,
+.emotion-detail-missing-questions-state,
+.emotion-detail-missing-questions-error p {
+  margin: 6px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.emotion-detail-missing-questions ol {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.emotion-detail-missing-questions li button {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--mindot-text);
+  text-align: left;
+  font: inherit;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+.emotion-detail-missing-questions li button:hover {
+  border-color: var(--mindot-primary);
+}
+
+.emotion-detail-missing-questions li small {
+  flex: 0 0 auto;
+  color: var(--mindot-primary-strong);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.emotion-detail-missing-questions-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.emotion-detail-missing-questions-error p {
+  margin: 0;
+  color: var(--mindot-danger);
+}
+
+.emotion-detail-missing-questions-error button {
+  flex: 0 0 auto;
+  min-height: 38px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  padding: 0 12px;
+  color: var(--mindot-primary-strong);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
 /* 긴 분석 입력 항목과 보조 감정 영역의 전체 열 사용 설정. */
 .emotion-detail-analysis-wide,
 .emotion-detail-secondary-emotions,
@@ -972,6 +1059,7 @@
 
   .emotion-detail-analysis-form > *,
   .emotion-detail-analysis-wide,
+  .emotion-detail-missing-questions,
   .emotion-detail-secondary-emotions,
   .emotion-detail-analysis-confirm {
     grid-column: 1;
@@ -979,6 +1067,12 @@
 
   .emotion-detail-secondary-emotions > div {
     grid-template-columns: 1fr;
+  }
+
+  .emotion-detail-missing-questions li button,
+  .emotion-detail-missing-questions-error {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .emotion-detail-list > div {

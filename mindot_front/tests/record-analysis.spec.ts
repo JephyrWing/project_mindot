@@ -99,6 +99,51 @@ test.describe('FE-AUTO-009: 감정 분석 편집', () => {
     await expect(page.getByText('사용자 확정값')).toBeVisible()
   })
 
+  test('성공: 누락 정보 보완 질문을 조회하고 해당 답변 입력칸으로 이동한다', async ({ page }) => {
+    let questionCalls = 0
+    const recordWithMissingInformation = completeRecord({
+      completionStatus: 'PARTIAL',
+      situationText: null,
+      primaryIntensity: null,
+    })
+
+    await mockApi(page, (request, url) => {
+      if (url.pathname === '/api/records/1' && request.method() === 'GET') {
+        return { body: recordWithMissingInformation }
+      }
+      if (url.pathname === '/api/records/1/questions/missing' && request.method() === 'GET') {
+        questionCalls += 1
+        return {
+          body: {
+            emotionRecordId: 1,
+            completionStatus: 'PARTIAL',
+            questions: [
+              {
+                fieldName: 'situationText',
+                question: '어떤 상황에서 이런 감정을 느꼈나요?',
+                required: false,
+              },
+              {
+                fieldName: 'primaryIntensity',
+                question: '그 감정의 강도는 0부터 10 중 어느 정도였나요?',
+                required: false,
+              },
+            ],
+          },
+        }
+      }
+    })
+
+    await page.goto('/records/1')
+
+    await expect(page.getByRole('heading', { name: '조금 더 알려 주세요' })).toBeVisible()
+    const situationQuestion = page.getByRole('button', { name: /어떤 상황에서 이런 감정을 느꼈나요/ })
+    await expect(situationQuestion).toContainText('선택 답변')
+    await situationQuestion.click()
+    await expect(page.locator('[name="situationText"]')).toBeFocused()
+    expect(questionCalls).toBeGreaterThanOrEqual(1)
+  })
+
   test('성공: AI 제안을 거절하고 원문만 간편 기록으로 유지한다', async ({ page }) => {
     let rejectCalls = 0
     let confirmCalls = 0
