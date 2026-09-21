@@ -109,6 +109,31 @@
   cursor: wait;
 }
 
+.emotion-detail-analysis-reject {
+  min-height: 46px;
+  border: 1px solid var(--mindot-border-strong);
+  border-radius: 8px;
+  padding: 12px 20px;
+  color: var(--mindot-text-secondary);
+  font: inherit;
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.emotion-detail-analysis-reject:not(:disabled):hover {
+  border-color: var(--mindot-text-secondary);
+  background: var(--mindot-surface-muted);
+}
+
+.emotion-detail-analysis-reject:disabled {
+  border-color: var(--mindot-border);
+  color: var(--mindot-disabled);
+  background: var(--mindot-surface-muted);
+  cursor: wait;
+}
+
 /* 감정 기록 상세 제목의 Noto Sans KR 크기 설정. */
 .emotion-detail-heading h1 {
   margin: 0;
