@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
-  getOpenReflectionSessions,
+  getPagedOpenReflectionSessions,
   getReflectionSessionDetail,
 } from '../../utils/reflections/reflectionsApi.js'
 import './OpenReflections.css'
@@ -36,9 +36,11 @@ const getReflectionStepLabel = (currentStep) => (
 )
 
 // 진행 중 CBT 목록과 선택한 세션의 질문·답변 상세를 제공하는 컴포넌트 정의.
-function OpenReflections({ onResume }) {
+function OpenReflections({ onResume, onViewAll, listMode = false }) {
   // 백엔드에서 조회한 OPEN CBT 성찰 세션 목록 상태 설정.
   const [openSessions, setOpenSessions] = useState([])
+  const [currentPage, setCurrentPage] = useState(0)
+  const [pageInfo, setPageInfo] = useState({ totalPages: 0, totalElements: 0 })
   // OPEN 성찰 목록 조회 진행 여부 상태 설정.
   const [isLoading, setIsLoading] = useState(true)
   // OPEN 성찰 목록 조회 실패 안내 문구 상태 설정.
@@ -63,14 +65,12 @@ function OpenReflections({ onResume }) {
       setLoadError('')
 
       try {
-        const sessions = await getOpenReflectionSessions()
+        const response = await getPagedOpenReflectionSessions({ page: listMode ? currentPage : 0, size: listMode ? 10 : 3 })
 
         if (isActive) {
-          setOpenSessions(
-            Array.isArray(sessions)
-              ? sessions.filter((session) => session.status === 'OPEN')
-              : [],
-          )
+          // 요청한 페이지의 OPEN 성찰과 전체 개수를 반영
+          setOpenSessions(Array.isArray(response.content) ? response.content : [])
+          setPageInfo({ totalPages: response.totalPages ?? 0, totalElements: response.totalElements ?? 0 })
           setSelectedSessionId(null)
           setSessionDetail(null)
           setDetailError('')
@@ -78,6 +78,7 @@ function OpenReflections({ onResume }) {
       } catch (error) {
         if (isActive) {
           setOpenSessions([])
+          setPageInfo({ totalPages: 0, totalElements: 0 })
           setLoadError(getOpenReflectionsErrorMessage(
             error,
             '진행 중인 CBT 성찰을 불러오지 못했습니다.',
@@ -93,7 +94,7 @@ function OpenReflections({ onResume }) {
     return () => {
       isActive = false
     }
-  }, [reloadCount])
+  }, [reloadCount, currentPage, listMode])
 
   // 목록에서 선택한 OPEN CBT 성찰의 질문과 답변 상세 조회 처리.
   const handleSessionSelect = async (sessionId) => {
@@ -156,7 +157,7 @@ function OpenReflections({ onResume }) {
           <p>잠시 멈춘 성찰의 진행 단계와 대화 내용을 확인할 수 있습니다.</p>
         </div>
         <span>
-          {isLoading ? '조회 중' : `${openSessions.length}개`}
+          {isLoading ? '조회 중' : `${pageInfo.totalElements}개`}
         </span>
       </header>
 
@@ -174,7 +175,7 @@ function OpenReflections({ onResume }) {
             다시 불러오기
           </button>
         </div>
-      ) : openSessions.length === 0 ? (
+      ) : pageInfo.totalElements === 0 ? (
         <p className="open-reflections-status">
           현재 진행 중인 CBT 성찰이 없습니다.
         </p>
@@ -199,6 +200,17 @@ function OpenReflections({ onResume }) {
             </button>
           ))}
         </div>
+      )}
+
+      {!isLoading && !loadError && !listMode && pageInfo.totalElements > 3 && (
+        <button className="open-reflections-view-all" type="button" onClick={onViewAll}>진행 중 CBT 성찰 전체 보기</button>
+      )}
+      {!isLoading && !loadError && listMode && pageInfo.totalPages > 1 && (
+        <nav className="open-reflections-pagination" aria-label="진행 중 CBT 성찰 페이지">
+          <button type="button" disabled={currentPage === 0} onClick={() => setCurrentPage((page) => page - 1)}>이전</button>
+          <span aria-current="page">{currentPage + 1} / {pageInfo.totalPages}</span>
+          <button type="button" disabled={currentPage + 1 >= pageInfo.totalPages} onClick={() => setCurrentPage((page) => page + 1)}>다음</button>
+        </nav>
       )}
 
       {selectedSessionId && (

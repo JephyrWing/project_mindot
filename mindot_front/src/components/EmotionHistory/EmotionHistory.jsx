@@ -2,6 +2,7 @@ import { emotionCodeLabels, emotionLabel } from '../../utils/records/emotions.js
 import { useEffect, useState } from 'react'
 import Navbar from '../Navbar/Navbar.jsx'
 import OpenReflections from '../OpenReflections/OpenReflections.jsx'
+import CompletedReflections from '../CompletedReflections/CompletedReflections.jsx'
 import {
   getEmotionRecords,
   searchEmotionRecordsSemantically,
@@ -94,6 +95,9 @@ function EmotionHistory({
   onCenter,
   onDailyCare,
   onReflectionResume,
+  onOpenReflections,
+  onCompletedReflections,
+  onCompletedReflectionOpen,
   onHome,
 }) {
   // 사용자가 선택한 감정 기록 조회 기간을 보관하는 상태 설정.
@@ -294,8 +298,6 @@ function EmotionHistory({
           </span>
         </div>
 
-        {/* 진행 중인 CBT 성찰 목록과 선택한 질문·답변 상세 조회 영역 배치. */}
-        <OpenReflections onResume={onReflectionResume} />
 
         {/* 감정 기록의 조회 기간과 표시 순서를 선택하는 탐색 영역 배치. */}
         <div className="emotion-history-controls">
@@ -514,6 +516,12 @@ function EmotionHistory({
             </button>
           </section>
         )}
+
+        {/* 진행 중인 CBT 성찰 목록과 선택한 질문·답변 상세 조회 영역 배치. */}
+        <OpenReflections onResume={onReflectionResume} onViewAll={onOpenReflections} />
+
+        {/* 최종 확인한 CBT 성찰 결과 목록과 상세 화면 이동 영역 배치. */}
+        <CompletedReflections onViewAll={onCompletedReflections} onOpen={onCompletedReflectionOpen} />
       </section>
     </main>
   )
