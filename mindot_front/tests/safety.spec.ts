@@ -63,7 +63,11 @@ test.describe('FE-AUTO-025: 안전 안내', () => {
       }
     })
     await page.goto('/cbt/sessions/55')
-    await expect(page.getByText('안전을 위해 성찰을 중단했습니다.')).toBeVisible()
+    const status = page.getByRole('status').filter({ hasText: '안전을 위해 성찰을 중단했습니다' })
+    await expect(status.getByText('안전을 위해 성찰을 중단했습니다', { exact: true })).toBeVisible()
+    await expect(status).toContainText('필요하다면 주변의 도움이나 전문 기관의 지원을 받아 주세요.')
+    await expect(page.getByLabel('답변', { exact: true })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: '보내기', exact: true })).toHaveCount(0)
   })
 
   test('경계: StrictMode에서도 같은 안전 이벤트 표시 이력을 중복 전송하지 않는다', async ({ page }) => {

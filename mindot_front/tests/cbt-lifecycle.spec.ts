@@ -43,7 +43,9 @@ test.describe('FE-AUTO-015: CBT 상태', () => {
     await page.goto('/cbt/sessions/51')
     page.once('dialog', (dialog) => dialog.accept())
     await page.getByRole('button', { name: '성찰 완전히 중단' }).click()
-    await expect(page.getByText('성찰을 완전히 중단했습니다. 문답은 보존됩니다.')).toBeVisible()
+    const status = page.getByRole('status').filter({ hasText: '성찰을 완전히 중단했습니다' })
+    await expect(status.getByText('성찰을 완전히 중단했습니다', { exact: true })).toBeVisible()
+    await expect(status).toContainText('문답은 보존되지만 이 성찰을 이어갈 수 없습니다.')
   })
 
   test('경계: 진행 중 목록에는 OPEN 세션만 남고 종료 세션은 재개할 수 없다', async ({ page }) => {
@@ -94,14 +96,25 @@ test.describe('FE-AUTO-015: CBT 상태', () => {
   })
 
   for (const terminalState of [
-    { id: 52, name: 'COMPLETED', message: '성찰 결과가 저장됐습니다.' },
-    { id: 53, name: 'CANCELLED', message: '성찰을 완전히 중단했습니다. 문답은 보존됩니다.' },
-    { id: 54, name: 'SAFETY_STOPPED', message: '안전을 위해 성찰을 중단했습니다.' },
+    {
+      id: 52, name: 'COMPLETED', title: '성찰 결과가 저장되었습니다',
+      description: '기록한 생각의 변화와 선택한 패턴을 나중에 다시 확인할 수 있습니다.',
+    },
+    {
+      id: 53, name: 'CANCELLED', title: '성찰을 완전히 중단했습니다',
+      description: '문답은 보존되지만 이 성찰을 이어갈 수 없습니다.',
+    },
+    {
+      id: 54, name: 'SAFETY_STOPPED', title: '안전을 위해 성찰을 중단했습니다',
+      description: '필요하다면 주변의 도움이나 전문 기관의 지원을 받아 주세요.',
+    },
   ]) {
     test(`성공: ${terminalState.name} 종료 상태에 맞는 안내를 표시한다`, async ({ page }) => {
       await prepareSessions(page)
       await page.goto(`/cbt/sessions/${terminalState.id}`)
-      await expect(page.getByText(terminalState.message)).toBeVisible()
+      const status = page.getByRole('status').filter({ hasText: terminalState.title })
+      await expect(status.getByText(terminalState.title, { exact: true })).toBeVisible()
+      await expect(status).toContainText(terminalState.description)
       await expect(page.getByRole('button', { name: '기록 목록으로' })).toBeVisible()
     })
   }
