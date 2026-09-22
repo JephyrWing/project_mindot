@@ -685,6 +685,209 @@
   background: var(--mindot-surface-muted);
 }
 
+/* 성찰 전·후 인지왜곡 라벨을 나란히 비교하는 구획. */
+.cbt-distortion-comparison {
+  display: grid;
+  gap: 16px;
+  border-top: 1px solid var(--mindot-border);
+  padding-top: 20px;
+}
+
+.cbt-distortion-comparison > header h3 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.cbt-distortion-comparison > header p {
+  margin: 7px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.cbt-distortion-phases {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.cbt-distortion-phase {
+  min-width: 0;
+  border: 1px solid var(--mindot-border);
+  border-radius: 10px;
+  padding: 16px;
+  background: var(--mindot-surface);
+}
+
+.cbt-distortion-phase > header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.cbt-distortion-phase > header > span {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: var(--mindot-primary-strong);
+  font-size: 11px;
+  font-weight: 800;
+  background: var(--mindot-primary-soft);
+}
+
+.cbt-distortion-phase h4 {
+  margin: 1px 0 0;
+  font-size: 15px;
+}
+
+.cbt-distortion-phase header p {
+  margin: 4px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.cbt-distortion-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cbt-distortion-badges li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  border: 1px solid #b7cced;
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: var(--mindot-primary-strong);
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--mindot-primary-soft);
+}
+
+.cbt-distortion-badges li > span {
+  overflow-wrap: anywhere;
+}
+
+.cbt-distortion-badges button {
+  border: 0;
+  border-left: 1px solid #b7cced;
+  padding: 0 0 0 6px;
+  color: var(--mindot-text-secondary);
+  font: inherit;
+  font-size: 11px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.cbt-distortion-empty {
+  margin: 14px 0 0;
+  color: var(--mindot-text-muted);
+  font-size: 13px;
+}
+
+.cbt-distortion-add {
+  margin-top: 14px;
+  border-top: 1px solid var(--mindot-border);
+  padding-top: 12px;
+}
+
+.cbt-distortion-reviews .cbt-distortion-add > label {
+  display: block;
+  border: 0;
+  padding: 0;
+  color: var(--mindot-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cbt-distortion-add > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px;
+  margin-top: 7px;
+}
+
+.cbt-distortion-add select {
+  width: 100%;
+  min-width: 0;
+}
+
+.cbt-distortion-add button {
+  min-height: 44px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  padding: 0 10px;
+  color: var(--mindot-primary-strong);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+.cbt-distortion-add button:disabled {
+  border-color: var(--mindot-border);
+  color: var(--mindot-disabled);
+  background: var(--mindot-surface-muted);
+  cursor: not-allowed;
+}
+
+.cbt-distortion-changes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.cbt-distortion-changes > article {
+  min-width: 0;
+  border: 1px solid var(--mindot-border);
+  border-radius: 10px;
+  padding: 14px;
+  background: var(--mindot-surface-muted);
+}
+
+.cbt-distortion-changes > article.is-removed {
+  border-color: #e4c1c1;
+  background: #fff7f7;
+}
+
+.cbt-distortion-changes > article.is-persisted {
+  border-color: #ead49c;
+  background: #fffaf0;
+}
+
+.cbt-distortion-changes > article.is-new {
+  border-color: #b9d9c8;
+  background: #f3fbf7;
+}
+
+.cbt-distortion-changes article > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cbt-distortion-changes article > header span {
+  color: var(--mindot-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.cbt-distortion-changes article > p {
+  min-height: 36px;
+  margin: 6px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 /* 생각을 뒷받침하거나 다르게 볼 수 있었던 근거의 두 열 배치. */
 .cbt-insight-evidence {
   display: grid;
@@ -877,7 +1080,13 @@
   .cbt-confirm-scores,
   .cbt-distortion-reviews label,
   .cbt-insight-thoughts,
-  .cbt-insight-evidence {
+  .cbt-insight-evidence,
+  .cbt-distortion-phases,
+  .cbt-distortion-changes {
+    grid-template-columns: 1fr;
+  }
+
+  .cbt-distortion-add > div {
     grid-template-columns: 1fr;
   }
 

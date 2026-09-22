@@ -3,6 +3,7 @@ import {
   mockApi,
   openReflection,
   proposal,
+  readJsonBody,
   useAuthenticatedSession,
 } from './support'
 
@@ -110,6 +111,70 @@ test.describe('FE-AUTO-014: CBT 결과 확정', () => {
     await expect(page.getByText('내가 확인한 패턴')).toBeVisible()
   })
 
+  test('성공: BEFORE·AFTER 라벨을 추가·제거하고 제거·지속·신규 변화를 저장한다', async ({ page }) => {
+    await useAuthenticatedSession(page)
+    let submittedBody: Record<string, unknown> | null = null
+
+    await mockApi(page, (request, url) => {
+      if (url.pathname === '/api/reflections/51' && request.method() === 'GET') return { body: reviewView }
+      if (url.pathname === '/api/reflections/open') return { body: reviewView }
+      if (url.pathname === '/api/reflections/51/confirm') {
+        submittedBody = readJsonBody(request) as Record<string, unknown>
+        return {
+          body: openReflection({
+            revision: 6,
+            status: 'COMPLETED',
+            phase: 'COMPLETED',
+            currentProposal: null,
+            confirmedResult: {
+              ...proposal,
+              reviews: submittedBody.reviews,
+              beforeDistortions: submittedBody.beforeDistortions,
+              afterDistortions: submittedBody.afterDistortions,
+            },
+          }),
+        }
+      }
+    })
+
+    await page.goto('/cbt/sessions/51')
+    await page.getByLabel('이 설명이 내 생각과 맞나요?').selectOption('CONFIRMED')
+
+    await page.getByLabel('BEFORE 라벨 선택').selectOption('PERSONALIZATION')
+    await page.getByRole('button', { name: 'BEFORE 라벨 추가' }).click()
+    await page.getByRole('button', { name: 'BEFORE 파국화·미래예측 라벨 제거' }).click()
+    await page.getByLabel('BEFORE 라벨 선택').selectOption('CATASTROPHIZING_FORTUNE_TELLING')
+    await page.getByRole('button', { name: 'BEFORE 라벨 추가' }).click()
+
+    await page.getByLabel('AFTER 라벨 선택').selectOption('CATASTROPHIZING_FORTUNE_TELLING')
+    await page.getByRole('button', { name: 'AFTER 라벨 추가' }).click()
+    await page.getByLabel('AFTER 라벨 선택').selectOption('MIND_READING')
+    await page.getByRole('button', { name: 'AFTER 라벨 추가' }).click()
+
+    const scoreInputs = page.locator('.cbt-confirm-scores input')
+    await scoreInputs.nth(0).fill('80')
+    await scoreInputs.nth(1).fill('40')
+    await scoreInputs.nth(2).fill('3')
+    await scoreInputs.nth(3).fill('4')
+    await page.getByRole('button', { name: '이 생각과 유형 검토를 확인하고 저장' }).click()
+
+    expect(submittedBody).toMatchObject({
+      beforeDistortions: [
+        { code: 'PERSONALIZATION', reviewStatus: 'CONFIRMED' },
+        { code: 'CATASTROPHIZING_FORTUNE_TELLING', reviewStatus: 'CONFIRMED' },
+      ],
+      afterDistortions: [
+        { code: 'CATASTROPHIZING_FORTUNE_TELLING', reviewStatus: 'CONFIRMED' },
+        { code: 'MIND_READING', reviewStatus: 'CONFIRMED' },
+      ],
+    })
+
+    const changes = page.getByLabel('인지왜곡 라벨 변화')
+    await expect(changes.locator('.is-removed')).toContainText('개인화')
+    await expect(changes.locator('.is-persisted')).toContainText('파국화·미래예측')
+    await expect(changes.locator('.is-new')).toContainText('독심술')
+  })
+
   test('경계: 최종 제안의 뜻을 정정하면 확정하지 않고 대화를 이어간다', async ({ page }) => {
     await useAuthenticatedSession(page)
     const correctedView = openReflection({
@@ -141,5 +206,17 @@ test.describe('FE-AUTO-014: CBT 결과 확정', () => {
     await page.getByRole('button', { name: '검색 연결 다시 시도' }).click()
     await expect(page.getByRole('status')).toHaveText('완료 결과의 검색 연결을 다시 준비했습니다.')
     await expect(page.getByRole('heading', { name: '확인한 성찰 결과' })).toBeVisible()
+  })
+
+  test('반응형: 휴대전화에서도 BEFORE·AFTER 편집 영역이 화면 밖으로 넘치지 않는다', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await prepareReview(page)
+
+    await expect(page.getByLabel('BEFORE/AFTER 인지왜곡 비교')).toBeVisible()
+    const viewportWidths = await page.evaluate(() => ({
+      content: document.documentElement.scrollWidth,
+      viewport: document.documentElement.clientWidth,
+    }))
+    expect(viewportWidths.content).toBeLessThanOrEqual(viewportWidths.viewport)
   })
 })
