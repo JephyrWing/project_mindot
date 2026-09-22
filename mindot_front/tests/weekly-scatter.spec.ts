@@ -154,7 +154,21 @@ test('빠른 주 변경과 이전 주의 늦은 갱신 응답은 현재 주를 �
 test('CBT만 있는 주는 감정 0건을 표시하고 완료 CBT 상세와 선택한 주로 복귀한다', async ({ page }) => {
   await mockApi(page, (_request, url) => {
     if (url.pathname === '/api/reports/weekly') return { body: report([]) }
-    if (url.pathname === '/api/reflections/51') return { body: openReflection({ status: 'COMPLETED', confirmedResult: { ...proposal, reviews: [] } }) }
+    if (url.pathname === '/api/reflections/51') return { body: openReflection({
+      status: 'COMPLETED',
+      confirmedResult: {
+        ...proposal,
+        reviews: [{ code: 'CATASTROPHIZING_FORTUNE_TELLING', reviewStatus: 'CONFIRMED' }],
+        beforeDistortions: [
+          { code: 'CATASTROPHIZING_FORTUNE_TELLING', reviewStatus: 'CONFIRMED' },
+          { code: 'PERSONALIZATION', reviewStatus: 'CONFIRMED' },
+        ],
+        afterDistortions: [
+          { code: 'CATASTROPHIZING_FORTUNE_TELLING', reviewStatus: 'CONFIRMED' },
+          { code: 'MIND_READING', reviewStatus: 'CONFIRMED' },
+        ],
+      },
+    }) }
   })
   await page.goto(`/reports/weekly?weekStart=${start}`)
   await expect(page.getByText('이번 주에는 감정 기록이 없습니다.')).toBeVisible()
@@ -163,6 +177,10 @@ test('CBT만 있는 주는 감정 0건을 표시하고 완료 CBT 상세와 선�
   await page.getByRole('button', { name: '성찰 결과 자세히 보기' }).click()
   await expect(page).toHaveURL(`/reflections/51?returnWeek=${start}`)
   await expect(page.getByRole('region', { name: '성찰 결과와 생각 패턴' }).getByText(proposal.afterText, { exact: true })).toBeVisible()
+  const changes = page.getByLabel('인지왜곡 라벨 변화')
+  await expect(changes.locator('.is-removed')).toContainText('개인화')
+  await expect(changes.locator('.is-persisted')).toContainText('파국화·미래예측')
+  await expect(changes.locator('.is-new')).toContainText('독심술')
   await page.reload()
   await page.getByRole('button', { name: '주간 리포트로 돌아가기' }).click()
   await expect(page).toHaveURL(`/reports/weekly?weekStart=${start}`)
