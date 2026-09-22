@@ -321,7 +321,6 @@ public class PdfExportService {
 
         writer.writeSectionTitle("완료 CBT 성찰 결과");
         writer.writeParagraph("이 PDF는 감정 발생일로 선택한 기록에 연결된 CBT를 포함합니다. 주간 리포트의 CBT 완료일 기준과 다를 수 있습니다.", 9f);
-        writer.writeParagraph("폰트가 지원하지 않는 문자는 [U+코드]로 표시합니다. 예: [U+1F600].", 9f);
         writer.addSpace(6f);
 
         if (reflectionSessions.isEmpty()) {

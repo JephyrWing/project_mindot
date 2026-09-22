@@ -2,6 +2,8 @@
 package com.my.mindot_back.reports.service;
 
 import com.my.mindot_back.records.entity.EmotionRecords;
+import com.my.mindot_back.records.entity.CompletionStatus;
+import com.my.mindot_back.records.entity.TimeBucket;
 import com.my.mindot_back.records.repository.EmotionRecordsRepository;
 import com.my.mindot_back.reports.dto.RepeatedEmotionPatternDto;
 import com.my.mindot_back.reports.entity.PatternLevel;
@@ -217,17 +219,18 @@ public class RepeatedEmotionPatternService {
     ) {
         return emotionRecords.stream()
                 .filter(record ->
-                        record.getPrimaryEmotionCode() != null
+                        record.getCompletionStatus() == CompletionStatus.COMPLETE
+                                && record.getPrimaryEmotionCode() != null
                                 && !record.getPrimaryEmotionCode().isBlank()
                                 && record.getOccurredAt() != null
-                                && record.getTimeBucket() != null
                 )
                 .flatMap(record -> {
                     String emotionCode =
                             record.getPrimaryEmotionCode();
 
                     String timeBucket =
-                            record.getTimeBucket().name();
+                            TimeBucket.fromHour(record.getOccurredAt()
+                                    .atZone(zoneId).getHour()).name();
 
                     String weekday = record.getOccurredAt()
                             .atZone(zoneId)
