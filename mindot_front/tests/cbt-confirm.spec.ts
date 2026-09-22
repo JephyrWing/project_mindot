@@ -94,7 +94,7 @@ test.describe('FE-AUTO-014: CBT 결과 확정', () => {
     await prepareReview(page)
     await fillValidReview(page)
     await page.getByRole('button', { name: '이 생각과 유형 검토를 확인하고 저장' }).click()
-    await expect(page.getByText('성찰 결과가 저장됐습니다.')).toBeVisible()
+    await expect(page.getByRole('status').getByText('성찰 결과가 저장되었습니다', { exact: true })).toBeVisible()
     await expect(page.getByRole('heading', { name: '확인한 성찰 결과' })).toBeVisible()
     await expect(page.getByText('동의하지 않은 제안')).toBeVisible()
   })
@@ -204,7 +204,8 @@ test.describe('FE-AUTO-014: CBT 결과 확정', () => {
     await fillValidReview(page)
     await page.getByRole('button', { name: '이 생각과 유형 검토를 확인하고 저장' }).click()
     await page.getByRole('button', { name: '검색 연결 다시 시도' }).click()
-    await expect(page.getByRole('status')).toHaveText('완료 결과의 검색 연결을 다시 준비했습니다.')
+    await expect(page.getByRole('status').filter({ hasText: '완료 결과의 검색 연결' }))
+      .toHaveText('완료 결과의 검색 연결을 다시 준비했습니다.')
     await expect(page.getByRole('heading', { name: '확인한 성찰 결과' })).toBeVisible()
   })
 

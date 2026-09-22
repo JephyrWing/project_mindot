@@ -43,9 +43,15 @@ test.describe('FE-AUTO-001: 라우팅·권한', () => {
     await page.goto('/records')
     await expect(page).toHaveURL('/records')
     await expect(page.getByRole('heading', { name: '감정 기록 목록' })).toBeVisible()
+    expect(await page.evaluate(() => (
+      window.sessionStorage.getItem('mindot.accessToken')
+    ))).toBeNull()
     await page.reload()
     await expect(page).toHaveURL('/records')
     await expect(page.getByRole('heading', { name: '감정 기록 목록' })).toBeVisible()
+    expect(await page.evaluate(() => (
+      window.sessionStorage.getItem('mindot.accessToken')
+    ))).toBeNull()
   })
 })
 
