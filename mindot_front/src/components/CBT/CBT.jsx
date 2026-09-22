@@ -284,13 +284,25 @@ export default function CBT(props) {
             <p>대화를 통해 정리하고 직접 확인한 생각의 변화입니다.</p>
           </header>
           <InsightResult result={view.confirmedResult} />
-          <button type="button" disabled={isRetryingEmbedding} onClick={retryEmbedding}>
-            {isRetryingEmbedding ? '검색 연결 준비 중…' : '검색 연결 다시 시도'}
-          </button>
-          {embeddingMessage && <p role="status">{embeddingMessage}</p>}
-          {embeddingError && <p role="alert">{embeddingError}</p>}
+          <section className="cbt-embedding-retry" aria-label="검색 연결 관리">
+            <div>
+              <strong>검색 연결</strong>
+              <p>성찰 결과를 내 감정 패턴 분석에 연결합니다.</p>
+            </div>
+            <button type="button" disabled={isRetryingEmbedding} onClick={retryEmbedding}>
+              {isRetryingEmbedding ? '연결 준비 중…' : '검색 연결 다시 시도'}
+            </button>
+          </section>
+          {embeddingMessage && <p className="cbt-embedding-message" role="status">{embeddingMessage}</p>}
+          {embeddingError && <p className="cbt-embedding-message is-error" role="alert">{embeddingError}</p>}
         </section>}
-        {!open && <p>{view.status === 'COMPLETED' ? '성찰 결과가 저장됐습니다.' : view.status === 'CANCELLED' ? '성찰을 완전히 중단했습니다. 문답은 보존됩니다.' : '안전을 위해 성찰을 중단했습니다.'}</p>}
+        {!open && <section className={`cbt-session-status is-${view.status.toLowerCase()}`} role="status">
+          <span aria-hidden="true">{view.status === 'COMPLETED' ? '✓' : 'i'}</span>
+          <div>
+            <strong>{view.status === 'COMPLETED' ? '성찰 결과가 저장되었습니다' : view.status === 'CANCELLED' ? '성찰을 완전히 중단했습니다' : '안전을 위해 성찰을 중단했습니다'}</strong>
+            <p>{view.status === 'COMPLETED' ? '기록한 생각의 변화와 선택한 패턴을 나중에 다시 확인할 수 있습니다.' : view.status === 'CANCELLED' ? '문답은 보존되지만 이 성찰을 이어갈 수 없습니다.' : '필요하다면 주변의 도움이나 전문 기관의 지원을 받아 주세요.'}</p>
+          </div>
+        </section>}
         <div className="cbt-session-actions"><div>
           <button className="cbt-later-button" onClick={onEmotionHistory}>{open ? '나중에 이어하기' : '기록 목록으로'}</button>
           {open && <button className="cbt-cancel-button" onClick={cancel}>성찰 완전히 중단</button>}
