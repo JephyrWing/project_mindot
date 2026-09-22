@@ -4,6 +4,7 @@ import axios, { AxiosError } from 'axios'
 import { createHttpClient } from './httpClient.js'
 import { createAuthApi } from '../auth/authApi.js'
 import {
+  clearAuthSession,
   clearAccessToken,
   getAccessToken,
   setAccessToken,
@@ -35,21 +36,30 @@ globalThis.sessionStorage = new MemoryStorage()
 globalThis.localStorage = new MemoryStorage()
 
 beforeEach(() => {
+  clearAuthSession()
   sessionStorage.clear()
   localStorage.clear()
 })
 
-test('access token is stored only in sessionStorage', () => {
+test('access token is stored only in client memory', () => {
   localStorage.setItem('mindot.rememberedEmail', 'user@example.com')
 
   setAccessToken('access-token')
 
   assert.equal(getAccessToken(), 'access-token')
+  assert.equal(sessionStorage.getItem('mindot.accessToken'), null)
   assert.equal(localStorage.getItem('mindot.accessToken'), null)
   assert.equal(
     localStorage.getItem('mindot.rememberedEmail'),
     'user@example.com',
   )
+})
+
+test('legacy sessionStorage access token is removed and never restored', () => {
+  sessionStorage.setItem('mindot.accessToken', 'legacy-access-token')
+
+  assert.equal(getAccessToken(), null)
+  assert.equal(sessionStorage.getItem('mindot.accessToken'), null)
 })
 
 test('successful login stores the returned access token', async () => {
@@ -63,7 +73,28 @@ test('successful login stores the returned access token', async () => {
   })
 
   assert.equal(getAccessToken(), 'login-access-token')
+  assert.equal(sessionStorage.getItem('mindot.accessToken'), null)
   assert.equal(localStorage.getItem('mindot.accessToken'), null)
+})
+
+test('authentication restore keeps refreshed access token in memory only', async () => {
+  let refreshCalls = 0
+  const authApi = createAuthApi({
+    post: async (url) => {
+      assert.equal(url, '/api/auth/refresh')
+      refreshCalls += 1
+      return { data: { accessToken: 'restored-access-token' } }
+    },
+  })
+
+  await Promise.all([
+    authApi.restoreAuthentication(),
+    authApi.restoreAuthentication(),
+  ])
+
+  assert.equal(refreshCalls, 1)
+  assert.equal(getAccessToken(), 'restored-access-token')
+  assert.equal(sessionStorage.getItem('mindot.accessToken'), null)
 })
 
 test('signup sends the backend account contract without storing a token', async () => {

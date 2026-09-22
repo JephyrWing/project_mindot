@@ -86,8 +86,17 @@ export const createHttpClient = ({
         refreshPromise = refreshClient
           .post('/api/auth/refresh')
           .then(({ data }) => {
-            setAccessToken(data.accessToken)
-            return data.accessToken
+            const renewedAccessToken = data?.accessToken
+
+            if (
+              typeof renewedAccessToken !== 'string'
+              || !renewedAccessToken
+            ) {
+              throw new Error('Access Token이 없는 재발급 응답입니다.')
+            }
+
+            setAccessToken(renewedAccessToken)
+            return renewedAccessToken
           })
           .catch((refreshError) => {
             clearAuthSession()

@@ -11,6 +11,9 @@ type ApiResolver = (
   url: URL,
 ) => ApiMockResult | undefined | Promise<ApiMockResult | undefined>
 
+// E2E 인증 상태는 브라우저 저장소의 토큰 대신 Refresh Token 쿠키 흐름을 모사.
+const authenticatedPages = new WeakMap<Page, string>()
+
 const emptyPage = {
   content: [],
   page: 0,
@@ -20,6 +23,7 @@ const emptyPage = {
 }
 
 export async function useGuestSession(page: Page) {
+  authenticatedPages.delete(page)
   await page.addInitScript(() => {
     window.localStorage.setItem('mindot.appIntroShown', 'true')
     window.sessionStorage.clear()
@@ -30,18 +34,44 @@ export async function useAuthenticatedSession(
   page: Page,
   role = 'ROLE_USER',
 ) {
-  await page.addInitScript((userRole) => {
+  authenticatedPages.set(page, role)
+  await page.addInitScript(() => {
     window.localStorage.setItem('mindot.appIntroShown', 'true')
-    window.sessionStorage.setItem('mindot.accessToken', 'playwright-access-token')
-    window.sessionStorage.setItem('mindot.userRole', userRole)
-  }, role)
+    window.sessionStorage.clear()
+  })
 }
 
 export async function mockApi(page: Page, resolver?: ApiResolver) {
+  let bootstrapRole = authenticatedPages.get(page) ?? null
+
+  // 실제 회전된 Refresh Token 쿠키처럼 새 문서를 불러올 때마다 복구를 허용.
+  page.on('framenavigated', (frame) => {
+    if (frame === page.mainFrame()) {
+      bootstrapRole = authenticatedPages.get(page) ?? null
+    }
+  })
+
   await page.route('http://localhost:8080/api/**', async (route) => {
     const request = route.request()
     const url = new URL(request.url())
-    const overridden = await resolver?.(request, url)
+    let overridden: ApiMockResult | undefined
+
+    // 앱 시작 시에는 HttpOnly 쿠키를 받은 서버처럼 메모리용 토큰을 한 번 발급.
+    if (
+      bootstrapRole
+      && url.pathname === '/api/auth/refresh'
+      && request.method() === 'POST'
+    ) {
+      overridden = {
+        body: {
+          accessToken: 'playwright-access-token',
+          userRole: bootstrapRole,
+        },
+      }
+      bootstrapRole = null
+    } else {
+      overridden = await resolver?.(request, url)
+    }
 
     if (overridden === 'abort') {
       await route.abort('failed')
@@ -51,7 +81,12 @@ export async function mockApi(page: Page, resolver?: ApiResolver) {
     let response = overridden
 
     if (!response) {
-      if (url.pathname === '/api/users/me' && request.method() === 'GET') {
+      if (
+        url.pathname === '/api/auth/refresh'
+        && request.method() === 'POST'
+      ) {
+        response = { status: 401, body: {} }
+      } else if (url.pathname === '/api/users/me' && request.method() === 'GET') {
         response = { body: { timezone: 'Asia/Seoul' } }
       } else if (url.pathname === '/api/notifications/unread-count') {
         response = { body: { unreadCount: 0 } }

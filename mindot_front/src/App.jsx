@@ -26,7 +26,10 @@ import OAuthCallback from './components/OAuthCallback/OAuthCallback.jsx'
 import Settings from './components/Settings/Settings.jsx'
 import ScrollToTop from './components/ScrollToTop/ScrollToTop.jsx'
 import ServiceInfo from './components/ServiceInfo/ServiceInfo.jsx'
-import { logout } from './utils/auth/authApi.js'
+import {
+  logout,
+  restoreAuthentication,
+} from './utils/auth/authApi.js'
 import {
   clearAuthSession,
   getAccessToken,
@@ -57,15 +60,8 @@ const protectedPages = new Set([
   'admin',
   'settings',
 ])
-// 최초 URL의 보호 화면 접근 가능 여부 확인.
-const isInitialRouteBlocked = (
-  protectedPages.has(browserInitialRoute.page)
-  && !getAccessToken()
-)
-// 비로그인 보호 URL 접근 시 안전하게 메인 화면을 최초 화면으로 설정.
-const initialRoute = isInitialRouteBlocked
-  ? { page: 'main' }
-  : browserInitialRoute
+// 인증 확인 전에도 사용자가 요청한 최초 URL은 그대로 유지.
+const initialRoute = browserInitialRoute
 
 // 브라우저에서 시작 안내창을 이미 표시했는지 보관하는 저장소 키 설정.
 const introShownStorageKey = 'mindot.appIntroShown'
@@ -88,15 +84,19 @@ function App() {
   const [currentPage, setCurrentPage] = useState(initialRoute.page)
   // 브라우저 기준 최초 메인 진입에서만 서비스 안내창을 표시하기 위한 상태 관리.
   const [isIntroOpen, setIsIntroOpen] = useState(shouldShowIntroInitially)
-  // 브라우저에 저장된 Access Token을 기준으로 로그인 여부 상태 관리.
+  // 현재 JavaScript 실행 메모리의 Access Token을 기준으로 로그인 여부 상태 관리.
   const [isAuthenticated, setIsAuthenticated] = useState(
     () => Boolean(getAccessToken()),
+  )
+  // 새로고침 후 HttpOnly Refresh Token 쿠키로 메모리 토큰을 복구하는 상태 관리.
+  const [isAuthChecking, setIsAuthChecking] = useState(
+    () => !getAccessToken(),
   )
   // 중복 로그아웃 요청을 방지하기 위한 진행 상태 관리.
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   // 비로그인 사용자의 보호 기능 선택 시 안내 모달 표시 상태 관리.
   const [isLoginRequiredOpen, setIsLoginRequiredOpen] = useState(
-    isInitialRouteBlocked,
+    false,
   )
   // 로그인 계정의 서비스 접근 권한 부족 안내 모달 표시 상태 관리.
   const [isAccessDeniedOpen, setIsAccessDeniedOpen] = useState(false)
@@ -136,6 +136,45 @@ function App() {
       ? initialRoute.patternId ?? null
       : null,
   )
+
+  // 페이지 새로고침으로 비워진 메모리 토큰을 Refresh Token 쿠키로 한 번 복구.
+  useEffect(() => {
+    if (getAccessToken()) return undefined
+
+    let isActive = true
+
+    const restoreSession = async () => {
+      try {
+        await restoreAuthentication()
+        if (!isActive) return
+
+        setIsAuthenticated(true)
+      } catch {
+        if (!isActive) return
+
+        clearAuthSession()
+        setIsAuthenticated(false)
+
+        if (protectedPages.has(browserInitialRoute.page)) {
+          setIsLoginRequiredOpen(true)
+          setCbtEmotionRecordId(null)
+          setCbtResumeSessionId(null)
+          setSelectedEmotionRecordId(null)
+          setSelectedReflectionSessionId(null)
+          setSelectedPatternId(null)
+          window.history.replaceState({ page: 'main' }, '', '/')
+          setCurrentPage('main')
+        }
+      } finally {
+        if (isActive) setIsAuthChecking(false)
+      }
+    }
+
+    restoreSession()
+    return () => {
+      isActive = false
+    }
+  }, [])
 
   // 최초 시작 안내창이 표시되면 이후 재접속에서 반복되지 않도록 표시 이력 저장.
   useEffect(() => {
@@ -188,10 +227,7 @@ function App() {
 
   // 브라우저 뒤로 가기와 앞으로 가기 시 URL에 해당하는 화면 상태 복원.
   useEffect(() => {
-    // 비로그인 상태의 최초 보호 URL을 메인 주소로 교체하는 처리.
-    if (isInitialRouteBlocked) {
-      window.history.replaceState({ page: 'main' }, '', '/')
-    }
+    if (isAuthChecking) return undefined
 
     const handlePopState = () => {
       let route = readAppRoute()
@@ -233,7 +269,7 @@ function App() {
 
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
-  }, [isAuthenticated])
+  }, [isAuthChecking, isAuthenticated])
 
   // Access Token 재발급 실패 시 로그인 상태와 보호 화면을 즉시 정리하는 처리.
   useEffect(() => {
@@ -353,6 +389,16 @@ function App() {
   const handleCompletedReflectionOpen = (sessionId, returnWeek) => {
     moveToPage('completed-reflection', { reflectionSessionId: sessionId, returnWeek })
   }
+
+  // 인증 복구가 끝나기 전에는 보호 화면이나 비로그인 화면을 먼저 노출하지 않음.
+  if (isAuthChecking) {
+    return (
+      <main className="auth-session-loading">
+        <p role="status">로그인 상태를 확인하고 있습니다.</p>
+      </main>
+    )
+  }
+
   // 현재 화면 상태에 따라 렌더링할 페이지 컴포넌트 보관.
   let currentPageContent
 
