@@ -42,7 +42,7 @@ const patternDetail = {
   ],
 }
 
-test.describe('FE-AUTO-031: 반복 패턴 목록·상세·피드백', () => {
+test.describe('FE-AUTO-033: 반복 패턴 목록·상세·피드백', () => {
   test('성공: 목록에서 집계 근거를 확인하고 상세 화면으로 이동한다', async ({ page }) => {
     await useAuthenticatedSession(page)
     await mockApi(page, (request, url) => {
@@ -73,12 +73,13 @@ test.describe('FE-AUTO-031: 반복 패턴 목록·상세·피드백', () => {
     await expect(page.getByText(/원인이나 진단을 의미하지 않습니다/)).toBeVisible()
   })
 
-  test('성공: 도움 여부를 서버에 저장하고 다시 선택해 변경한다', async ({ page }) => {
+  test('성공: 도움 여부를 서버에 저장·변경하고 새로고침 후 복원한다', async ({ page }) => {
     await useAuthenticatedSession(page)
     const submittedFeedback: unknown[] = []
+    let savedFeedback: string | null = null
     await mockApi(page, (request, url) => {
       if (url.pathname === '/api/patterns/31' && request.method() === 'GET') {
-        return { body: patternDetail }
+        return { body: { ...patternDetail, feedback: savedFeedback } }
       }
       if (
         url.pathname === '/api/patterns/31/feedback'
@@ -86,6 +87,7 @@ test.describe('FE-AUTO-031: 반복 패턴 목록·상세·피드백', () => {
       ) {
         const requestBody = readJsonBody(request)
         submittedFeedback.push(requestBody)
+        savedFeedback = requestBody.feedback
         return {
           body: {
             patternId: 31,
@@ -110,6 +112,9 @@ test.describe('FE-AUTO-031: 반복 패턴 목록·상세·피드백', () => {
       { feedback: 'HELPFUL' },
       { feedback: 'NOT_HELPFUL' },
     ])
+    await page.reload()
+    await expect(page.getByRole('button', { name: '도움되지 않았어요', pressed: true })).toBeVisible()
+    expect(submittedFeedback).toHaveLength(2)
   })
 
   test('빈 상태와 조회 오류에서 안내 및 재시도를 제공한다', async ({ page }) => {
@@ -156,13 +161,37 @@ test.describe('FE-AUTO-031: 반복 패턴 목록·상세·피드백', () => {
     expect(viewportWidths.content).toBeLessThanOrEqual(viewportWidths.viewport)
   })
 
-  test('권한: 비로그인 사용자의 목록·상세 직접 접근을 차단한다', async ({ page }) => {
-    await useGuestSession(page)
-    await mockApi(page)
+  for (const path of ['/insights/patterns', '/insights/patterns/31']) {
+    test(`권한: 비로그인 사용자의 ${path} 직접 접근을 차단한다`, async ({ page }) => {
+      await useGuestSession(page)
+      await mockApi(page)
 
+      await page.goto(path)
+
+      await expect(page).toHaveURL('/')
+      await expect(page.getByRole('dialog', { name: '로그인이 필요한 서비스입니다' })).toBeVisible()
+    })
+  }
+
+  test('오류: 피드백 저장 실패 시 기존 서버 선택을 유지하고 재시도할 수 있다', async ({ page }) => {
+    await useAuthenticatedSession(page)
+    let fail = true
+    await mockApi(page, (request, url) => {
+      if (url.pathname === '/api/patterns/31') return { body: { ...patternDetail, feedback: 'HELPFUL' } }
+      if (url.pathname === '/api/patterns/31/feedback' && request.method() === 'POST') {
+        expect(readJsonBody(request)).toEqual({ feedback: 'NOT_HELPFUL' })
+        return fail ? { status: 503, body: { message: '피드백 저장 실패' } }
+          : { body: { patternId: 31, feedback: 'NOT_HELPFUL', feedbackAt: '2026-09-22T09:00:00Z' } }
+      }
+    })
     await page.goto('/insights/patterns/31')
-
-    await expect(page).toHaveURL('/')
-    await expect(page.getByRole('dialog', { name: '로그인이 필요한 서비스입니다' })).toBeVisible()
+    await page.getByRole('button', { name: '도움되지 않았어요' }).click()
+    await expect(page.getByRole('alert')).toContainText('피드백 저장 실패')
+    await expect(page.getByRole('button', { name: '도움됐어요', pressed: true })).toBeVisible()
+    await expect(page.getByRole('button', { name: '도움되지 않았어요', pressed: false })).toBeEnabled()
+    fail = false
+    await page.getByRole('button', { name: '도움되지 않았어요' }).click()
+    await expect(page.getByRole('button', { name: '도움되지 않았어요', pressed: true })).toBeVisible()
+    await expect(page.getByRole('alert')).toHaveCount(0)
   })
 })
