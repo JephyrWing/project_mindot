@@ -23,6 +23,7 @@ public class EmotionRecordAiTransactionService {
     private final UsersRepository usersRepository;
     private final AiJobsRepository aiJobsRepository;
     private final SafetyEventsService safetyEventsService;
+    private final com.my.mindot_back.records.repository.ReflectionSessionsRepository reflectionSessionsRepository;
     private final jakarta.persistence.EntityManager entityManager;
 
     @Transactional
@@ -57,8 +58,27 @@ public class EmotionRecordAiTransactionService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "재분석할 수 있는 감정 기록 상태가 아닙니다.");
         var prior = latest(record);
         expire(prior);
-        if (processing(prior)) return context(record, prior, false);
-        return context(record, newJob(record, UUID.randomUUID().toString(), Map.of("kind", "REANALYZE")), true);
+
+        // 이미 처리 중인 재분석 작업이 있으면 중복 요청을 거부
+        if (processing(prior)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "이미 감정 기록을 분석하고 있습니다."
+            );
+        }
+
+        // 새 분석 요청부터는 이전 제안 거절 상태를 더 이상 노출하지 않음
+        record.resetAiAnalysisRejection();
+
+        return context(
+                record,
+                newJob(
+                        record,
+                        UUID.randomUUID().toString(),
+                        Map.of("kind", "REANALYZE")
+                ),
+                true
+        );
     }
 
     @Transactional
@@ -98,6 +118,21 @@ public class EmotionRecordAiTransactionService {
         return EmotionRecordsQuickCreateResponseDto.saved(record,
                 job == null ? "UNKNOWN" : job.getStatus().name(), job == null ? null : job.getErrorCode(),
                 safetyEventsService.getLatestSafetyNotice(recordId));
+    }
+
+    @Transactional
+    public EmotionRecordsDetailResponseDto detailResponse(Long userId, Long recordId) {
+        var record = owned(userId, recordId);
+        var job = latest(record);
+        expire(job);
+        // Legacy QUICK records without a job can be explicitly reanalyzed.
+        String status = record.isAiAnalysisRejected() ? "REJECTED"
+                : record.getCompletionStatus() != CompletionStatus.QUICK ? "COMPLETED"
+                : job == null ? "FAILED" : job.getStatus().name();
+        return EmotionRecordsDetailResponseDto.from(record,
+                safetyEventsService.getLatestSafetyNotice(recordId), status,
+                reflectionSessionsRepository.existsByEmotionRecord_Id(recordId),
+                reflectionSessionsRepository.existsByEmotionRecord_IdAndStatus(recordId, ReflectionSessionStatus.COMPLETED));
     }
 
     private EmotionRecords owned(Long userId, Long recordId) {

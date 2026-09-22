@@ -15,6 +15,9 @@ public record EmotionRecordsDetailResponseDto (
         String timeBucket,
         String weekdayType,
         String completionStatus,
+        String analysisStatus,
+        boolean cbtStarted,
+        boolean cbtCompleted,
 
         String situationText,
         String automaticThought,
@@ -39,6 +42,19 @@ public record EmotionRecordsDetailResponseDto (
             EmotionRecords emotionRecord,
             SafetyNoticeResponseDto safetyNotice
     ) {
+        return from(emotionRecord, safetyNotice,
+                emotionRecord.getCompletionStatus() == com.my.mindot_back.records.entity.CompletionStatus.QUICK
+                        ? "UNKNOWN" : "COMPLETED");
+    }
+
+    public static EmotionRecordsDetailResponseDto from(
+            EmotionRecords emotionRecord, SafetyNoticeResponseDto safetyNotice, String analysisStatus) {
+        return from(emotionRecord, safetyNotice, analysisStatus, false, false);
+    }
+
+    public static EmotionRecordsDetailResponseDto from(
+            EmotionRecords emotionRecord, SafetyNoticeResponseDto safetyNotice, String analysisStatus,
+            boolean cbtStarted, boolean cbtCompleted) {
         return new EmotionRecordsDetailResponseDto(
                 emotionRecord.getId(),
                 emotionRecord.getRawText(),
@@ -46,6 +62,9 @@ public record EmotionRecordsDetailResponseDto (
                 emotionRecord.getTimeBucket().name(),
                 emotionRecord.getWeekdayType().name(),
                 emotionRecord.getCompletionStatus().name(),
+                analysisStatus,
+                cbtStarted,
+                cbtCompleted,
 
                 emotionRecord.getSituationText(),
                 emotionRecord.getAutomaticThought(),

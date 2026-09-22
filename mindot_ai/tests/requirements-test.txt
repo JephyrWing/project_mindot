@@ -1,0 +1,4 @@
+# Install after mindot_ai/requirements.txt in the project virtual environment.
+pytest
+httpx
+pytest-html>=4.1,<5

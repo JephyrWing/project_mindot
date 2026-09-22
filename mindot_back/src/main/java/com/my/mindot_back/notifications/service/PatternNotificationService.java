@@ -105,7 +105,14 @@ public class PatternNotificationService {
     public PatternNotificationResponseDto generateForUser(
             Long userId
     ) {
-        Users user = findUser(userId);
+        // 사용자 행을 잠가 같은 사용자의 알림 생성 요청을 순서대로 처리
+        Users user = usersRepository.findLockedById(userId)
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "사용자를 찾을 수 없습니다."
+                        )
+                );
 
         NotificationPreferences preferences =
                 notificationPreferencesRepository
@@ -167,30 +174,48 @@ public class PatternNotificationService {
                 windowEnd
         );
 
-        // 같은 주에 이미 생성된 동일 패턴 알림 재사용
-        return patternNotificationRepository
-                .findByDeduplicationKey(deduplicationKey)
-                .map(PatternNotificationResponseDto::from)
-                .orElseGet(() -> {
-                    PatternNotification notification =
-                            PatternNotification.create(
-                                    user,
-                                    pattern,
-                                    patternKey,
-                                    windowStart,
-                                    windowEnd,
-                                    "최근 8주 반복 감정 패턴",
-                                    createMessage(pattern),
-                                    createRecommendedAction(pattern),
-                                    deduplicationKey
-                            );
+        // 같은 주에 이미 생성된 동일 패턴 알림 조회
+        var existingNotification =
+                patternNotificationRepository
+                        .findByDeduplicationKey(
+                                deduplicationKey
+                        );
 
-                    return PatternNotificationResponseDto.from(
-                            patternNotificationRepository.save(
-                                    notification
-                            )
-                    );
-                });
+        if (existingNotification.isPresent()) {
+            PatternNotification notification =
+                    existingNotification.get();
+
+            // 사용자가 삭제한 알림은 같은 주에 다시 노출하지 않음
+            if (notification.getDeletedAt() != null) {
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "이번 주에 삭제한 반복 패턴 알림입니다."
+                );
+            }
+
+            return PatternNotificationResponseDto.from(
+                    notification
+            );
+        }
+
+        PatternNotification notification =
+                PatternNotification.create(
+                        user,
+                        pattern,
+                        patternKey,
+                        windowStart,
+                        windowEnd,
+                        "최근 8주 반복 감정 패턴",
+                        createMessage(pattern),
+                        createRecommendedAction(pattern),
+                        deduplicationKey
+                );
+
+        return PatternNotificationResponseDto.from(
+                patternNotificationRepository.save(
+                        notification
+                )
+        );
     }
 
     // 사용자 알림 최신순 페이징 조회

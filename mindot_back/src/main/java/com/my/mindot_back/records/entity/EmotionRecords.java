@@ -61,6 +61,9 @@ import java.util.Map;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class EmotionRecords {
 
+    private static final String AI_ANALYSIS_STATUS_KEY = "analysisStatus";
+    private static final String AI_ANALYSIS_REJECTED = "REJECTED";
+
     // 감정 기록 식별자
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -317,6 +320,38 @@ public class EmotionRecords {
         this.completionStatus = CompletionStatus.PARTIAL;
     }
 
+    // AI 구조화 제안을 제거하고 사용자가 작성한 원문만 간편 기록으로 유지
+    public void rejectAiAnalysis() {
+        this.situationText = null;
+        this.automaticThought = null;
+        this.primaryEmotionCode = null;
+        this.primaryIntensity = null;
+        this.secondaryEmotions = new ArrayList<>();
+        this.contextCategory = null;
+        this.relatedPersonType = null;
+        this.details = new HashMap<>();
+        this.aiMeta = new HashMap<>();
+        this.aiMeta.put(AI_ANALYSIS_STATUS_KEY, AI_ANALYSIS_REJECTED);
+        this.completionStatus = CompletionStatus.QUICK;
+    }
+
+    // 상세 조회에서 사용자가 거절한 AI 제안 상태인지 확인
+    public boolean isAiAnalysisRejected() {
+        return AI_ANALYSIS_REJECTED.equals(
+                this.aiMeta.get(AI_ANALYSIS_STATUS_KEY)
+        );
+    }
+
+    // 다시 분석을 시작할 때 이전 거절 표시 제거
+    public void resetAiAnalysisRejection() {
+        if (!isAiAnalysisRejected()) {
+            return;
+        }
+
+        this.aiMeta = new HashMap<>(this.aiMeta);
+        this.aiMeta.remove(AI_ANALYSIS_STATUS_KEY);
+    }
+
     // 사용자가 수정, 확인한 구조화 값을 Entity에 반영
     public void confirm(
             EmotionRecordsConfirmRequestDto dto
@@ -342,7 +377,19 @@ public class EmotionRecords {
         this.completionStatus = CompletionStatus.COMPLETE;
     }
 
+    // Caller holds the record lock and verifies no session already depends on this thought.
+    public void addCbtThought(String thought) {
+        if (completionStatus != CompletionStatus.COMPLETE || (automaticThought != null && !automaticThought.isBlank()))
+            throw new IllegalStateException("CBT thought can only fill an empty completed record");
+        this.automaticThought = thought;
+    }
+
     // OpenAI가 생성한 사용자 원문 검색 벡터를 감정 기록에 반영
+    public void updateRawText(String rawText) {
+        this.rawText = rawText;
+        this.searchEmbedding = null;
+    }
+
     public void applySearchEmbedding(float[] searchEmbedding) {
         // PostgreSQL vector(1536) 컬럼에 잘못된 차원의 벡터가 저장되는 것을 차단
         if (searchEmbedding == null || searchEmbedding.length != 1536) {

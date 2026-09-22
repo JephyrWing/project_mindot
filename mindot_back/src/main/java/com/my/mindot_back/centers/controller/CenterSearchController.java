@@ -21,8 +21,8 @@ public class CenterSearchController {
     @GetMapping
     public CenterSearchPageResponseDto searchCenters(
             @RequestParam String region,
-            @RequestParam String district,
-            @RequestParam String town,
+            @RequestParam(defaultValue = "") String district,
+            @RequestParam(defaultValue = "") String town,
             @RequestParam CenterType type,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size

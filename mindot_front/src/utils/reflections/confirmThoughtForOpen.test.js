@@ -39,3 +39,23 @@ test('409 with still PARTIAL record is not treated as success', async () => {
     confirmEmotionRecord: async () => { throw conflict },
   }), (error) => error === conflict)
 })
+
+test('COMPLETE without a thought uses the record PATCH and recovers a lost response', async () => {
+  let reads = 0, writes = 0
+  const result = await confirmThoughtForOpen(1, payload, {
+    getEmotionRecordDetail: async () => ++reads === 1 ? { completionStatus: 'COMPLETE', automaticThought: null } : complete,
+    updateEmotionRecord: async (id, thought) => { assert.deepEqual(thought, { automaticThought: payload.automaticThought }); writes++; throw new Error('lost response') },
+    confirmEmotionRecord: async () => { throw new Error('must not confirm COMPLETE') },
+  })
+  assert.equal(result, complete)
+  assert.equal(writes, 1)
+})
+
+test('a conflicting first writer after PATCH is reported without another mutation', async () => {
+  let reads = 0, writes = 0
+  await assert.rejects(confirmThoughtForOpen(1, payload, {
+    getEmotionRecordDetail: async () => ++reads === 1 ? { completionStatus: 'COMPLETE' } : { ...complete, automaticThought: '먼저 저장된 다른 생각' },
+    updateEmotionRecord: async () => { writes++; throw Object.assign(new Error('conflict'), { response: { status: 409 } }) },
+  }), { message: 'confirmed_thought_conflict' })
+  assert.equal(writes, 1)
+})

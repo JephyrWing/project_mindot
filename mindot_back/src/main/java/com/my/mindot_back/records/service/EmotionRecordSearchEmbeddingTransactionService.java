@@ -29,6 +29,14 @@ public class EmotionRecordSearchEmbeddingTransactionService {
     private final EmotionRecordsRepository emotionRecordsRepository;
     private final AiJobsRepository aiJobsRepository;
 
+    // Called under the same record lock as the edit. Late results cannot restore the old vector.
+    @Transactional
+    public void invalidate(Long userId, Long recordId) {
+        var record = ownedRecord(userId, recordId);
+        var job = latestJob(record);
+        if (isProcessing(job)) job.fail("RECORD_TEXT_CHANGED");
+    }
+
     // 검색 벡터가 없는 기록에 새로운 EMBED 작업 생성
     @Transactional
     public EmotionRecordSearchEmbeddingContext start(

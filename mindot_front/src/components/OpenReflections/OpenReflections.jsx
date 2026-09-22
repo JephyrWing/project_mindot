@@ -66,7 +66,11 @@ function OpenReflections({ onResume }) {
         const sessions = await getOpenReflectionSessions()
 
         if (isActive) {
-          setOpenSessions(Array.isArray(sessions) ? sessions : [])
+          setOpenSessions(
+            Array.isArray(sessions)
+              ? sessions.filter((session) => session.status === 'OPEN')
+              : [],
+          )
           setSelectedSessionId(null)
           setSessionDetail(null)
           setDetailError('')

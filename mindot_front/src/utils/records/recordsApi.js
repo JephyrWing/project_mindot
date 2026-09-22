@@ -26,11 +26,27 @@ export const createRecordsApi = (client) => ({
 
     return data
   },
+  // AI 분석 결과에서 비어 있는 항목을 보완 질문으로 조회하는 처리.
+  getMissingInformationQuestions: async (emotionRecordId) => {
+    const { data } = await client.get(
+      `/api/records/${emotionRecordId}/questions/missing`,
+    )
+
+    return data
+  },
   // AI 분석 결과에 사용자가 보완한 감정 기록 내용을 최종 반영하는 처리.
   confirmEmotionRecord: async (emotionRecordId, record) => {
     const { data } = await client.post(
       `/api/records/${emotionRecordId}/confirm`,
       record,
+    )
+
+    return data
+  },
+  // AI가 제안한 구조화 결과를 거절하고 사용자의 원문만 유지하는 처리.
+  rejectEmotionRecordAnalysis: async (emotionRecordId) => {
+    const { data } = await client.post(
+      `/api/records/${emotionRecordId}/reject`,
     )
 
     return data
@@ -44,19 +60,18 @@ export const createRecordsApi = (client) => ({
     return data
   },
   // 확정된 감정 기록과 유사한 과거 CBT 사례를 기반으로 패턴 설명을 요청하는 처리.
-  getEmotionRecordPatternExplanation: async (emotionRecordId) => {
+  getEmotionRecordPatternExplanation: async (emotionRecordId, { silentFailure = false } = {}) => {
     const { data } = await client.post(
       `/api/records/${emotionRecordId}/pattern-explanation`,
+      undefined,
+      { silentFailure, timeout: 60_000 },
     )
 
     return data
   },
-  // 선택한 감정 기록의 실제 감정 발생 시각을 수정하는 처리.
-  updateEmotionRecordOccurredAt: async (emotionRecordId, occurredAt) => {
-    const { data } = await client.patch(`/api/records/${emotionRecordId}`, {
-      occurredAt,
-    })
-
+  // 전달한 필드만 수정하고 나머지 기록 값은 유지.
+  updateEmotionRecord: async (emotionRecordId, changes) => {
+    const { data } = await client.patch(`/api/records/${emotionRecordId}`, changes)
     return data
   },
   // 선택한 감정 기록과 연결된 CBT 성찰 데이터를 함께 삭제하는 처리.
@@ -71,9 +86,11 @@ export const {
   getEmotionRecords,
   searchEmotionRecordsSemantically,
   getEmotionRecordDetail,
+  getMissingInformationQuestions,
   confirmEmotionRecord,
+  rejectEmotionRecordAnalysis,
   reanalyzeEmotionRecord,
   getEmotionRecordPatternExplanation,
-  updateEmotionRecordOccurredAt,
+  updateEmotionRecord,
   deleteEmotionRecord,
 } = createRecordsApi(httpClient)

@@ -132,6 +132,19 @@ public class EmotionRecordsController {
         );
     }
 
+    // PARTIAL 감정 기록에서 누락된 구조화 항목의 보완 질문 조회 API
+    @GetMapping("/{emotionRecordId}/questions/missing")
+    public EmotionRecordMissingQuestionsResponseDto
+    getMissingQuestions(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long emotionRecordId
+    ) {
+        return emotionRecordsService.getMissingQuestions(
+                userId,
+                emotionRecordId
+        );
+    }
+
     // 현재 감정 기록과 유사한 완료 CBT를 기반으로 패턴 설명 생성하는 API
     @PostMapping("/{emotionRecordId}/pattern-explanation")
     public  PatternExplanationResponseDto explainPattern(
@@ -151,6 +164,18 @@ public class EmotionRecordsController {
             @PathVariable Long emotionRecordId
     ){
         return  emotionRecordsService.reanalyzeEmotionRecord(
+                userId,
+                emotionRecordId
+        );
+    }
+
+    // AI 구조화 제안을 거절하고 사용자가 작성한 원문만 유지하는 API
+    @PostMapping("/{emotionRecordId}/reject")
+    public EmotionRecordsDetailResponseDto rejectEmotionRecordAnalysis(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long emotionRecordId
+    ) {
+        return emotionRecordsService.rejectEmotionRecordAnalysis(
                 userId,
                 emotionRecordId
         );
@@ -184,14 +209,14 @@ public class EmotionRecordsController {
         );
     }
 
-    // 감정 기록 발생 시각 수정 API
+    // CBT 시작 전 기록 수정. 생략한 항목은 유지.
     @PatchMapping("/{emotionRecordId}")
     public EmotionRecordsDetailResponseDto updateEmotionRecord(
             @AuthenticationPrincipal Long userId,
             @PathVariable Long emotionRecordId,
             @Valid @RequestBody EmotionRecordsUpdateRequestDto dto
     ) {
-        // JWT 사용자 ID와 수정할 발생 시각을 Service에 전달
+        // JWT 사용자 ID와 수정할 필드만 Service에 전달
         return emotionRecordsService.updateEmotionRecord(
                 userId,
                 emotionRecordId,

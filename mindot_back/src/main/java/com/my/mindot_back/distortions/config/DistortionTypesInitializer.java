@@ -5,11 +5,13 @@ import com.my.mindot_back.distortions.entity.DistortionTypes;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 @Configuration
 // Bean 설정을 작성하는 설정 클래스
 public class DistortionTypesInitializer {
     @Bean
+    @Order(0)
     // 실행 완료 직후, 아래 CommandLineRunner를 한번 실행하도록 등록
     CommandLineRunner initializeDistortionTypes(
             DistortionTypesRepository distortionTypesRepository

@@ -1,5 +1,10 @@
+import { emotionLabel } from '../../utils/records/emotions.js'
 import { distortionLabels } from '../CBT/distortionLabels.js'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { getMyProfile } from '../../utils/users/usersApi.js'
+import { addDays, currentWeekStart, dateInZone, weeklyRecords } from '../../utils/reports/weeklyReportData.js'
+import { reportEmotionLabel } from '../../utils/records/emotionColors.js'
+import WeeklyEmotionCharts from './WeeklyEmotionCharts.jsx'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import Navbar from '../Navbar/Navbar.jsx'
 import {
@@ -9,106 +14,21 @@ import {
 } from '../../utils/reports/reportsApi.js'
 import './WeeklyReport.css'
 
-// 백엔드 감정 코드를 사용자에게 표시할 한국어 이름으로 변환하기 위한 목록 설정.
-const emotionCodeLabels = {
-  ANXIETY: '불안',
-  FEAR: '두려움',
-  ANGER: '분노',
-  FRUSTRATION: '답답함',
-  SADNESS: '슬픔',
-  DISAPPOINTMENT: '실망',
-  SHAME: '수치심',
-  GUILT: '죄책감',
-  LONELINESS: '외로움',
-  JOY: '기쁨',
-  RELIEF: '안도',
-  ACHIEVEMENT: '성취감',
-  CALM: '평온',
-  GRATITUDE: '감사',
-  EXCITEMENT: '설렘',
-  OTHER: '기타',
-}
+const pdfMaximumDayCount = 31
 
-// 백엔드 요일 코드를 사용자에게 표시할 한국어 이름으로 변환하기 위한 목록 설정.
-const weekdayLabels = {
-  MONDAY: '월요일',
-  TUESDAY: '화요일',
-  WEDNESDAY: '수요일',
-  THURSDAY: '목요일',
-  FRIDAY: '금요일',
-  SATURDAY: '토요일',
-  SUNDAY: '일요일',
-}
-
-// 백엔드 시간대 코드를 사용자에게 표시할 한국어 이름으로 변환하기 위한 목록 설정.
-const timeBucketLabels = {
-  DAWN: '새벽',
-  MORNING: '아침',
-  AFTERNOON: '오후',
-  EVENING: '저녁',
-  NIGHT: '밤',
-}
-
-// 반복 감정 패턴 강도를 사용자에게 안내할 문구로 변환하기 위한 목록 설정.
-const patternLevelLabels = {
-  RECENT: '최근 반복',
-  REPEATED: '2주 이상 반복',
-  SUSTAINED: '지속 패턴',
-  LONG_TERM: '장기 패턴',
-}
-
-// 월요일부터 일요일까지 그래프에 표시할 요일 순서 설정.
-const graphWeekdays = [
-  { day: '월', dayIndex: 1 },
-  { day: '화', dayIndex: 2 },
-  { day: '수', dayIndex: 3 },
-  { day: '목', dayIndex: 4 },
-  { day: '금', dayIndex: 5 },
-  { day: '토', dayIndex: 6 },
-  { day: '일', dayIndex: 0 },
-]
-
-// 지역 시각 기준 날짜를 백엔드 LocalDate 요청 형식으로 변환.
-const toLocalDateValue = (date) => {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-
-  return `${year}-${month}-${day}`
-}
-
-// 사용자가 선택한 주를 기준으로 월요일과 일요일 날짜 범위 계산.
-const getWeekRange = (weekOffset) => {
-  const selectedDate = new Date()
-  selectedDate.setHours(12, 0, 0, 0)
-  selectedDate.setDate(selectedDate.getDate() + weekOffset * 7)
-
-  const dayOfWeek = selectedDate.getDay()
-  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
-  const weekStart = new Date(selectedDate)
-  weekStart.setDate(selectedDate.getDate() + mondayOffset)
-
-  const weekEnd = new Date(weekStart)
-  weekEnd.setDate(weekStart.getDate() + 6)
-
-  const dateFormatter = new Intl.DateTimeFormat('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-
-  return {
-    weekStart: toLocalDateValue(weekStart),
-    weekEnd: toLocalDateValue(weekEnd),
-    label: `${dateFormatter.format(weekStart)} ~ ${dateFormatter.format(weekEnd)}`,
-  }
-}
+const getInclusiveDayCount = (startDate, endDate) => (
+  Math.floor(
+    (Date.parse(`${endDate}T00:00:00Z`) - Date.parse(`${startDate}T00:00:00Z`))
+    / 86_400_000,
+  ) + 1
+)
 
 // ISO 시각을 주간 리포트 근거 목록에 표시할 한국어 날짜 형식으로 변환.
-const formatEvidenceDate = (occurredAt) => {
+const formatEvidenceDate = (occurredAt, timezone) => {
   if (!occurredAt) return '기록 시각 없음'
 
   return new Intl.DateTimeFormat('ko-KR', {
+    timeZone: timezone,
     month: 'long',
     day: 'numeric',
     weekday: 'short',
@@ -117,70 +37,10 @@ const formatEvidenceDate = (occurredAt) => {
   }).format(new Date(occurredAt))
 }
 
-// 숫자 통계 객체를 기록 수가 많은 순서의 화면 표시 배열로 변환.
-const createCountItems = (counts, labels) => Object.entries(counts ?? {})
-  .sort(([, firstCount], [, secondCount]) => secondCount - firstCount)
-  .map(([code, count]) => ({
-    code,
-    label: labels[code] ?? code,
-    count,
-  }))
-
-// 감정 기록 근거를 요일별로 묶어 평균 강도와 대표 감정으로 변환.
-const createWeeklyGraphItems = (emotionRecordEvidences = []) => {
-  const recordsByDay = Array.from({ length: 7 }, () => [])
-
-  emotionRecordEvidences.forEach((record) => {
-    const occurredDate = new Date(record.occurredAt)
-
-    if (Number.isNaN(occurredDate.getTime())) return
-
-    recordsByDay[occurredDate.getDay()].push(record)
-  })
-
-  return graphWeekdays.map(({ day, dayIndex }) => {
-    const records = recordsByDay[dayIndex]
-    const intensities = records
-      .map((record) => record.primaryIntensity)
-      .filter((intensity) => intensity !== null
-        && intensity !== undefined
-        && intensity !== '')
-      .map((intensity) => Number(intensity))
-      .filter((intensity) => Number.isFinite(intensity)
-        && intensity >= 0
-        && intensity <= 10)
-    const emotionCounts = records.reduce((counts, record) => {
-      const emotionCode = record.primaryEmotionCode
-
-      if (emotionCode) counts[emotionCode] = (counts[emotionCode] ?? 0) + 1
-      return counts
-    }, {})
-    const representativeEmotionCode = Object.entries(emotionCounts)
-      .sort(([firstCode, firstCount], [secondCode, secondCount]) => (
-        secondCount - firstCount || firstCode.localeCompare(secondCode)
-      ))[0]?.[0] ?? null
-    const averageIntensity = intensities.length > 0
-      ? intensities.reduce(
-        (totalIntensity, currentIntensity) => totalIntensity + currentIntensity,
-        0,
-      ) / intensities.length
-      : null
-
-    return {
-      day,
-      value: averageIntensity === null ? null : Number(averageIntensity.toFixed(1)),
-      recordCount: records.length,
-      representativeEmotion: representativeEmotionCode
-        ? emotionCodeLabels[representativeEmotionCode] ?? representativeEmotionCode
-        : '분석 전',
-    }
-  })
-}
-
 // 주간 리포트 조회 및 생성 API 오류를 사용자 안내 문구로 변환.
 const getReportErrorMessage = (error) => {
   if (!error.response) {
-    return '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
+    return error.isAxiosError ? '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.' : error.message
   }
   if (error.response.status === 400) {
     return '선택한 주간 범위를 확인해 주세요.'
@@ -214,6 +74,8 @@ const getPdfExportErrorMessage = (error) => {
 
 // 공통 네비게이션과 실제 주간 리포트 API 결과를 제공하는 화면 컴포넌트 정의.
 function WeeklyReport({
+  weekStart,
+  onWeekChange,
   isAuthenticated,
   isLoggingOut,
   onLogin,
@@ -229,7 +91,10 @@ function WeeklyReport({
   onHome,
 }) {
   // 현재 주를 기준으로 사용자가 이동한 주간 위치 상태 관리.
-  const [weekOffset, setWeekOffset] = useState(0)
+  const [defaultWeek, setDefaultWeek] = useState(() => currentWeekStart())
+  const [timezone, setTimezone] = useState('Asia/Seoul')
+  const forceRefresh = useRef(false)
+  const [chartRecords, setChartRecords] = useState([])
   // 백엔드에서 조회하거나 생성한 선택 주의 리포트 상태 관리.
   const [report, setReport] = useState(null)
   // 주간 리포트 최초 조회 및 자동 생성 진행 상태 관리.
@@ -250,11 +115,11 @@ function WeeklyReport({
   const [pdfSelectionMode, setPdfSelectionMode] = useState('range')
   // 기간 선택 방식의 PDF 시작일 상태 관리.
   const [pdfStartDate, setPdfStartDate] = useState(
-    () => getWeekRange(0).weekStart,
+    () => currentWeekStart(),
   )
   // 기간 선택 방식의 PDF 종료일 상태 관리.
   const [pdfEndDate, setPdfEndDate] = useState(
-    () => getWeekRange(0).weekEnd,
+    () => dateInZone(new Date(), 'Asia/Seoul'),
   )
   // 여러 날짜 직접 선택 방식의 현재 날짜 입력값 상태 관리.
   const [pdfDateInput, setPdfDateInput] = useState('')
@@ -268,99 +133,66 @@ function WeeklyReport({
   const [exportMessage, setExportMessage] = useState('')
   // 선택한 주의 완료 CBT 전용 목록 화면 표시 상태 관리.
   const [showCompletedCbtList, setShowCompletedCbtList] = useState(false)
-  // 그래프에서 상세 통계를 확인할 요일 상태 관리.
-  const [selectedGraphDay, setSelectedGraphDay] = useState('')
+  const selectedStart = weekStart ?? defaultWeek
+  const selectedWeek = { weekStart: selectedStart, weekEnd: addDays(selectedStart, 6),
+    label: `${selectedStart} ~ ${addDays(selectedStart, 6)}` }
+  const todayDate = dateInZone(new Date(), timezone)
 
-  // 선택한 주의 월요일 요청값과 화면 표시 기간 생성.
-  const selectedWeek = getWeekRange(weekOffset)
-  // 현재 주간 리포트의 근거 기록을 요일별 평균 강도 그래프 항목으로 변환.
-  const weeklyGraphItems = useMemo(
-    () => createWeeklyGraphItems(report?.emotionRecordEvidences),
-    [report],
-  )
-  // 사용자가 선택한 요일의 기록 건수와 대표 감정 정보 탐색.
-  const selectedGraphItem = weeklyGraphItems.find(
-    (item) => item.day === selectedGraphDay,
-  )
-  // PDF 날짜 입력에서 미래 날짜 선택을 막기 위한 오늘 날짜 생성.
-  const todayDate = toLocalDateValue(new Date())
-
-  // 선택한 주의 저장 리포트를 조회하고 미생성 상태이면 최신 기록으로 자동 생성 요청.
+  // Load profile timezone and a single, internally consistent report snapshot.
   useEffect(() => {
-    let isActive = true
-
-    const loadWeeklyReport = async () => {
+    let active = true
+    const force = forceRefresh.current
+    forceRefresh.current = false
+    const load = async () => {
       setIsLoading(true)
       setLoadError('')
       setEmptyMessage('')
-      setExportError('')
       setReport(null)
-
+      setChartRecords([])
       try {
-        const savedReport = await getWeeklyReport(selectedWeek.weekStart)
-
-        if (isActive) setReport(savedReport)
-      } catch (getError) {
-        if (getError.response?.status !== 404) {
-          if (isActive) setLoadError(getReportErrorMessage(getError))
-          return
-        }
-
-        try {
-          const generatedReport = await generateWeeklyReport(selectedWeek.weekStart)
-
-          if (isActive) setReport(generatedReport)
-        } catch (generateError) {
-          if (!isActive) return
-
-          if (generateError.response?.status === 409) {
-            setEmptyMessage('선택한 주에 감정 기록이 없어 아직 리포트를 만들 수 없습니다.')
-          } else {
-            setLoadError(getReportErrorMessage(generateError))
+        const profile = await getMyProfile()
+        const zone = profile.timezone
+        if (!zone) throw new Error('사용자 시간대를 확인할 수 없습니다. 다시 불러와 주세요.')
+        const start = weekStart ?? currentWeekStart(zone)
+        if (!active) return
+        setTimezone(zone)
+        setDefaultWeek(currentWeekStart(zone))
+        let saved
+        if (!force) {
+          try {
+            saved = await getWeeklyReport(start)
+          } catch (error) {
+            if (error.response?.status !== 404) throw error
+          }
+          if (saved) {
+            try { weeklyRecords(saved, start, zone) } catch { saved = null }
           }
         }
+        if (!active) return
+        if (!saved) saved = await generateWeeklyReport(start)
+        const records = weeklyRecords(saved, start, zone)
+        if (active) { setReport(saved); setChartRecords(records) }
+      } catch (error) {
+        if (!active) return
+        if (error.response?.status === 409) setEmptyMessage('선택한 주에 감정 기록과 완료된 CBT 성찰이 없습니다.')
+        else setLoadError(getReportErrorMessage(error))
       } finally {
-        if (isActive) setIsLoading(false)
+        if (active) { setIsLoading(false); setIsRefreshing(false) }
       }
     }
+    load()
+    return () => { active = false }
+  }, [reloadCount, weekStart])
 
-    loadWeeklyReport()
-
-    return () => {
-      isActive = false
-    }
-  }, [reloadCount, selectedWeek.weekStart])
-
-  // 주간 이동과 함께 이전 주에서 선택한 그래프 요일 해제.
-  const handleWeekMove = (offsetChange) => {
-    setSelectedGraphDay('')
-    setWeekOffset((currentOffset) => Math.min(currentOffset + offsetChange, 0))
+  const handleWeekMove = (days) => {
+    setShowCompletedCbtList(false)
+    onWeekChange(addDays(selectedStart, days * 7))
   }
-
-  // 선택한 주의 최신 감정 기록과 CBT 결과를 사용한 리포트 재생성 처리.
-  const handleReportRefresh = async () => {
+  const handleReportRefresh = () => {
     if (isRefreshing || isLoading) return
-
+    forceRefresh.current = true
     setIsRefreshing(true)
-    setLoadError('')
-    setEmptyMessage('')
-    setExportError('')
-
-    try {
-      const refreshedReport = await generateWeeklyReport(selectedWeek.weekStart)
-
-      setReport(refreshedReport)
-    } catch (error) {
-      setReport(null)
-
-      if (error.response?.status === 409) {
-        setEmptyMessage('선택한 주에 감정 기록이 없어 아직 리포트를 만들 수 없습니다.')
-      } else {
-        setLoadError(getReportErrorMessage(error))
-      }
-    } finally {
-      setIsRefreshing(false)
-    }
+    setReloadCount((count) => count + 1)
   }
 
   // 여러 날짜 직접 선택 방식에서 중복을 제외한 날짜 추가 처리.
@@ -371,8 +203,21 @@ function WeeklyReport({
       return
     }
 
+    if (pdfDateInput > todayDate) {
+      setExportError('미래 날짜는 PDF에 포함할 수 없습니다.')
+      setExportMessage('')
+      return
+    }
+
     if (pdfSelectedDates.includes(pdfDateInput)) {
       setExportError('이미 추가한 날짜입니다.')
+      setExportMessage('')
+      return
+    }
+
+
+    if (pdfSelectedDates.length >= pdfMaximumDayCount) {
+      setExportError('PDF에 직접 선택할 수 있는 날짜는 최대 31개입니다.')
       setExportMessage('')
       return
     }
@@ -411,8 +256,31 @@ function WeeklyReport({
       return
     }
 
+
+    if (pdfSelectionMode === 'range'
+      && (pdfStartDate > todayDate || pdfEndDate > todayDate)) {
+      setExportError('미래 날짜는 PDF에 포함할 수 없습니다.')
+      setExportMessage('')
+      return
+    }
+
+    if (pdfSelectionMode === 'range'
+      && getInclusiveDayCount(pdfStartDate, pdfEndDate) > pdfMaximumDayCount) {
+      setExportError('PDF는 최대 31일까지 내보낼 수 있습니다.')
+      setExportMessage('')
+      return
+    }
+
     if (pdfSelectionMode === 'dates' && pdfSelectedDates.length === 0) {
       setExportError('PDF에 포함할 날짜를 하나 이상 추가해 주세요.')
+      setExportMessage('')
+      return
+    }
+
+
+    if (pdfSelectionMode === 'dates'
+      && pdfSelectedDates.some((selectedDate) => selectedDate > todayDate)) {
+      setExportError('미래 날짜는 PDF에 포함할 수 없습니다.')
       setExportMessage('')
       return
     }
@@ -457,7 +325,7 @@ function WeeklyReport({
     { label: '기록 횟수', value: `${report.recordCount}회` },
     {
       label: '주요 감정',
-      value: emotionCodeLabels[report.dominantEmotionCode] ?? '기록 없음',
+      value: emotionLabel(report.dominantEmotionCode, '기록 없음'),
     },
     {
       label: '평균 강도',
@@ -466,28 +334,7 @@ function WeeklyReport({
         : '기록 없음',
     },
     { label: '완료 CBT', value: `${report.completedCbtCount}회` },
-    {
-      label: '평균 도움',
-      value: Number.isFinite(report.averageHelpfulnessScore)
-        ? `${report.averageHelpfulnessScore.toFixed(1)}/5`
-        : '-',
-    },
   ] : []
-  const distributionGroups = report ? [
-    {
-      title: '감정 분포',
-      items: createCountItems(report.emotionCounts, emotionCodeLabels),
-    },
-    {
-      title: '요일 분포',
-      items: createCountItems(report.weekdayCounts, weekdayLabels),
-    },
-    {
-      title: '시간대 분포',
-      items: createCountItems(report.timeBucketCounts, timeBucketLabels),
-    },
-  ] : []
-
   // 주간 리포트에서 분리한 완료 CBT 전용 목록 화면 반환.
   if (showCompletedCbtList && report) {
     const completedCbtEvidences = report.completedCbtEvidences ?? []
@@ -524,7 +371,7 @@ function WeeklyReport({
                   </header>
                   <p>{evidence.confirmedResult?.afterText ?? evidence.alternativeThoughtText ?? '저장된 생각이 없습니다.'}</p>
                   {evidence.confirmedResult?.beforeText && <p className="weekly-report-cbt-before">처음 생각 · {evidence.confirmedResult.beforeText}</p>}
-                  {onCompletedReflection && <button type="button" onClick={() => onCompletedReflection(evidence.sessionId)}>
+                  {onCompletedReflection && <button type="button" onClick={() => onCompletedReflection(evidence.sessionId, selectedStart)}>
                     성찰 결과 자세히 보기
                   </button>}
                 </article>
@@ -579,14 +426,13 @@ function WeeklyReport({
             <button
               type="button"
               onClick={() => handleWeekMove(-1)}
-              disabled={isLoading}
             >
               ← 이전 주
             </button>
             <button
               type="button"
               onClick={() => handleWeekMove(1)}
-              disabled={weekOffset === 0 || isLoading}
+              disabled={selectedStart >= currentWeekStart(timezone)}
             >
               다음 주 →
             </button>
@@ -634,105 +480,8 @@ function WeeklyReport({
                 ))}
               </dl>
 
-              {/* 주간 리포트 근거 기록의 요일별 평균 강도를 같은 화면에 표시. */}
-              <section
-                className="weekly-report-graph-chart"
-                aria-labelledby="weekly-report-graph-chart-title"
-              >
-                <header className="weekly-report-graph-chart-heading">
-                  <h2 id="weekly-report-graph-chart-title">요일별 감정 강도</h2>
-                  <span>0~10점</span>
-                </header>
-
-                <div className="weekly-report-graph-bars">
-                  {weeklyGraphItems.map((item) => (
-                    <button
-                      className={selectedGraphDay === item.day
-                        ? 'weekly-report-graph-item is-selected'
-                        : 'weekly-report-graph-item'}
-                      key={item.day}
-                      type="button"
-                      onClick={() => setSelectedGraphDay(item.day)}
-                      aria-pressed={selectedGraphDay === item.day}
-                      aria-label={item.recordCount > 0 && item.value !== null
-                        ? `${item.day}요일 감정 강도 평균 ${item.value}점, 기록 ${item.recordCount}건`
-                        : item.recordCount > 0
-                          ? `${item.day}요일 기록 ${item.recordCount}건, 감정 강도 없음`
-                          : `${item.day}요일 감정 기록 없음`}
-                    >
-                      <span className="weekly-report-graph-value">
-                        {item.value ?? '-'}
-                      </span>
-                      <span className="weekly-report-graph-track" aria-hidden="true">
-                        <span style={{ height: `${(item.value ?? 0) * 10}%` }} />
-                      </span>
-                      <strong>{item.day}</strong>
-                    </button>
-                  ))}
-                </div>
-
-                {selectedGraphItem && (
-                  <dl className="weekly-report-graph-details" aria-live="polite">
-                    <div>
-                      <dt>선택 요일</dt>
-                      <dd>{selectedGraphItem.day}요일</dd>
-                    </div>
-                    <div>
-                      <dt>기록 건수</dt>
-                      <dd>{selectedGraphItem.recordCount}건</dd>
-                    </div>
-                    <div>
-                      <dt>평균 강도</dt>
-                      <dd>{selectedGraphItem.value === null
-                        ? '기록 없음'
-                        : `${selectedGraphItem.value}/10`}</dd>
-                    </div>
-                    <div>
-                      <dt>대표 감정</dt>
-                      <dd>{selectedGraphItem.recordCount > 0
-                        ? selectedGraphItem.representativeEmotion
-                        : '기록 없음'}</dd>
-                    </div>
-                  </dl>
-                )}
-
-                <p className="weekly-report-graph-note">
-                  감정 기록 {report.recordCount}건의 요일별 평균 강도입니다.
-                </p>
-              </section>
-
-              <section
-                className="weekly-report-distributions"
-                aria-labelledby="weekly-report-distributions-title"
-              >
-                <h2 id="weekly-report-distributions-title">기록 분포</h2>
-                <div>
-                  {distributionGroups.map((group) => (
-                    <section key={group.title}>
-                      <h3>{group.title}</h3>
-                      {group.items.length > 0 ? (
-                        <ul>
-                          {group.items.map((item) => (
-                            <li key={item.code}>
-                              <div>
-                                <span>{item.label}</span>
-                                <strong>{item.count}회</strong>
-                              </div>
-                              <span className="weekly-report-distribution-track" aria-hidden="true">
-                                <span style={{
-                                  width: `${(item.count / group.items[0].count) * 100}%`,
-                                }} />
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p>집계할 기록이 없습니다.</p>
-                      )}
-                    </section>
-                  ))}
-                </div>
-              </section>
+              <WeeklyEmotionCharts key={selectedStart} records={chartRecords} timezone={timezone}
+                onRecordDetail={(id) => onRecordDetail?.(id, selectedStart)} />
 
               <section className="weekly-report-patterns">
                 <h2>성찰로 알아차린 생각 패턴</h2>
@@ -743,59 +492,30 @@ function WeeklyReport({
               </section>
 
               <section
-                className="weekly-report-patterns"
-                aria-labelledby="weekly-report-patterns-title"
-              >
-                <h2 id="weekly-report-patterns-title">반복 감정 패턴</h2>
-                {(report.repeatedPatterns ?? []).length > 0 ? (
-                  <ul>
-                    {report.repeatedPatterns.map((pattern, index) => (
-                      <li key={`${pattern.emotionCode}-${pattern.weekday}-${pattern.timeBucket}-${index}`}>
-                        <strong>
-                          {emotionCodeLabels[pattern.emotionCode] ?? pattern.emotionCode}
-                          {' · '}
-                          {pattern.weekday ? `${weekdayLabels[pattern.weekday] ?? pattern.weekday} · ` : ''}
-                          {timeBucketLabels[pattern.timeBucket] ?? pattern.timeBucket}
-                        </strong>
-                        <span>
-                          {patternLevelLabels[pattern.patternLevel] ?? pattern.patternLevel}
-                          {' · '}{pattern.occurrenceCount}회 기록
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>반복 기준을 충족한 감정 패턴이 아직 없습니다.</p>
-                )}
-              </section>
-
-              <section
                 className="weekly-report-evidence"
                 aria-labelledby="weekly-report-emotion-evidence-title"
               >
                 <h2 id="weekly-report-emotion-evidence-title">근거 감정 기록</h2>
-                {(report.emotionRecordEvidences ?? []).length > 0 ? (
+                {chartRecords.length > 0 ? (
                   <div>
-                    {report.emotionRecordEvidences.map((evidence) => (
+                    {chartRecords.map((evidence) => (
                       <article key={evidence.emotionRecordId}>
                         <header>
                           <strong>
-                            {emotionCodeLabels[evidence.primaryEmotionCode]
-                              ?? evidence.primaryEmotionCode
-                              ?? '분석 전'}
+                            {reportEmotionLabel(evidence.primaryEmotionCode)}
                             {Number.isFinite(evidence.primaryIntensity)
                               ? ` · 강도 ${evidence.primaryIntensity}/10`
                               : ''}
                           </strong>
                           <time dateTime={evidence.occurredAt}>
-                            {formatEvidenceDate(evidence.occurredAt)}
+                            {formatEvidenceDate(evidence.occurredAt, timezone)}
                           </time>
                         </header>
                         <p>{evidence.situationText || '상황 정보가 없습니다.'}</p>
                         {onRecordDetail && (
                           <button
                             type="button"
-                            onClick={() => onRecordDetail(evidence.emotionRecordId)}
+                            onClick={() => onRecordDetail(evidence.emotionRecordId, selectedStart)}
                           >
                             기록 상세 보기
                           </button>
@@ -1035,7 +755,7 @@ function WeeklyReport({
 
           {report && (
             <p className="weekly-report-snapshot">
-              최근 집계 시각 · {formatEvidenceDate(report.sourceSnapshotAt)}
+              최근 집계 시각 · {formatEvidenceDate(report.sourceSnapshotAt, timezone)}
             </p>
           )}
 

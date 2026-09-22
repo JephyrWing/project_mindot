@@ -9,6 +9,7 @@ import EmotionRecordDetail from './components/EmotionRecordDetail/EmotionRecordD
 import CBT from './components/CBT/CBT.jsx'
 import WeeklyReport from './components/WeeklyReport/WeeklyReport.jsx'
 import MonthlyReport from './components/MonthlyReport/MonthlyReport.jsx'
+import EmotionInsights from './components/EmotionInsights/EmotionInsights.jsx'
 import CompletedReflection from './components/CompletedReflection/CompletedReflection.jsx'
 import AppIntroModal from './components/AppIntroModal/AppIntroModal.jsx'
 import Center from './components/Center/Center.jsx'
@@ -23,6 +24,7 @@ import AccessDeniedModal from './components/AccessDeniedModal/AccessDeniedModal.
 import OAuthCallback from './components/OAuthCallback/OAuthCallback.jsx'
 import Settings from './components/Settings/Settings.jsx'
 import ScrollToTop from './components/ScrollToTop/ScrollToTop.jsx'
+import ServiceInfo from './components/ServiceInfo/ServiceInfo.jsx'
 import { logout } from './utils/auth/authApi.js'
 import {
   clearAuthSession,
@@ -44,6 +46,7 @@ const protectedPages = new Set([
   'cbt',
   'weekly-report',
   'monthly-report',
+  'emotion-insights',
   'completed-reflection',
   'daily-care',
   'breathing',
@@ -115,7 +118,9 @@ function App() {
       : null,
   )
   // 감정 기록 상세 화면을 연 이전 화면 상태 관리.
-  const [emotionRecordDetailReturnPage, setEmotionRecordDetailReturnPage] = useState('emotion-history')
+  const [newlySavedRecord, setNewlySavedRecord] = useState(null)
+  const [emotionRecordDetailReturnPage, setEmotionRecordDetailReturnPage] = useState(initialRoute.returnWeek ? 'weekly-report' : 'emotion-history')
+  const [weeklyWeekStart, setWeeklyWeekStart] = useState(initialRoute.weekStart ?? initialRoute.returnWeek ?? null)
   // 주간 리포트에서 선택한 완료 CBT 성찰 세션 식별자 상태 관리.
   const [selectedReflectionSessionId, setSelectedReflectionSessionId] = useState(
     initialRoute.page === 'completed-reflection'
@@ -136,6 +141,11 @@ function App() {
 
   // 화면 상태와 상세 식별자를 브라우저 주소에 함께 반영하는 이동 처리.
   const moveToPage = (page, parameters = {}, options = {}) => {
+    if (page === 'weekly-report') {
+      parameters = { weekStart: weeklyWeekStart, ...parameters }
+      setWeeklyWeekStart(parameters.weekStart ?? null)
+    }
+    if (parameters.returnWeek) setWeeklyWeekStart(parameters.returnWeek)
     const nextPath = createAppPath(page, parameters)
     const currentPath = `${window.location.pathname}${window.location.search}`
 
@@ -181,6 +191,9 @@ function App() {
       }
 
       setCbtResumeSession(null)
+      if (route.page === 'weekly-report') setWeeklyWeekStart(route.weekStart ?? null)
+      else if (route.returnWeek) setWeeklyWeekStart(route.returnWeek)
+      setEmotionRecordDetailReturnPage(route.returnWeek ? 'weekly-report' : 'emotion-history')
       setCurrentPage(route.page)
       setOauthProvider(
         route.page === 'oauth-callback' ? route.provider ?? null : null,
@@ -315,13 +328,14 @@ function App() {
     })
   }
   // 목록에서 선택한 감정 기록 식별자를 보관하고 상세 화면으로 이동하는 처리.
-  const handleEmotionRecordDetailOpen = (emotionRecordId, returnPage = 'emotion-history') => {
+  const handleEmotionRecordDetailOpen = (emotionRecordId, returnPage = 'emotion-history', savedRecord = null, returnWeek = null) => {
+    setNewlySavedRecord(savedRecord)
     setEmotionRecordDetailReturnPage(returnPage)
-    moveToPage('emotion-record-detail', { emotionRecordId })
+    moveToPage('emotion-record-detail', { emotionRecordId, returnWeek })
   }
   // 완료된 CBT 성찰 식별자를 보관하고 결과 상세 화면으로 이동하는 처리.
-  const handleCompletedReflectionOpen = (sessionId) => {
-    moveToPage('completed-reflection', { reflectionSessionId: sessionId })
+  const handleCompletedReflectionOpen = (sessionId, returnWeek) => {
+    moveToPage('completed-reflection', { reflectionSessionId: sessionId, returnWeek })
   }
   // 현재 화면 상태에 따라 렌더링할 페이지 컴포넌트 보관.
   let currentPageContent
@@ -392,6 +406,8 @@ function App() {
     // 감정 기록 목록에서 선택한 한 건의 상세 조회 화면 렌더링.
     currentPageContent = (
       <EmotionRecordDetail
+        key={selectedEmotionRecordId}
+        initialSavedRecord={Number(newlySavedRecord?.recordId) === Number(selectedEmotionRecordId) ? newlySavedRecord : null}
         emotionRecordId={selectedEmotionRecordId}
         isAuthenticated={isAuthenticated}
         isLoggingOut={isLoggingOut}
@@ -433,15 +449,19 @@ function App() {
     // 주간 리포트 화면 선택 시 간단한 리포트 초안 컴포넌트 렌더링.
     currentPageContent = (
       <WeeklyReport
+        weekStart={weeklyWeekStart}
+        onWeekChange={(weekStart) => moveToPage('weekly-report', { weekStart })}
         isAuthenticated={isAuthenticated}
         isLoggingOut={isLoggingOut}
         onLogin={() => moveToPage('login')}
         onLogout={handleLogout}
         onSignUp={() => moveToPage('signup')}
         onEmotionHistory={() => moveToProtectedPage('emotion-history')}
-        onRecordDetail={(emotionRecordId) => handleEmotionRecordDetailOpen(
+        onRecordDetail={(emotionRecordId, returnWeek) => handleEmotionRecordDetailOpen(
           emotionRecordId,
           'weekly-report',
+          null,
+          returnWeek,
         )}
         onCompletedReflection={handleCompletedReflectionOpen}
         onCenter={() => moveToPage('center')}
@@ -465,6 +485,22 @@ function App() {
         onDailyCare={() => moveToProtectedPage('daily-care')}
         onWeeklyReport={() => moveToPage('weekly-report')}
         onBack={moveToMain}
+        onHome={moveToMain}
+      />
+    )
+  } else if (currentPage === 'emotion-insights') {
+    // 확정된 감정 기록을 시간대·상황·관계별로 비교하는 전용 인사이트 화면 렌더링.
+    currentPageContent = (
+      <EmotionInsights
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={() => moveToPage('login')}
+        onLogout={handleLogout}
+        onSignUp={() => moveToPage('signup')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onCenter={() => moveToPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
+        onBack={() => moveToPage('emotion-history')}
         onHome={moveToMain}
       />
     )
@@ -565,6 +601,23 @@ function App() {
         onCenter={() => moveToPage('center')}
         onDailyCare={() => moveToProtectedPage('daily-care')}
         onWithdrawalSuccess={handleWithdrawalSuccess}
+        onHome={moveToMain}
+      />
+    )
+  } else if (['about', 'terms', 'privacy', 'research'].includes(currentPage)) {
+    // 로그인 여부와 관계없이 확인할 수 있는 서비스·정책 안내 화면 렌더링.
+    currentPageContent = (
+      <ServiceInfo
+        pageType={currentPage}
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={() => moveToPage('login')}
+        onLogout={handleLogout}
+        onSignUp={() => moveToPage('signup')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onCenter={() => moveToPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
+        onNavigate={(page) => moveToPage(page)}
         onHome={moveToMain}
       />
     )

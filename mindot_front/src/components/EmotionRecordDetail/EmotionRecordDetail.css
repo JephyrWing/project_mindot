@@ -25,10 +25,113 @@
 /* 상세 화면 제목과 목록 이동 버튼의 양쪽 배치. */
 .emotion-detail-heading {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
   gap: 20px;
   margin-top: 32px;
+}
+
+.emotion-detail-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.emotion-detail-heading .emotion-detail-edit-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-color: var(--mindot-primary);
+  color: #ffffff;
+  background: var(--mindot-primary);
+  white-space: nowrap;
+}
+
+.emotion-detail-heading .emotion-detail-edit-button:not(:disabled):hover {
+  border-color: var(--mindot-primary-strong);
+  background: var(--mindot-primary-strong);
+}
+
+.emotion-detail-heading-actions button:focus-visible,
+.emotion-detail-edit-actions button:focus-visible {
+  outline: 3px solid var(--mindot-primary-line);
+  outline-offset: 3px;
+}
+
+.emotion-detail-heading .emotion-detail-edit-button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.emotion-detail-edit-notice {
+  margin: 16px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.emotion-detail-edit-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 12px;
+  border-top: 1px solid var(--mindot-border);
+  padding-top: 20px;
+}
+
+.emotion-detail-edit-actions .emotion-detail-analysis-confirm {
+  flex: 1;
+  padding: 12px 18px;
+}
+
+.emotion-detail-edit-cancel {
+  min-height: 46px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  padding: 12px 20px;
+  color: var(--mindot-primary-strong);
+  font: inherit;
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.emotion-detail-edit-cancel:not(:disabled):hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+.emotion-detail-edit-cancel:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.emotion-detail-analysis-reject {
+  min-height: 46px;
+  border: 1px solid var(--mindot-border-strong);
+  border-radius: 8px;
+  padding: 12px 20px;
+  color: var(--mindot-text-secondary);
+  font: inherit;
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.emotion-detail-analysis-reject:not(:disabled):hover {
+  border-color: var(--mindot-text-secondary);
+  background: var(--mindot-surface-muted);
+}
+
+.emotion-detail-analysis-reject:disabled {
+  border-color: var(--mindot-border);
+  color: var(--mindot-disabled);
+  background: var(--mindot-surface-muted);
+  cursor: wait;
 }
 
 /* 감정 기록 상세 제목의 Noto Sans KR 크기 설정. */
@@ -368,6 +471,93 @@
   padding-top: 22px;
 }
 
+/* AI가 채우지 못한 구조화 항목을 질문 형태로 안내하는 영역. */
+.emotion-detail-missing-questions {
+  grid-column: 1 / -1;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 10px;
+  padding: 18px;
+  background: var(--mindot-primary-soft);
+}
+
+.emotion-detail-missing-questions h3 {
+  margin: 0;
+  color: var(--mindot-primary-strong);
+  font-size: 16px;
+}
+
+.emotion-detail-missing-questions > div:first-child > p,
+.emotion-detail-missing-questions-state,
+.emotion-detail-missing-questions-error p {
+  margin: 6px 0 0;
+  color: var(--mindot-text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.emotion-detail-missing-questions ol {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.emotion-detail-missing-questions li button {
+  display: flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--mindot-text);
+  text-align: left;
+  font: inherit;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+.emotion-detail-missing-questions li button:hover {
+  border-color: var(--mindot-primary);
+}
+
+.emotion-detail-missing-questions li small {
+  flex: 0 0 auto;
+  color: var(--mindot-primary-strong);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.emotion-detail-missing-questions-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.emotion-detail-missing-questions-error p {
+  margin: 0;
+  color: var(--mindot-danger);
+}
+
+.emotion-detail-missing-questions-error button {
+  flex: 0 0 auto;
+  min-height: 38px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  padding: 0 12px;
+  color: var(--mindot-primary-strong);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
 /* 긴 분석 입력 항목과 보조 감정 영역의 전체 열 사용 설정. */
 .emotion-detail-analysis-wide,
 .emotion-detail-secondary-emotions,
@@ -568,6 +758,18 @@
 .emotion-detail-pattern {
   border-bottom: 1px solid var(--mindot-border);
   padding: 26px 0;
+}
+
+.emotion-detail-pattern.emotion-detail-pattern-notice {
+  margin: 24px 0;
+  padding: 22px;
+  border: 1px solid var(--mindot-primary-line);
+  border-radius: 10px;
+  background: var(--mindot-primary-soft);
+}
+
+.emotion-detail-pattern-notice .emotion-detail-pattern-heading h2 {
+  color: var(--mindot-primary-strong);
 }
 
 /* 패턴 설명 제목과 요청 버튼의 양쪽 배치. */
@@ -810,6 +1012,24 @@
 
 /* 작은 화면에서 상세 영역과 정보 목록을 세로 중심으로 조정. */
 @media (max-width: 480px) {
+  .emotion-detail-heading-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .emotion-detail-heading-actions button {
+    flex: 1;
+  }
+
+  .emotion-detail-edit-actions {
+    gap: 8px;
+  }
+
+  .emotion-detail-edit-actions button {
+    padding-inline: 12px;
+    font-size: 14px;
+  }
+
   .emotion-detail-content {
     width: calc(100% - 28px);
     margin: 28px auto 20px;
@@ -839,6 +1059,7 @@
 
   .emotion-detail-analysis-form > *,
   .emotion-detail-analysis-wide,
+  .emotion-detail-missing-questions,
   .emotion-detail-secondary-emotions,
   .emotion-detail-analysis-confirm {
     grid-column: 1;
@@ -846,6 +1067,12 @@
 
   .emotion-detail-secondary-emotions > div {
     grid-template-columns: 1fr;
+  }
+
+  .emotion-detail-missing-questions li button,
+  .emotion-detail-missing-questions-error {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .emotion-detail-list > div {
