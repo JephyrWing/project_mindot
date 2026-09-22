@@ -182,8 +182,7 @@
   gap: 20px;
 }
 
-.daily-care-section-heading button,
-.daily-care-record-button {
+.daily-care-section-heading button {
   min-height: 44px;
   border: 1px solid var(--mindot-primary-line);
   border-radius: 8px;
@@ -194,8 +193,7 @@
   cursor: pointer;
 }
 
-.daily-care-section-heading button:hover,
-.daily-care-record-button:hover {
+.daily-care-section-heading button:hover {
   border-color: var(--mindot-primary);
   background: var(--mindot-primary-soft);
 }
@@ -302,12 +300,6 @@
   border-color: var(--mindot-primary-strong);
   color: var(--mindot-surface);
   background: var(--mindot-primary-strong);
-}
-
-/* 첫 감정 기록 이동 버튼의 전체 너비 설정. */
-.daily-care-record-button {
-  width: 100%;
-  margin-top: 20px;
 }
 
 /* API와 브라우저 기능의 상태 안내 문구 설정. */

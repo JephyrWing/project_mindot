@@ -1,5 +1,8 @@
 import { expect, test } from '@playwright/test'
-import { completeRecord, mockApi, openReflection, proposal, useAuthenticatedSession, weeklyReport } from './support'
+import { completeRecord, mockApi, openReflection, proposal, readJsonBody, useAuthenticatedSession, weeklyReport } from './support'
+
+// 고정한 한국 시각과 datetime-local 입력을 CI에서도 같은 시간대로 해석한다.
+test.use({ timezoneId: 'Asia/Seoul' })
 
 const start = '2026-09-14'
 const sample = (id: number, time: string, emotion: string | null, intensity: number | null) => ({
@@ -244,7 +247,10 @@ test('상세에서 발생 시각을 다른 주로 수정한 뒤 돌아오면 무
       return changed ? { status: 404, body: {} } : { body: report() }
     }
     if (url.pathname === '/api/records/1') {
-      if (request.method() === 'PATCH') changed = true
+      if (request.method() === 'PATCH') {
+        expect(readJsonBody(request).occurredAt).toBe('2026-09-21T00:00:00.000Z')
+        changed = true
+      }
       return { body: completeRecord({ cbtStarted: false, occurredAt: changed ? '2026-09-21T00:00:00Z' : records[0].occurredAt }) }
     }
   })

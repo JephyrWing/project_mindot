@@ -33,7 +33,7 @@ const insightResponse = (groupBy: string) => {
   }
 }
 
-test.describe('FE-AUTO-030: 감정 인사이트', () => {
+test.describe('FE-AUTO-032: 감정 인사이트', () => {
   test('성공: 전용 화면에서 시간대·상황·관계별 분포와 표본 수를 표시한다', async ({ page }) => {
     await useAuthenticatedSession(page)
     const requestedGroupBys = new Set<string>()
