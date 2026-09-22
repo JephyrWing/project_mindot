@@ -260,6 +260,95 @@ class ReflectionConfirmFlowTest
     }
 
     @Test
+    void beforeAfterLabelsAreStoredAndReturnedForWeeklyReport()
+            throws Exception {
+        mockMvc.perform(
+                        post(
+                                "/api/reflections/{sessionId}/confirm",
+                                session.getId()
+                        )
+                                .header(
+                                        HttpHeaders.AUTHORIZATION,
+                                        bearer(accessToken)
+                                )
+                                .header(
+                                        "Idempotency-Key",
+                                        "confirm-comparison-key"
+                                )
+                                .header(
+                                        HttpHeaders.IF_MATCH,
+                                        "\"5\""
+                                )
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(comparisonConfirmJson())
+                )
+                .andExpect(status().isOk())
+                .andExpect(
+                        jsonPath(
+                                "$.confirmedResult.distortionComparisonVersion"
+                        ).value("before-after-1")
+                )
+                .andExpect(
+                        jsonPath(
+                                "$.confirmedResult.beforeDistortions[0].source"
+                        ).value("AI")
+                )
+                .andExpect(
+                        jsonPath(
+                                "$.confirmedResult.afterDistortions[0].code"
+                        ).value("MIND_READING")
+                );
+
+        var before = sessionDistortionsRepository
+                .findAllBySession_IdAndPhase(
+                        session.getId(),
+                        com.my.mindot_back.records.entity.DistortionPhase.BEFORE
+                );
+        var after = sessionDistortionsRepository
+                .findAllBySession_IdAndPhase(
+                        session.getId(),
+                        com.my.mindot_back.records.entity.DistortionPhase.AFTER
+                );
+
+        assertThat(before)
+                .extracting(
+                        item -> item.getDistortionType().getCode(),
+                        item -> item.getSource(),
+                        item -> item.getReviewStatus()
+                )
+                .containsExactlyInAnyOrder(
+                        tuple(
+                                "ALL_OR_NOTHING_THINKING",
+                                com.my.mindot_back.records.entity.DistortionSource.AI,
+                                DistortionReviewStatus.CONFIRMED
+                        ),
+                        tuple(
+                                "MIND_READING",
+                                com.my.mindot_back.records.entity.DistortionSource.AI,
+                                DistortionReviewStatus.REJECTED
+                        ),
+                        tuple(
+                                "OVERGENERALIZATION",
+                                com.my.mindot_back.records.entity.DistortionSource.USER,
+                                DistortionReviewStatus.CONFIRMED
+                        )
+                );
+        assertThat(after)
+                .extracting(
+                        item -> item.getDistortionType().getCode(),
+                        item -> item.getSource(),
+                        item -> item.getReviewStatus()
+                )
+                .containsExactly(
+                        tuple(
+                                "MIND_READING",
+                                com.my.mindot_back.records.entity.DistortionSource.USER,
+                                DistortionReviewStatus.CONFIRMED
+                        )
+                );
+    }
+
+    @Test
     void wrongProposalOrIncompleteReviewsAreRejected()
             throws Exception {
         mockMvc.perform(
@@ -483,6 +572,44 @@ class ReflectionConfirmFlowTest
                     {
                       "code": "MIND_READING",
                       "reviewStatus": "REJECTED"
+                    }
+                  ],
+                  "beforeBeliefStrength": 80,
+                  "afterBeliefStrength": 35,
+                  "finalEmotionIntensity": 3,
+                  "helpfulnessScore": 5
+                }
+                """;
+    }
+
+    private String comparisonConfirmJson() {
+        return """
+                {
+                  "proposalId": "proposal-1",
+                  "reviews": [
+                    {
+                      "code": "ALL_OR_NOTHING_THINKING",
+                      "reviewStatus": "CONFIRMED"
+                    },
+                    {
+                      "code": "MIND_READING",
+                      "reviewStatus": "REJECTED"
+                    }
+                  ],
+                  "beforeDistortions": [
+                    {
+                      "code": "ALL_OR_NOTHING_THINKING",
+                      "reviewStatus": "CONFIRMED"
+                    },
+                    {
+                      "code": "OVERGENERALIZATION",
+                      "reviewStatus": "CONFIRMED"
+                    }
+                  ],
+                  "afterDistortions": [
+                    {
+                      "code": "MIND_READING",
+                      "reviewStatus": "CONFIRMED"
                     }
                   ],
                   "beforeBeliefStrength": 80,

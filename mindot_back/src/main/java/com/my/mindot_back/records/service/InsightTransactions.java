@@ -5,6 +5,7 @@ import com.my.mindot_back.ai.repository.AiJobsRepository;
 import com.my.mindot_back.records.dto.InsightDtos.*;
 import com.my.mindot_back.records.entity.*;
 import com.my.mindot_back.records.repository.*;
+import com.my.mindot_back.distortions.entity.DistortionTypes;
 import com.my.mindot_back.distortions.repository.DistortionTypesRepository;
 import com.my.mindot_back.reports.service.ReportCacheInvalidationService;
 import com.my.mindot_back.safety.service.SafetyEventsService;
@@ -228,14 +229,31 @@ public class InsightTransactions {
         var codes=new HashSet<String>();for(var item:suggested)codes.add((String)item.get("code"));
         var reviewed=new HashSet<String>();for(var review:body.reviews())if(!reviewed.add(review.code()))throw conflict("유형 검토가 중복됐습니다.");
         if(!codes.equals(reviewed))throw conflict("제안한 모든 유형을 수락 또는 거부해 주세요.");
-        var existing=distortions.findAllBySession_IdAndPhase(sid,DistortionPhase.BEFORE);
-        for(var review:body.reviews()) {
-            var d=existing.stream().filter(x->x.getDistortionType().getCode().equals(review.code())).findFirst().orElse(null);
-            if(d==null)d=SessionDistortions.createInsightProposal(s,types.findByCode(review.code()).orElseThrow(()->conflict("등록되지 않은 인지왜곡 유형입니다.")));
-            d.applyUserReview(DistortionReviewStatus.valueOf(review.reviewStatus()));distortions.save(d);
+        boolean hasBefore = body.beforeDistortions()!=null;
+        boolean hasAfter = body.afterDistortions()!=null;
+        if(hasBefore!=hasAfter)throw conflict("성찰 전과 후 인지왜곡 라벨을 함께 제출해 주세요.");
+
+        List<String> beforeCodes=List.of();
+        List<String> afterCodes=List.of();
+        Map<String,Object> comparison=null;
+        if(hasBefore) {
+            beforeCodes=confirmedLabelCodes(body.beforeDistortions(),"성찰 전");
+            afterCodes=confirmedLabelCodes(body.afterDistortions(),"성찰 후");
+            validateSuggestedSelections(body.reviews(),beforeCodes);
+            replaceComparisonDistortions(s,body.reviews(),beforeCodes,afterCodes);
+            comparison=comparisonResult(beforeCodes,afterCodes,codes);
+        } else {
+            // 이전 클라이언트 요청은 기존 AI 제안 검토 방식 그대로 유지한다.
+            var existing=distortions.findAllBySession_IdAndPhase(sid,DistortionPhase.BEFORE);
+            for(var review:body.reviews()) {
+                var d=existing.stream().filter(x->x.getDistortionType().getCode().equals(review.code())).findFirst().orElse(null);
+                if(d==null)d=SessionDistortions.createInsightProposal(s,type(review.code()));
+                d.applyUserReview(DistortionReviewStatus.valueOf(review.reviewStatus()));distortions.save(d);
+            }
         }
         var confirmed=new LinkedHashMap<>(proposal);
         confirmed.put("reviews",body.reviews().stream().map(r->object("code",r.code(),"reviewStatus",r.reviewStatus())).toList());
+        if(comparison!=null)confirmed.putAll(comparison);
         confirmed.put("beforeBeliefStrength",body.beforeBeliefStrength());confirmed.put("afterBeliefStrength",body.afterBeliefStrength());
         confirmed.put("finalEmotionIntensity",body.finalEmotionIntensity());confirmed.put("helpfulnessScore",body.helpfulnessScore());
         confirmed.put("confirmedAt",Instant.now().toString());confirmed.put("userConfirmed",true);
@@ -249,6 +267,65 @@ public class InsightTransactions {
         state.put("confirmedResult",confirmed);state.put("currentProposal",null);state.put("phase",null);state.put("revision",number(state.get("revision"))+1);s.replaceInsight(state);
         var receipt=job(s,key,"CONFIRM:"+body,object(),(short)1);receipt.complete(null,"cbt-insight-1");receipt.cacheInsight(object("view",viewMap(view(s))));
         return view(s);
+    }
+
+    private DistortionTypes type(String code) {
+        return types.findByCode(code).orElseThrow(()->conflict("등록되지 않은 인지왜곡 유형입니다."));
+    }
+
+    private List<String> confirmedLabelCodes(List<Review> labels,String phase) {
+        Set<String> unique=new LinkedHashSet<>();
+        for(var label:labels) {
+            if(!"CONFIRMED".equals(label.reviewStatus()))throw conflict(phase+" 인지왜곡 라벨은 확인 상태로만 저장할 수 있습니다.");
+            if(!unique.add(label.code()))throw conflict(phase+" 인지왜곡 라벨이 중복됐습니다.");
+            // DB 기준 유형인지 먼저 검증해 잘못된 코드가 부분 저장되지 않게 한다.
+            type(label.code());
+        }
+        return List.copyOf(unique);
+    }
+
+    private void validateSuggestedSelections(List<Review> reviews,List<String> beforeCodes) {
+        Set<String> selected=new HashSet<>(beforeCodes);
+        for(var review:reviews) {
+            boolean selectedBefore=selected.contains(review.code());
+            if(("CONFIRMED".equals(review.reviewStatus()))!=selectedBefore)
+                throw conflict("AI 제안 검토 결과와 성찰 전 라벨 선택이 일치하지 않습니다.");
+        }
+    }
+
+    private void replaceComparisonDistortions(ReflectionSessions session,List<Review> reviews,List<String> beforeCodes,List<String> afterCodes) {
+        // 같은 세션/단계/유형 조합은 하나만 허용하므로 기존 행을 지운 뒤 최종 선택값으로 재구성한다.
+        distortions.deleteAllBySession_IdAndPhase(session.getId(),DistortionPhase.BEFORE);
+        distortions.deleteAllBySession_IdAndPhase(session.getId(),DistortionPhase.AFTER);
+        distortions.flush();
+
+        Set<String> suggestedCodes=reviews.stream().map(Review::code).collect(java.util.stream.Collectors.toSet());
+        for(var review:reviews) {
+            var item=SessionDistortions.createInsightProposal(session,type(review.code()));
+            item.applyUserReview(DistortionReviewStatus.valueOf(review.reviewStatus()));
+            distortions.save(item);
+        }
+        for(var code:beforeCodes)if(!suggestedCodes.contains(code))
+            distortions.save(SessionDistortions.createUserConfirmedSelection(session,type(code),DistortionPhase.BEFORE));
+        for(var code:afterCodes)
+            distortions.save(SessionDistortions.createUserConfirmedSelection(session,type(code),DistortionPhase.AFTER));
+    }
+
+    private Map<String,Object> comparisonResult(List<String> beforeCodes,List<String> afterCodes,Set<String> suggestedCodes) {
+        Set<String> before=new LinkedHashSet<>(beforeCodes);
+        Set<String> after=new LinkedHashSet<>(afterCodes);
+        List<Map<String,Object>> beforeDetails=beforeCodes.stream()
+            .map(code->object("code",code,"source",suggestedCodes.contains(code)?"AI":"USER","reviewStatus","CONFIRMED")).toList();
+        List<Map<String,Object>> afterDetails=afterCodes.stream()
+            .map(code->object("code",code,"source","USER","reviewStatus","CONFIRMED")).toList();
+        return object(
+            "beforeDistortions",beforeDetails,
+            "afterDistortions",afterDetails,
+            "distortionChanges",object(
+                "removed",before.stream().filter(code->!after.contains(code)).toList(),
+                "persisted",before.stream().filter(after::contains).toList(),
+                "new",after.stream().filter(code->!before.contains(code)).toList()),
+            "distortionComparisonVersion","before-after-1");
     }
     @Transactional
     public SessionView cancel(Long user,Long sid,String key,Long revision) {

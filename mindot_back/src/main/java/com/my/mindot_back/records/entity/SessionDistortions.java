@@ -183,6 +183,21 @@ public class SessionDistortions {
         return item;
     }
 
+    // 사용자가 최종 비교 화면에서 직접 확정한 라벨을 저장한다.
+    public static SessionDistortions createUserConfirmedSelection(
+            ReflectionSessions session,
+            DistortionTypes type,
+            DistortionPhase phase
+    ) {
+        SessionDistortions item = new SessionDistortions();
+        item.session = session;
+        item.distortionType = type;
+        item.phase = phase;
+        item.source = DistortionSource.USER;
+        item.applyUserReview(DistortionReviewStatus.CONFIRMED);
+        return item;
+    }
+
     // 사용자가 AI가 제안한 인지왜곡 라벨을 확인하거나 거절한 결과 반영
     public void applyUserReview(
             DistortionReviewStatus reviewStatus
