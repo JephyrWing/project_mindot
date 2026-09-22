@@ -61,7 +61,46 @@ class MonthlyReportIntegrationTest
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    private com.my.mindot_back.reports.service.MonthlyReportPdfService monthlyPdfService;
+
+    @Test
+    void legacyJsonSnapshotIsRebuiltForBothWebAndPdfAndThenReadWithoutRegeneration() throws Exception {
+        createRecord("집계 갱신 검증", "ANXIETY", (short)0, "WORK", Instant.parse("2026-08-31T15:00:00Z"));
+        var generated = monthlyReportsService.generateMonthlyReport(user.getId(), REPORT_MONTH);
+        jdbcTemplate.update("update reports set content = content - 'emotionComposition' where id = ?", generated.reportId());
+        var upgraded = monthlyReportsService.getMonthlyReport(user.getId(), REPORT_MONTH);
+        assertThat(upgraded.emotionComposition().recordCount()).isEqualTo(1);
+        assertThat(upgraded.emotionComposition().days().get(0).recordCount()).isEqualTo(1);
+        assertThat(upgraded.emotionComposition().version()).isEqualTo(2);
+        var storedSnapshot = jdbcTemplate.queryForObject("select source_snapshot_at from reports where id = ?", Timestamp.class, generated.reportId()).toInstant();
+        var reread = monthlyReportsService.getMonthlyReport(user.getId(), REPORT_MONTH);
+        assertThat(reread.emotionComposition()).isEqualTo(upgraded.emotionComposition());
+        assertThat(reread.sourceSnapshotAt()).isEqualTo(storedSnapshot);
+        jdbcTemplate.update("update reports set content = content - 'emotionComposition' where id = ?", generated.reportId());
+        byte[] pdf = monthlyPdfService.exportMonthlyPdf(user.getId(), REPORT_MONTH);
+        try (var doc = org.apache.pdfbox.Loader.loadPDF(pdf)) {
+            assertThat(new org.apache.pdfbox.text.PDFTextStripper().getText(doc)).contains("날짜별 감정 기록 수", "평균 강도");
+        }
+        assertThat(jdbcTemplate.queryForObject("select (content->'emotionComposition'->>'recordCount')::int from reports where id = ?", Integer.class, generated.reportId())).isEqualTo(1);
+    }
+
     private Users user;
+
+    @Test
+    void missingAndSameNamedCustomEmotionSurviveJsonbAsSeparateGroups() {
+        createRecord("직접 입력", "감정 미입력", (short)0, "WORK", Instant.parse("2026-09-02T00:00:00Z"));
+        emotionRecordsRepository.saveAndFlush(EmotionRecords.createQuick(user, "분석 전 검증 기록", InputType.TEXT, Instant.parse("2026-09-02T01:00:00Z")));
+        monthlyReportsService.generateMonthlyReport(user.getId(), REPORT_MONTH);
+        var response = monthlyReportsService.getMonthlyReport(user.getId(), REPORT_MONTH);
+        assertThat(response.recordCount()).isEqualTo(2);
+        assertThat(response.dominantEmotionCode()).isEqualTo("감정 미입력");
+        assertThat(response.emotionComposition().emotions()).containsExactly(
+                new com.my.mindot_back.reports.dto.EmotionCountDto("감정 미입력", 1),
+                new com.my.mindot_back.reports.dto.EmotionCountDto(null, 1));
+        assertThat(response.emotionComposition().contexts()).anyMatch(g -> g.value() == null && g.recordCount() == 1);
+        assertThat(response.emotionComposition().days().get(1).recordCount()).isEqualTo(2);
+    }
 
     @BeforeEach
     void setUp() {

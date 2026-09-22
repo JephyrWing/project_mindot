@@ -1,0 +1,32 @@
+.monthly-composition { min-width: 0; }
+.monthly-composition section { margin: 28px 0; padding-top: 20px; border-top: 1px solid var(--mindot-border, #dce3ed); }
+.monthly-composition h2 { font-size: 19px; }
+.monthly-composition h3 { font-size: 16px; margin-top: 22px; }
+.monthly-composition p { color: var(--mindot-text-secondary, #475569); font-size: 13px; line-height: 1.7; }
+.monthly-composition-group { margin: 18px 0; }
+.monthly-composition-group summary { cursor: pointer; font-weight: 600; overflow-wrap: anywhere; line-height: 1.7; }
+.monthly-composition-track { height: 18px; margin: 12px 0; background: #eef2f7; border-radius: 3px; overflow: hidden; }
+.monthly-composition-bar { height: 100%; display: flex; }
+.monthly-composition-bar span { height: 100%; }
+.monthly-composition-legend { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 0; list-style: none; }
+.monthly-composition-legend li { display: flex; gap: 7px; align-items: baseline; max-width: 100%; font-size: 13px; line-height: 1.7; }
+.monthly-composition-legend i { display: inline-block; width: 10px; height: 10px; flex: 0 0 10px; border: 1px solid #64748b40; }
+.monthly-composition-legend span { min-width: 0; overflow-wrap: anywhere; }
+.monthly-count-chart-scroll { overflow-x: auto; margin: 20px 0; padding: 4px; }
+.monthly-count-chart { display: flex; min-width: 660px; gap: 4px; height: 245px; }
+.monthly-count-axis { width: 35px; flex: 0 0 35px; display: flex; flex-direction: column; justify-content: space-between; padding: 25px 0; font-size: 11px; }
+.monthly-count-day { display: flex; flex: 1; min-width: 14px; flex-direction: column; align-items: center; gap: 5px; border: 0; padding: 2px; background: transparent; font-size: 11px; color: inherit; cursor: pointer; }
+.monthly-count-day[aria-pressed="true"] { background: #eaf1ff; outline: 1px solid #2364d8; }
+.monthly-count-day:focus-visible, .monthly-composition summary:focus-visible { outline: 2px solid #2364d8; outline-offset: 2px; }
+.monthly-count-track { display: flex; align-items: flex-end; height: 190px; width: 100%; background: #f3f5f8; }
+.monthly-count-bar { display: flex; flex-direction: column-reverse; width: 100%; }
+.monthly-count-bar span { width: 100%; }
+.monthly-count-total { height: 16px; }
+.monthly-count-detail { padding: 8px 16px; border-left: 3px solid #2364d8; background: #f6f8fc; }
+.monthly-report-summary { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.monthly-report-summary dd { overflow-wrap: anywhere; }
+@media (max-width: 560px) {
+  .monthly-report-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .monthly-count-chart { min-width: 920px; }
+  .monthly-count-day { min-width: 20px; }
+}

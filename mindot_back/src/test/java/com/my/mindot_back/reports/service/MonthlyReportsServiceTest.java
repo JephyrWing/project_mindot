@@ -203,6 +203,7 @@ class MonthlyReportsServiceTest {
 
         Map<String, Object> content = new LinkedHashMap<>();
         content.put("dailyTrends", List.of(storedDailyTrend));
+        content.put("emotionComposition", ReportEmotionData.monthly(List.of(), YearMonth.of(2026, 9), java.time.ZoneId.of("Asia/Seoul")));
 
         Reports report = Reports.createMonthly(
                 user,
