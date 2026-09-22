@@ -56,6 +56,28 @@ class PdfExportApiTest
     private Users user;
     private String accessToken;
 
+    @Test
+    void explicitDatesExcludeGapsAndOtherUsersAndPreserveMissingEmotions() throws Exception {
+        emotionRecordsRepository.saveAndFlush(EmotionRecords.createQuick(user, "선택한날의미입력기록", InputType.TEXT, Instant.parse("2026-09-16T15:00:00Z")));
+        emotionRecordsRepository.saveAndFlush(EmotionRecords.createQuick(user, "제외할중간날짜기록", InputType.TEXT, Instant.parse("2026-09-15T15:00:00Z")));
+        var other = usersRepository.saveAndFlush(Users.create("other-pdf@example.invalid", "unused-password-hash", "별도 사용자"));
+        emotionRecordsRepository.saveAndFlush(EmotionRecords.createQuick(other, "다른사용자의제외할기록", InputType.TEXT, Instant.parse("2026-09-16T15:00:00Z")));
+        var result = mockMvc.perform(post("/api/reports/export/pdf")
+                .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {"selectedDates":["2026-09-15","2026-09-17"],"contentType":"EMOTION_RECORDS","includeFullCbtConversation":false}
+                        """))
+                .andExpect(status().isOk()).andReturn();
+        try (var doc = Loader.loadPDF(result.getResponse().getContentAsByteArray())) {
+            String text = new org.apache.pdfbox.text.PDFTextStripper().getText(doc);
+            assertThat(text).contains("감정 기록 2건", "선택한날의미입력기록", "기록 #2")
+                    .doesNotContain("제외할중간날짜기록", "다른사용자의제외할기록", "기록 #3");
+            assertThat(java.util.regex.Pattern.compile("이 그래프 (\\d+)건").matcher(text).results()
+                    .mapToInt(m -> Integer.parseInt(m.group(1))).sum()).isEqualTo(2);
+        }
+    }
+
     @BeforeEach
     void setUp() {
         user = usersRepository.saveAndFlush(

@@ -1,3 +1,5 @@
+import { compareReportEmotions } from '../records/emotionColors.js'
+
 export const weekdays = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일']
 export const timeBuckets = { DAWN: '새벽', MORNING: '아침', AFTERNOON: '오후', EVENING: '저녁', NIGHT: '밤' }
 
@@ -62,5 +64,5 @@ export const scatterRecords = (records) => {
 export const countEmotions = (records) => {
   const counts = new Map()
   for (const r of records) counts.set(r.emotion, (counts.get(r.emotion) ?? 0) + 1)
-  return [...counts].sort(([a], [b]) => a.localeCompare(b, 'ko'))
+  return [...counts].sort(([a], [b]) => compareReportEmotions(a, b))
 }

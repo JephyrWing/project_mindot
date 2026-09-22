@@ -17,3 +17,14 @@ const negativeEmotions = new Set(['ANXIETY', 'FEAR', 'ANGER', 'FRUSTRATION', 'SA
 const positiveEmotions = new Set(['JOY', 'RELIEF', 'ACHIEVEMENT', 'CALM', 'GRATITUDE', 'EXCITEMENT'])
 export const emotionCategory = (value) => negativeEmotions.has(value) ? 'negative'
   : positiveEmotions.has(value) ? 'positive' : 'neutral'
+
+// Negative, positive, neutral groups; never infer a custom name's meaning.
+const reportEmotionOrder = [...negativeEmotions, ...positiveEmotions, 'OTHER']
+export const compareReportEmotions = (first, second) => {
+  const rank = (value) => {
+    if (!value?.trim()) return reportEmotionOrder.length + 1
+    const index = reportEmotionOrder.indexOf(value)
+    return index < 0 ? reportEmotionOrder.length : index
+  }
+  return rank(first) - rank(second) || (first < second ? -1 : first > second ? 1 : 0)
+}
