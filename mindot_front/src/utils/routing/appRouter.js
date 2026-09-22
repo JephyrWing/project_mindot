@@ -67,6 +67,8 @@ export const readAppRoute = () => {
   if (pathname === '/reports/monthly') return { page: 'monthly-report' }
   if (pathname === '/insights/emotions') return { page: 'emotion-insights' }
   if (pathname === '/insights/patterns') return { page: 'pattern-insights' }
+  if (pathname === '/reflections/open') return { page: 'open-reflections' }
+  if (pathname === '/reflections') return { page: 'completed-reflections' }
   if (patternDetailMatch) {
     return {
       page: 'pattern-detail',
@@ -125,6 +127,8 @@ export const createAppPath = (page, parameters = {}) => {
   if (page === 'monthly-report') return '/reports/monthly'
   if (page === 'emotion-insights') return '/insights/emotions'
   if (page === 'pattern-insights') return '/insights/patterns'
+  if (page === 'open-reflections') return '/reflections/open'
+  if (page === 'completed-reflections') return '/reflections'
   if (page === 'pattern-detail' && patternId) return `/insights/patterns/${patternId}`
   if (page === 'completed-reflection' && reflectionSessionId) {
     return `/reflections/${reflectionSessionId}${returnQuery}`

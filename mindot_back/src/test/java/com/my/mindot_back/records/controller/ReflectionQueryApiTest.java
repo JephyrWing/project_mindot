@@ -181,6 +181,90 @@ class ReflectionQueryApiTest
     }
 
     @Test
+    void pagedOpenListReturnsThreeAtATimeWithOwnerOnlyAndNewestFirst()
+            throws Exception {
+        ReflectionSessions third = createOpenSession(user, "세 번째 진행 중 기록", 5L);
+        ReflectionSessions fourth = createOpenSession(user, "네 번째 진행 중 기록", 6L);
+        ReflectionSessions fifth = createOpenSession(user, "다섯 번째 진행 중 기록", 7L);
+        ReflectionSessions sixth = createOpenSession(user, "여섯 번째 진행 중 기록", 8L);
+
+        mockMvc.perform(get("/api/reflections/open/paged")
+                        .param("page", "0")
+                        .param("size", "3")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(3))
+                .andExpect(jsonPath("$.totalElements").value(6))
+                .andExpect(jsonPath("$.totalPages").value(2))
+                .andExpect(jsonPath("$.content[0].sessionId").value(sixth.getId()))
+                .andExpect(jsonPath("$.content[1].sessionId").value(fifth.getId()))
+                .andExpect(jsonPath("$.content[2].sessionId").value(fourth.getId()));
+
+        mockMvc.perform(get("/api/reflections/open/paged")
+                        .param("page", "1")
+                        .param("size", "3")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(3))
+                .andExpect(jsonPath("$.totalElements").value(6))
+                .andExpect(jsonPath("$.content[0].sessionId").value(third.getId()))
+                .andExpect(jsonPath("$.content[1].sessionId").value(newerProcessingSession.getId()))
+                .andExpect(jsonPath("$.content[2].sessionId").value(olderOpenSession.getId()));
+    }
+    @Test
+    void completedListReturnsOnlyOwnersConfirmedCompletedSessions()
+            throws Exception {
+        createCompletedSession(
+                user,
+                "완료한 내 성찰 기록",
+                "다른 관점으로 다시 확인해 볼 수 있다"
+        );
+        createCompletedSession(
+                user,
+                "두 번째 완료 성찰",
+                "두 번째 대안적 생각"
+        );
+        createCompletedSession(
+                user,
+                "세 번째 완료 성찰",
+                "세 번째 대안적 생각"
+        );
+        createCompletedSession(
+                otherUser,
+                "다른 사용자의 완료 성찰",
+                "다른 사용자의 결과"
+        );
+
+        mockMvc.perform(
+                        get("/api/reflections/completed")
+                                .param("page", "1")
+                                .param("size", "2")
+                                .header(
+                                        HttpHeaders.AUTHORIZATION,
+                                        bearer(accessToken)
+                                )
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.totalElements").value(3))
+                .andExpect(jsonPath("$.totalPages").value(2))
+                .andExpect(
+                        jsonPath("$.content[0].sessionId")
+                                .isNumber()
+                )
+                .andExpect(
+                        jsonPath("$.content[0].emotionRecordId")
+                                .isNumber()
+                )
+                .andExpect(
+                        jsonPath("$.content[0].rawText")
+                                .isNotEmpty()
+                )
+                .andExpect(jsonPath("$.content[0].alternativeThoughtText").isNotEmpty())
+                .andExpect(jsonPath("$.content[0].completedAt").exists());
+    }
+
+    @Test
     void normalDetailReturnsOkAndProcessingDetailReturnsAccepted()
             throws Exception {
         mockMvc.perform(
@@ -336,6 +420,26 @@ class ReflectionQueryApiTest
         return reflectionSessionsRepository.saveAndFlush(
                 session
         );
+    }
+
+    private ReflectionSessions createCompletedSession(
+            Users owner,
+            String rawText,
+            String alternativeThoughtText
+    ) {
+        ReflectionSessions session = createOpenSession(owner, rawText, 1L);
+        session.confirmInsight(
+                Map.of(
+                        "evidenceForText", "처음 생각을 뒷받침하는 근거",
+                        "evidenceAgainstText", "다른 가능성을 보여 주는 근거",
+                        "afterText", alternativeThoughtText
+                ),
+                (short) 80,
+                (short) 40,
+                (short) 4,
+                (short) 5
+        );
+        return reflectionSessionsRepository.saveAndFlush(session);
     }
 
     private void attachProcessingJob(

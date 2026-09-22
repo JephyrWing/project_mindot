@@ -12,6 +12,8 @@ import MonthlyReport from './components/MonthlyReport/MonthlyReport.jsx'
 import EmotionInsights from './components/EmotionInsights/EmotionInsights.jsx'
 import PatternInsights from './components/PatternInsights/PatternInsights.jsx'
 import CompletedReflection from './components/CompletedReflection/CompletedReflection.jsx'
+import CompletedReflectionsPage from './components/CompletedReflections/CompletedReflectionsPage.jsx'
+import OpenReflectionsPage from './components/OpenReflections/OpenReflectionsPage.jsx'
 import AppIntroModal from './components/AppIntroModal/AppIntroModal.jsx'
 import Center from './components/Center/Center.jsx'
 import DailyCare from './components/DailyCare/DailyCare.jsx'
@@ -54,6 +56,8 @@ const protectedPages = new Set([
   'pattern-insights',
   'pattern-detail',
   'completed-reflection',
+  'completed-reflections',
+  'open-reflections',
   'daily-care',
   'breathing',
   'meditation',
@@ -130,6 +134,7 @@ function App() {
       ? initialRoute.reflectionSessionId ?? null
       : null,
   )
+  const [completedReflectionReturnPage, setCompletedReflectionReturnPage] = useState('completed-reflections')
   // 반복 패턴 목록 또는 직접 URL에서 선택한 상세 식별자 상태 관리.
   const [selectedPatternId, setSelectedPatternId] = useState(
     initialRoute.page === 'pattern-detail'
@@ -386,7 +391,8 @@ function App() {
     moveToPage('emotion-record-detail', { emotionRecordId, returnWeek })
   }
   // 완료된 CBT 성찰 식별자를 보관하고 결과 상세 화면으로 이동하는 처리.
-  const handleCompletedReflectionOpen = (sessionId, returnWeek) => {
+  const handleCompletedReflectionOpen = (sessionId, returnWeek, returnPage = 'weekly-report') => {
+    setCompletedReflectionReturnPage(returnPage)
     moveToPage('completed-reflection', { reflectionSessionId: sessionId, returnWeek })
   }
 
@@ -461,6 +467,9 @@ function App() {
         onCenter={() => moveToPage('center')}
         onDailyCare={() => moveToProtectedPage('daily-care')}
         onReflectionResume={handleReflectionResume}
+        onOpenReflections={() => moveToProtectedPage('open-reflections')}
+        onCompletedReflections={() => moveToProtectedPage('completed-reflections')}
+        onCompletedReflectionOpen={(sessionId) => handleCompletedReflectionOpen(sessionId, null, 'emotion-history')}
         onHome={moveToMain}
       />
     )
@@ -600,6 +609,37 @@ function App() {
         onHome={moveToMain}
       />
     )
+  } else if (currentPage === 'open-reflections') {
+    currentPageContent = (
+      <OpenReflectionsPage
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={() => moveToPage('login')}
+        onLogout={handleLogout}
+        onSignUp={() => moveToPage('signup')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onCenter={() => moveToPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
+        onResume={handleReflectionResume}
+        onBack={() => moveToPage('emotion-history')}
+        onHome={moveToMain}
+      />
+    )  } else if (currentPage === 'completed-reflections') {
+    currentPageContent = (
+      <CompletedReflectionsPage
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={() => moveToPage('login')}
+        onLogout={handleLogout}
+        onSignUp={() => moveToPage('signup')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onCenter={() => moveToPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
+        onOpen={(sessionId) => handleCompletedReflectionOpen(sessionId, null, 'completed-reflections')}
+        onBack={() => moveToPage('emotion-history')}
+        onHome={moveToMain}
+      />
+    )
   } else if (currentPage === 'completed-reflection') {
     // 주간 리포트에서 선택한 완료 CBT 성찰 결과 상세 화면 렌더링.
     currentPageContent = (
@@ -613,7 +653,7 @@ function App() {
         onEmotionHistory={() => moveToProtectedPage('emotion-history')}
         onCenter={() => moveToPage('center')}
         onDailyCare={() => moveToProtectedPage('daily-care')}
-        onBack={() => moveToPage('weekly-report')}
+        onBack={() => moveToPage(completedReflectionReturnPage)}
         onHome={moveToMain}
       />
     )

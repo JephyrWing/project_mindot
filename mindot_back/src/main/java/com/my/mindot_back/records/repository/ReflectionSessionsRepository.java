@@ -5,6 +5,8 @@ import com.my.mindot_back.common.rag.CbtSimilaritySearchRequest;
 import com.my.mindot_back.records.entity.ReflectionSessionStatus;
 import com.my.mindot_back.records.entity.ReflectionSessions;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -93,6 +95,15 @@ public interface ReflectionSessionsRepository
     List<ReflectionSessions> findAllByUser_IdAndStatusOrderByCreatedAtDesc(
             Long userId,
             ReflectionSessionStatus status
+    );
+
+    Page<ReflectionSessions> findAllByUser_IdAndStatus(Long userId, ReflectionSessionStatus status, Pageable pageable);
+
+    // 로그인 사용자가 최종 확인한 완료 CBT 성찰을 최근 완료 순으로 조회
+    Page<ReflectionSessions> findAllByUser_IdAndStatusAndUserConfirmedTrue(
+            Long userId,
+            ReflectionSessionStatus status,
+            Pageable pageable
     );
 
     // 패턴 분석에 사용할 사용자 확정 완료 CBT 세션 수 조회

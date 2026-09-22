@@ -1,0 +1,72 @@
+.completed-reflections-view-button {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 24px;
+  border: 1px solid var(--mindot-border);
+  border-radius: 8px;
+  padding: 10px 18px;
+  color: var(--mindot-text);
+  font: inherit;
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+.completed-reflections-view-button:hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+.completed-reflections-view-button:focus-visible {
+  outline: 2px solid var(--mindot-primary);
+  outline-offset: 2px;
+}
+.completed-reflections-preview {
+  display: grid;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.completed-reflections-preview > button {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--mindot-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: var(--mindot-text);
+  font: inherit;
+  text-align: left;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+.completed-reflections-preview > button:hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+.completed-reflections-preview > button:focus-visible {
+  outline: 2px solid var(--mindot-primary);
+  outline-offset: 2px;
+}
+
+.completed-reflections-preview time {
+  flex: 0 0 auto;
+  color: var(--mindot-text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.completed-reflections-preview span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--mindot-text-secondary);
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

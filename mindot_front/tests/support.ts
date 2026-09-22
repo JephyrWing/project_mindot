@@ -91,6 +91,11 @@ export async function mockApi(page: Page, resolver?: ApiResolver) {
       } else if (url.pathname === '/api/notifications/unread-count') {
         response = { body: { unreadCount: 0 } }
       } else if (
+        url.pathname === '/api/reflections/open/paged'
+        && request.method() === 'GET'
+      ) {
+        response = { body: { ...emptyPage, size: Number(url.searchParams.get('size') ?? 5) } }
+      } else if (
         url.pathname === '/api/reflections/open'
         && request.method() === 'GET'
       ) {

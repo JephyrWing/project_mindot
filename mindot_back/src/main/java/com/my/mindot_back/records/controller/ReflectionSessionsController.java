@@ -1,6 +1,7 @@
 package com.my.mindot_back.records.controller;
 import com.my.mindot_back.records.dto.InsightDtos.*;
 import com.my.mindot_back.records.dto.OpenReflectionSessionResponseDto;
+import com.my.mindot_back.records.dto.CompletedReflectionSessionResponseDto;
 import com.my.mindot_back.records.service.InsightService;
 import com.my.mindot_back.records.service.ReflectionSessionsService;
 import jakarta.validation.Valid;
@@ -10,11 +11,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import org.springframework.validation.annotation.Validated;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/reflections")
 @RequiredArgsConstructor
+@Validated
 public class ReflectionSessionsController {
     private final InsightService service;
     private final ReflectionSessionsService existing;
@@ -60,6 +65,18 @@ public class ReflectionSessionsController {
     }
     @GetMapping("/open")
     public List<OpenReflectionSessionResponseDto> openSessions(@AuthenticationPrincipal Long user) {return existing.getOpenSessions(user);}
+    @GetMapping("/open/paged")
+    public org.springframework.data.domain.Page<OpenReflectionSessionResponseDto> pagedOpenSessions(
+            @AuthenticationPrincipal Long user,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "5") @Min(1) @Max(50) int size
+    ) {return existing.getOpenSessionsPage(user, page, size);}
+    @GetMapping("/completed")
+    public org.springframework.data.domain.Page<CompletedReflectionSessionResponseDto> completedSessions(
+            @AuthenticationPrincipal Long user,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(50) int size
+    ) {return existing.getCompletedSessions(user, page, size);}
     @PostMapping("/{sid}/retry-embedding")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void retryEmbedding(@AuthenticationPrincipal Long user,@PathVariable Long sid) {existing.retryEmbedding(user,sid);}

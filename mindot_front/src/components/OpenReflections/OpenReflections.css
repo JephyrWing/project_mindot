@@ -194,6 +194,34 @@
   background: var(--mindot-primary-strong);
 }
 
+/* 완료한 CBT 성찰 목록에서 이전과 다음 페이지를 이동하는 영역 설정. */
+.open-reflections-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+/* 완료한 CBT 성찰 목록 페이지 이동 버튼의 크기와 비활성 상태 설정. */
+.open-reflections-pagination button {
+  min-height: 40px;
+  border: 1px solid var(--mindot-primary);
+  border-radius: 8px;
+  padding: 0 16px;
+  color: var(--mindot-primary-strong);
+  font: inherit;
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+.open-reflections-pagination button:disabled {
+  border-color: var(--mindot-border);
+  color: var(--mindot-text-muted);
+  cursor: not-allowed;
+}
+
 /* 작은 화면에서 진행 중 성찰 정보를 세로로 배치. */
 @media (max-width: 480px) {
   .open-reflections-heading,
@@ -206,4 +234,28 @@
   .open-reflections-list > button {
     min-height: 48px;
   }
+}
+
+.open-reflections-view-all {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 20px;
+  border: 1px solid var(--mindot-border);
+  border-radius: 8px;
+  padding: 10px 18px;
+  color: var(--mindot-text);
+  font: inherit;
+  font-weight: 600;
+  background: var(--mindot-surface);
+  cursor: pointer;
+}
+
+.open-reflections-view-all:hover {
+  border-color: var(--mindot-primary);
+  background: var(--mindot-primary-soft);
+}
+
+.open-reflections-view-all:focus-visible {
+  outline: 2px solid var(--mindot-primary);
+  outline-offset: 2px;
 }
