@@ -10,6 +10,7 @@ import CBT from './components/CBT/CBT.jsx'
 import WeeklyReport from './components/WeeklyReport/WeeklyReport.jsx'
 import MonthlyReport from './components/MonthlyReport/MonthlyReport.jsx'
 import EmotionInsights from './components/EmotionInsights/EmotionInsights.jsx'
+import PatternInsights from './components/PatternInsights/PatternInsights.jsx'
 import CompletedReflection from './components/CompletedReflection/CompletedReflection.jsx'
 import AppIntroModal from './components/AppIntroModal/AppIntroModal.jsx'
 import Center from './components/Center/Center.jsx'
@@ -47,6 +48,8 @@ const protectedPages = new Set([
   'weekly-report',
   'monthly-report',
   'emotion-insights',
+  'pattern-insights',
+  'pattern-detail',
   'completed-reflection',
   'daily-care',
   'breathing',
@@ -127,6 +130,12 @@ function App() {
       ? initialRoute.reflectionSessionId ?? null
       : null,
   )
+  // 반복 패턴 목록 또는 직접 URL에서 선택한 상세 식별자 상태 관리.
+  const [selectedPatternId, setSelectedPatternId] = useState(
+    initialRoute.page === 'pattern-detail'
+      ? initialRoute.patternId ?? null
+      : null,
+  )
 
   // 최초 시작 안내창이 표시되면 이후 재접속에서 반복되지 않도록 표시 이력 저장.
   useEffect(() => {
@@ -172,6 +181,9 @@ function App() {
         ? parameters.reflectionSessionId ?? null
         : null,
     )
+    setSelectedPatternId(
+      page === 'pattern-detail' ? parameters.patternId ?? null : null,
+    )
   }
 
   // 브라우저 뒤로 가기와 앞으로 가기 시 URL에 해당하는 화면 상태 복원.
@@ -214,6 +226,9 @@ function App() {
           ? route.reflectionSessionId ?? null
           : null,
       )
+      setSelectedPatternId(
+        route.page === 'pattern-detail' ? route.patternId ?? null : null,
+      )
     }
 
     window.addEventListener('popstate', handlePopState)
@@ -230,6 +245,7 @@ function App() {
       setCbtResumeSession(null)
       setSelectedEmotionRecordId(null)
       setSelectedReflectionSessionId(null)
+      setSelectedPatternId(null)
       setOauthProvider(null)
       window.history.replaceState({ page: 'main' }, '', '/')
       setCurrentPage('main')
@@ -501,6 +517,40 @@ function App() {
         onCenter={() => moveToPage('center')}
         onDailyCare={() => moveToProtectedPage('daily-care')}
         onBack={() => moveToPage('emotion-history')}
+        onHome={moveToMain}
+      />
+    )
+  } else if (currentPage === 'pattern-insights') {
+    // 확인된 반복 패턴 목록과 상세 진입 화면 렌더링.
+    currentPageContent = (
+      <PatternInsights
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={() => moveToPage('login')}
+        onLogout={handleLogout}
+        onSignUp={() => moveToPage('signup')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onCenter={() => moveToPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
+        onPatternDetail={(patternId) => moveToPage('pattern-detail', { patternId })}
+        onHome={moveToMain}
+      />
+    )
+  } else if (currentPage === 'pattern-detail') {
+    // 선택한 반복 패턴의 근거 기록과 서버 저장 피드백 화면 렌더링.
+    currentPageContent = (
+      <PatternInsights
+        key={selectedPatternId}
+        patternId={selectedPatternId}
+        isAuthenticated={isAuthenticated}
+        isLoggingOut={isLoggingOut}
+        onLogin={() => moveToPage('login')}
+        onLogout={handleLogout}
+        onSignUp={() => moveToPage('signup')}
+        onEmotionHistory={() => moveToProtectedPage('emotion-history')}
+        onCenter={() => moveToPage('center')}
+        onDailyCare={() => moveToProtectedPage('daily-care')}
+        onBack={() => moveToPage('pattern-insights')}
         onHome={moveToMain}
       />
     )

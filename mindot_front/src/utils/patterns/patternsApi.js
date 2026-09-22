@@ -9,9 +9,33 @@ export const createPatternsApi = (client) => ({
 
     return data
   },
+  // 로그인 사용자의 확인된 최근 8주 반복 패턴 목록 조회.
+  getEmotionPatterns: async () => {
+    const { data } = await client.get('/api/patterns')
+
+    return data
+  },
+  // 선택한 반복 패턴의 집계와 근거 감정 기록 상세 조회.
+  getEmotionPatternDetail: async (patternId) => {
+    const { data } = await client.get(`/api/patterns/${patternId}`)
+
+    return data
+  },
+  // 선택한 반복 패턴과 관점의 도움 여부를 서버에 저장.
+  submitEmotionPatternFeedback: async (patternId, feedback) => {
+    const { data } = await client.post(
+      `/api/patterns/${patternId}/feedback`,
+      { feedback },
+    )
+
+    return data
+  },
 })
 
 // 공통 인증과 토큰 재발급 처리가 적용된 반복 패턴 API 제공
 export const {
   getRecentEmotionPatterns,
+  getEmotionPatterns,
+  getEmotionPatternDetail,
+  submitEmotionPatternFeedback,
 } = createPatternsApi(httpClient)

@@ -26,6 +26,7 @@ export const readAppRoute = () => {
   const emotionRecordMatch = pathname.match(/^\/records\/(\d+)$/)
   const cbtSessionMatch = pathname.match(/^\/cbt\/sessions\/(\d+)$/)
   const completedReflectionMatch = pathname.match(/^\/reflections\/(\d+)$/)
+  const patternDetailMatch = pathname.match(/^\/insights\/patterns\/(\d+)$/)
   const oauthCallbackMatch = pathname.match(/^\/oauth\/(kakao|google)\/callback$/)
 
   if (pathname === '/login') return { page: 'login' }
@@ -65,6 +66,13 @@ export const readAppRoute = () => {
   if (pathname === '/reports/weekly') return { page: 'weekly-report', weekStart }
   if (pathname === '/reports/monthly') return { page: 'monthly-report' }
   if (pathname === '/insights/emotions') return { page: 'emotion-insights' }
+  if (pathname === '/insights/patterns') return { page: 'pattern-insights' }
+  if (patternDetailMatch) {
+    return {
+      page: 'pattern-detail',
+      patternId: parseIdentifier(patternDetailMatch[1]),
+    }
+  }
   if (completedReflectionMatch) {
     return {
       page: 'completed-reflection',
@@ -85,6 +93,7 @@ export const readAppRoute = () => {
 export const createAppPath = (page, parameters = {}) => {
   const emotionRecordId = parseIdentifier(String(parameters.emotionRecordId ?? ''))
   const reflectionSessionId = parseIdentifier(String(parameters.reflectionSessionId ?? ''))
+  const patternId = parseIdentifier(String(parameters.patternId ?? ''))
   const returnQuery = isWeekStart(parameters.returnWeek) ? `?returnWeek=${parameters.returnWeek}` : ''
 
   if (page === 'login') return '/login'
@@ -115,6 +124,8 @@ export const createAppPath = (page, parameters = {}) => {
   if (page === 'weekly-report') return `/reports/weekly${isWeekStart(parameters.weekStart) ? `?weekStart=${parameters.weekStart}` : ''}`
   if (page === 'monthly-report') return '/reports/monthly'
   if (page === 'emotion-insights') return '/insights/emotions'
+  if (page === 'pattern-insights') return '/insights/patterns'
+  if (page === 'pattern-detail' && patternId) return `/insights/patterns/${patternId}`
   if (page === 'completed-reflection' && reflectionSessionId) {
     return `/reflections/${reflectionSessionId}${returnQuery}`
   }

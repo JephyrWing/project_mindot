@@ -160,6 +160,9 @@ function Sidebar({
               <a href="/insights/emotions" onClick={() => setIsOpen(false)}>
                 감정 인사이트
               </a>
+              <a href="/insights/patterns" onClick={() => setIsOpen(false)}>
+                반복 패턴
+              </a>
               <a href="/reports/weekly" onClick={() => setIsOpen(false)}>
                 주간 리포트
               </a>
