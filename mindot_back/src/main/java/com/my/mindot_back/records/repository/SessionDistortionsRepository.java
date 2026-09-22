@@ -17,6 +17,12 @@ public interface SessionDistortionsRepository
             DistortionPhase phase
     );
 
+    // 사용자가 최종 선택한 BEFORE/AFTER 목록으로 다시 저장하기 전 기존 단계를 비운다.
+    void deleteAllBySession_IdAndPhase(
+            Long sessionId,
+            DistortionPhase phase
+    );
+
     // 패턴 분석용: 사용자가 확정한 성찰 전 인지왜곡 라벨 조회
     List<SessionDistortions> findAllBySession_IdAndPhaseAndReviewStatus(
             Long sessionId,

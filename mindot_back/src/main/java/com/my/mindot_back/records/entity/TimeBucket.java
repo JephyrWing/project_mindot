@@ -16,5 +16,14 @@ public enum TimeBucket {
     EVENING,
 
     // 21:00 ~ 23:59
-    NIGHT
+    NIGHT;
+
+    // 사용자의 현지 시각에서 시간대를 계산
+    public static TimeBucket fromHour(int hour) {
+        if (hour < 6) return DAWN;
+        if (hour < 12) return MORNING;
+        if (hour < 18) return AFTERNOON;
+        if (hour < 21) return EVENING;
+        return NIGHT;
+    }
 }

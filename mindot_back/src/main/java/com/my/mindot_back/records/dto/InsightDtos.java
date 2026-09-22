@@ -19,7 +19,10 @@ public final class InsightDtos {
         @NotNull @Min(0) @Max(100) Short beforeBeliefStrength,
         @NotNull @Min(0) @Max(100) Short afterBeliefStrength,
         @NotNull @Min(0) @Max(10) Short finalEmotionIntensity,
-        @NotNull @Min(0) @Max(5) Short helpfulnessScore) {}
+        @NotNull @Min(0) @Max(5) Short helpfulnessScore,
+        // 두 목록을 모두 보내면 BEFORE/AFTER 라벨 비교 확정 흐름으로 처리한다.
+        @Size(max=12) List<@Valid Review> beforeDistortions,
+        @Size(max=12) List<@Valid Review> afterDistortions) {}
     public record SessionView(Long sessionId, long revision, String status, String phase,
         Map<String,Object> record, List<Map<String,Object>> messages,
         Map<String,Object> currentProposal, Map<String,Object> confirmedResult,

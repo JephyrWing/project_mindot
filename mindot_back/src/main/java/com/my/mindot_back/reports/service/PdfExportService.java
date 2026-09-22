@@ -13,9 +13,6 @@ import com.my.mindot_back.users.repository.UsersRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
@@ -31,7 +28,6 @@ import java.io.InputStream;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -213,7 +209,7 @@ public class PdfExportService {
         ){
             PDType0Font koreaFont = loadKoreanFont(document);
 
-            try (PdfPageWriter writer = new PdfPageWriter(
+            try (ReportPdfWriter writer = new ReportPdfWriter(
                     document,
                     koreaFont
             )){
@@ -225,13 +221,15 @@ public class PdfExportService {
                 writer.writeInfoRow("선택 날짜", selectedDates.toString());
                 writer.writeInfoRow(
                         "포함 내용",
-                        "감정 기록 " + emotionRecords.size()
+                        (dto.contentType() == ExportContentType.CBT_RESULTS ? "연결 감정 기록 " : "감정 기록 ") + emotionRecords.size()
                                 + "건 / 완료 CBT " + reflectionSessions.size() + "건"
                 );
                 writer.addSpace(22f);
 
                 // 사용자가 감정 기록 포함을 선택한 경우에만 본문 작성
                 if (dto.contentType() != ExportContentType.CBT_RESULTS) {
+                    ReportPdfCharts.selectedRecords(writer, emotionRecords, selectedDates, ZoneId.of(user.getTimezone()));
+                    writer.addPage();
                     writeEmotionRecordsSection(
                             writer,
                             emotionRecords,
@@ -262,7 +260,7 @@ public class PdfExportService {
 
     // 선택한 감정 기록을 상담용 PDF 본문에 작성
     private void writeEmotionRecordsSection(
-            PdfPageWriter writer,
+            ReportPdfWriter writer,
             List<EmotionRecords> emotionRecords,
             ZoneId zoneId
     ) throws IOException {
@@ -272,16 +270,16 @@ public class PdfExportService {
         writer.writeSectionTitle("감정 기록");
         writer.addSpace(6f);
 
+        int recordNumber = 0;
         for (EmotionRecords emotionRecord : emotionRecords) {
+            writer.writeSectionTitle("기록 #" + (++recordNumber));
             String occurredAt = emotionRecord.getOccurredAt()
                     .atZone(zoneId)
                     .format(dateTimeFormatter);
 
-            String primaryEmotion = emotionRecord.getPrimaryEmotionCode() == null
-                    ? "-"
-                    : emotionRecord.getPrimaryEmotionCode();
+            String primaryEmotion = ReportEmotionData.label(emotionRecord.getPrimaryEmotionCode());
             String intensity = emotionRecord.getPrimaryIntensity() == null
-                    ? "-"
+                    ? "미입력"
                     : emotionRecord.getPrimaryIntensity() + "/10";
 
             writer.writeInfoRow("발생 일시", occurredAt);
@@ -311,7 +309,7 @@ public class PdfExportService {
 
     // 완료, 확정된 CBT 성찰 결과를 상담용 PDF 본문에 작성
     private void writeReflectionSessionsSection(
-            PdfPageWriter writer,
+            ReportPdfWriter writer,
             List<ReflectionSessions> reflectionSessions,
             ZoneId zoneId,
             boolean includeFullCbtConversation
@@ -321,7 +319,6 @@ public class PdfExportService {
 
         writer.writeSectionTitle("완료 CBT 성찰 결과");
         writer.writeParagraph("이 PDF는 감정 발생일로 선택한 기록에 연결된 CBT를 포함합니다. 주간 리포트의 CBT 완료일 기준과 다를 수 있습니다.", 9f);
-        writer.writeParagraph("폰트가 지원하지 않는 문자는 [U+코드]로 표시합니다. 예: [U+1F600].", 9f);
         writer.addSpace(6f);
 
         if (reflectionSessions.isEmpty()) {
@@ -337,16 +334,14 @@ public class PdfExportService {
             String occurredAt = emotionRecord.getOccurredAt()
                     .atZone(zoneId)
                     .format(dateTimeFormatter);
-            String primaryEmotion = emotionRecord.getPrimaryEmotionCode() == null
-                    ? "-"
-                    : emotionRecord.getPrimaryEmotionCode();
+            String primaryEmotion = ReportEmotionData.label(emotionRecord.getPrimaryEmotionCode());
             String intensity = emotionRecord.getPrimaryIntensity() == null
-                    ? "-"
+                    ? "미입력"
                     : emotionRecord.getPrimaryIntensity() + "/10";
 
             // CBT가 시작된 감정 기록의 맥락을 함께 표시
             writer.writeAccentLine("연결 감정 기록", 10f);
-            writer.writeLine(
+            writer.writeParagraph(
                     occurredAt + " / " + primaryEmotion + " / " + intensity,
                     10f
             );
@@ -410,7 +405,7 @@ public class PdfExportService {
 
     // CBT 결과의 텍스트 값이 있을 때만 강조 제목과 함께 작성
     private void writeCbtTextIfPresent(
-            PdfPageWriter writer,
+            ReportPdfWriter writer,
             String label,
             String text
     ) throws IOException {
@@ -422,7 +417,7 @@ public class PdfExportService {
 
     // CBT 결과 형식이 달라도 유효한 제안만 PDF에 포함
     private void writeConfirmedSuggestions(
-            PdfPageWriter writer,
+            ReportPdfWriter writer,
             Map<String, Object> confirmed
     ) throws IOException {
         Set<String> confirmedCodes = confirmedCodes(
@@ -497,7 +492,7 @@ public class PdfExportService {
 
     // 사용자가 선택한 경우에만 CBT 질문, 답변 전체를 작성
     private void writeFullCbtConversation(
-            PdfPageWriter writer,
+            ReportPdfWriter writer,
             List<Map<String, Object>> questionAnswers
     ) throws IOException {
         writer.writeAccentLine("대화 전체", 11f);
@@ -546,264 +541,4 @@ public class PdfExportService {
         }
     }
 
-    // A4 PDF에 제목과 긴 문장을 페이지 단위로 작성하는 내부 도구
-    private static class PdfPageWriter implements AutoCloseable {
-
-        private static final float PAGE_MARGIN = 60f;
-        private static final float PAGE_WIDTH = PDRectangle.A4.getWidth();
-        private static final float PAGE_HEIGHT = PDRectangle.A4.getHeight();
-        private static final float INFO_LABEL_WIDTH = 110f;
-        private static final float INFO_ROW_HEIGHT = 25f;
-
-        private final PDDocument document;
-        private final PDType0Font font;
-        private PDPageContentStream contentStream;
-        private float cursorY;
-
-        private PdfPageWriter(
-                PDDocument document,
-                PDType0Font font
-        ) throws IOException {
-            this.document = document;
-            this.font = font;
-            addPage();
-        }
-
-        // 새 A4 페이지를 만들고 이전 페이지 작성 스트림을 닫음
-        private void addPage() throws IOException {
-            if (contentStream != null) {
-                contentStream.close();
-            }
-
-            PDPage page = new PDPage(PDRectangle.A4);
-            document.addPage(page);
-            contentStream = new PDPageContentStream(document, page);
-            cursorY = PAGE_HEIGHT - PAGE_MARGIN;
-        }
-
-        // 페이지 부족시 다음 페이지 만든 뒤 작성
-        private void writeLine(
-                String text,
-                float fontSize
-        ) throws IOException {
-            if (cursorY - fontSize < PAGE_MARGIN) {
-                addPage();
-            }
-
-            contentStream.beginText();
-            contentStream.setFont(font, fontSize);
-            contentStream.newLineAtOffset(PAGE_MARGIN, cursorY);
-            contentStream.showText(safeText(text));
-            contentStream.endText();
-
-            cursorY -= fontSize + 9f;
-        }
-
-        // 문서 첫 제목을 페이지 가운데에 크게 작성
-        private void writeCenteredTitle(
-                String text,
-                float fontSize
-        ) throws IOException {
-            if (cursorY - fontSize < PAGE_MARGIN) {
-                addPage();
-            }
-
-            float textWidth = font.getStringWidth(safeText(text)) / 1000 * fontSize;
-            float startX = (PAGE_WIDTH - textWidth) / 2;
-
-            contentStream.beginText();
-            contentStream.setNonStrokingColor(
-                    20f / 255f,
-                    54f / 255f,
-                    104f / 255f
-            );
-            contentStream.setFont(font, fontSize);
-            contentStream.newLineAtOffset(startX, cursorY);
-            contentStream.showText(safeText(text));
-            contentStream.endText();
-
-            contentStream.setNonStrokingColor(0, 0, 0);
-            cursorY -= fontSize + 15f;
-        }
-
-        // 파란 막대와 함께 본문 섹션 제목을 작성
-        private void writeSectionTitle(String text) throws IOException {
-            float barHeight = 18f;
-
-            if (cursorY - barHeight < PAGE_MARGIN) {
-                addPage();
-            }
-
-            contentStream.setNonStrokingColor(
-                    35f / 255f,
-                    99f / 255f,
-                    190f / 255f
-            );
-            contentStream.addRect(PAGE_MARGIN, cursorY - 15f, 4f, barHeight);
-            contentStream.fill();
-
-            contentStream.beginText();
-            contentStream.setNonStrokingColor(
-                    20f / 255f,
-                    25f / 255f,
-                    35f / 255f
-            );
-            contentStream.setFont(font, 15f);
-            contentStream.newLineAtOffset(PAGE_MARGIN + 12f, cursorY - 11f);
-            contentStream.showText(safeText(text));
-            contentStream.endText();
-
-            contentStream.setNonStrokingColor(0, 0, 0);
-            cursorY -= 27f;
-        }
-
-        // CBT 결과의 제목을 파란색으로 강조해 작성
-        private void writeAccentLine(
-                String text,
-                float fontSize
-        ) throws IOException {
-            if (cursorY - fontSize < PAGE_MARGIN) {
-                addPage();
-            }
-
-            contentStream.beginText();
-            contentStream.setNonStrokingColor(
-                    25f / 255f,
-                    76f / 255f,
-                    145f / 255f
-            );
-            contentStream.setFont(font, fontSize);
-            contentStream.newLineAtOffset(PAGE_MARGIN, cursorY);
-            contentStream.showText(safeText(text));
-            contentStream.endText();
-
-            contentStream.setNonStrokingColor(0, 0, 0);
-            cursorY -= fontSize + 9f;
-        }
-
-        private void writeConversationBlock(String speaker, String text) throws IOException {
-            writePagedRow(speaker, text, 82f, 9f);
-        }
-
-        // 텍스트 없이 세로 여백만 추가
-        private void addSpace(float space) throws IOException {
-            if (cursorY - space < PAGE_MARGIN) {
-                addPage();
-            }
-
-            cursorY -= space;
-        }
-
-        private void writeInfoRow(String label, String value) throws IOException {
-            writePagedRow(label, value, INFO_LABEL_WIDTH, 10f);
-        }
-
-        // Both conversation and information rows split by available lines on every page.
-        private void writePagedRow(String label, String value, float labelWidth, float size) throws IOException {
-            float tableWidth = PAGE_WIDTH - PAGE_MARGIN * 2;
-            List<String> lines = wrapText(value, size, tableWidth - labelWidth - 14f);
-            int offset = 0;
-            do {
-                String pageLabel = label + (offset > 0 ? " (이어짐)" : "");
-                List<String> labels = wrapText(pageLabel, size, labelWidth - 14f);
-                int capacity = (int)Math.floor((cursorY - PAGE_MARGIN - 10f) / 14f);
-                if (capacity < Math.max(1, labels.size())) {
-                    addPage();
-                    capacity = (int)Math.floor((cursorY - PAGE_MARGIN - 10f) / 14f);
-                }
-                int count = Math.min(capacity, lines.size() - offset);
-                float height = Math.max(labels.size(), count) * 14f + 10f;
-                float bottom = cursorY - height;
-                contentStream.setNonStrokingColor(241f/255, 245f/255, 249f/255);
-                contentStream.addRect(PAGE_MARGIN, bottom, labelWidth, height);
-                contentStream.fill();
-                contentStream.setStrokingColor(196f/255, 207f/255, 222f/255);
-                contentStream.addRect(PAGE_MARGIN, bottom, tableWidth, height);
-                contentStream.moveTo(PAGE_MARGIN + labelWidth, bottom);
-                contentStream.lineTo(PAGE_MARGIN + labelWidth, cursorY);
-                contentStream.stroke();
-                for (int i = 0; i < labels.size(); i++)
-                    writeCellText(labels.get(i), PAGE_MARGIN + 7f, cursorY - 15f - i*14f, size);
-                for (int i = 0; i < count; i++)
-                    writeCellText(lines.get(offset+i), PAGE_MARGIN + labelWidth + 7f, cursorY - 15f - i*14f, size);
-                cursorY = bottom;
-                offset += count;
-                if (offset < lines.size()) addPage();
-            } while (offset < lines.size());
-        }
-
-        private void writeCellText(String text, float x, float y, float size) throws IOException {
-            contentStream.beginText();
-            contentStream.setNonStrokingColor(0, 0, 0);
-            contentStream.setFont(font, size);
-            contentStream.newLineAtOffset(x, y);
-            contentStream.showText(safeText(text));
-            contentStream.endText();
-        }
-
-        // No missing glyph is silently discarded. Mark the exact Unicode code point.
-        private String safeText(String text) throws IOException {
-            if (text == null) return "";
-            StringBuilder result = new StringBuilder();
-            for (int cp : text.codePoints().toArray()) {
-                String glyph = new String(Character.toChars(cp));
-                try { font.getStringWidth(glyph); result.append(glyph); }
-                catch (IllegalArgumentException unsupported) { result.append(String.format("[U+%04X]", cp)); }
-            }
-            return result.toString();
-        }
-
-        // PDF 가로 폭에 맞춰 긴 문장을 여러 줄로 분리
-        private List<String> wrapText(
-                String text,
-                float fontSize
-        ) throws IOException {
-            return wrapText(
-                    text,
-                    fontSize,
-                    PAGE_WIDTH - PAGE_MARGIN * 2
-            );
-        }
-
-        // 지정한 가로 폭에 맞춰 긴 문장을 여러 줄로 분리
-        private List<String> wrapText(
-                String text,
-                float fontSize,
-                float maxWidth
-        ) throws IOException {
-            List<String> lines = new ArrayList<>();
-            String normalized = (text == null ? "" : text).replace("\r\n", "\n").replace('\r', '\n');
-            for (String paragraph : normalized.split("\n", -1)) {
-                StringBuilder line = new StringBuilder();
-                for (int cp : safeText(paragraph).codePoints().toArray()) {
-                    String glyph = new String(Character.toChars(cp));
-                    String candidate = line.toString() + glyph;
-                    if (line.length() > 0 && font.getStringWidth(candidate) / 1000 * fontSize > maxWidth) {
-                        lines.add(line.toString()); line.setLength(0);
-                    }
-                    line.append(glyph);
-                }
-                lines.add(line.toString());
-            }
-            return lines;
-        }
-
-        // 긴 문장을 줄바꿈한 뒤 페이지 단위로 작성
-        private void writeParagraph(
-                String text,
-                float fontSize
-        ) throws IOException {
-            for (String line : wrapText(text, fontSize)) {
-                writeLine(line, fontSize);
-            }
-        }
-
-        // 마지막 페이지의 작성 스트림 닫기
-        @Override
-        public  void close() throws IOException{
-            if (contentStream != null) {
-                contentStream.close();
-            }
-        }
-    }
 }

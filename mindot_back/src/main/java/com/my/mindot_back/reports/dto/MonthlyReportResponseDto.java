@@ -53,6 +53,8 @@ public record MonthlyReportResponseDto(
         Map<String, Long> contextCategoryCounts,
 
         // 리포트 원본 데이터 기준 시각
-        Instant sourceSnapshotAt
+        Instant sourceSnapshotAt,
+
+        MonthlyEmotionCompositionDto emotionComposition
 ) {
 }

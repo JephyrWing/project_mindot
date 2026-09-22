@@ -233,9 +233,28 @@ export const weeklyReport = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 })
 
+export const monthlyComposition = (month: string, entries: { day: number; emotion: string | null; context?: string | null }[] = [
+  { day: 1, emotion: 'ANXIETY', context: 'PERFORMANCE' }, { day: 1, emotion: 'ANXIETY', context: 'PERFORMANCE' },
+  { day: 2, emotion: 'CALM', context: 'DAILY_LIFE' },
+]) => {
+  const [year, m] = month.split('-').map(Number)
+  const length = new Date(Date.UTC(year, m, 0)).getUTCDate()
+  const date = (day: number) => `${month}-${String(day).padStart(2, '0')}`
+  const counts = (rows: typeof entries) => [...new Set(rows.map(r => r.emotion))].map(emotion => ({ emotion, count: rows.filter(r => r.emotion === emotion).length }))
+  const group = (value: string | null, rows: typeof entries) => ({ value, recordCount: rows.length, emotions: counts(rows) })
+  const split = Math.floor(length / 2)
+  return {
+    version: 2, timezone: 'Asia/Seoul', recordCount: entries.length, emotions: counts(entries),
+    days: Array.from({ length }, (_, i) => group(date(i+1), entries.filter(r => r.day === i+1))),
+    contexts: [...new Set(entries.map(r => r.context ?? null))].map(value => group(value, entries.filter(r => (r.context ?? null) === value))),
+    halves: [[1, split], [split+1, length]].map(([start,end]) => ({ periodStart: date(start), periodEnd: date(end), ...group(null, entries.filter(r => r.day >= start && r.day <= end)) })),
+  }
+}
+
 export const monthlyReport = (month: string, overrides: Record<string, unknown> = {}) => ({
+  emotionComposition: monthlyComposition(month),
   periodStart: `${month}-01`,
-  periodEnd: `${month}-30`,
+  periodEnd: monthlyComposition(month).days.at(-1)!.value,
   recordCount: 3,
   dominantEmotionCode: 'ANXIETY',
   averageIntensity: 5.5,

@@ -157,7 +157,6 @@ public class WeeklyReportsService {
 
         // 선택 주간의 완료 CBT 세션 ID 목록 생성
         List<Long> sessionIds = reflectionSessions.stream()
-                .filter(s -> s.confirmedInsight()==null)
                 .map(ReflectionSessions::getId)
                 .toList();
 

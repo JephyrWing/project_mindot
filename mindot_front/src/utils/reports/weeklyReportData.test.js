@@ -7,6 +7,14 @@ import { primaryEmotionLabels } from '../records/emotions.js'
 const row = (id, occurredAt, primaryIntensity = null, primaryEmotionCode = null) => ({ emotionRecordId: id, occurredAt, primaryIntensity, primaryEmotionCode })
 const parse = (rows, count = rows.length) => weeklyRecords({ emotionRecordEvidences: rows, recordCount: count }, '2026-09-14', 'Asia/Seoul')
 
+test('stacked charts group negative then positive then neutral emotions, preserving custom names separately', () => {
+  const mixed = ['CALM', 'OTHER', '', '먹먹함', 'JOY', '짜증', 'ANGER', 'ANXIETY', '다른 느낌', 'ANXIETY']
+  assert.deepEqual(countEmotions(mixed.map(emotion => ({ emotion }))), [
+    ['ANXIETY', 2], ['ANGER', 1], ['짜증', 1], ['JOY', 1], ['CALM', 1],
+    ['OTHER', 1], ['다른 느낌', 1], ['먹먹함', 1], ['', 1],
+  ])
+})
+
 test('KST week boundaries use the account timezone, including Monday midnight and Sunday 23:59', () => {
   const records = parse([row(1, '2026-09-13T15:00:00Z'), row(2, '2026-09-20T14:59:00Z')])
   assert.deepEqual(records.map((r) => [r.day, r.minute, r.timeBucket]), [[0, 0, 'DAWN'], [6, 1439, 'NIGHT']])

@@ -114,6 +114,7 @@ public class SecurityConfig {
                                 "/api/records/**",
                                 "/api/reflections/**",
                                 "/api/reports/**",
+                                "/api/patterns", "/api/patterns/**",
                                 "/api/centers/**",
                                 "/api/stt/**"
                         ).hasAnyRole("USER", "ADMIN")

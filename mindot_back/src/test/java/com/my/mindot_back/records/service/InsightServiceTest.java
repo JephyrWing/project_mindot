@@ -60,7 +60,7 @@ class InsightServiceTest {
                 embeddings,
                 mock(ConsentEventsService.class)
         );
-        var body=new Confirm("proposal",List.of(),(short)80,(short)40,(short)4,(short)3);
+        var body=new Confirm("proposal",List.of(),(short)80,(short)40,(short)4,(short)3,null,null);
         var saved=view();when(tx.confirm(1L,1L,"key",2L,body)).thenReturn(saved);
         doThrow(new IllegalStateException("executor unavailable")).when(embeddings).submit(1L,1L);
         assertSame(saved,service.confirm(1L,1L,"key",2L,body));

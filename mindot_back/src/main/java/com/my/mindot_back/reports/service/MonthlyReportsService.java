@@ -255,7 +255,7 @@ public class MonthlyReportsService {
             int recordCount,
             String dominantEmotionCode,
             String mostFrequentContextCategory,
-            MonthlyIntensityTrend intensityTrend,
+            com.my.mindot_back.reports.dto.MonthlyEmotionCompositionDto composition,
             int completedCbtCount
     ) {
         if (recordCount == 0) {
@@ -264,13 +264,6 @@ public class MonthlyReportsService {
                     + "회입니다.";
         }
 
-        String trendDescription = switch (intensityTrend) {
-            case INCREASED -> "월 초반보다 후반의 평균 감정 강도가 높아졌습니다.";
-            case DECREASED -> "월 초반보다 후반의 평균 감정 강도가 낮아졌습니다.";
-            case STABLE -> "월 초반과 후반의 평균 감정 강도가 비슷했습니다.";
-            case INSUFFICIENT_DATA -> "감정 강도 흐름을 비교하기에는 입력된 데이터가 부족합니다.";
-        };
-
         StringBuilder summary = new StringBuilder();
         summary.append("이번 달에는 감정 기록 ")
                 .append(recordCount)
@@ -278,18 +271,20 @@ public class MonthlyReportsService {
 
         if (dominantEmotionCode != null) {
             summary.append(" 가장 많이 기록된 감정은 ")
-                    .append(dominantEmotionCode)
+                    .append(ReportEmotionData.label(dominantEmotionCode))
                     .append("입니다.");
         }
 
         if (mostFrequentContextCategory != null) {
             summary.append(" 가장 자주 나타난 상황은 ")
-                    .append(mostFrequentContextCategory)
+                    .append(ReportEmotionData.contextLabel(mostFrequentContextCategory))
                     .append("입니다.");
         }
 
         summary.append(" ")
-                .append(trendDescription)
+                .append("월 초반 ").append(composition.halves().get(0).recordCount())
+                .append("건, 월 후반 ").append(composition.halves().get(1).recordCount())
+                .append("건이며, 각 기간의 감정 구성은 기록 건수에 대한 비율로 표시합니다.")
                 .append(" 완료한 CBT는 ")
                 .append(completedCbtCount)
                 .append("회입니다.");
@@ -343,8 +338,10 @@ public class MonthlyReportsService {
                 );
 
         int completedCbtCount = reflectionSessions.size();
+        var composition = ReportEmotionData.monthly(emotionRecords, month, zoneId);
 
         Map<String, Object> content = new LinkedHashMap<>();
+        content.put("emotionComposition", composition);
         content.put("recordCount", emotionRecords.size());
         content.put("dominantEmotionCode", dominantEmotionCode);
         content.put(
@@ -375,7 +372,7 @@ public class MonthlyReportsService {
                         emotionRecords.size(),
                         dominantEmotionCode,
                         mostFrequentContextCategory,
-                        intensityTrend,
+                        composition,
                         completedCbtCount
                 )
         );
@@ -548,7 +545,8 @@ public class MonthlyReportsService {
                 toDailyTrends(content.get("dailyTrends")),
                 toLongMap(content.get("emotionCounts")),
                 toLongMap(content.get("contextCategoryCounts")),
-                report.getSourceSnapshotAt()
+                report.getSourceSnapshotAt(),
+                ReportEmotionData.restore(content.get("emotionComposition"))
         );
     }
 
@@ -626,6 +624,7 @@ public class MonthlyReportsService {
     }
 
     // 이미 생성된 선택 달의 월간 리포트 조회
+    @Transactional
     public MonthlyReportResponseDto getMonthlyReport(
             Long userId,
             YearMonth month
@@ -647,6 +646,12 @@ public class MonthlyReportsService {
                         "선택한 달에 생성된 월간 리포트가 없습니다."
                 ));
 
+        var composition = ReportEmotionData.restore(report.getContent().get("emotionComposition"));
+        // Legacy snapshots must be rebuilt from all owned records, never interpreted as zero.
+        if (composition == null || composition.version() != ReportEmotionData.VERSION
+                || composition.days().size() != month.lengthOfMonth() || composition.halves().size() != 2) {
+            return generateMonthlyReport(userId, month);
+        }
         return toMonthlyReportResponse(report);
     }
 }
