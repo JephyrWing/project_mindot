@@ -78,6 +78,8 @@ export async function mockApi(page: Page, resolver?: ApiResolver) {
         }
       } else if (url.pathname === '/api/patterns/recent') {
         response = { body: [] }
+      } else if (url.pathname === '/api/daily-care/recommendation' && request.method() === 'GET') {
+        response = { body: dailyCareRecommendation() }
       } else if (url.pathname === '/api/consents/history') {
         response = { body: { ...emptyPage, size: 5 } }
       } else if (url.pathname === '/api/admin/users') {
@@ -110,6 +112,19 @@ export function readJsonBody(request: Request) {
     return null
   }
 }
+
+export const dailyCareRecommendation = (overrides: Record<string, unknown> = {}) => ({
+  recommendationId: 71,
+  title: '3분 호흡으로 긴장을 천천히 낮춰 보세요.',
+  description: '가장 최근에 기록한 감정을 기준으로 안내합니다.',
+  activity: 'BREATHING',
+  source: 'latest-record',
+  emotionRecordId: 1,
+  reflectionSessionId: null,
+  createdAt: '2026-09-22T00:00:00Z',
+  feedback: null,
+  ...overrides,
+})
 
 export const completeRecord = (overrides: Record<string, unknown> = {}) => ({
   emotionRecordId: 1,

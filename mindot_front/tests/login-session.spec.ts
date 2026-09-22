@@ -63,9 +63,17 @@ test.describe('FE-AUTO-005: 인증 세션', () => {
     await useAuthenticatedSession(page)
     const firstUnauthorized = new Set(['/api/records', '/api/reflections/open'])
     let refreshCalls = 0
-    await mockApi(page, (request, url) => {
+    let releaseRefresh!: () => void
+    const refreshPending = new Promise<void>((resolve) => { releaseRefresh = resolve })
+    // 두 401 응답이 도착하기 전에 재발급이 끝나면 동시 요청 검증이 아니게 된다.
+    const unauthorizedResponses = Promise.all([...firstUnauthorized].map((path) => (
+      page.waitForResponse((response) => new URL(response.url()).pathname === path && response.status() === 401)
+        .then((response) => response.finished())
+    )))
+    await mockApi(page, async (request, url) => {
       if (url.pathname === '/api/auth/refresh') {
         refreshCalls += 1
+        await refreshPending
         return refreshCalls === 1
           ? { body: { accessToken: 'shared-refreshed-token' } }
           : { status: 500, body: { message: '중복 재발급 요청' } }
@@ -85,8 +93,15 @@ test.describe('FE-AUTO-005: 인증 세션', () => {
     })
 
     await page.goto('/records')
+    try {
+      await unauthorizedResponses
+      await expect.poll(() => refreshCalls).toBe(1)
+    } finally {
+      releaseRefresh()
+    }
     await expect(page.getByText('아직 작성한 감정 기록이 없습니다.')).toBeVisible()
     await expect(page.getByText('재발급 후 복원한 CBT')).toBeVisible()
+    expect(refreshCalls).toBe(1)
   })
 
   test('성공: 401 후 토큰을 재발급해 보호 화면을 복구한다', async ({ page }) => {

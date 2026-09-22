@@ -48,7 +48,7 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Run FE-AUTO-001 through FE-AUTO-030
+      - name: Run frontend Playwright tests
         run: npx playwright test
 
       - name: Upload Playwright HTML report
