@@ -88,11 +88,11 @@ function App() {
   const [currentPage, setCurrentPage] = useState(initialRoute.page)
   // 브라우저 기준 최초 메인 진입에서만 서비스 안내창을 표시하기 위한 상태 관리.
   const [isIntroOpen, setIsIntroOpen] = useState(shouldShowIntroInitially)
-  // 현재 JavaScript 실행 메모리의 Access Token을 기준으로 로그인 여부 상태 관리.
+  // 현재 탭의 sessionStorage에 저장된 Access Token으로 로그인 여부 상태 관리.
   const [isAuthenticated, setIsAuthenticated] = useState(
     () => Boolean(getAccessToken()),
   )
-  // 새로고침 후 HttpOnly Refresh Token 쿠키로 메모리 토큰을 복구하는 상태 관리.
+  // 저장된 Access Token이 없을 때 HttpOnly Refresh Token 쿠키로 복구하는 상태 관리.
   const [isAuthChecking, setIsAuthChecking] = useState(
     () => !getAccessToken(),
   )
@@ -134,7 +134,7 @@ function App() {
       ? initialRoute.reflectionSessionId ?? null
       : null,
   )
-  const [completedReflectionReturnPage, setCompletedReflectionReturnPage] = useState('completed-reflections')
+  const [completedReflectionReturnPage, setCompletedReflectionReturnPage] = useState(initialRoute.returnWeek ? 'weekly-report' : 'completed-reflections')
   // 반복 패턴 목록 또는 직접 URL에서 선택한 상세 식별자 상태 관리.
   const [selectedPatternId, setSelectedPatternId] = useState(
     initialRoute.page === 'pattern-detail'
@@ -142,7 +142,7 @@ function App() {
       : null,
   )
 
-  // 페이지 새로고침으로 비워진 메모리 토큰을 Refresh Token 쿠키로 한 번 복구.
+  // sessionStorage에 토큰이 없는 경우에만 Refresh Token 쿠키로 한 번 복구.
   useEffect(() => {
     if (getAccessToken()) return undefined
 
@@ -247,6 +247,7 @@ function App() {
       if (route.page === 'weekly-report') setWeeklyWeekStart(route.weekStart ?? null)
       else if (route.returnWeek) setWeeklyWeekStart(route.returnWeek)
       setEmotionRecordDetailReturnPage(route.returnWeek ? 'weekly-report' : 'emotion-history')
+      setCompletedReflectionReturnPage(route.returnWeek ? 'weekly-report' : 'completed-reflections')
       setCurrentPage(route.page)
       setOauthProvider(
         route.page === 'oauth-callback' ? route.provider ?? null : null,

@@ -41,13 +41,13 @@ beforeEach(() => {
   localStorage.clear()
 })
 
-test('access token is stored only in client memory', () => {
+test('access token is stored in sessionStorage and never in localStorage', () => {
   localStorage.setItem('mindot.rememberedEmail', 'user@example.com')
 
   setAccessToken('access-token')
 
   assert.equal(getAccessToken(), 'access-token')
-  assert.equal(sessionStorage.getItem('mindot.accessToken'), null)
+  assert.equal(sessionStorage.getItem('mindot.accessToken'), 'access-token')
   assert.equal(localStorage.getItem('mindot.accessToken'), null)
   assert.equal(
     localStorage.getItem('mindot.rememberedEmail'),
@@ -55,11 +55,12 @@ test('access token is stored only in client memory', () => {
   )
 })
 
-test('legacy sessionStorage access token is removed and never restored', () => {
-  sessionStorage.setItem('mindot.accessToken', 'legacy-access-token')
+test('a newly loaded module reads the existing sessionStorage access token', async () => {
+  sessionStorage.setItem('mindot.accessToken', 'stored-access-token')
+  const reloaded = await import('../auth/tokenStorage.js?reload-test')
 
-  assert.equal(getAccessToken(), null)
-  assert.equal(sessionStorage.getItem('mindot.accessToken'), null)
+  assert.equal(reloaded.getAccessToken(), 'stored-access-token')
+  assert.equal(sessionStorage.getItem('mindot.accessToken'), 'stored-access-token')
 })
 
 test('successful login stores the returned access token', async () => {
@@ -73,11 +74,11 @@ test('successful login stores the returned access token', async () => {
   })
 
   assert.equal(getAccessToken(), 'login-access-token')
-  assert.equal(sessionStorage.getItem('mindot.accessToken'), null)
+  assert.equal(sessionStorage.getItem('mindot.accessToken'), 'login-access-token')
   assert.equal(localStorage.getItem('mindot.accessToken'), null)
 })
 
-test('authentication restore keeps refreshed access token in memory only', async () => {
+test('authentication restore stores the refreshed access token in sessionStorage', async () => {
   let refreshCalls = 0
   const authApi = createAuthApi({
     post: async (url) => {
@@ -94,7 +95,7 @@ test('authentication restore keeps refreshed access token in memory only', async
 
   assert.equal(refreshCalls, 1)
   assert.equal(getAccessToken(), 'restored-access-token')
-  assert.equal(sessionStorage.getItem('mindot.accessToken'), null)
+  assert.equal(sessionStorage.getItem('mindot.accessToken'), 'restored-access-token')
 })
 
 test('signup sends the backend account contract without storing a token', async () => {
@@ -175,6 +176,7 @@ test('concurrent 401 responses share one refresh and retry once', async () => {
   assert.equal(refreshCalls, 1)
   assert.equal(apiCalls, 4)
   assert.equal(getAccessToken(), 'renewed-token')
+  assert.equal(sessionStorage.getItem('mindot.accessToken'), 'renewed-token')
 })
 
 test('refresh failure clears access token without retrying refresh', async () => {

@@ -11,7 +11,7 @@ type ApiResolver = (
   url: URL,
 ) => ApiMockResult | undefined | Promise<ApiMockResult | undefined>
 
-// E2E 인증 상태는 브라우저 저장소의 토큰 대신 Refresh Token 쿠키 흐름을 모사.
+// 기본 인증 fixture는 빈 저장소에서 Refresh Token 쿠키를 통한 복구를 모사.
 const authenticatedPages = new WeakMap<Page, string>()
 
 const emptyPage = {
@@ -26,7 +26,6 @@ export async function useGuestSession(page: Page) {
   authenticatedPages.delete(page)
   await page.addInitScript(() => {
     window.localStorage.setItem('mindot.appIntroShown', 'true')
-    window.sessionStorage.clear()
   })
 }
 
@@ -37,26 +36,18 @@ export async function useAuthenticatedSession(
   authenticatedPages.set(page, role)
   await page.addInitScript(() => {
     window.localStorage.setItem('mindot.appIntroShown', 'true')
-    window.sessionStorage.clear()
   })
 }
 
 export async function mockApi(page: Page, resolver?: ApiResolver) {
   let bootstrapRole = authenticatedPages.get(page) ?? null
 
-  // 실제 회전된 Refresh Token 쿠키처럼 새 문서를 불러올 때마다 복구를 허용.
-  page.on('framenavigated', (frame) => {
-    if (frame === page.mainFrame()) {
-      bootstrapRole = authenticatedPages.get(page) ?? null
-    }
-  })
-
   await page.route('http://localhost:8080/api/**', async (route) => {
     const request = route.request()
     const url = new URL(request.url())
     let overridden: ApiMockResult | undefined
 
-    // 앱 시작 시에는 HttpOnly 쿠키를 받은 서버처럼 메모리용 토큰을 한 번 발급.
+    // 저장 토큰이 없는 앱 시작 시 HttpOnly 쿠키를 받은 서버처럼 토큰을 발급.
     if (
       bootstrapRole
       && url.pathname === '/api/auth/refresh'
@@ -95,6 +86,11 @@ export async function mockApi(page: Page, resolver?: ApiResolver) {
         && request.method() === 'GET'
       ) {
         response = { body: { ...emptyPage, size: Number(url.searchParams.get('size') ?? 5) } }
+      } else if (
+        url.pathname === '/api/reflections/completed'
+        && request.method() === 'GET'
+      ) {
+        response = { body: { ...emptyPage, size: Number(url.searchParams.get('size') ?? 10) } }
       } else if (
         url.pathname === '/api/reflections/open'
         && request.method() === 'GET'

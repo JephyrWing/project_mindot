@@ -37,21 +37,54 @@ test.describe('FE-AUTO-001: 라우팅·권한', () => {
     await expect(page.getByRole('heading', { name: '오늘의 마음은 어떤가요?' })).toBeVisible()
   })
 
+  test('경계: AT가 없으면 인증 복구를 기다리고 발급된 AT를 sessionStorage에 저장한다', async ({ page }) => {
+    await useGuestSession(page)
+    let release!: () => void
+    const gate = new Promise<void>(resolve => { release = resolve })
+    let calls = 0
+    await mockApi(page, async (_request, url) => {
+      if (url.pathname === '/api/auth/refresh') {
+        calls += 1
+        await gate
+        return { body: { accessToken: 'restored-test-token', userRole: 'ROLE_USER' } }
+      }
+    })
+    await page.goto('/records')
+    try {
+      await expect(page.getByRole('status')).toHaveText('로그인 상태를 확인하고 있습니다.')
+      await expect(page.getByRole('heading', { name: '감정 기록 목록' })).toHaveCount(0)
+      expect(await page.evaluate(() => sessionStorage.getItem('mindot.accessToken'))).toBeNull()
+      expect(calls).toBe(1)
+    } finally { release() }
+    await expect(page.getByRole('heading', { name: '감정 기록 목록' })).toBeVisible()
+    expect(await page.evaluate(() => sessionStorage.getItem('mindot.accessToken'))).toBe('restored-test-token')
+  })
+
   test('성공: 로그인 사용자의 보호 URL 직접 접근과 새로고침을 복원한다', async ({ page }) => {
     await useAuthenticatedSession(page)
+    let refreshCalls = 0
+    const authorization: string[] = []
+    page.on('request', request => {
+      if (new URL(request.url()).pathname === '/api/auth/refresh') refreshCalls += 1
+      if (new URL(request.url()).pathname === '/api/records') authorization.push(request.headers()['authorization'])
+    })
     await mockApi(page)
     await page.goto('/records')
     await expect(page).toHaveURL('/records')
     await expect(page.getByRole('heading', { name: '감정 기록 목록' })).toBeVisible()
     expect(await page.evaluate(() => (
       window.sessionStorage.getItem('mindot.accessToken')
-    ))).toBeNull()
+    ))).toBe('playwright-access-token')
     await page.reload()
     await expect(page).toHaveURL('/records')
     await expect(page.getByRole('heading', { name: '감정 기록 목록' })).toBeVisible()
     expect(await page.evaluate(() => (
       window.sessionStorage.getItem('mindot.accessToken')
-    ))).toBeNull()
+    ))).toBe('playwright-access-token')
+    expect(refreshCalls).toBe(1)
+    expect(authorization.length).toBeGreaterThanOrEqual(2)
+    expect(authorization.every(value => value === 'Bearer playwright-access-token')).toBe(true)
+    expect(await page.evaluate(() => localStorage.getItem('mindot.accessToken'))).toBeNull()
   })
 })
 

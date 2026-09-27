@@ -184,6 +184,8 @@ test('CBT만 있는 주는 감정 0건을 표시하고 완료 CBT 상세와 선�
   await page.reload()
   await page.getByRole('button', { name: '주간 리포트로 돌아가기' }).click()
   await expect(page).toHaveURL(`/reports/weekly?weekStart=${start}`)
+  await expect(page.getByLabel('시작일')).toHaveValue(start)
+  await expect(page.getByLabel('종료일')).toHaveValue('2026-09-20')
 })
 
 test('프로필 시간대 조회 실패도 빈 주로 처리하지 않고 다시 조회한다', async ({ page }) => {
