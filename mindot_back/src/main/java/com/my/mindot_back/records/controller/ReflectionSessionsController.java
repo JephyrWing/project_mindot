@@ -77,6 +77,13 @@ public class ReflectionSessionsController {
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "10") @Min(1) @Max(50) int size
     ) {return existing.getCompletedSessions(user, page, size);}
+
+    // 페이지 범위 위반은 잘못된 요청이며 서버 장애(500)가 아니다.
+    @ExceptionHandler(jakarta.validation.ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public java.util.Map<String, Object> invalidPage(jakarta.validation.ConstraintViolationException exception) {
+        return java.util.Map.of("status", 400, "message", "페이지는 0 이상, 크기는 1~50이어야 합니다.");
+    }
     @PostMapping("/{sid}/retry-embedding")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void retryEmbedding(@AuthenticationPrincipal Long user,@PathVariable Long sid) {existing.retryEmbedding(user,sid);}

@@ -51,6 +51,9 @@ jobs:
       - name: Run frontend Playwright tests
         run: npx playwright test
 
+      - name: Verify sessionStorage authentication and refresh
+        run: npm run test:auth
+
       - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
@@ -81,7 +84,7 @@ jobs:
       - name: Check Docker for Testcontainers
         run: docker info
 
-      # Test report Back sheet: BE-FUNC-001 through BE-FUNC-032.
+      # Test report Back sheet: BE-FUNC-001 through BE-FUNC-037.
       # AiConsentGateIntegrationTest is declared in AiConcentGateTntegrationTest.java.
       - name: Run documented backend tests
         run: >-
@@ -118,6 +121,14 @@ jobs:
           --tests com.my.mindot_back.notifications.NotificationInboxApiTest
           --tests com.my.mindot_back.centers.CenterSearchApiTest
           --tests com.my.mindot_back.stt.controller.SpeechToTextApiTest
+          --tests com.my.mindot_back.records.controller.EmotionRecordMissingQuestionsApiTest
+          --tests com.my.mindot_back.records.controller.EmotionRecordRejectApiTest
+          --tests com.my.mindot_back.dailycare.DailyCareRecommendationIntegrationTest
+          --tests com.my.mindot_back.insights.EmotionInsightsApiIntegrationTest
+          --tests com.my.mindot_back.reports.PersonalPatternApiIntegrationTest
+          --tests com.my.mindot_back.reports.service.ReportEmotionDataTest
+          --tests com.my.mindot_back.reports.service.ReportPdfChartsTest
+          --tests com.my.mindot_back.reports.service.MonthlyReportsServiceTest
 
       - name: Upload backend test reports
         if: always()

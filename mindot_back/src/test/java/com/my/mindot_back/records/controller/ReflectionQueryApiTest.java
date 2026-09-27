@@ -59,6 +59,12 @@ class ReflectionQueryApiTest
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private jakarta.persistence.EntityManager entityManager;
+
     private Users user;
     private Users otherUser;
     private String accessToken;
@@ -214,17 +220,17 @@ class ReflectionQueryApiTest
     @Test
     void completedListReturnsOnlyOwnersConfirmedCompletedSessions()
             throws Exception {
-        createCompletedSession(
+        var first = createCompletedSession(
                 user,
                 "완료한 내 성찰 기록",
                 "다른 관점으로 다시 확인해 볼 수 있다"
         );
-        createCompletedSession(
+        var second = createCompletedSession(
                 user,
                 "두 번째 완료 성찰",
                 "두 번째 대안적 생각"
         );
-        createCompletedSession(
+        var third = createCompletedSession(
                 user,
                 "세 번째 완료 성찰",
                 "세 번째 대안적 생각"
@@ -234,6 +240,23 @@ class ReflectionQueryApiTest
                 "다른 사용자의 완료 성찰",
                 "다른 사용자의 결과"
         );
+
+        var unconfirmed = createCompletedSession(user, "미확정 완료 제외", "검증용 결과");
+        // SQL로 바꾼 검증 데이터를 영속성 컨텍스트의 이전 상태로 덮어쓰지 않도록 분리.
+        entityManager.flush();
+        entityManager.clear();
+        for (var item : List.of(first, second, third)) {
+            int index = List.of(first, second, third).indexOf(item);
+            jdbcTemplate.update("UPDATE reflection_sessions SET completed_at = ? WHERE id = ?",
+                    java.sql.Timestamp.from(Instant.parse("2026-09-21T00:00:00Z").plusSeconds(index)), item.getId());
+        }
+        jdbcTemplate.update("UPDATE reflection_sessions SET user_confirmed = false WHERE id = ?", unconfirmed.getId());
+        mockMvc.perform(get("/api/reflections/completed").param("page", "0").param("size", "2")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].sessionId").value(third.getId()))
+                .andExpect(jsonPath("$.content[1].sessionId").value(second.getId()))
+                .andExpect(jsonPath("$.totalElements").value(3));
 
         mockMvc.perform(
                         get("/api/reflections/completed")
@@ -250,7 +273,7 @@ class ReflectionQueryApiTest
                 .andExpect(jsonPath("$.totalPages").value(2))
                 .andExpect(
                         jsonPath("$.content[0].sessionId")
-                                .isNumber()
+                                .value(first.getId())
                 )
                 .andExpect(
                         jsonPath("$.content[0].emotionRecordId")
@@ -262,6 +285,21 @@ class ReflectionQueryApiTest
                 )
                 .andExpect(jsonPath("$.content[0].alternativeThoughtText").isNotEmpty())
                 .andExpect(jsonPath("$.content[0].completedAt").exists());
+    }
+
+    @Test
+    void pagedListsValidateBoundsAuthenticationAndEmptyPage() throws Exception {
+        for (String path : List.of("/api/reflections/open/paged", "/api/reflections/completed")) {
+            mockMvc.perform(get(path)).andExpect(status().isUnauthorized());
+            for (String[] invalid : List.of(new String[]{"page", "-1"}, new String[]{"size", "0"}, new String[]{"size", "51"})) {
+                mockMvc.perform(get(path).param(invalid[0], invalid[1])
+                                .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                        .andExpect(status().isBadRequest());
+            }
+            mockMvc.perform(get(path).param("page", "100").param("size", "50")
+                            .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.content").isEmpty());
+        }
     }
 
     @Test

@@ -22,6 +22,32 @@ test.describe('FE-AUTO-018: 상담 PDF', () => {
     await expect(page.getByRole('alert')).toHaveText('시작일과 종료일을 모두 선택해 주세요.')
   })
 
+  test('성공: 선택 주 변경과 새로고침은 PDF 기본 기간을 복원하고 현재 주 종료일은 오늘로 제한한다', async ({ page }) => {
+    await expect(page.getByLabel('시작일')).toHaveValue('2026-09-14')
+    await expect(page.getByLabel('종료일')).toHaveValue('2026-09-18')
+    await page.getByLabel('날짜 직접 선택').check()
+    await page.getByLabel('추가할 날짜').fill('2026-09-10')
+    await page.getByRole('button', { name: '날짜 추가', exact: true }).click()
+    await page.getByRole('button', { name: /이전 주/ }).click()
+    await expect(page.getByLabel('시작일')).toHaveValue('2026-09-07')
+    await expect(page.getByLabel('종료일')).toHaveValue('2026-09-13')
+    await page.reload()
+    await expect(page.getByLabel('시작일')).toHaveValue('2026-09-07')
+    await page.getByLabel('날짜 직접 선택').check()
+    await expect(page.getByRole('list', { name: 'PDF에 포함할 선택 날짜' })).toHaveCount(0)
+  })
+
+  for (const status of [409, 422]) {
+    test(`경계: PDF 데이터 없음 ${status} 응답을 일반 장애와 구분한다`, async ({ page }) => {
+      await mockApi(page, (_request, url) => {
+        if (url.pathname === '/api/reports/weekly') return { body: weeklyReport() }
+        if (url.pathname === '/api/reports/export/pdf') return { status, body: {} }
+      })
+      await page.getByRole('button', { name: '선택한 내용 PDF로 저장' }).click()
+      await expect(page.getByRole('alert')).toHaveText('선택한 기간에 PDF로 내보낼 감정 기록 또는 완료한 CBT 성찰이 없습니다.')
+    })
+  }
+
   test('경계: 종료일이 시작일보다 빠르면 안내한다', async ({ page }) => {
     await page.getByLabel('시작일').fill('2026-09-10')
     await page.getByLabel('종료일').fill('2026-09-09')

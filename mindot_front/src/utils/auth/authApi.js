@@ -8,7 +8,7 @@ import {
 // 프론트에서 허용할 소셜 로그인 제공자 경로 목록 설정.
 const supportedSocialProviders = new Set(['kakao', 'google'])
 
-// 로그인 응답의 Access Token은 메모리에, 회원 권한은 현재 브라우저 세션에 저장.
+// 로그인 응답의 Access Token과 회원 권한을 현재 탭의 sessionStorage에 저장.
 const saveAuthentication = (data) => {
   if (typeof data?.accessToken !== 'string' || !data.accessToken) {
     clearAuthSession()
@@ -53,7 +53,7 @@ export const createAuthApi = (client) => {
       return data
     },
 
-    // 새로고침으로 비워진 메모리 토큰을 HttpOnly Refresh Token 쿠키로 복구.
+    // 저장된 Access Token이 없는 경우 HttpOnly Refresh Token 쿠키로 복구.
     restoreAuthentication: async () => {
       if (!restorePromise) {
         restorePromise = client
