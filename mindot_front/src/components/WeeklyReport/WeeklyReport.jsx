@@ -68,6 +68,9 @@ const getPdfExportErrorMessage = (error) => {
   if (error.response.status === 404) {
     return 'PDF를 생성할 사용자 정보를 찾을 수 없습니다.'
   }
+  if ([409, 422].includes(error.response.status)) {
+    return '선택한 기간에 PDF로 내보낼 감정 기록 또는 완료한 CBT 성찰이 없습니다.'
+  }
 
   return 'PDF 파일을 만들지 못했습니다. 잠시 후 다시 시도해 주세요.'
 }
@@ -138,6 +141,16 @@ function WeeklyReport({
     label: `${selectedStart} ~ ${addDays(selectedStart, 6)}` }
   const todayDate = dateInZone(new Date(), timezone)
 
+  // URL의 선택 주가 바뀌거나 상세 화면에서 돌아오면 PDF 기본 날짜도 같은 주로 맞춘다.
+  useEffect(() => {
+    setPdfSelectionMode('range')
+    setPdfStartDate(selectedStart)
+    setPdfEndDate(addDays(selectedStart, 6) > todayDate ? todayDate : addDays(selectedStart, 6))
+    setPdfSelectedDates([])
+    setExportError('')
+    setExportMessage('')
+  }, [selectedStart, todayDate])
+
   // Load profile timezone and a single, internally consistent report snapshot.
   useEffect(() => {
     let active = true
@@ -186,7 +199,9 @@ function WeeklyReport({
 
   const handleWeekMove = (days) => {
     setShowCompletedCbtList(false)
-    onWeekChange(addDays(selectedStart, days * 7))
+    const nextWeekStart = addDays(selectedStart, days * 7)
+
+    onWeekChange(nextWeekStart)
   }
   const handleReportRefresh = () => {
     if (isRefreshing || isLoading) return

@@ -592,4 +592,5 @@ gradle-app.setting
 # Local generated seed packages, vectors, caches and verification outputs.
 /artifacts/
 
+/infra/secrets/
 # End of https://www.toptal.com/developers/gitignore/api/intellij+all,java,python,venv,react,node,gradle,dotenv,linux,windows,pycharm+all

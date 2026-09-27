@@ -10,6 +10,9 @@ import com.my.mindot_back.records.repository.ReflectionSessionsRepository;
 import com.my.mindot_back.safety.service.SafetyEventsService;
 import com.my.mindot_back.users.service.ConsentEventsService;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -396,6 +399,33 @@ public class ReflectionSessionsService {
         return openSessions.stream()
                 .map(OpenReflectionSessionResponseDto::from)
                 .toList();
+    }
+
+    // 로그인 사용자의 진행 중인 CBT 성찰 페이지 조회
+    @Transactional(readOnly = true)
+    public Page<OpenReflectionSessionResponseDto> getOpenSessionsPage(Long userId, int page, int size) {
+        return reflectionSessionsRepository
+                .findAllByUser_IdAndStatus(
+                        userId,
+                        ReflectionSessionStatus.OPEN,
+                        PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt").and(Sort.by(Sort.Direction.DESC, "id")))
+                )
+                .map(OpenReflectionSessionResponseDto::from);
+    }
+    // 로그인 사용자가 최종 확인한 완료 CBT 성찰 목록 조회
+    @Transactional(readOnly = true)
+    public Page<CompletedReflectionSessionResponseDto> getCompletedSessions(
+            Long userId,
+            int page,
+            int size
+    ) {
+        return reflectionSessionsRepository
+                .findAllByUser_IdAndStatusAndUserConfirmedTrue(
+                        userId,
+                        ReflectionSessionStatus.COMPLETED,
+                        PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "completedAt"))
+                )
+                .map(CompletedReflectionSessionResponseDto::from);
     }
 
 }
