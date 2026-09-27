@@ -23,6 +23,8 @@ import com.my.mindot_back.users.repository.ConsentEventsRepository;
 import com.my.mindot_back.users.repository.UsersRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -71,6 +73,9 @@ class ReflectionConfirmFlowTest
 
     @Autowired
     private AiJobsRepository aiJobsRepository;
+
+    @Autowired
+    private com.my.mindot_back.reports.service.WeeklyReportsService weeklyReportsService;
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
@@ -446,6 +451,84 @@ class ReflectionConfirmFlowTest
                 .isZero();
         assertThat(aiJobsRepository.count())
                 .isZero();
+    }
+
+    @Test
+    void comparisonChangesReachWeeklyReportAndSurviveDetailReload() throws Exception {
+        var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        var body = (com.fasterxml.jackson.databind.node.ObjectNode) mapper.readTree(comparisonConfirmJson());
+        ((com.fasterxml.jackson.databind.node.ArrayNode) body.get("afterDistortions"))
+                .addObject().put("code", "OVERGENERALIZATION").put("reviewStatus", "CONFIRMED");
+        mockMvc.perform(post("/api/reflections/{id}/confirm", session.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .header("Idempotency-Key", "comparison-report")
+                        .header(HttpHeaders.IF_MATCH, "\"5\"")
+                        .contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(body)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.confirmedResult.distortionChanges.removed[0]").value("ALL_OR_NOTHING_THINKING"))
+                .andExpect(jsonPath("$.confirmedResult.distortionChanges.persisted[0]").value("OVERGENERALIZATION"))
+                .andExpect(jsonPath("$.confirmedResult.distortionChanges.new[0]").value("MIND_READING"));
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/reflections/{id}", session.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.confirmedResult.distortionChanges.persisted[0]").value("OVERGENERALIZATION"));
+        var week = java.time.LocalDate.now(java.time.ZoneId.of(user.getTimezone()))
+                .with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
+        var report = weeklyReportsService.generateWeeklyReport(user.getId(), week);
+        assertThat(report.distortionChangeCounts().get("REMOVED"))
+                .containsExactlyEntriesOf(Map.of("ALL_OR_NOTHING_THINKING", 1L));
+        assertThat(report.distortionChangeCounts().get("PERSISTED"))
+                .containsExactlyEntriesOf(Map.of("OVERGENERALIZATION", 1L));
+        assertThat(report.distortionChangeCounts().get("NEW"))
+                .containsExactlyEntriesOf(Map.of("MIND_READING", 1L));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"missing-before", "missing-after", "duplicate", "unknown", "unconfirmed", "mismatch"})
+    void invalidComparisonDoesNotPartiallyConfirm(String scenario) throws Exception {
+        var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        var body = (com.fasterxml.jackson.databind.node.ObjectNode) mapper.readTree(comparisonConfirmJson());
+        var before = (com.fasterxml.jackson.databind.node.ArrayNode) body.get("beforeDistortions");
+        var after = (com.fasterxml.jackson.databind.node.ArrayNode) body.get("afterDistortions");
+        switch (scenario) {
+            case "missing-before" -> body.remove("beforeDistortions");
+            case "missing-after" -> body.remove("afterDistortions");
+            case "duplicate" -> before.add(before.get(0).deepCopy());
+            case "unknown" -> ((com.fasterxml.jackson.databind.node.ObjectNode) after.get(0)).put("code", "UNKNOWN_TEST_CODE");
+            case "unconfirmed" -> ((com.fasterxml.jackson.databind.node.ObjectNode) after.get(0)).put("reviewStatus", "REJECTED");
+            case "mismatch" -> before.removeAll();
+            default -> throw new IllegalArgumentException(scenario);
+        }
+        mockMvc.perform(post("/api/reflections/{id}/confirm", session.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .header("Idempotency-Key", "invalid-comparison-" + scenario)
+                        .header(HttpHeaders.IF_MATCH, "\"5\"")
+                        .contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(body)))
+                .andExpect(status().isConflict());
+        assertThat(reflectionSessionsRepository.findById(session.getId()).orElseThrow().getStatus())
+                .isEqualTo(ReflectionSessionStatus.OPEN);
+        assertThat(sessionDistortionsRepository.count()).isZero();
+        assertThat(aiJobsRepository.count()).isZero();
+    }
+
+    @Test
+    void explicitEmptyComparisonAcceptsNoSelectedLabels() throws Exception {
+        var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        var body = (com.fasterxml.jackson.databind.node.ObjectNode) mapper.readTree(comparisonConfirmJson());
+        body.putArray("beforeDistortions");
+        body.putArray("afterDistortions");
+        for (var review : body.get("reviews")) ((com.fasterxml.jackson.databind.node.ObjectNode) review).put("reviewStatus", "REJECTED");
+        mockMvc.perform(post("/api/reflections/{id}/confirm", session.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearer(accessToken))
+                        .header("Idempotency-Key", "empty-comparison")
+                        .header(HttpHeaders.IF_MATCH, "\"5\"")
+                        .contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(body)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.confirmedResult.beforeDistortions").isEmpty())
+                .andExpect(jsonPath("$.confirmedResult.afterDistortions").isEmpty())
+                .andExpect(jsonPath("$.confirmedResult.distortionChanges.removed").isEmpty())
+                .andExpect(jsonPath("$.confirmedResult.distortionChanges.persisted").isEmpty())
+                .andExpect(jsonPath("$.confirmedResult.distortionChanges.new").isEmpty());
     }
 
     private EmotionRecords createCompleteRecord(

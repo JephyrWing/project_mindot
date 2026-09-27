@@ -61,7 +61,7 @@ test.describe('FE-AUTO-004: 로그인', () => {
 test.describe('FE-AUTO-005: 인증 세션', () => {
   test('성공: 동시에 발생한 401을 한 번의 재발급으로 복구해 두 화면 데이터를 표시한다', async ({ page }) => {
     await useAuthenticatedSession(page)
-    const firstUnauthorized = new Set(['/api/records', '/api/reflections/open'])
+    const firstUnauthorized = new Set(['/api/records', '/api/reflections/open/paged'])
     let refreshCalls = 0
     let releaseRefresh!: () => void
     const refreshPending = new Promise<void>((resolve) => { releaseRefresh = resolve })
@@ -87,8 +87,8 @@ test.describe('FE-AUTO-005: 인증 세션', () => {
           body: { content: [], page: 0, size: 3, totalElements: 0, totalPages: 0 },
         }
       }
-      if (url.pathname === '/api/reflections/open' && request.method() === 'GET') {
-        return { body: [openReflection({ rawText: '재발급 후 복원한 CBT' })] }
+      if (url.pathname === '/api/reflections/open/paged' && request.method() === 'GET') {
+        return { body: { content: [openReflection({ rawText: '재발급 후 복원한 CBT' })], totalElements: 1, totalPages: 1 } }
       }
     })
 
@@ -100,6 +100,10 @@ test.describe('FE-AUTO-005: 인증 세션', () => {
       releaseRefresh()
     }
     await expect(page.getByText('아직 작성한 감정 기록이 없습니다.')).toBeVisible()
+    await expect(page.getByText('재발급 후 복원한 CBT')).toBeVisible()
+    expect(refreshCalls).toBe(1)
+    expect(await page.evaluate(() => sessionStorage.getItem('mindot.accessToken'))).toBe('shared-refreshed-token')
+    await page.reload()
     await expect(page.getByText('재발급 후 복원한 CBT')).toBeVisible()
     expect(refreshCalls).toBe(1)
   })
@@ -134,6 +138,7 @@ test.describe('FE-AUTO-005: 인증 세션', () => {
     await page.goto('/records')
     await expect(page).toHaveURL('/')
     await expect(page.getByRole('dialog', { name: '로그인이 필요한 서비스입니다' })).toBeVisible()
+    expect(await page.evaluate(() => sessionStorage.getItem('mindot.accessToken'))).toBeNull()
   })
 
   test('오류: 권한이 없는 상세 화면은 접근 제한을 안내한다', async ({ page }) => {
@@ -174,6 +179,7 @@ test.describe('FE-AUTO-005: 인증 세션', () => {
     await expect(page.getByRole('heading', { name: '오늘의 마음은 어떤가요?' })).toBeVisible()
     await page.getByRole('button', { name: '메뉴 열기' }).click()
     await expect(page.getByRole('button', { name: '로그인' })).toBeVisible()
+    expect(await page.evaluate(() => sessionStorage.getItem('mindot.accessToken'))).toBeNull()
   })
 
   test('오류: 로그아웃 API 실패에도 로컬 로그인 상태를 정리한다', async ({ page }) => {
@@ -188,5 +194,6 @@ test.describe('FE-AUTO-005: 인증 세션', () => {
     await page.getByRole('button', { name: '로그아웃' }).click()
     await page.getByRole('button', { name: '메뉴 열기' }).click()
     await expect(page.getByRole('button', { name: '로그인' })).toBeVisible()
+    expect(await page.evaluate(() => sessionStorage.getItem('mindot.accessToken'))).toBeNull()
   })
 })
