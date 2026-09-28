@@ -1,11 +1,12 @@
 .weekly-scatter, .weekly-emotion-distributions { margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--mindot-border); }
+.weekly-scatter { container-type: inline-size; }
 .weekly-scatter header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
 .weekly-scatter h2, .weekly-emotion-distributions h2 { font-size: 18px; margin: 0; }
 .weekly-scatter header > span, .weekly-chart-guide { color: var(--mindot-text-muted); font-size: 13px; line-height: 1.7; }
 .weekly-scatter-layout { display: grid; grid-template-columns: minmax(0, 75%) minmax(0, 25%); align-items: start; }
 .weekly-scatter-filter { min-width: 0; margin: 45px 0 0 14px; padding: 12px; border: 1px solid var(--mindot-border); border-radius: 12px; background: #f8faff; }
 .weekly-scatter-filter legend { float: none; width: auto; padding: 0 4px; margin: 0; font-size: 13px; font-weight: 700; }
-.weekly-scatter-filter-option { display: flex; align-items: center; gap: 7px; min-height: 44px; margin-top: 6px; padding: 6px 8px; border: 1px solid transparent; border-radius: 8px; font-size: 13px; cursor: pointer; }
+.weekly-scatter-filter-option { display: flex; align-items: center; gap: 7px; min-height: 44px; margin-top: 6px; padding: 6px 8px; border: 1px solid transparent; border-radius: 8px; font-size: 13px; white-space: nowrap; cursor: pointer; }
 .weekly-scatter-filter-option input { accent-color: var(--mindot-primary); flex-shrink: 0; }
 .weekly-scatter-filter-option:has(input:checked) { background: #e9f1ff; border-color: #b5cdf5; }
 .weekly-scatter-filter-option.is-negative:has(input:checked) { background: #fff0f3; border-color: #ffb8c5; }
@@ -45,12 +46,15 @@
 .weekly-stacked-track { height: 14px; margin-top: 7px; background: #f0f2f5; border-radius: 4px; overflow: hidden; }
 .weekly-stacked-bar { display: flex; height: 100%; }
 .weekly-stacked-counts { margin: 5px 0 0; font-size: 11px; line-height: 1.6; color: var(--mindot-text-muted); overflow-wrap: anywhere; }
-@media (max-width: 560px) {
+/* 차트의 실제 가용 너비가 좁아지면 필터를 위로 옮겨 감정 이름의 줄바꿈 방지. */
+@container (max-width: 700px) {
   .weekly-scatter-layout { display: flex; flex-direction: column; }
   .weekly-scatter-frame { width: 100%; box-sizing: border-box; }
   .weekly-scatter-filter { order: -1; width: 100%; box-sizing: border-box; margin: 12px 0 0; display: flex; flex-wrap: wrap; gap: 4px; padding: 8px; }
-  .weekly-scatter-filter-option { flex: 1; justify-content: center; gap: 4px; margin: 0; padding: 6px 2px; font-size: 12px; white-space: nowrap; }
+  .weekly-scatter-filter-option { flex: 1 1 120px; justify-content: center; gap: 4px; margin: 0; padding: 6px 2px; font-size: 12px; }
   .weekly-scatter-filter p { flex-basis: 100%; margin: 6px 4px 0; }
+}
+@media (max-width: 560px) {
   .weekly-emotion-distribution-grid { grid-template-columns: 1fr; gap: 4px; }
   .weekly-scatter-frame { padding-right: 12px; padding-left: 42px; }
   .weekly-scatter-times { width: 36px; font-size: 10px; }
