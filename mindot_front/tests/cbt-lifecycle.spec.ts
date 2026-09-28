@@ -163,7 +163,12 @@ test.describe('FE-AUTO-015: 진행 중·완료 CBT 목록', () => {
       await nav.getByRole('button', { name: '이전', exact: true }).click()
       await expect(region.locator('.open-reflections-list button')).toHaveCount(10)
       await nav.getByRole('button', { name: '다음', exact: true }).click()
-      await region.locator('.open-reflections-list button').click()
+      // 페이지 응답과 렌더링이 끝난 뒤 두 번째 페이지의 마지막 기록을 선택한다.
+      await expect(region.locator('.open-reflections-list button')).toHaveCount(1)
+      await expect(nav).toContainText('2 / 2')
+      await region.locator('.open-reflections-list button').filter({
+        has: page.getByText(kind.completed ? '목록 검증 결과 11' : '목록 검증 기록 11', { exact: true }),
+      }).click()
       if (kind.completed) {
         await expect(page).toHaveURL('/reflections/110')
         await expect(page.getByRole('heading', { name: '완료된 CBT 결과' })).toBeVisible()
