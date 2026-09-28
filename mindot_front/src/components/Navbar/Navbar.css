@@ -1,5 +1,8 @@
-/* 모든 화면의 상단 네비게이션 높이와 내부 요소 배치를 동일하게 유지하는 설정. */
+/* 본문 공간을 유지하면서 스크롤 시에도 상단 네비게이션을 화면 위에 고정. */
 .app-navigation-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
   display: flex;
   width: 100%;
   height: calc(72px + env(safe-area-inset-top, 0px));
