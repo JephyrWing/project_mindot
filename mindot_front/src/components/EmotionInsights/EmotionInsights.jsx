@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Navbar from '../Navbar/Navbar.jsx'
 import { emotionLabel } from '../../utils/records/emotions.js'
+import { emotionColor } from '../../utils/records/emotionColors.js'
 import { getEmotionInsights } from '../../utils/insights/emotionInsightsApi.js'
 import './EmotionInsights.css'
 
@@ -51,38 +52,6 @@ const insightSections = [
     },
   },
 ]
-
-// 감정별 분포 구간을 일관된 색으로 구분하기 위한 팔레트 설정.
-const emotionColors = {
-  ANXIETY: '#376fd0',
-  FEAR: '#7658b5',
-  ANGER: '#c64f4f',
-  FRUSTRATION: '#c57835',
-  SADNESS: '#6482a9',
-  DISAPPOINTMENT: '#89718d',
-  SHAME: '#a15f7a',
-  GUILT: '#8a6a54',
-  LONELINESS: '#65748b',
-  JOY: '#df9c22',
-  RELIEF: '#42978a',
-  ACHIEVEMENT: '#2780a8',
-  CALM: '#4e9a60',
-  GRATITUDE: '#88752a',
-  EXCITEMENT: '#d36b38',
-  OTHER: '#718096',
-}
-const fallbackEmotionColors = ['#5079b8', '#8a68ad', '#b56d55', '#5c8c7a']
-
-// 사용자 정의 감정도 새로고침 후 같은 색을 사용하도록 문자열 기반 색상 선택.
-const getEmotionColor = (emotionCode) => {
-  if (emotionColors[emotionCode]) return emotionColors[emotionCode]
-
-  const hash = [...emotionCode].reduce(
-    (total, character) => total + character.codePointAt(0),
-    0,
-  )
-  return fallbackEmotionColors[hash % fallbackEmotionColors.length]
-}
 
 // API 오류 상태에 맞는 인사이트 조회 안내 문구 반환.
 const getInsightErrorMessage = (error) => {
@@ -158,7 +127,7 @@ function DistributionSection({ definition, insight }) {
                       key={item.code}
                       style={{
                         width: `${sampleCount > 0 ? (item.count / sampleCount) * 100 : 0}%`,
-                        backgroundColor: getEmotionColor(item.code),
+                        backgroundColor: emotionColor(item.code),
                       }}
                       title={`${item.label} ${item.count}개`}
                     />
@@ -168,7 +137,7 @@ function DistributionSection({ definition, insight }) {
                 <ul className="emotion-insights-legend" aria-label={`${groupLabel} 감정별 표본`}>
                   {emotionItems.map((item) => (
                     <li key={item.code}>
-                      <i style={{ backgroundColor: getEmotionColor(item.code) }} />
+                      <i style={{ backgroundColor: emotionColor(item.code) }} />
                       <span>{item.label}</span>
                       <strong>{item.count}개</strong>
                     </li>
